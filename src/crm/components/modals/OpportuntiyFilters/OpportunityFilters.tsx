@@ -2,7 +2,7 @@ import React, { useCallback, useEffect, useState } from "react";
 import {
   Client,
   DateFilter,
-  OpportunityInfo,
+  Opportunity,
   OpportunityOptionField,
   Status,
 } from "../../../types";
@@ -19,9 +19,9 @@ import FilterField from "../../FilterField/FilterField";
 import CheckBoxIcon from "@mui/icons-material/CheckBox";
 
 interface props {
-  allRows: OpportunityInfo[];
-  setRows: React.Dispatch<React.SetStateAction<OpportunityInfo[]>>;
-  columns: GridColDef<OpportunityInfo>[];
+  allRows: Opportunity[];
+  setRows: React.Dispatch<React.SetStateAction<Opportunity[]>>;
+  columns: GridColDef<Opportunity>[];
   dateFiltersActive: boolean;
   dateFilters: DateFilter[];
   handleChangeDateFilters: (
@@ -44,14 +44,13 @@ interface props {
   ) => void;
 }
 
-const createFilters = (columns: GridColDef<OpportunityInfo>[]) => {
+const createFilters = (columns: GridColDef<Opportunity>[]) => {
   return columns.reduce((acc: { [key: string]: any }, column) => {
     acc[column.field] = {
       label: column.headerName,
       dataKey: column.field,
       values: [], // Inicialmente vazio
     };
-
     return acc
   }, {});
 };
@@ -106,13 +105,13 @@ const OpportunityFilters = ({
 }: props) => {
   const filteredColumns = columns.filter((column) => {
     if (
-      column.field !== "dataSolicitacao" &&
-      column.field !== "dataFechamento" &&
-      column.field !== "dataInteracao" &&
-      column.field !== "dataInicio" &&
-      column.field !== "valorFaturamentoDolphin" &&
-      column.field !== "valorFaturamentoDireto" &&
-      column.field !== "valorTotal"
+      column.field !== "DATASOLICITACAO" &&
+      column.field !== "DATAENTREGA" &&
+      column.field !== "DATAINTERACAO" &&
+      column.field !== "DATAINICIO" &&
+      column.field !== "VALORFATDOLPHIN" &&
+      column.field !== "VALORFATDIRETO" &&
+      column.field !== "VALORTOTAL"
     ) {
       return true;
     }
@@ -205,17 +204,17 @@ const OpportunityFilters = ({
   };
 
   const filterRows = (currentFilters: any, valueReceived?: string) => {
-    console.log("filterRows");
-    const composedFilteredRow: OpportunityInfo[] = [];
+    console.log("currentFilters", currentFilters);
+    const composedFilteredRow: Opportunity[] = [];
     const filterKeys = Object.keys(currentFilters);
     allRows.forEach((opportunity) => {
-      let shouldInclude = true; // Assume que a linha deve ser incluída inicialmente
+      let shouldInclude = true; 
       for (let dataKey of filterKeys) {
         const filterValues = currentFilters[dataKey].values;
         if (filterValues.length > 0) {
           const oppIncludesValue = filterValues.some((filterValue: any) => {
             const searchTerm = String(filterValue).toUpperCase();
-            return opportunity[dataKey as keyof OpportunityInfo]
+            return opportunity[dataKey as keyof Opportunity]
               ?.toString()
               .toUpperCase()
               .includes(searchTerm);
@@ -232,9 +231,9 @@ const OpportunityFilters = ({
     });
 
     if (valueReceived) {
-      const filteredRows = composedFilteredRow.filter((row: OpportunityInfo) =>
+      const filteredRows = composedFilteredRow.filter((row: Opportunity) =>
         columns.some((column) => {
-          const cellValue = row[column.field as keyof OpportunityInfo];
+          const cellValue = row[column.field as keyof Opportunity];
           return (
             cellValue && String(cellValue).toLowerCase().includes(searchTerm)
           );
@@ -244,9 +243,9 @@ const OpportunityFilters = ({
       setRows(filteredRows);
       return;
     }
-    const filteredRows = composedFilteredRow.filter((row: OpportunityInfo) =>
+    const filteredRows = composedFilteredRow.filter((row: Opportunity) =>
       columns.some((column) => {
-        const cellValue = row[column.field as keyof OpportunityInfo];
+        const cellValue = row[column.field as keyof Opportunity];
         return (
           (cellValue && String(cellValue).toLowerCase().includes(searchTerm)) ||
           !searchTerm ||

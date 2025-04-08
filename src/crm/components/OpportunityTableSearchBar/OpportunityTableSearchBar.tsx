@@ -13,7 +13,7 @@ import React, { Dispatch, memo, SetStateAction,  useContext, useState } from "re
 import { defaultDateFilters } from "../../context/OpportunityInfoContext";
 import AddIcon from "@mui/icons-material/Add";
 import { GridColDef } from "@mui/x-data-grid";
-import { OpportunityInfo } from "../../types";
+import { Opportunity } from "../../types";
 import { BaseButtonStyles, buttonStylesMobile } from "../../../utilStyles";
 import TableViewToggleButton from "../../../components/TableViewToggleButton";
 import { useNavigate } from "react-router-dom";
@@ -22,10 +22,10 @@ import { styles } from "./OpportunityTableSearchBar.styles";
 import OpportunityFilters from "../modals/OpportuntiyFilters/OpportunityFilters";
 
 interface OpportunityTableSearchBarProps {
-  columns: GridColDef<OpportunityInfo>[];
-  rows: OpportunityInfo[];
-  allRows: OpportunityInfo[];
-  setRows: React.Dispatch<React.SetStateAction<OpportunityInfo[]>>;
+  columns: GridColDef<Opportunity>[];
+  rows: Opportunity[];
+  allRows: Opportunity[];
+  setRows: React.Dispatch<React.SetStateAction<Opportunity[]>>;
   setIsCardViewActive: Dispatch<SetStateAction<boolean>>;
   isCardViewActive: boolean;
   calculateLayoutProps: (registerCount: number) => void;

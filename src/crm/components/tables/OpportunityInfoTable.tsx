@@ -5,7 +5,7 @@ import { DataGrid } from "@mui/x-data-grid";
 import { FixedSizeGrid } from "react-window";
 import { Loader } from "../../../generalUtilities";
 import { OpportunityGridStyles } from "../../../utilStyles";
-import { OpportunityInfo } from "../../types";
+import { Opportunity } from "../../types";
 import CustomOpportunityRow from "../CustomOpportunityRow/CustomOpportunityRow";
 import { OpportunityModal } from "../modals/OpportunityModal/OpportunityModal";
 import OpportunityCard from "../OpportunityCard/OpportunityCard";
@@ -25,22 +25,21 @@ const theme = createTheme(
   corePtBr
 );
 
-const gridCardColumns: { headerName: string; field: keyof OpportunityInfo }[] = [
-  {
-    field: "numeroOs",
-    headerName: "Nº OS",
-  },
-  { field: "numeroProjeto", headerName: "Nº Projeto" },
-  { field: "numeroAdicional", headerName: "Nº Adicional" }, // os.ID_ADICIONAL
-  { field: "nomeDescricaoProposta", headerName: "Descrição" },
-  { field: "nomeCliente", headerName: "Cliente" },
-  {
-    field: "valorTotal",
-    headerName: "Valor Total",
-  },
-  { field: "nomeStatus", headerName: "Status" }, // s.NOME
-
-];
+// const gridCardColumns: { headerName: string; field: keyof Opportunity }[] = [
+//   {
+//     field: "numeroOs",
+//     headerName: "Nº OS",
+//   },
+//   { field: "numeroProjeto", headerName: "Nº Projeto" },
+//   { field: "numeroAdicional", headerName: "Nº Adicional" }, // os.ID_ADICIONAL
+//   { field: "nomeDescricaoProposta", headerName: "Descrição" },
+//   { field: "nomeCliente", headerName: "Cliente" },
+//   {
+//     field: "valorTotal",
+//     headerName: "Valor Total",
+//   },
+//   { field: "nomeStatus", headerName: "Status" }, // s.NOME
+// ];
 
 const OpportunityInfoTable: React.FC = () => {
   const {
@@ -102,7 +101,7 @@ const OpportunityInfoTable: React.FC = () => {
             <DataGrid
               rows={rows}
               columns={columns}
-              getRowId={(row) => row.numeroOs}
+              getRowId={(row) => row.CODOS}
               rowHeight={36}
               density="compact"
               columnHeaderHeight={60}
@@ -110,6 +109,8 @@ const OpportunityInfoTable: React.FC = () => {
               autosizeOptions={{
                 expand: true,
               }}
+              //drag columns
+              
               showCellVerticalBorder
               showColumnVerticalBorder
               sx={{
@@ -126,27 +127,27 @@ const OpportunityInfoTable: React.FC = () => {
           </ThemeProvider>
         )}
 
-        {!isLoading && shouldShowGrid() && (
-          <FixedSizeGrid
-            columnCount={gridColumnsCount}
-            columnWidth={cardWidth} // Width of each column
-            height={gridOuterContainerHeight} // Height of the grid
-            rowCount={gridRowCount}
-            rowHeight={320} // Height of each row
-            width={gridColumnsCount * cardWidth + 20} // Width of the grid
-          >
-            {({ columnIndex, rowIndex, style }) => {
-              const itemIndex = rowIndex * gridColumnsCount + columnIndex;
-              return (
-                <OpportunityCard
-                  key={rows[itemIndex].numeroOs}
-                  row={rows[itemIndex]}
-                  gridCardColumns={gridCardColumns}
-                  style={style}
-                />
-              );
-            }}
-          </FixedSizeGrid>
+        {!isLoading && shouldShowGrid() && (<></>
+          // <FixedSizeGrid
+          //   columnCount={gridColumnsCount}
+          //   columnWidth={cardWidth} // Width of each column
+          //   height={gridOuterContainerHeight} // Height of the grid
+          //   rowCount={gridRowCount}
+          //   rowHeight={320} // Height of each row
+          //   width={gridColumnsCount * cardWidth + 20} // Width of the grid
+          // >
+          //   {({ columnIndex, rowIndex, style }) => {
+          //     const itemIndex = rowIndex * gridColumnsCount + columnIndex;
+          //     return (
+          //       <OpportunityCard
+          //         key={rows[itemIndex].CODOS}
+          //         row={rows[itemIndex]}
+          //         gridCardColumns={gridCardColumns}
+          //         style={style}
+          //       />
+          //     );
+          //   }}
+          // </FixedSizeGrid>
         )}
 
         {isLoading && <Loader />}

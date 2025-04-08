@@ -1,78 +1,78 @@
 import { ChecklistItemFile, MovementationChecklist } from "../Patrimony/types";
 import { Dispatch, MutableRefObject, SetStateAction } from "react";
 
-export interface OpportunityInfo {
-  numeroProjeto: number; // ID_PROJETO
-  numeroAdicional: number; // ID_ADICIONAL
-  nomeStatus: string; // nome_status
-  nomeCliente: string; // nome_cliente
-  nomeDescricaoProposta: string; // nome_descricao_proposta
-  dataSolicitacao: string | Date | null; // DATASOLICITACAO
-  dataFechamento: string | Date | null; // DATAENTREGA
-  dataInteracao: string | Date | null; // DATAINTERACAO
-  dataInicio: string | Date | null; // DATAINICIO
-  nomeVendedor: string; // nome_vendedor
-  nomeGerente: string; // nome_gerente
-  valorFaturamentoDolphin: string; // VALORFATDOLPHIN (FORMATADO)
-  valorFaturamentoDireto: string; // VALORFATDIRETO (FORMATADO)
-  valorTotal: string; // VALORTOTAL (FORMATADO)
-  numeroOs: number; // CODOS
-  dataInteracao_vencida? : number;
-  dataInteracao_a_vencer? : number;
-  dataInteracao_em_dia? : number;
-}
 
 export interface Opportunity {
-  codOs: number | null; // CODOS
-  codTipoOs?: number | null; // CODTIPOOS
-  codCCusto?: string | null; // CODCCUSTO
-  obra?: string | null; // OBRA
-  dataSolicitacao?: Date | string | null; // DATASOLICITACAO
-  dataNecessidade?: Date | string | null; // DATANECESSIDADE
-  docReferencia?: string | null; // DOCREFERENCIA
-  listaMateriais?: string | null; // LISTAMATERIAIS
-  dataInicio?: Date | string | null; // DATAINICIO
-  dataPrevEntrega?: Date | string | null; // DATAPREVENTREGA
-  dataEntrega?: Date | string | null; // DATAENTREGA
-  dataEnvioEntrega?: Date | string | null; // Data de envio da entrega
-  codStatus?: number | null; // CODSTATUS
-  nome: string | null; // NOME
-  descricao?: string | null; // DESCRICAO
-  atividades?: string | null; // ATIVIDADES
-  prioridade?: number | null; // PRIORIDADE
-  solicitante?: number | null; // SOLICITANTE
-  responsavel?: number | null; // RESPONSAVEL
-  codDisciplina?: number | null; // CODDISCIPLINA
-  gut?: number | null; // GUT
-  gravidade?: number | null; // da
-  urgencia?: number | null; // URGENCIA
-  tendencia?: number | null; // TENDENCIA
-  dataLiberacao?: Date | string | null; // DATALIBERACAO
-  relacionamento?: number | null; // RELACIONAMENTO
-  fkCodCliente?: number | string | null; // FK_CODCLIENTE
-  fkCodColigada: number | null; // FK_CODCOLIGADA
-  valorFatDireto?: number | null; // VALORFATDIRETO
-  valorServicoMO?: number | null; // VALORSERVICOMO
-  valorServicoMatAplicado?: number | null; // VALORSERVICOMATAPLICADO
-  valorMaterial?: number | null; // VALORMATERIAL
-  valorTotal?: number | null; // VALORTOTAL
-  codSegmento: number | null; // CODSEGMENTO
-  codCidade?: number | null; // CODCIDADE
-  valorLocacao?: number | null; // VALORLOCACAO
-  idAdicional: number | null; // ID_ADICIONAL
-  numeroAdicional: number | null; // Número adicional
-  idProjeto: number | null; // ID_PROJETO
-  dataInteracao?: Date | string | null; // DATAINTERACAO
-  valorFatDolphin: number | null; // VALORFATDOLPHIN
-  principal: boolean | null; // PRINCIPAL
-  valorComissao: number | null; // VALOR_COMISSAO
-  idMotivoPerdido: number | null; // id_motivo_perdido
-  observacoes?: string | null; // observacoes
-  descricaoVenda?: string | null; // DESCRICAO_VENDA
-  emailVendaEnviado?: boolean | null; // EMAIL_VENDA_ENVIADO
-  comentarios: Comentario[] | [];
-  files?: OpportunityFile [];
-  seguidores: Follower[]
+  CODOS: number;
+  CODTIPOOS: number;
+  CODCCUSTO: string;
+  OBRA: string;
+  DATASOLICITACAO: Date;
+  DATANECESSIDADE: Date | null;
+  DOCREFERENCIA: string | null;
+  LISTAMATERIAIS: string | null;
+  DATAINICIO: Date;
+  DATAPREVENTREGA: Date;
+  DATAENTREGA: Date;
+  CODSTATUS: number;
+  NOME: string;
+  DESCRICAO: string;
+  ATIVIDADES: string | null;
+  PRIORIDADE: number;
+  SOLICITANTE: number;
+  RESPONSAVEL: number;
+  CODDISCIPLINA: number;
+  GUT: number;
+  GRAVIDADE: number;
+  URGENCIA: number;
+  TENDENCIA: number;
+  DATALIBERACAO: Date | null;
+  RELACIONAMENTO: number;
+  FK_CODCLIENTE: string;
+  FK_CODCOLIGADA: number;
+  VALORFATDIRETO: number;
+  VALORSERVICOMO: number;
+  VALORSERVICOMATAPLICADO: number;
+  VALORMATERIAL: number;
+  VALORTOTAL: number;
+  CODSEGMENTO: number;
+  CODCIDADE: number;
+  VALORLOCACAO: number | null;
+  ID_ADICIONAL: number;
+  ID_PROJETO: number;
+  DATAINTERACAO: Date;
+  VALORFATDOLPHIN: number;
+  PRINCIPAL: boolean;
+  VALOR_COMISSAO: number;
+  id_motivo_perdido: number;
+  observacoes: string | null;
+  DESCRICAO_VENDA: string | null;
+  EMAIL_VENDA_ENVIADO: boolean;
+  status: { CODSTATUS: number; NOME: string; ACAO: number; ATIVO: boolean };
+  adicionais: {
+    ID: number;
+    NUMERO: number;
+    ID_PROJETO: number;
+  };
+  cliente: {
+    CODCOLIGADA: number;
+    CODCLIENTE: string;
+    NOMEFANTASIA: string;
+  };
+  projeto: {
+    ID: number;
+    DESCRICAO: string;
+    CODGERENTE: number;
+    ATIVO: number;
+    gerente: {
+      CODGERENTE: number;
+      NOME: string;
+    };
+  };
+  responsavel: {
+    CODPESSOA: number;
+    NOME: string;
+  };
 }
 
 export interface Field {
@@ -88,9 +88,7 @@ export interface Guide {
   fields: Field[];
 }
 
-
-
-export  interface ChecklistColumnData {
+export interface ChecklistColumnData {
   dataKey: keyof MovementationChecklist;
   label: string;
   numeric?: boolean;
@@ -172,19 +170,16 @@ export interface CardChecklistItemProps {
   isIOS: boolean;
   shouldShowFinalizeButton: boolean;
   handleSendChecklistItems: () => Promise<void>;
-  isMobile : boolean
+  isMobile: boolean
 }
 
-
-
-
-export interface Comentario{ 
-     email: string | number,
-     codOs : number | null,
-     criadoEm: Date | string | null,
-     criadoPor: string | null,
-     descricao: string | null,
-     codigoComentario: number  | null
+export interface Comentario {
+  email: string | number,
+  codOs: number | null,
+  criadoEm: Date | string | null,
+  criadoPor: string | null,
+  descricao: string | null,
+  codigoComentario: number | null
 }
 
 export interface DateFilter {
@@ -204,12 +199,11 @@ export interface Pessoa {
   NOME: string;
 }
 
-
- export interface Follower {   
-  id_seguidor_projeto : number;
-  id_projeto : number;
-  codpessoa : number;
-  ativo : number;
+export interface Follower {
+  id_seguidor_projeto: number;
+  id_projeto: number;
+  codpessoa: number;
+  ativo: number;
   nome: string;
 }
 export interface OpportunityColumn {
@@ -233,8 +227,8 @@ export interface OpportunityOptionField {
   key: number;
 }
 export interface OpportunityFile {
-       id_anexo_os : number,
-       codos : number,
-       nome_arquivo : string,
-       arquivo : string
+  id_anexo_os: number,
+  codos: number,
+  nome_arquivo: string,
+  arquivo: string
 }

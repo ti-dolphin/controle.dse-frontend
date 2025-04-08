@@ -4,6 +4,7 @@ import {
   GridFooterContainer,
   GridPagination,
   GridRowParams,
+  GridValueGetter,
 } from "@mui/x-data-grid";
 import {
   useContext,
@@ -16,7 +17,7 @@ import {
 import { formatDate } from "../../../generalUtilities";
 import { userContext } from "../../../Requisitions/context/userContext";
 import { OpportunityInfoContext } from "../../context/OpportunityInfoContext";
-import { OpportunityInfo } from "../../types";
+import { Opportunity } from "../../types";
 import { getOpportunities } from "../../utils";
 import {
   Error as ErrorIcon, // Vermelho - Vencida
@@ -25,45 +26,45 @@ import {
   Help as HelpIcon, // Cinza - Sem data
 } from "@mui/icons-material";
 
-const StatusIconCell = ({ row }: { row: OpportunityInfo }) => {
-  let icon = null;
-  let tooltip = "";
+// const StatusIconCell = ({ row }: { row: Opportunity }) => {
+//   let icon = null;
+//   let tooltip = "";
 
-  if (row.dataInteracao_vencida) {
-    icon = <ErrorIcon color="error" />;
-    tooltip = "Data vencida";
-  } else if (row.dataInteracao_a_vencer) {
-    icon = <WarningIcon color="warning" />;
-    tooltip = "A vencer (próximos 5 dias)";
-  } else if (row.dataInteracao_em_dia) {
-    icon = <CheckIcon color="success" />;
-    tooltip = "Em dia";
-  } else {
-    icon = <HelpIcon color="disabled" />;
-    tooltip = "Sem data definida";
-  }
+//   if (row.dataInteracao_vencida) {
+//     icon = <ErrorIcon color="error" />;
+//     tooltip = "Data vencida";
+//   } else if (row.dataInteracao_a_vencer) {
+//     icon = <WarningIcon color="warning" />;
+//     tooltip = "A vencer (próximos 5 dias)";
+//   } else if (row.dataInteracao_em_dia) {
+//     icon = <CheckIcon color="success" />;
+//     tooltip = "Em dia";
+//   } else {
+//     icon = <HelpIcon color="disabled" />;
+//     tooltip = "Sem data definida";
+//   }
 
-  return (
-    <Tooltip title={tooltip} arrow>
-      <div
-        style={{
-          display: "flex",
-          justifyContent: "center",
-          alignItems: "center",
-          height: "100%",
-        }}
-      >
-        {icon}
-      </div>
-    </Tooltip>
-  );
-};
+//   return (
+//     <Tooltip title={tooltip} arrow>
+//       <div
+//         style={{
+//           display: "flex",
+//           justifyContent: "center",
+//           alignItems: "center",
+//           height: "100%",
+//         }}
+//       >
+//         {icon}
+//       </div>
+//     </Tooltip>
+//   );
+// };
 
 const UseOpportunityInfoTable = () => {
   const windowWith = window.innerWidth;
   const { user } = useContext(userContext);
-  const [rows, setRows] = useState<OpportunityInfo[]>([]);
-  const [allRows, setAllRows] = useState<OpportunityInfo[]>([]);
+  const [rows, setRows] = useState<Opportunity[]>([]);
+  const [allRows, setAllRows] = useState<Opportunity[]>([]);
   const [isMobile, setIsMobile] = useState<boolean>(false);
   const [gridRowCount, setGridRowCount] = useState<number>(0);
   const [cardWidth, setCardWidth] = useState<number>(0);
@@ -78,80 +79,130 @@ const UseOpportunityInfoTable = () => {
     dateFilters,
     setCurrentOppIdSelected,
   } = useContext(OpportunityInfoContext);
-// dataInteracao_vencida? : number;
-//   dataInteracao_a_vencer? : number;
-//   dataInteracao_em_dia? : number;
 
-  const columns: GridColDef<OpportunityInfo>[] = useMemo(
+  const columns: GridColDef<Opportunity>[] = useMemo(
     () => [
+      //columns acordding to Opportunty
       {
-        field: "",
-        headerName: "Situação",
-        width: 100,
-        renderCell: (params) => <StatusIconCell row={params.row} />,
-        sortable: false,
-        filterable: false,
-      },
-      { field: "numeroProjeto", headerName: "Nº Projeto" }, // os.ID_PROJETO
-      { field: "numeroAdicional", headerName: "Nº Adicional" }, // os.ID_ADICIONAL
-      { field: "nomeStatus", headerName: "Status" }, // s.NOME
-      {
-        field: "nomeDescricaoProposta",
-        headerName: "Descrição",
-        editable: false,
-        cellClassName: "description-cell",
-      },
-      { field: "nomeCliente", headerName: "Cliente" }, // c.NOME
-      { field: "nomeVendedor", headerName: "Vendedor" }, // vendedor.NOME
-      { field: "nomeGerente", headerName: "Gerente" }, // gerente.NOME
-      {
-        field: "valorFaturamentoDolphin",
-        headerName: "Faturamento Dolphin",
-      },
-      {
-        field: "valorFaturamentoDireto",
-        headerName: "Faturamento Direto",
-      },
-      {
-        field: "valorTotal",
-        headerName: "Valor Total",
-      },
-      {
-        field: "dataSolicitacao",
-        headerName: "Solicitação",
-        valueFormatter: (value: Date) => {
-          if (value) return formatDate(value);
-          return "-";
-        },
-      },
-      {
-        field: "dataFechamento",
-        headerName: "Fechamento",
-        valueFormatter: (value: Date) => {
-          if (value) return formatDate(value);
-          return "-";
-        },
-      },
-      {
-        field: "dataInteracao",
-        headerName: "Data de Interação",
-        valueFormatter: (value: Date) => {
-          if (!value) return "-";
-          return formatDate(value);
-        },
-        cellClassName: "dataInteracao-cell",
-      },
-      {
-        field: "dataInicio",
-        headerName: "Data de Início",
-        valueFormatter: (value: Date) => {
-          if (value) return new Date(value).toLocaleDateString("pt-BR");
-          return "-";
-        },
-      },
-      {
-        field: "numeroOs",
+        field: "CODOS",
         headerName: "Nº OS",
+        maxWidth: 80,
+        type: "number",
+        align: "center",
+        
+        headerAlign: "center",
+      },
+      {
+        field: "ID_PROJETO",
+        headerName: "Nº Projeto",
+        maxWidth: 80,
+        type: "number",
+        align: "center",
+        headerAlign: "center",
+      },
+      {
+        field: "ID_ADICIONAL",
+        headerName: "Nº Adicional",
+        maxWidth: 90,
+        type: "number",
+        align: "center",
+        headerAlign: "center",
+      },
+      {
+        field: "DATASOLICITACAO",
+        headerName: "Data Solicitação",
+        type: "date",
+        valueGetter: (value: any) => new Date(value),
+        flex: 1,
+      },
+      {
+        field: "DATAINICIO",
+        headerName: "Data de Início",	
+        type: "date",
+        valueGetter: (value: any) => new Date(value),
+        flex: 1,
+      },
+      {
+        field: "DATAINTERACAO",
+        headerName: "Data Interação",
+        type: "date",
+        valueGetter: (value: any) => new Date(value),
+        flex: 1,
+      },
+      {   
+        field: 'DATAENTREGA',
+        headerName: 'Data de Fechamento',
+        type: 'date',
+        valueGetter: (value: any) => new Date(value),
+        flex: 1,
+      },
+      {
+        field: "status",
+        headerName: "Status",
+        valueGetter: (value: any) => value.NOME,
+        flex: 1,
+      },
+      { 
+        field: 'responsavel',
+        headerName: 'Responsável',
+        valueGetter: (value: any) => value.NOME,
+        flex: 1,
+      },
+      {
+        field: "NOME",
+        headerName: "Descrição",
+        flex: 1,
+      },
+      {
+        field: "cliente",
+        headerName: "Cliente",
+        valueGetter: (value: any) => value.NOMEFANTASIA,
+        flex: 1,
+      },
+      { 
+        field: 'projeto',
+        headerName: 'Gerente',
+        valueGetter: (projeto: any) => projeto.gerente.NOME,
+        flex: 1,
+      },
+      { 
+        field: 'VALORFATDOLPHIN',
+        headerName: 'Faturamento Dolphin',
+        type: 'number',
+        flex: 1,
+        valueFormatter: (value: number) => {
+          const valorLimpo = String(value || 0).replace("R$", "").replace(/\./g, "").replace(",", ".");
+          return new Intl.NumberFormat("pt-BR", {
+            style: "currency",
+            currency: "BRL",
+          }).format(Number(valorLimpo));
+        }
+      }, 
+      { 
+        field: 'VALORFATDIRETO',
+        headerName: 'Faturamento Direto', 
+        type: 'number',
+        flex: 1,
+        valueFormatter: (value: number) => {
+          const valorLimpo = String(value || 0).replace("R$", "").replace(/\./g, "").replace(",", ".");
+          return new Intl.NumberFormat("pt-BR", {
+            style: "currency",
+            currency: "BRL",
+          }).format(Number(valorLimpo));
+        },
+      },
+      {
+        field: "VALORTOTAL",
+        headerName: "Valor Total",
+        flex: 1,
+        type: "number",
+        valueFormatter: (value: number) => {
+          const valorLimpo = String(value || 0).replace("R$", "").replace(/\./g, "").replace(",", ".");
+          return new Intl.NumberFormat("pt-BR", {
+            style: "currency",
+            currency: "BRL",
+          }).format(Number(valorLimpo));
+        }
       },
     ],
     []
@@ -235,7 +286,7 @@ const UseOpportunityInfoTable = () => {
     gridColumnsCount: number
   ) => {
     const gridRowCount = registerCount / gridColumnsCount;
-    console.log('row count: ', gridRowCount)
+    console.log("row count: ", gridRowCount);
     setGridRowCount(gridRowCount);
     return gridRowCount;
   };
@@ -252,8 +303,8 @@ const UseOpportunityInfoTable = () => {
     [calculateCardWidth, calculateGridColumnsCount, rows, isCardViewActive]
   );
 
-  const selectOpportunity = (row: GridRowParams<OpportunityInfo>) => {
-    setCurrentOppIdSelected(row.row.numeroOs);
+  const selectOpportunity = (params: GridRowParams<Opportunity>) => {
+    setCurrentOppIdSelected(params.row.CODOS);
   };
 
   const GridFooter = () => {
@@ -307,7 +358,9 @@ const UseOpportunityInfoTable = () => {
               currency: "BRL",
             }).format(
               rows.reduce((acumulador, opp) => {
-                const valorLimpo = String(opp.valorFaturamentoDireto)
+                const valorLimpo = String(
+                  opp.VALORFATDOLPHIN ? opp.VALORFATDOLPHIN : 0
+                )
                   .replace("R$", "")
                   .replace(/\./g, "")
                   .replace(",", ".");
@@ -322,7 +375,7 @@ const UseOpportunityInfoTable = () => {
               currency: "BRL",
             }).format(
               rows.reduce((acumulador, opp) => {
-                const valorLimpo = String(opp.valorTotal ? opp.valorTotal : 0)
+                const valorLimpo = String(opp.VALORTOTAL ? opp.VALORTOTAL : 0)
                   .replace("R$", "")
                   .replace(/\./g, "")
                   .replace(",", ".");

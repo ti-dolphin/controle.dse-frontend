@@ -24,20 +24,14 @@ const FilterField = ({
   filters
 }: props) => {
   const { dataKey, label } = filter;
+  const autoCompleteFields = ["cliente", "responsavel", "status", "projeto"];
 
-  // Campos com opções (Autocomplete com Checkboxes)
-  if (
-    dataKey === "nomeCliente" ||
-    dataKey === "nomeVendedor" ||
-    dataKey === "nomeStatus" ||
-    dataKey === "nomeGerente"
-  ) {
-    const options =
-      dataKey === "nomeCliente"
+  if (autoCompleteFields.includes(dataKey)) {
+    const options = dataKey === "cliente"
         ? clientOptions
-        : dataKey === "nomeVendedor"
+        : dataKey === "responsavel"
         ? responsableOptions
-        : dataKey === "nomeStatus"
+        : dataKey === "status"
         ? statusOptions
         : managerOptions;
     if (options) {
@@ -105,6 +99,7 @@ const FilterField = ({
       );
     }
   }
+  
   return (
     <TextField
       key={dataKey}
