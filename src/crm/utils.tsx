@@ -1,6 +1,6 @@
 import { AxiosRequestConfig } from "axios";
 import api from "../api";
-import { Client, DateFilter, Opportunity, OpportunityColumn } from "./types";
+import { Client, Opportunity, OpportunityColumn } from "./types";
 import utc from "dayjs/plugin/utc";
 import timezone from "dayjs/plugin/timezone";
 import dayjs from "dayjs";
@@ -11,6 +11,85 @@ import { User } from "../Requisitions/context/userContext";
 
 dayjs.extend(utc);
 dayjs.extend(timezone);
+
+export const defaultOpportunity = {
+  CODOS: 0,
+  CODTIPOOS: 0,
+  CODCCUSTO: "",
+  OBRA: "",
+  DATASOLICITACAO: new Date(),
+  DATANECESSIDADE: null,
+  DOCREFERENCIA: null,
+  LISTAMATERIAIS: null,
+  DATAINICIO: new Date(),
+  DATAPREVENTREGA: new Date(),
+  DATAENTREGA: new Date(),
+  CODSTATUS: 0,
+  NOME: "",
+  DESCRICAO: "",
+  ATIVIDADES: null,
+  PRIORIDADE: 0,
+  SOLICITANTE: 0,
+  RESPONSAVEL: 0,
+  CODDISCIPLINA: 0,
+  GUT: 0,
+  GRAVIDADE: 0,
+  URGENCIA: 0,
+  TENDENCIA: 0,
+  DATALIBERACAO: null,
+  RELACIONAMENTO: 0,
+  FK_CODCLIENTE: 0,
+  FK_CODCOLIGADA: 0,
+  VALORFATDIRETO: 0,
+  VALORSERVICOMO: 0,
+  VALORSERVICOMATAPLICADO: 0,
+  VALORMATERIAL: 0,
+  VALORTOTAL: 0,
+  CODSEGMENTO: 0,
+  CODCIDADE: 0,
+  VALORLOCACAO: null,
+  ID_ADICIONAL: 0,
+  ID_PROJETO: 0,
+  DATAINTERACAO: new Date(),
+  VALORFATDOLPHIN: 0,
+  PRINCIPAL: false,
+  VALOR_COMISSAO: 0,
+  id_motivo_perdido: 0,
+  observacoes: null,
+  DESCRICAO_VENDA: null,
+  EMAIL_VENDA_ENVIADO: false,
+  status: {
+    CODSTATUS: 0,
+    NOME: "",
+    ACAO: 0,
+    ATIVO: false,
+  },
+  adicional: {
+    ID: 0,
+    NUMERO: 0,
+    ID_PROJETO: 0,
+  },
+  cliente: {
+    CODCOLIGADA: 0,
+    CODCLIENTE: "",
+    NOMEFANTASIA: "",
+  },
+  projeto: {
+    ID: 0,
+    DESCRICAO: "",
+    CODGERENTE: 0,
+    ATIVO: 0,
+    gerente: {
+      CODGERENTE: 0,
+      NOME: "",
+    },
+  },
+  responsavel: {
+    CODPESSOA: 0,
+    NOME: "",
+  },
+  web_anexos_os: [],
+};
 
 
 export const sendSaleEmailByOppId = async (codOs : number, user : User ) => { 
@@ -54,13 +133,12 @@ export const updateOpportunity = async (opportunity : Opportunity, user?: User )
 };
 
 export const getOpportunities = async (
-  finished: boolean,
-  dateFilters: DateFilter[],
+  acao: number,
   codpessoa: number
 ) => {
   try {
     const response = await api.get("/opportunity", {
-      params: { finished, dateFilters, codpessoa },
+      params: { acao, codpessoa },
     });
     return response.data;
   } catch (error) {
@@ -97,7 +175,7 @@ export const getOpportunityById = async (oppId: number) => {
     const response = await api.get(`/opportunity/${oppId}`);
     return response.data;
   } catch (e) {
-    console.log(e);
+    throw e;
   }
 };
 
@@ -224,7 +302,6 @@ export const fetchOpportunityFilesById = async (oppId : number) => {
 
 export const fetchClientFromFirstProjectOption = async (projectId: number ) =>  {
         const clients: any = await fetchAllClients(projectId);
-        
         const options = clients.map((client: Client) => ({
           label: client.NOMEFANTASIA,
           id: client.CODCLIENTE,

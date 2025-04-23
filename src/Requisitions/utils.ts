@@ -16,7 +16,6 @@ import {
 import { User } from "./context/userContext";
 
 const logIn = async (username: string, password: string) => {
-  try {
     const response = await api.post(
       `/users/login`,
       {
@@ -30,11 +29,7 @@ const logIn = async (username: string, password: string) => {
         },
       }
     );
-    return response.data;
-  } catch (e) {
-    return { message: "login failed" };
-    console.log(e);
-  }
+    return response.data as User;
 };
 
 const fetchRequisitionFiles = async (requisitionID: number) => {
@@ -178,7 +173,7 @@ const fetchAllProjects = async () => {
     const response = await api.get<Project[]>("/project");
     return response.data;
   } catch (e) {
-    console.log(e);
+    throw e;
   }
 };
 const fetchProjectOptionsByUser = async (userID: number) => {

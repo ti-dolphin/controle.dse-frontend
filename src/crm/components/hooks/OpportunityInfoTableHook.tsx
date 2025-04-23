@@ -222,8 +222,7 @@ const UseOpportunityInfoTable = () => {
     setIsLoading(true);
     if (user) {
       const opps = await getOpportunities(
-        finishedOppsEnabled,
-        dateFilters,
+        finishedOppsEnabled ? 1 : 0,
         user.CODPESSOA
       );
       if (opps) {
@@ -304,6 +303,7 @@ const UseOpportunityInfoTable = () => {
   );
 
   const selectOpportunity = (params: GridRowParams<Opportunity>) => {
+    console.log("params: ", params.row.CODOS);
     setCurrentOppIdSelected(params.row.CODOS);
   };
 

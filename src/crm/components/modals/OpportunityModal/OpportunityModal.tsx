@@ -1,184 +1,166 @@
-/* eslint-disable @typescript-eslint/no-unused-vars */
-import {
-  useContext,
-} from "react";
-import { OpportunityInfoContext } from "../../../context/OpportunityInfoContext";
-import Box from "@mui/material/Box";
-import {
-  Button,
-  Dialog,
-  DialogActions,
-  DialogContent,
-  DialogContentText,
-  DialogTitle,
-  IconButton,
-  Modal,
-  Stack,
-  Typography,
-} from "@mui/material";
-import {
-  opportunityDefault,
-} from "../../../utils";
-import CloseIcon from "@mui/icons-material/Close";
-import Slider from "react-slick";
-import OpportunityGuide from "../../OpportunityGuide/OpportunityGuide";
-import { BaseButtonStyles } from "../../../../utilStyles";
-import AdicionalChoice from "../AdicionalChoice/AdicionalChoice";
-import { styles } from "./OpportunityModal.styles";
-import typographyStyles from "../../../../Requisitions/utilStyles";
-import GuideSelector from "../../GuideSelector/GuideSelector";
-import ProjectChoiceModal from "../ProjectChoiceModal/ProjectChoiceModal";
-import useOpportunityModal from "./hooks";
+import { Box, Button, Modal } from '@mui/material'
+import React, { useContext, useEffect, useRef, useState } from 'react'
+import { OpportunityInfoContext } from '../../../context/OpportunityInfoContext';
+import { CloseModalButton } from '../../../../generalUtilities';
+import SaveProgressModal from '../SaveProgressModal/SaveProgressModal';
+import OpportunityRegistration from '../../OpportunityRegistration/OpportunityRegistration';
+import { Opportunity } from '../../../types';
+import { defaultOpportunity, getOpportunityById } from '../../../utils';
+import { AlertInterface } from '../../../../Requisitions/types';
+import { fetchAllProjects } from '../../../../Requisitions/utils';
+import GuideSelector from '../../GuideSelector/GuideSelector';
+import Slider from 'react-slick';
+import { BaseButtonStyles } from '../../../../utilStyles';
 
-export const OpportunityModal = () => {
-  const context = useContext(OpportunityInfoContext);
+const OpportunityModal = () => {
+  
   const {
-    opportunity,
-    currentSlideIndex,
-    isAdicionalChoiceOpen,
-    projectChoiceModalOpen,
-    saveProgressModalOpen,
-    sliderRef,
-    saveButtonContainerRef,
-    handleClose,
-    handleCloseAdicionalChoice,
-    handleAdicionalChoice,
-    handleChangeGuide,
-    handleSaveProjectChoiceAdicional,
-    handlesaveProgressAction,
-    handleChangeAutoComplete,
-    handleSaveOpportunity,
-    setProjectChoiceModalOpen,
-    setSaveProgressModalOpen,
-    creatingOpportunity,
     currentOppIdSelected,
-    guidesReference,
-    formDataFilesRef,
-    settings,
-    isLoading,
-    changeWasMade,
-    setChangeWasMade,
-  } = useOpportunityModal(opportunityDefault, context);
-
-  const verifyChangeWasMade = ( ) => { 
-    console.log({changeWasMade})
-    if(changeWasMade){ 
-      setSaveProgressModalOpen(true);
-      return;
-    }
-    handleClose();
+    setCurrentOppIdSelected,
+    creatingOpportunity,
+    setCreatingOpportunity
+  } = useContext(OpportunityInfoContext);
+  
+  const [opp, setOpp] = useState<Opportunity>(defaultOpportunity);
+  const [open, setOpen] = React.useState(false);
+  const [saveProgressModalOpen, setSaveProgressModalOpen] = React.useState(false);
+  const [changeWasMade, setChangeWasMade] = React.useState(false);
+  const [alert, setAlert] = useState<AlertInterface>();
+  const [loading, setLoading] = useState(false);
+  const [slideIndex, setSlideIndex] = useState(0);
+  const sliderRef = React.useRef<Slider | null>(null);
+  const handleOpen = () => { 
+    setOpen(true);
   }
+
+  const handleClose = () =>  { 
+    setCreatingOpportunity(false);
+    setSaveProgressModalOpen(false)
+    setCurrentOppIdSelected(0);
+    setChangeWasMade(false);
+    setOpen(false);
+  }
+
+  const displayAlert = async (severity: string, message: string) => {
+    setTimeout(() => {
+      setAlert(undefined);
+    }, 3000);
+    setAlert({ severity, message });
+    return;
+  };
+
+  const handleChangeGuide = (index : number ) => { 
+    sliderRef.current?.slickGoTo(index);
+    setSlideIndex(index);
+  };
+
+  const handleSave = ( ) => { 
+      console.log("handleSave");
+      
+  };
+
+
+    useEffect(() => {
+      if(currentOppIdSelected){ 
+          handleOpen();
+      }
+      const fetchOpportunity = async () => {
+        console.log("fetchOpportunity");
+        try {
+          if (currentOppIdSelected) {
+            const data = await getOpportunityById(currentOppIdSelected);
+            setOpp(data);
+          }
+        } catch (e) {
+          console.error(e);
+          displayAlert("error", "Erro ao buscar dados da oportuidade");
+        }
+      };
+      fetchOpportunity();
+ 
+    }, [currentOppIdSelected]);
+
+    useEffect(() => { 
+      if(creatingOpportunity){ 
+        handleOpen();
+      }
+    }, [creatingOpportunity]);
+
+
+
   return (
-    <Modal
-      open={creatingOpportunity || currentOppIdSelected > 0}
-      onClose={handleClose}
-      aria-labelledby="modal-modal-title"
-      aria-describedby="modal-modal-description"
-    >
-      <Box sx={styles.modal}>
-        <IconButton
+    <div>
+      <Modal
+        open={open}
+        aria-labelledby="opportunity-modal-title"
+        aria-describedby="opportunity-modal-description"
+      >
+        <Box
           sx={{
             position: "absolute",
-            right: 1,
-            top: 1,
+            top: "50%",
+            left: "50%",
+            transform: "translate(-50%, -50%)",
+            width: {
+              xs: "90%",
+              sm: "80%",
+              md: "70%",
+              lg: "60%",
+              xl: "40%",
+            },
+            bgcolor: "background.paper",
+            display: "flex",
+            flexDirection: "column",
+            alignItems: "center",
+            boxShadow: 24,
+            p: 4,
           }}
-          onClick={verifyChangeWasMade}
         >
-          <CloseIcon />
-        </IconButton>{" "}
-        <Stack>
-          <Typography sx={typographyStyles.heading2}>
-            {currentOppIdSelected > 0
-              ? `${opportunity.codOs} - ${opportunity.nome} `
-              : "Nova proposta"}
-          </Typography>
-        </Stack>
-        {guidesReference.current && (
           <GuideSelector
-            guides={guidesReference.current} // Passa os guias
-            currentSlideIndex={currentSlideIndex} // Índice do guia selecionado
-            handleChangeGuide={handleChangeGuide} // Função para lidar com a troca de guia
+            slideIndex={slideIndex}
+            handleChangeGuide={handleChangeGuide}
           />
-        )}
-       
-          <Stack
+          <Box
             sx={{
-              ...styles.sliderContainer,
-              paddingBottom: 10,
+              width: "100%",
+              maxHeight: 500,
+              overflowY: "scroll",
+              overflowX: "hidden",
             }}
-            direction="column"
-            width="100%"
-            position="relative"
           >
-            <Slider ref={sliderRef} {...settings}>
-              {guidesReference.current &&
-                guidesReference.current.map((guide) => (
-                  <OpportunityGuide
-                    formDataFilesRef={formDataFilesRef}
-                    guidesReference={guidesReference}
-                    guide={guide}
-                    isLoading={isLoading}
-                    setChangeWasMade={setChangeWasMade}
-                  />
-                ))}
+            <Slider ref={sliderRef}>
+              <OpportunityRegistration
+                handleClose={handleClose}
+                opp={opp}
+                setOpp={setOpp}
+              />
+              <div>Interação</div>
+              <div>Escope</div>
+              <div>Venda</div>
+              <div>Seguidores</div>
             </Slider>
-          </Stack>
-      
-        <Box ref={saveButtonContainerRef} sx={styles.saveButtonContainer}>
-          <Button sx={BaseButtonStyles} onClick={handleSaveOpportunity}>
-            <Typography>Salvar</Typography>
-          </Button>
+          </Box>
+          <Button sx={{ ...BaseButtonStyles, width: 200 }}>Salvar</Button>
+
+          <CloseModalButton
+            handleClose={() => {
+              if (!changeWasMade) {
+                handleClose();
+                return;
+              }
+              setSaveProgressModalOpen(true);
+            }}
+          />
+          <SaveProgressModal
+            open={saveProgressModalOpen}
+            handleNo={handleClose}
+            handleYes={handleSave}
+          />
         </Box>
-        <AdicionalChoice
-          isAdicionalChoiceOpen={isAdicionalChoiceOpen}
-          handleClose={handleCloseAdicionalChoice}
-          handleAdicionalChoice={handleAdicionalChoice}
-        />
-        <ProjectChoiceModal
-          handleSaveProjectChoiceAdicional={handleSaveProjectChoiceAdicional}
-          projectChoiceModalOpen={projectChoiceModalOpen}
-          setProjectChoiceModalOpen={setProjectChoiceModalOpen}
-          handleChangeAutoComplete={handleChangeAutoComplete}
-        />
-        <Dialog
-          open={saveProgressModalOpen}
-          onClose={handleClose}
-          aria-labelledby="save-progress-title"
-          aria-describedby="save-progress-description"
-        >
-          <DialogTitle id="save-progress-title">Salvar progresso?</DialogTitle>
-          <DialogContent>
-            <DialogContentText id="save-progress-description">
-              Deseja salvar seu progresso antes de sair?
-            </DialogContentText>
-          </DialogContent>
-          <DialogActions sx={{ display: "flex", justifyContent: "center" }}>
-            <Button
-              onClick={handlesaveProgressAction}
-              sx={{
-                ...BaseButtonStyles,
-                backgroundColor: "darkgreen",
-                "&:hover": { backgroundColor: "green" },
-              }}
-              autoFocus
-            >
-              Sim
-            </Button>
-            <Button
-              sx={{
-                ...BaseButtonStyles,
-                backgroundColor: "darkred",
-                "&:hover": { backgroundColor: "red" },
-              }}
-              onClick={handleClose}
-              color="secondary"
-            >
-              Não
-            </Button>
-          </DialogActions>
-        </Dialog>
-      </Box>
-    </Modal>
+      </Modal>
+    </div>
   );
-};
-OpportunityModal.displayName = "OpportunityModal";
+}
+ 
+
+export default OpportunityModal

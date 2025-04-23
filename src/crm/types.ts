@@ -28,7 +28,7 @@ export interface Opportunity {
   TENDENCIA: number;
   DATALIBERACAO: Date | null;
   RELACIONAMENTO: number;
-  FK_CODCLIENTE: string;
+  FK_CODCLIENTE: number;
   FK_CODCOLIGADA: number;
   VALORFATDIRETO: number;
   VALORSERVICOMO: number;
@@ -49,7 +49,7 @@ export interface Opportunity {
   DESCRICAO_VENDA: string | null;
   EMAIL_VENDA_ENVIADO: boolean;
   status: { CODSTATUS: number; NOME: string; ACAO: number; ATIVO: boolean };
-  adicionais: {
+  adicional: {
     ID: number;
     NUMERO: number;
     ID_PROJETO: number;
@@ -73,6 +73,7 @@ export interface Opportunity {
     CODPESSOA: number;
     NOME: string;
   };
+  web_anexos_os : OpportunityFile[]
 }
 
 export interface Field {
@@ -182,12 +183,7 @@ export interface Comentario {
   codigoComentario: number | null
 }
 
-export interface DateFilter {
-  dateFilterKey: string;
-  from: Date | string;
-  to: Date | string;
-  dbField: string;
-}
+
 export interface Status {
   CODSTATUS: number;
   NOME: string;

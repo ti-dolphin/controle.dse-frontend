@@ -40,7 +40,9 @@ export const UserContextProvider = ({ children }: userContextProviderProps) => {
   const toggleLogedIn = (value: boolean) => {
     setLogedIn(value);
   };
-  const defineUser = (user: User) => {
+  const defineUser = (data : any) => {
+    window.localStorage.setItem("user", JSON.stringify(data.user));
+    window.localStorage.setItem('token', data.token);
     setUser(user);
   };
   return (

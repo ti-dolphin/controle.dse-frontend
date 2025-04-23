@@ -2,7 +2,7 @@ export const styles = {
     guideSelectorContainer: {
         display: "flex",
         width: "100%",
-        gap: 1,
+        gap: 2,
         alignItems: "center",
         overflowX: "scroll",
         padding: 2,

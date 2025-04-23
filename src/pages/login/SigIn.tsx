@@ -12,7 +12,9 @@ import { logIn } from "../../Requisitions/utils";
 import { useContext, useState } from "react";
 import { userContext } from "../../Requisitions/context/userContext";
 import { useNavigate } from 'react-router-dom';
-import { Alert } from '@mui/material';
+import { Alert, AlertColor } from '@mui/material';
+import { BaseButtonStyles } from '../../utilStyles';
+import { AlertInterface } from '../../Requisitions/types';
 function Copyright() {
     return (
         <Typography variant="body2" color="text.secondary" align="center">
@@ -28,49 +30,34 @@ const defaultTheme = createTheme();
 
  const SignIn = ( ) => {
     const navigate = useNavigate();
-    const { toggleLogedIn, defineUser } = useContext(userContext);
-    const [errorLogin, setErrorLogin] = useState<boolean>(false);
-    const toggleErrorLogin = ( ) => { 
-        console.log('errorLogin became: ', !errorLogin)
-        setErrorLogin(!errorLogin);
-    }
+    const { toggleLogedIn, defineUser } = useContext(userContext)
+    const [alert, setAlert] = useState<AlertInterface>();
+    const [user, setUser] = useState<string>('');
+    const [password, setPassword] = useState<string>('');
+
+    const displayAlert = async (severity: string, message: string) => {
+      setTimeout(() => {
+        setAlert(undefined);
+      }, 3000);
+      setAlert({ severity, message });
+      return;
+    };
+
     const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
-        event.preventDefault();
-        const data = new FormData(event.currentTarget);
-        const username = data.get('email') ? data.get('email') : '';
-        const responseLogin = await logIn(String(username), String(data.get('password')));
-        if (responseLogin.message === 'Login Successful'){ 
-            window.localStorage.setItem('token', responseLogin.token);
-            window.localStorage.setItem('user', JSON.stringify(responseLogin.user));
-            navigate('./home');
-            toggleLogedIn(true);
-            defineUser(responseLogin.user);
-        }else{ 
-            toggleErrorLogin();
-        }
+      event.preventDefault();
+      try {
+        const data = await logIn(user, password);
+        defineUser(data);
+        toggleLogedIn(true);
+        navigate('/home');
+      } catch (e: any) {
+        displayAlert("error", e.response.data.message);
+      }
     };
 
     return (
       <ThemeProvider theme={defaultTheme}>
         <Container component="main" maxWidth="xs">
-          {errorLogin && (
-            <Alert
-              variant="filled"
-              severity="error"
-              className="drop-shadow-lg"
-              sx={{
-                top: "10%",
-                width: "400px",
-                position: "absolute",
-                left: "50%",
-                marginLeft: "-200px",
-                zIndex: 20,
-                
-              }}
-            >
-              Usuário e/ou senha incorretos
-            </Alert>
-          )}
           <CssBaseline />
           <Box
             sx={{
@@ -84,23 +71,54 @@ const defaultTheme = createTheme();
               <LockOutlinedIcon />
             </Avatar>
             <Typography component="h1" variant="h5">
-              Faça seu Login
+              Entrar
             </Typography>
+
+            {alert && (
+              <Alert
+                severity={alert.severity as AlertColor}
+                sx={{
+                  width: "100%",
+                  border: `1px solid ${
+                    alert.severity === "error"
+                      ? "red"
+                      : alert.severity === "warning"
+                      ? "orange"
+                      : alert.severity === "info"
+                      ? "blue"
+                      : "green"
+                  }`,
+                }}
+              >
+                {alert.message}
+              </Alert>
+            )}
+
             <Box
               component="form"
               onSubmit={handleSubmit}
               noValidate
-              sx={{ mt: 1 }}
+              sx={{
+                mt: 1,
+                display: "flex",
+                flexDirection: "column",
+                gap: 2,
+                alignItems: "center",
+                width: {
+                  xs: 300,
+                  sm: 400,
+                },
+              }}
             >
               <TextField
                 margin="normal"
                 required
                 fullWidth
-                id="email"
+                id="user"
                 label="Usuário"
-                name="email"
-                autoComplete="email"
+                name="user"
                 autoFocus
+                onChange={(e) => setUser(e.target.value)}
               />
               <TextField
                 margin="normal"
@@ -110,17 +128,11 @@ const defaultTheme = createTheme();
                 label="Senha"
                 type="password"
                 id="password"
+                onChange={(e) => setPassword(e.target.value)}
                 autoComplete="current-password"
               />
 
-              <Button
-                type="submit"
-                fullWidth
-                variant="contained"
-                sx={{ mt: 3, mb: 2 }}
-              >
-                Entrar
-              </Button>
+              <Button type='submit' sx={{ ...BaseButtonStyles }}>Entrar</Button>
             </Box>
           </Box>
           <Copyright />

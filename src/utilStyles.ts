@@ -36,6 +36,7 @@ export const OpportunityGridStyles = {
                    '&:nth-of-type(even)': { // Linhas pares
                      backgroundColor: '#ffffff', // Branco
                    },
+                   cursor: 'pointer',
                    '&:hover': {
                      backgroundColor: '#e0e0e0 !important', // Cinza mais escuro ao passar o mouse
                    },
