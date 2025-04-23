@@ -1,203 +1,197 @@
-import { Box, Button, Stack, TextField } from "@mui/material";
-import React, {
-  Dispatch,
-  MutableRefObject,
-  SetStateAction,
-  useContext,
-  useEffect,
-  useState,
-} from "react";
-import { Comentario, Guide } from "../../types";
+import { Box, Button, Divider, IconButton, Stack, TextField, Typography } from "@mui/material";
+import React, { useContext, useEffect } from "react";
 import style from "./OpportuntiyInteraction.styles";
-import { FixedSizeList as ListWindow } from "react-window";
-import CommentRow from "./CommentRow";
 import { AnimatePresence, motion } from "framer-motion";
-import { alertAnimation, BaseButtonStyles } from "../../../utilStyles";
+import { alertAnimation, BaseButtonStyles, buttonStylesMobile } from "../../../utilStyles";
+import { Comentario, Opportunity } from "../../types";
+import { add, debounce } from "lodash";
+import typographyStyles from "../../../Requisitions/utilStyles";
+import EditIcon from '@mui/icons-material/Edit';
+import DeleteIcon from '@mui/icons-material/Delete';
 import { userContext } from "../../../Requisitions/context/userContext";
 
 interface props {
-  guide: Guide;
-  guidesReference: MutableRefObject<Guide[] | undefined>;
-  setChangeWasMade: Dispatch<SetStateAction<boolean>>;
+   opp: Opportunity;
+   setOpp: React.Dispatch<React.SetStateAction<Opportunity>>;
 }
-const OpportunityInteraction = ({
-  guide,
-  guidesReference,
-  setChangeWasMade,
-}: props) => {
+
+const OpportunityInteraction = ({ opp, setOpp }: props) => {
   const { user } = useContext(userContext);
-  const [interactionDate, setInteractionDate] = useState<string>();
-  const [comments, setComments] = useState<Comentario[]>();
-  const [commentBeingEdited, setCommentBeingEdited] = useState<Comentario>();
-  const [commentBeingAdded, setCommentBeingAdded] = useState<Comentario>();
+  const [dataInteracao, setDataInteracao] = React.useState<Date>(new Date(opp.DATAINTERACAO));
+  const [comentario, setComentario] = React.useState<Comentario>({
+    CODCOMENTARIO: 0,
+    CODAPONT: 0,
+    CODOS: 0,
+    DESCRICAO: "",
+    RECCREATEDON: '',
+    RECCREATEDBY: '',
+    EMAIL: "",
+  });
+  const [comentarios, setComentarios] = React.useState<Comentario[]>([]);
+  const [editing, setEditing] = React.useState<boolean>(false);
 
-  const handleChangeComment = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>,
-    commentId: number
-  ) => {
-    const { value } = e.target;
-    if (comments) {
-      const updatedComments = comments.map((comment) =>
-        comment.codigoComentario === commentId
-          ? { ...comment, descricao: value } // Cria um novo objeto com a descrição atualizada
-          : comment
-      );
-      setComments(updatedComments);
-    }
-    if (commentBeingEdited) {
-      setCommentBeingEdited({
-        ...commentBeingEdited,
-        descricao: value,
-      });
+  const debouncedSetOppDataInteracao = React.useCallback(
+    debounce((newDataInteracao: Date) => {
+      setOpp((prevOpp) => ({ ...prevOpp, DATAINTERACAO: newDataInteracao }));
+    }, 300),
+    [setOpp]
+  );
 
-      return;
+  const updateExistingComment = (updatedComment: Comentario) => {
+    const comment = { 
+      ...updatedComment,
+      RECCREATEDON: new Date(),
+      RECCREATEDBY: user?.NOME || '',
+      EMAIL: user?.NOME || "",
     }
-    if (commentBeingAdded) {
-      setCommentBeingEdited({
-        ...commentBeingAdded,
-        descricao: value,
-      });
-
-      return;
-    }
-  };
-  const handleChangeInteractonDate = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>,
-    _dataKey: string
-  ) => {
-    if (guidesReference.current) {
-      const { value } = e.target;
-      setInteractionDate(value);
-      guide.fields[0].data = value;
-      guidesReference.current[1] = guide;
-      setChangeWasMade(true);
-    }
+    setComentarios((prevComentarios) =>
+      prevComentarios.map((c) =>
+        c.CODCOMENTARIO === comment.CODCOMENTARIO ? comment : c
+      )
+    );
   };
 
-  const handleCancelAddorEditComment = () => {
-    setComments(guide.fields[1].data);
-    setCommentBeingEdited(undefined);
-    setCommentBeingAdded(undefined);
+  const addNewComment = (newComment: Comentario) => {
+    const comment: Comentario = {
+      ...newComment,
+      CODCOMENTARIO: Math.random() * 1000,
+      RECCREATEDON: new Date(),
+      RECCREATEDBY: user?.NOME || '',
+      EMAIL: user?.NOME || "",
+    };
+    setComentarios((prevComentarios) => [...prevComentarios, comment]);
   };
 
-  const handleFocus = () => {
-    if (guidesReference.current && !commentBeingEdited) {
-      //don't do this when coment is being edited
-      const newComment = {
-        email: "",
-        codOs: guidesReference.current[0].fields[0].data,
-        criadoEm: new Date().toISOString(),
-        criadoPor: user?.NOME || "",
-        descricao: "",
-        codigoComentario: Math.random(),
-      };
-      setCommentBeingAdded(newComment);
-      setComments([...(comments || []), newComment]);
-    }
-  };
+  const cleanUpComment = () => {
+    setComentario({
+      CODCOMENTARIO: 0,
+      CODAPONT: 0,
+      CODOS: 0,
+      DESCRICAO: "",
+      RECCREATEDON: "",
+      RECCREATEDBY: "",
+      EMAIL: "",
+    });
+  }
 
   const handleConclude = () => {
-    if (guidesReference.current && comments) {
-      guide.fields[1].data = [...comments];
-      guidesReference.current[1] = guide;
-      setChangeWasMade(true);
-      handleCancelAddorEditComment();
+    const existingComentario = comentarios.some((c) => c.CODCOMENTARIO === comentario.CODCOMENTARIO);
+    if (existingComentario) {
+      updateExistingComment(comentario);
+      cleanUpComment();
+      return;
     }
+    addNewComment(comentario);
+    setEditing(false);
+    cleanUpComment();
+  };
+
+  const handleCancel = () => {
+    setComentario({
+      CODCOMENTARIO: 0,
+      CODAPONT: 0,
+      CODOS: 0,
+      DESCRICAO: "",
+      RECCREATEDON: '',
+      RECCREATEDBY: '',
+      EMAIL: "",
+    });
+    setEditing(false);
   };
 
   useEffect(() => {
-    setInteractionDate(guide.fields[0].data);
-    setComments(guide.fields[1].data);
-  }, [guide]);
+    debouncedSetOppDataInteracao(dataInteracao);
+    return () => {
+      debouncedSetOppDataInteracao.cancel();
+    };
+  }, [dataInteracao, debouncedSetOppDataInteracao]);
 
   return (
     <Box sx={style.container}>
-      {guide.fields.map((field, _index) => {
-        if (field.dataKey === "dataInteracao") {
-          return (
-            <TextField
-              key={field.dataKey}
-              fullWidth
-              label={field.label}
-              type={field.type}
-              onChange={(e) => handleChangeInteractonDate(e, field.dataKey)}
-              InputLabelProps={{ shrink: true }}
-              value={interactionDate}
-            />
-          );
-        }
-        if (field.dataKey === "comentarios") {
-          return (
-            <Stack sx={{ width: "100%", gap: 2 }} key={field.dataKey}>
-              <TextField
-                key={field.dataKey}
-                onChange={(e) =>
-                  handleChangeComment(
-                    e,
-                    commentBeingEdited?.codigoComentario ||
-                      commentBeingAdded?.codigoComentario ||
-                      0
-                  )
-                }
-                label="Comentário"
-                InputLabelProps={{ shrink: commentBeingEdited && true }}
-                placeholder="Digite seu comentário aqui..."
-                type="text"
-                multiline
-                rows={3}
-                onFocus={handleFocus}
-                onKeyDown={(e) => {
-                  e.key === "Enter" && handleConclude();
+      <TextField
+        fullWidth
+        label="Data de Interação"
+        type="date"
+        onChange={(e) => setDataInteracao(new Date(e.target.value))}
+        InputLabelProps={{ shrink: true }}
+        value={dataInteracao.toISOString().split("T")[0]}
+      />
+      <Stack sx={{ width: "100%", gap: 2 }}>
+        <TextField
+          label="Comentário"
+          placeholder="Digite seu comentário aqui..."
+          type="text"
+          multiline
+          onFocus={() => setEditing(true)}
+          value={comentario.DESCRICAO}
+          onChange={(e) =>
+            setComentario({
+              ...comentario,
+              DESCRICAO: e.target.value,
+            })
+          }
+          rows={3}
+          variant="outlined"
+          fullWidth
+          sx={style.commentField}
+        />
+        {editing && (
+          <AnimatePresence>
+            <motion.div {...alertAnimation}>
+              <Stack direction="row" gap={1}>
+                <Button onClick={handleCancel} sx={BaseButtonStyles}>
+                  Cancelar
+                </Button>
+                <Button onClick={() => handleConclude()} sx={BaseButtonStyles}>
+                  Concluir
+                </Button>
+              </Stack>
+            </motion.div>
+          </AnimatePresence>
+        )}
+      </Stack>
+      <Stack sx={{ marginTop: 2, gap: 2, maxHeight: 300, overflowY: "scroll", width: "100%" }}>
+        {comentarios.map((comentario, index) => (
+          <Box
+            sx={{
+              display: "flex",
+              padding: 1,
+              alignItems: "center",
+              justifyContent: "space-between",
+              gap: 1,
+              boxShadow: "0px 4px 6px rgba(0, 0, 0, 0.1)",
+            }}
+            key={index}
+          >
+            <Box>
+              <Typography sx={{ ...typographyStyles.heading2 }}>Por {comentario.RECCREATEDBY}</Typography>
+              <Typography sx={{ ...typographyStyles.bodyText }}>{comentario.DESCRICAO}</Typography>
+              <Typography sx={{ ...typographyStyles.smallText }}>
+                {comentario.RECCREATEDON?.toLocaleString()}
+              </Typography>
+            </Box>
+            <Stack gap={1} direction="row" alignItems="center">
+              <IconButton
+                sx={{ ...buttonStylesMobile, height: 35, width: 30 }}
+                onClick={() => {
+                  setComentario(comentario);
+                  setEditing(true);
                 }}
-                value={
-                  commentBeingEdited?.descricao ||
-                  commentBeingAdded?.descricao ||
-                  ""
-                }
-                onBlur={handleCancelAddorEditComment}
-                variant="outlined"
-                fullWidth
-                sx={style.commentField}
-              />
-              <AnimatePresence>
-                {(commentBeingEdited || commentBeingAdded) && (
-                  <motion.div {...alertAnimation}>
-                    <Stack direction="row" gap={1}>
-                      <Button
-                        sx={BaseButtonStyles}
-                        onClick={handleCancelAddorEditComment}
-                      >
-                        Cancelar
-                      </Button>
-                      <Button onClick={handleConclude} sx={BaseButtonStyles}>
-                        Concluir
-                      </Button>
-                    </Stack>
-                  </motion.div>
-                )}
-              </AnimatePresence>
+              >
+                <EditIcon sx={{ color: "white" }} />
+              </IconButton>
+              <IconButton
+                sx={{ ...buttonStylesMobile, height: 35, width: 30 }}
+                onClick={() => {
+                  setComentarios((prevComentarios) => prevComentarios.filter((_, i) => i !== index));
+                }}
+              >
+                <DeleteIcon sx={{ color: "white" }} />
+              </IconButton>
             </Stack>
-          );
-        }
-      })}
-      {comments && (
-        <ListWindow
-          height={400}
-          itemCount={comments?.length}
-          itemSize={100}
-          width="100%"
-        >
-          {({ index, style }) => (
-            <CommentRow
-              setCommentBeingEdit={setCommentBeingEdited}
-              style={style}
-              key={index}
-              index={index}
-              comment={comments[index]}
-            />
-          )}
-        </ListWindow>
-      )}
+          </Box>
+        ))}
+      </Stack>
     </Box>
   );
 };

@@ -1,22 +1,25 @@
-export const styles = {
-    container: {
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        width: '100%', 
-        
-    },
-    formGrid: {
-        display: 'grid',
-        gridTemplateColumns: { 
-            xs: '1fr',
-            md: '1fr 1fr'
-        },
-        gap: 1,
-        rowGap: 2,
-        width: '100%',
-        padding: 1
-    },
-   
+import { SxProps, Theme } from "@mui/material";
+import { BaseButtonStyles } from "../../../utilStyles";
 
-}
+export const styles: Record<string, SxProps<Theme>> = {
+    container: {
+        display: "flex",
+        flexDirection: "column",
+        alignItems: "center",
+    },
+    modal: {
+        position: "fixed",
+        top: "50%",
+        left: "50%",
+        transform: "translate(-50%, -50%)",
+        backgroundColor: "white",
+        display: "flex",
+        flexDirection: "column",
+        gap: 2,
+        boxShadow: 24,
+        p: 4,
+        zIndex: 30,
+        borderRadius: 2,
+        width: "400px",
+    },
+};

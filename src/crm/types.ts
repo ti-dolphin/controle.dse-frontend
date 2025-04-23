@@ -175,12 +175,13 @@ export interface CardChecklistItemProps {
 }
 
 export interface Comentario {
-  email: string | number,
-  codOs: number | null,
-  criadoEm: Date | string | null,
-  criadoPor: string | null,
-  descricao: string | null,
-  codigoComentario: number | null
+CODCOMENTARIO: number;
+CODAPONT: number;
+CODOS: number;
+DESCRICAO: string;
+RECCREATEDON: Date | string;
+RECCREATEDBY: string;
+EMAIL: string;
 }
 
 

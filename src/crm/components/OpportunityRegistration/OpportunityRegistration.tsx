@@ -11,6 +11,7 @@ import { Close } from "@mui/icons-material";
 import { CloseModalButton } from "../../../generalUtilities";
 import { debounce, set } from "lodash";
 import { BaseButtonStyles } from "../../../utilStyles";
+import { styles } from "./OpportunityRegistration.styles";
 
 interface props {
   handleClose: () => void;
@@ -32,16 +33,22 @@ const OpportunityRegistration = ({ handleClose, opp, setOpp }: props) => {
 
   const [choseProjectModalOpen, setChoseProjectModalOpen] =
     useState<boolean>(false);
-  const [idProjeto, setIdProjeto] = useState<number>(0);
+  const [idProjeto, setIdProjeto] = useState<number>(opp.ID_PROJETO || 0);
   const [numeroAdicional, setNumeroAdicional] = useState<number>(0);
-  const [nome, setNome] = useState<string>("");
-  const [codStatus, setCodStatus] = useState<number>(0);
-  const [descricaoVenda, setDescricaoVenda] = useState<string>("");
-  const [fkCodCliente, setFkCodCliente] = useState<number>(0);
-  const [fkCodColigada, setFkCodColigada] = useState<number>(0);
-  const [dataSolicitacao, setDataSolicitacao] = useState<Date | null>(null);
-  const [dataInicio, setDataInicio] = useState<Date | null>(null);
-  const [dataEntrega, setDataEntrega] = useState<Date | null>(null);
+  const [nome, setNome] = useState<string>(opp.NOME || "");
+  const [codStatus, setCodStatus] = useState<number>(opp.CODSTATUS || 0);
+  const [descricaoVenda, setDescricaoVenda] = useState<string>(opp.DESCRICAO_VENDA || "");
+  const [fkCodCliente, setFkCodCliente] = useState<number>(opp.FK_CODCLIENTE || 0);
+  const [fkCodColigada, setFkCodColigada] = useState<number>(opp.FK_CODCOLIGADA || 0);
+  const [dataSolicitacao, setDataSolicitacao] = useState<Date | null>(
+    new Date(opp.DATASOLICITACAO)
+  );
+  const [dataInicio, setDataInicio] = useState<Date | null>(
+    new Date(opp.DATAINICIO)
+  );
+  const [dataEntrega, setDataEntrega] = useState<Date | null>(
+    new Date(opp.DATAENTREGA)
+  );
   const [alert, setAlert] = useState<AlertInterface>();
 
   const displayAlert = async (severity: string, message: string) => {
@@ -69,7 +76,7 @@ const OpportunityRegistration = ({ handleClose, opp, setOpp }: props) => {
   );
 
   const debouncedSetOppDataSolicitacao = useCallback(
-    debounce((value: Date | null) => {
+    debounce((value: Date) => {
       console.log("Debounced setOpp.DATASOLICITACAO:", value);
       setOpp((prev: Opportunity) => ({ ...prev, DATASOLICITACAO: value }));
     }, 300),
@@ -77,7 +84,7 @@ const OpportunityRegistration = ({ handleClose, opp, setOpp }: props) => {
   );
 
   const debouncedSetOppDataInicio = useCallback(
-    debounce((value: Date | null) => {
+    debounce((value: Date) => {
       console.log("Debounced setOpp.DATAINICIO:", value);
       setOpp((prev: Opportunity) => ({ ...prev, DATAINICIO: value }));
     }, 300),
@@ -85,7 +92,7 @@ const OpportunityRegistration = ({ handleClose, opp, setOpp }: props) => {
   );
 
   const debouncedSetOppDataEntrega = useCallback(
-    debounce((value: Date | null) => {
+    debounce((value: Date) => {
       console.log("Debounced setOpp.DATAENTREGA:", value);
       setOpp((prev: Opportunity) => ({ ...prev, DATAENTREGA: value }));
     }, 300),
@@ -135,21 +142,6 @@ const OpportunityRegistration = ({ handleClose, opp, setOpp }: props) => {
         displayAlert("error", "Erro ao buscar status");
       }
     };
-    if (opp) {
-      setIdProjeto(opp.ID_PROJETO || 0);
-      setNumeroAdicional(opp.adicional.NUMERO);
-      setNome(opp.NOME || "");
-      setCodStatus(opp.CODSTATUS || 0);
-      setDescricaoVenda(opp.DESCRICAO_VENDA || "");
-      setFkCodCliente(opp.FK_CODCLIENTE || 0);
-      setFkCodColigada(opp.FK_CODCLIENTE || 0);
-      setDataSolicitacao(
-        opp.DATASOLICITACAO ? new Date(opp.DATASOLICITACAO) : null
-      );
-      setDataInicio(opp.DATAINICIO ? new Date(opp.DATAINICIO) : null);
-      setDataEntrega(opp.DATAENTREGA ? new Date(opp.DATAENTREGA) : null);
-    }
-
     if (creatingOpportunity) {
       setChoseProjectModalOpen(true);
     }
@@ -172,9 +164,32 @@ const OpportunityRegistration = ({ handleClose, opp, setOpp }: props) => {
     };
   }, [descricaoVenda, debouncedSetOppDescricaoVenda]);
 
+  useEffect(() => {
+    debouncedSetOppDataSolicitacao(dataSolicitacao || new Date());
+    return () => {
+      debouncedSetOppDataSolicitacao.cancel();
+    };
+  }, [dataSolicitacao, debouncedSetOppDataSolicitacao]);
+
+  useEffect(() => {
+    debouncedSetOppDataInicio(dataInicio || new Date());
+    return () => {
+      debouncedSetOppDataInicio.cancel();
+    };
+  }, [dataInicio, debouncedSetOppDataInicio]);
+
+  useEffect(() => {
+    debouncedSetOppDataEntrega(dataEntrega || new Date());
+    return () => {
+      debouncedSetOppDataEntrega.cancel();
+    };
+  }, [dataEntrega, debouncedSetOppDataEntrega]);
+
+
+
   return (
     <Box
-      sx={{ display: "flex", flexDirection: "column", alignItems: "center" }}
+      sx={styles.container}
     >
       <Box>
         <Autocomplete
@@ -284,21 +299,7 @@ const OpportunityRegistration = ({ handleClose, opp, setOpp }: props) => {
       </Box>{" "}
       {choseProjectModalOpen && (
         <Box
-          sx={{
-            position: "fixed",
-            top: "50%",
-            left: "50%",
-            transform: "translate(-50%, -50%)",
-            backgroundColor: "white",
-            display: "flex",
-            flexDirection: "column",
-            gap: 2,
-            boxShadow: 24,
-            p: 4,
-            zIndex: 30,
-            borderRadius: 2,
-            width: "400px",
-          }}
+          sx={styles.modal}
         >
           <CloseModalButton handleClose={handleClose} />
           <Typography sx={{ ...typographyStyles.heading2 }}>

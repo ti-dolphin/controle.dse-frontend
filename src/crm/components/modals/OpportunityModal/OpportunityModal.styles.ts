@@ -1,47 +1,33 @@
-export const styles = {
-    modal :  {
+import { SxProps, Theme } from "@mui/material";
+
+export const styles: Record<string, SxProps<Theme>> = {
+    modalBox: {
         position: "absolute",
         top: "50%",
         left: "50%",
         transform: "translate(-50%, -50%)",
         width: {
-            //responsive width
-            xs: "95%",
-            md: "40%",
-            lg: "50%"
+            xs: "90%",
+            sm: "80%",
+            md: "70%",
+            lg: "60%",
+            xl: "40%",
         },
-        height: '95%',
         bgcolor: "background.paper",
-        boxShadow: 24,
-        overFlow: "hidden",
         display: "flex",
         flexDirection: "column",
+        gap: 2,
         alignItems: "center",
-        p: 1,
-        gap: 2
+        boxShadow: 24,
+        p: 4,
     },
-    sliderContainer: {
-        height: { xs: 450, md: "auto" },
-        overflowY: "scroll",
-        "&::-webkit-scrollbar": {
-            width: "4px", // Largura da barra de scroll
-        },
-        "&::-webkit-scrollbar-track": {
-            background: "#f1f1f1", // Cor de fundo da trilha da barra de scroll
-            borderRadius: "4px",
-        },
-        "&::-webkit-scrollbar-thumb": {
-            borderRadius: "4px",
-        },
-    },
-    saveButtonContainer: {
+    contentBox: {
         width: "100%",
-        display: "flex",
-        justifyContent: "center",
-        backgroundColor: 'white',
-        position: "fixed",
-        padding: 2,
-        bottom: 2,
-        zIndex: 20,
-    }
+        maxHeight: 500,
+        overflowY: "scroll",
+        overflowX: "hidden",
+    },
+    saveButton: {
+        width: 200,
+    },
 };

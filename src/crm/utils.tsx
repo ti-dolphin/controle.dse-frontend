@@ -14,7 +14,7 @@ dayjs.extend(timezone);
 
 export const defaultOpportunity = {
   CODOS: 0,
-  CODTIPOOS: 0,
+  CODTIPOOS: 21,
   CODCCUSTO: "",
   OBRA: "",
   DATASOLICITACAO: new Date(),
