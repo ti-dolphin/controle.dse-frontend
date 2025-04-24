@@ -1,10 +1,10 @@
-import { Box, Button, Divider, IconButton, Stack, TextField, Typography } from "@mui/material";
+import { Box, Button, IconButton, Stack, TextField, Typography } from "@mui/material";
 import React, { useContext, useEffect } from "react";
 import style from "./OpportuntiyInteraction.styles";
 import { AnimatePresence, motion } from "framer-motion";
 import { alertAnimation, BaseButtonStyles, buttonStylesMobile } from "../../../utilStyles";
-import { Comentario, Opportunity } from "../../types";
-import { add, debounce } from "lodash";
+import { Comment, Opportunity } from "../../types";
+import { debounce } from "lodash";
 import typographyStyles from "../../../Requisitions/utilStyles";
 import EditIcon from '@mui/icons-material/Edit';
 import DeleteIcon from '@mui/icons-material/Delete';
@@ -18,7 +18,7 @@ interface props {
 const OpportunityInteraction = ({ opp, setOpp }: props) => {
   const { user } = useContext(userContext);
   const [dataInteracao, setDataInteracao] = React.useState<Date>(new Date(opp.DATAINTERACAO));
-  const [comentario, setComentario] = React.useState<Comentario>({
+  const [comment, setComment] = React.useState<Comment>({
     CODCOMENTARIO: 0,
     CODAPONT: 0,
     CODOS: 0,
@@ -27,7 +27,7 @@ const OpportunityInteraction = ({ opp, setOpp }: props) => {
     RECCREATEDBY: '',
     EMAIL: "",
   });
-  const [comentarios, setComentarios] = React.useState<Comentario[]>([]);
+  const [comments, setComments] = React.useState<Comment[]>([]);
   const [editing, setEditing] = React.useState<boolean>(false);
 
   const debouncedSetOppDataInteracao = React.useCallback(
@@ -37,33 +37,45 @@ const OpportunityInteraction = ({ opp, setOpp }: props) => {
     [setOpp]
   );
 
-  const updateExistingComment = (updatedComment: Comentario) => {
+  const updateExistingComment = (updatedComment: Comment) => {
     const comment = { 
       ...updatedComment,
       RECCREATEDON: new Date(),
       RECCREATEDBY: user?.NOME || '',
       EMAIL: user?.NOME || "",
     }
-    setComentarios((prevComentarios) =>
+    setComments((prevComentarios) =>
       prevComentarios.map((c) =>
         c.CODCOMENTARIO === comment.CODCOMENTARIO ? comment : c
       )
     );
+    const updatedCommentsArray = opp.comentarios?.map((c) =>
+      c.CODCOMENTARIO === comment.CODCOMENTARIO ? comment : c
+    );
+    setOpp((prevOpp) => ({
+      ...prevOpp,
+      comentarios: updatedCommentsArray,
+    }));
+
   };
 
-  const addNewComment = (newComment: Comentario) => {
-    const comment: Comentario = {
+  const addNewComment = (newComment: Comment) => {
+    const comment: Comment = {
       ...newComment,
       CODCOMENTARIO: Math.random() * 1000,
       RECCREATEDON: new Date(),
       RECCREATEDBY: user?.NOME || '',
       EMAIL: user?.NOME || "",
     };
-    setComentarios((prevComentarios) => [...prevComentarios, comment]);
+    setComments((prevComentarios) => [...prevComentarios, comment]);
+    setOpp((prevOpp) => ({
+      ...prevOpp,
+      comentarios: [...prevOpp.comentarios || [], comment],
+    }));
   };
 
   const cleanUpComment = () => {
-    setComentario({
+    setComment({
       CODCOMENTARIO: 0,
       CODAPONT: 0,
       CODOS: 0,
@@ -75,19 +87,19 @@ const OpportunityInteraction = ({ opp, setOpp }: props) => {
   }
 
   const handleConclude = () => {
-    const existingComentario = comentarios.some((c) => c.CODCOMENTARIO === comentario.CODCOMENTARIO);
-    if (existingComentario) {
-      updateExistingComment(comentario);
+    const existingComment = comments.some((c) => c.CODCOMENTARIO === comment.CODCOMENTARIO);
+    if (existingComment) {
+      updateExistingComment(comment);
       cleanUpComment();
       return;
     }
-    addNewComment(comentario);
+    addNewComment(comment);
     setEditing(false);
     cleanUpComment();
   };
 
   const handleCancel = () => {
-    setComentario({
+    setComment({
       CODCOMENTARIO: 0,
       CODAPONT: 0,
       CODOS: 0,
@@ -123,10 +135,10 @@ const OpportunityInteraction = ({ opp, setOpp }: props) => {
           type="text"
           multiline
           onFocus={() => setEditing(true)}
-          value={comentario.DESCRICAO}
+          value={comment.DESCRICAO}
           onChange={(e) =>
-            setComentario({
-              ...comentario,
+            setComment({
+              ...comment,
               DESCRICAO: e.target.value,
             })
           }
@@ -151,7 +163,7 @@ const OpportunityInteraction = ({ opp, setOpp }: props) => {
         )}
       </Stack>
       <Stack sx={{ marginTop: 2, gap: 2, maxHeight: 300, overflowY: "scroll", width: "100%" }}>
-        {comentarios.map((comentario, index) => (
+        {comments.map((comment, index) => (
           <Box
             sx={{
               display: "flex",
@@ -164,17 +176,17 @@ const OpportunityInteraction = ({ opp, setOpp }: props) => {
             key={index}
           >
             <Box>
-              <Typography sx={{ ...typographyStyles.heading2 }}>Por {comentario.RECCREATEDBY}</Typography>
-              <Typography sx={{ ...typographyStyles.bodyText }}>{comentario.DESCRICAO}</Typography>
+              <Typography sx={{ ...typographyStyles.heading2 }}>Por {comment.RECCREATEDBY}</Typography>
+              <Typography sx={{ ...typographyStyles.bodyText }}>{comment.DESCRICAO}</Typography>
               <Typography sx={{ ...typographyStyles.smallText }}>
-                {comentario.RECCREATEDON?.toLocaleString()}
+                {comment.RECCREATEDON?.toLocaleString()}
               </Typography>
             </Box>
             <Stack gap={1} direction="row" alignItems="center">
               <IconButton
                 sx={{ ...buttonStylesMobile, height: 35, width: 30 }}
                 onClick={() => {
-                  setComentario(comentario);
+                  setComment(comment);
                   setEditing(true);
                 }}
               >
@@ -183,7 +195,7 @@ const OpportunityInteraction = ({ opp, setOpp }: props) => {
               <IconButton
                 sx={{ ...buttonStylesMobile, height: 35, width: 30 }}
                 onClick={() => {
-                  setComentarios((prevComentarios) => prevComentarios.filter((_, i) => i !== index));
+                  setComments((prevComments) => prevComments.filter((_, i) => i !== index));
                 }}
               >
                 <DeleteIcon sx={{ color: "white" }} />

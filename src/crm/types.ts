@@ -1,5 +1,4 @@
 import { ChecklistItemFile, MovementationChecklist } from "../Patrimony/types";
-import { Dispatch, MutableRefObject, SetStateAction } from "react";
 
 
 export interface Opportunity {
@@ -73,7 +72,8 @@ export interface Opportunity {
     CODPESSOA: number;
     NOME: string;
   };
-  web_anexos_os : OpportunityFile[]
+  web_anexos_os? : OpportunityFile[]
+  comentarios? : Comment[];
 }
 
 export interface Field {
@@ -95,52 +95,7 @@ export interface ChecklistColumnData {
   numeric?: boolean;
   width?: number;
 }
-export interface OpportunityGuideProps {
-  guide: Guide;
-  guidesReference: MutableRefObject<Guide[] | undefined>;
-  formDataFilesRef: MutableRefObject<FormData | undefined>
-  isLoading: boolean
-  setChangeWasMade: Dispatch<SetStateAction<boolean>>
-  // renderAutoCompleteValue: (field: OpportunityColumn) => OpportunityOptionField;
-  // handleChangeAutoComplete: (
-  //   _event: React.SyntheticEvent<Element, Event>,
-  //   value: OpportunityOptionField | null,
-  //   _reason: AutocompleteChangeReason,
-  //   _details?:
-  //     | AutocompleteChangeDetails<{
-  //         label: string;
-  //         id: number;
-  //         object: string;
-  //       }>
-  //     | undefined
-  // ) => void;
-  // renderOptions: (column: {
-  //   label: string;
-  //   dataKey: string;
-  //   autoComplete?: boolean;
-  // }) => OpportunityOptionField[] | undefined;
-  // adicional: boolean;
-  // currentOppIdSelected: number;
-  // opportunity: Opportunity;
-  // handleChangeTextField: (
-  //   e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>,
-  //   column: OpportunityColumn
-  // ) => void;
-  // isDateField: (dataKey: string) => boolean;
-  // currentCommentValue: string;
-  // handleChangeComentarios: (
-  //   e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>,
-  //   codigoComentario?: number
-  // ) => void;
-  // editingComment: Comentario | undefined;
-  // setEditingComment: React.Dispatch<
-  //   React.SetStateAction<Comentario | undefined>
-  // >;
-  // setCurrentOpportunity: React.Dispatch<React.SetStateAction<Opportunity>>;
-  // handleSaveOpportunity: () => Promise<void>;
-  // handleChangeFiles: (e: React.ChangeEvent<HTMLInputElement>) => Promise<void>;
-  // handleDeleteFile: (file: OpportunityFile) => void;
-}
+
 
 export interface GuideSelectorProps {
   guides: Guide[];
@@ -174,7 +129,7 @@ export interface CardChecklistItemProps {
   isMobile: boolean
 }
 
-export interface Comentario {
+export interface Comment {
 CODCOMENTARIO: number;
 CODAPONT: number;
 CODOS: number;
@@ -215,7 +170,6 @@ export interface Client {
   NOMEFANTASIA: string;
   CODCOLIGADA?: number;
 }
-
 
 export interface OpportunityOptionField {
   label: string;

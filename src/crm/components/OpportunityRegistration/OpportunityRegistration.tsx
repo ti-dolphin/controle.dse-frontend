@@ -7,9 +7,8 @@ import { Client, Opportunity, Status } from "../../types";
 import { fetchAllProjects } from "../../../Requisitions/utils";
 import { fetchAllClients, fetchStatusList } from "../../utils";
 import typographyStyles from "../../../Requisitions/utilStyles";
-import { Close } from "@mui/icons-material";
 import { CloseModalButton } from "../../../generalUtilities";
-import { debounce, set } from "lodash";
+import { debounce } from "lodash";
 import { BaseButtonStyles } from "../../../utilStyles";
 import { styles } from "./OpportunityRegistration.styles";
 
@@ -61,7 +60,6 @@ const OpportunityRegistration = ({ handleClose, opp, setOpp }: props) => {
 
   const debouncedSetOppNome = useCallback(
     debounce((value: string) => {
-      console.log("Debounced setOpp.NOME:", value);
       setOpp((prev: Opportunity) => ({ ...prev, NOME: value }));
     }, 300),
     [setOpp]
@@ -69,7 +67,6 @@ const OpportunityRegistration = ({ handleClose, opp, setOpp }: props) => {
 
   const debouncedSetOppDescricaoVenda = useCallback(
     debounce((value: string) => {
-      console.log("Debounced setOpp.DESCRICAO_VENDA:", value);
       setOpp((prev: Opportunity) => ({ ...prev, DESCRICAO_VENDA: value }));
     }, 300),
     [setOpp]
@@ -77,7 +74,6 @@ const OpportunityRegistration = ({ handleClose, opp, setOpp }: props) => {
 
   const debouncedSetOppDataSolicitacao = useCallback(
     debounce((value: Date) => {
-      console.log("Debounced setOpp.DATASOLICITACAO:", value);
       setOpp((prev: Opportunity) => ({ ...prev, DATASOLICITACAO: value }));
     }, 300),
     [setOpp]
@@ -85,7 +81,6 @@ const OpportunityRegistration = ({ handleClose, opp, setOpp }: props) => {
 
   const debouncedSetOppDataInicio = useCallback(
     debounce((value: Date) => {
-      console.log("Debounced setOpp.DATAINICIO:", value);
       setOpp((prev: Opportunity) => ({ ...prev, DATAINICIO: value }));
     }, 300),
     [setOpp]
@@ -93,14 +88,12 @@ const OpportunityRegistration = ({ handleClose, opp, setOpp }: props) => {
 
   const debouncedSetOppDataEntrega = useCallback(
     debounce((value: Date) => {
-      console.log("Debounced setOpp.DATAENTREGA:", value);
       setOpp((prev: Opportunity) => ({ ...prev, DATAENTREGA: value }));
     }, 300),
     [setOpp]
   );
 
   useEffect(() => {
-    console.log("useEffect Registration");
     const fetchProjectOptions = async () => {
       try {
         const data = await fetchAllProjects();

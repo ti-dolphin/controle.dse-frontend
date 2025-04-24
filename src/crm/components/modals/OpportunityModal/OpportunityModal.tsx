@@ -64,8 +64,18 @@ const OpportunityModal = () => {
     const fetchOpportunity = async () => {
       console.log("fetchOpportunity");
       try {
-        const data = await getOpportunityById(currentOppIdSelected);
-        console.log("data: ", data);
+        const data : Opportunity = await getOpportunityById(currentOppIdSelected);
+        console.log(
+          "DATASOLICITACAO:",
+          data.DATASOLICITACAO,
+          "\nDATE OBJ: ",
+          new Date(data.DATASOLICITACAO),
+        );
+        console.log("DATAINTERACAO:", data.DATAINTERACAO,);
+        console.log("DATANECESSIDADE:", data.DATANECESSIDADE);
+        console.log("DATAINICIO:", data.DATAINICIO);
+        console.log("DATAPREVENTREGA:", data.DATAPREVENTREGA);
+        console.log("DATAENTREGA:", data.DATAENTREGA);
         setOpp(data);
       } catch (e) {
         console.error(e);
