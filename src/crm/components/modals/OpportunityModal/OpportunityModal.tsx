@@ -1,11 +1,11 @@
-import { Box, Button, Modal } from "@mui/material";
+import { Alert, AlertColor, Box, Button, CircularProgress, Modal } from "@mui/material";
 import React, { useContext, useEffect, useRef, useState } from "react";
 import { OpportunityInfoContext } from "../../../context/OpportunityInfoContext";
 import { CloseModalButton } from "../../../../generalUtilities";
 import SaveProgressModal from "../SaveProgressModal/SaveProgressModal";
 import OpportunityRegistration from "../../OpportunityRegistration/OpportunityRegistration";
 import { Opportunity } from "../../../types";
-import { defaultOpportunity, getOpportunityById } from "../../../utils";
+import { defaultOpportunity, getOpportunityById, updateOpportunity } from "../../../utils";
 import { AlertInterface } from "../../../../Requisitions/types";
 import { fetchAllProjects } from "../../../../Requisitions/utils";
 import GuideSelector from "../../GuideSelector/GuideSelector";
@@ -40,7 +40,9 @@ const OpportunityModal = () => {
     setSaveProgressModalOpen(false);
     setCurrentOppIdSelected(0);
     setChangeWasMade(false);
+    setSlideIndex(0);
     setOpen(false);
+    setLoading(false);
   };
 
   const displayAlert = async (severity: string, message: string) => {
@@ -56,26 +58,28 @@ const OpportunityModal = () => {
     setSlideIndex(index);
   };
 
-  const handleSave = () => {
-    console.log("handleSave");
+  const handleSave = async () => {
+     console.log("handleSave");
+    setLoading(true);
+    try{ 
+      const updatedOpportunity = await updateOpportunity(opp);
+      setOpp(updatedOpportunity);
+      setChangeWasMade(false);
+      handleClose();
+      displayAlert("success", "Oportunidade salva com sucesso!");
+    }catch(e){ 
+      console.error(e);
+      displayAlert("error", "Erro ao salvar oportunidade");
+    }finally{ 
+      setLoading(false);
+    }
+
   };
 
   useEffect(() => {
     const fetchOpportunity = async () => {
-      console.log("fetchOpportunity");
       try {
         const data : Opportunity = await getOpportunityById(currentOppIdSelected);
-        console.log(
-          "DATASOLICITACAO:",
-          data.DATASOLICITACAO,
-          "\nDATE OBJ: ",
-          new Date(data.DATASOLICITACAO),
-        );
-        console.log("DATAINTERACAO:", data.DATAINTERACAO,);
-        console.log("DATANECESSIDADE:", data.DATANECESSIDADE);
-        console.log("DATAINICIO:", data.DATAINICIO);
-        console.log("DATAPREVENTREGA:", data.DATAPREVENTREGA);
-        console.log("DATAENTREGA:", data.DATAENTREGA);
         setOpp(data);
       } catch (e) {
         console.error(e);
@@ -109,23 +113,34 @@ const OpportunityModal = () => {
             slideIndex={slideIndex}
             handleChangeGuide={handleChangeGuide}
           />
-          <Box sx={styles.contentBox}>
-            <Slider ref={sliderRef}>
-              <OpportunityRegistration
-                handleClose={handleClose}
-                opp={opp}
-                setOpp={setOpp}
-              />
-              <OpportunityInteraction
-                opp={opp}
-                setOpp={setOpp}
-              />
-              <div>Escope</div>
-              <div>Venda</div>
-              <div>Seguidores</div>
-            </Slider>
-          </Box>
-          <Button sx={{ ...BaseButtonStyles, width: 200 }}>Salvar</Button>
+          { 
+            loading ?
+            <CircularProgress />
+            : 
+              <Box sx={styles.contentBox}>
+                {alert && (
+                  <Alert severity={alert.severity as AlertColor}
+                   sx={{ border: alert.severity === "error" ? "1px solid red" : "1px solid green" }}>
+                    {alert.message}
+                  </Alert>
+                )}
+                <Slider ref={sliderRef}>
+                  <OpportunityRegistration
+                    handleClose={handleClose}
+                    opp={opp}
+                    setOpp={setOpp}
+                  />
+                  <OpportunityInteraction
+                    opp={opp}
+                    setOpp={setOpp}
+                  />
+                  <div>Escope</div>
+                  <div>Venda</div>
+                  <div>Seguidores</div>
+                </Slider>
+              </Box>
+          }
+          <Button onClick={handleSave} sx={{ ...BaseButtonStyles, width: 200 }}>Salvar</Button>
 
           <CloseModalButton
             handleClose={() => {

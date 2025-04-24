@@ -33,7 +33,7 @@ const OpportunityRegistration = ({ handleClose, opp, setOpp }: props) => {
   const [choseProjectModalOpen, setChoseProjectModalOpen] =
     useState<boolean>(false);
   const [idProjeto, setIdProjeto] = useState<number>(opp.ID_PROJETO || 0);
-  const [numeroAdicional, setNumeroAdicional] = useState<number>(0);
+  const [numeroAdicional, setNumeroAdicional] = useState<number>(opp.adicional.NUMERO);
   const [nome, setNome] = useState<string>(opp.NOME || "");
   const [codStatus, setCodStatus] = useState<number>(opp.CODSTATUS || 0);
   const [descricaoVenda, setDescricaoVenda] = useState<string>(opp.DESCRICAO_VENDA || "");

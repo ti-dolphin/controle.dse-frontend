@@ -122,13 +122,16 @@ export const fetchManagers = async( ) => {
 };
 export const updateOpportunity = async (opportunity : Opportunity, user?: User ) =>  { 
   try {
-    const response = await api.put("opportunity/update",  opportunity, { 
-      params: {user}
-    } );
-    return response;
+    const response = await api.put(
+      `opportunity/update/${opportunity.CODOS}`,
+      opportunity,
+      {
+        params: { user },
+      }
+    );
+    return response.data;
   } catch (error) {
-    console.error(error);
-    return null;
+     throw error;
   }
 };
 

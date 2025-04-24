@@ -17,7 +17,7 @@ interface props {
 
 const OpportunityInteraction = ({ opp, setOpp }: props) => {
   const { user } = useContext(userContext);
-  const [dataInteracao, setDataInteracao] = React.useState<Date>(new Date(opp.DATAINTERACAO));
+  const [dataInteracao, setDataInteracao] = React.useState<Date>(opp.DATAINTERACAO && new Date(opp.DATAINTERACAO));
   const [comment, setComment] = React.useState<Comment>({
     CODCOMENTARIO: 0,
     CODAPONT: 0,
@@ -32,6 +32,7 @@ const OpportunityInteraction = ({ opp, setOpp }: props) => {
 
   const debouncedSetOppDataInteracao = React.useCallback(
     debounce((newDataInteracao: Date) => {
+      console.log('newDataInteracao', newDataInteracao);
       setOpp((prevOpp) => ({ ...prevOpp, DATAINTERACAO: newDataInteracao }));
     }, 300),
     [setOpp]
@@ -126,7 +127,7 @@ const OpportunityInteraction = ({ opp, setOpp }: props) => {
         type="date"
         onChange={(e) => setDataInteracao(new Date(e.target.value))}
         InputLabelProps={{ shrink: true }}
-        value={dataInteracao.toISOString().split("T")[0]}
+        value={dataInteracao ? dataInteracao.toISOString().split("T")[0] : null}
       />
       <Stack sx={{ width: "100%", gap: 2 }}>
         <TextField
