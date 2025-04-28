@@ -63,9 +63,9 @@ const OpportunityModal = () => {
     setLoading(true);
     try{ 
       const updatedOpportunity = await updateOpportunity(opp);
+      console.log('updatedOpportunity', updatedOpportunity);
       setOpp(updatedOpportunity);
       setChangeWasMade(false);
-      handleClose();
       displayAlert("success", "Oportunidade salva com sucesso!");
     }catch(e){ 
       console.error(e);
