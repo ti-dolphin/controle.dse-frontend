@@ -136,7 +136,7 @@ CODOS: number;
 DESCRICAO: string;
 RECCREATEDON: Date | string;
 RECCREATEDBY: string;
-EMAIL: string;
+EMAIL: boolean;
 }
 
 

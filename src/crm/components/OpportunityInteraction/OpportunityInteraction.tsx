@@ -25,9 +25,9 @@ const OpportunityInteraction = ({ opp, setOpp }: props) => {
     DESCRICAO: "",
     RECCREATEDON: '',
     RECCREATEDBY: '',
-    EMAIL: "",
+    EMAIL: false,
   });
-  const [comments, setComments] = React.useState<Comment[]>([]);
+  const [comments, setComments] = React.useState<Comment[]>(opp.comentarios || []);
   const [editing, setEditing] = React.useState<boolean>(false);
 
   const debouncedSetOppDataInteracao = React.useCallback(
@@ -43,7 +43,7 @@ const OpportunityInteraction = ({ opp, setOpp }: props) => {
       ...updatedComment,
       RECCREATEDON: new Date(),
       RECCREATEDBY: user?.NOME || '',
-      EMAIL: user?.NOME || "",
+      EMAIL: false,
     }
     setComments((prevComentarios) =>
       prevComentarios.map((c) =>
@@ -64,9 +64,11 @@ const OpportunityInteraction = ({ opp, setOpp }: props) => {
     const comment: Comment = {
       ...newComment,
       CODCOMENTARIO: Math.random() * 1000,
+      CODOS: opp.CODOS,
+      CODAPONT: 0,
       RECCREATEDON: new Date(),
       RECCREATEDBY: user?.NOME || '',
-      EMAIL: user?.NOME || "",
+      EMAIL: false,
     };
     setComments((prevComentarios) => [...prevComentarios, comment]);
     setOpp((prevOpp) => ({
@@ -83,7 +85,7 @@ const OpportunityInteraction = ({ opp, setOpp }: props) => {
       DESCRICAO: "",
       RECCREATEDON: "",
       RECCREATEDBY: "",
-      EMAIL: "",
+      EMAIL: false,
     });
   }
 
@@ -107,9 +109,17 @@ const OpportunityInteraction = ({ opp, setOpp }: props) => {
       DESCRICAO: "",
       RECCREATEDON: '',
       RECCREATEDBY: '',
-      EMAIL: "",
+      EMAIL: false,
     });
     setEditing(false);
+  };
+
+  const handleDeleteComment = (commentId: number) => {
+    setComments((prevComentarios) => prevComentarios.filter((c) => c.CODCOMENTARIO !== commentId));
+    setOpp((prevOpp) => ({
+      ...prevOpp,
+      comentarios: prevOpp.comentarios?.filter((c) => c.CODCOMENTARIO !== commentId),
+    }));
   };
 
   useEffect(() => {
@@ -180,7 +190,7 @@ const OpportunityInteraction = ({ opp, setOpp }: props) => {
               <Typography sx={{ ...typographyStyles.heading2 }}>Por {comment.RECCREATEDBY}</Typography>
               <Typography sx={{ ...typographyStyles.bodyText }}>{comment.DESCRICAO}</Typography>
               <Typography sx={{ ...typographyStyles.smallText }}>
-                {comment.RECCREATEDON?.toLocaleString()}
+                {new Date(comment.RECCREATEDON)?.toLocaleString('pt-BR', { timeZone: 'America/Sao_Paulo' })}
               </Typography>
             </Box>
             <Stack gap={1} direction="row" alignItems="center">
@@ -195,9 +205,7 @@ const OpportunityInteraction = ({ opp, setOpp }: props) => {
               </IconButton>
               <IconButton
                 sx={{ ...buttonStylesMobile, height: 35, width: 30 }}
-                onClick={() => {
-                  setComments((prevComments) => prevComments.filter((_, i) => i !== index));
-                }}
+                onClick={() => handleDeleteComment(comment.CODCOMENTARIO)}
               >
                 <DeleteIcon sx={{ color: "white" }} />
               </IconButton>
