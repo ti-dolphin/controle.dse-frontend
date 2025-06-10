@@ -1,11 +1,16 @@
-
-import './App.css'
-import RequisitionHome from "./Requisitions/pages/requisitionHome/RequisitionHome";
-
-function App() {
+import React from "react";
+import { BrowserRouter } from "react-router-dom";
+import AppRoutes from "./routes";
+import { Provider } from "react-redux";
+import { store } from "./redux/store";
+const App = () => {
   return (
-    <RequisitionHome />
-  )
-}
+    <BrowserRouter>
+      <Provider store={store}>
+        <AppRoutes />
+      </Provider>
+    </BrowserRouter>
+  );
+};
 
-export default App
+export default App;
