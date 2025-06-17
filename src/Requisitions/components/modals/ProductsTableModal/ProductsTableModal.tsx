@@ -98,7 +98,6 @@ export const ProductsTableModal: React.FC<ProductsTableModalProps> = ({
     viewingProducts
   );
   const {user } = useContext(userContext);
-  console.log("PERM_EDITAR_PRODUTOS: ", Boolean(user?.PERM_EDITAR_PRODUTOS));
 
   const columns: GridColDef[] = [
     {
@@ -131,7 +130,7 @@ export const ProductsTableModal: React.FC<ProductsTableModalProps> = ({
   const filterNonRepeatedProducts = () => {
     return selectedProducts
       .map((product) => {
-        if (!productIdList.includes(product.ID)) {
+        if (!(productIdList.includes(product.ID) || product.ID === 136596)) {
           return {
             ID: 0,
             QUANTIDADE: 0,
