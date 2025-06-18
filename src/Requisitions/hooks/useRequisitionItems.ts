@@ -203,12 +203,14 @@ const useRequisitionItems = (
     const { items, columns } = await fetchItems(requisitionId);
     setDinamicColumns(columns);
     if (items) {
-      console.log("items: ", items)
+      console.log('addedItems: ', addedItems);
       if (isInsertingQuantity && addedItems?.length) {
+
         const itemsToBeSet = items.filter((item: Item) =>
           addedItems.find((addedItem) => addedItem.ID === item.ID)
         );
-        console.log("itemsToBeSet: ", itemsToBeSet)
+       
+
         setItems(itemsToBeSet);
         setVisibleItems(itemsToBeSet);
         return;

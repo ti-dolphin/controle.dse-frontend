@@ -130,7 +130,8 @@ export const ProductsTableModal: React.FC<ProductsTableModalProps> = ({
   const filterNonRepeatedProducts = () => {
     return selectedProducts
       .map((product) => {
-        if (!(productIdList.includes(product.ID) || product.ID === 136596)) {
+        const notInProductList = !productIdList.includes(product.ID)
+        if (notInProductList || product.ID === 138331) {
           return {
             ID: 0,
             QUANTIDADE: 0,
@@ -148,6 +149,7 @@ export const ProductsTableModal: React.FC<ProductsTableModalProps> = ({
   const handleSaveAddItems = async () => {
     //salva os items adicionados a requisição
     const newProductItems: RequisitionItemPost[] = filterNonRepeatedProducts();
+    console.log({ newProductItems });
     if (newProductItems.length) {
       try {
         setIsLoading(true);
