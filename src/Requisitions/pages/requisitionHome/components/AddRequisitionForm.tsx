@@ -132,7 +132,7 @@ const AddRequisitionForm: React.FC = () => {
           ID_PROJETO: fields.ID_PROJETO || 0,
           ID_RESPONSAVEL: user.CODPESSOA,
           OBSERVACAO: fields.OBSERVACAO || null,
-          TIPO: fields.TIPO || 0,
+          TIPO: 9,
           criado_por: user.CODPESSOA,
           alterado_por: user.CODPESSOA,
           data_alteracao: getBrazilianDateTime(),
@@ -181,6 +181,7 @@ const AddRequisitionForm: React.FC = () => {
         <Autocomplete
           disablePortal
           id="selectType"
+          disabled
           options={renderTypeOptions()}
           getOptionLabel={(option) => option.label}
           onChange={handleSelectType}
