@@ -1,0 +1,53 @@
+
+import { Project } from "../Project";
+import { Client } from "./Client";
+
+export interface Opportunity {
+  CODOS: number;
+  CODTIPOOS: number;
+  CODCCUSTO: string;
+    OBRA: string | null;
+    DATASOLICITACAO: string;
+    DATANECESSIDADE: string;
+    DOCREFERENCIA: string | null;
+    LISTAMATERIAIS: string | null;
+    DATAINICIO: string;
+    DATAPREVENTREGA: string;
+    DATAENTREGA: string | null;     
+    CODSTATUS: number;
+    NOME: string;
+    DESCRICAO: string | null;
+    ATIVIDADES: string | null;
+    PRIORIDADE: number;
+    SOLICITANTE: number;
+    RESPONSAVEL: number;
+    CODDISCIPLINA: number;
+    GUT: number;
+    GRAVIDADE: number;
+    URGENCIA: number;
+    TENDENCIA: number;
+    DATALIBERACAO: string | null;
+    RELACIONAMENTO: number;
+    FK_CODCLIENTE: string;
+    FK_CODCOLIGADA: number;
+    VALORFATDIRETO: string;
+    VALORSERVICOMO: string | null;
+    VALORSERVICOMATAPLICADO: string | null;
+    VALORMATERIAL: string | null;
+    VALORTOTAL: string | null;
+    CODSEGMENTO: number;
+    CODCIDADE: number;
+    VALORLOCACAO: string | null;
+    ID_ADICIONAL: number;
+    ID_PROJETO: number;
+    DATAINTERACAO: string | null;
+    VALORFATDOLPHIN: string;
+    PRINCIPAL: boolean;
+    VALOR_COMISSAO: string;
+    id_motivo_perdido: number;
+    observacoes: string;
+    DESCRICAO_VENDA: string;
+    EMAIL_VENDA_ENVIADO: boolean;
+    cliente: Client;
+    projeto: Project;
+}

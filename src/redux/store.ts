@@ -1,19 +1,16 @@
 import { configureStore } from '@reduxjs/toolkit';
-import userSlice from './slices/userSlice';
-import { useDispatch, useSelector, TypedUseSelectorHook } from "react-redux";
-
-// Adicione seus reducers aqui
-// import exampleReducer from './exampleSlice';
+import userReducer from './slices/userSlice';
+import feedbackReducer from './slices/feedBackSlice';
+import requisitionTableReducer from './slices/requisicoes/requisitionTableSlice';
 
 export const store = configureStore({
   reducer: {
-    user : userSlice.reducer
+    user: userReducer,
+    feedback: feedbackReducer,
+    requisitionTable: requisitionTableReducer,
   },
 });
 
 // Tipos para uso com TypeScript
 export type RootState = ReturnType<typeof store.getState>;
-export type Dispatch = typeof store.dispatch;
-
-export const useAppDispatch: () => Dispatch = useDispatch;
-export const useAppSelector: TypedUseSelectorHook<RootState> = useSelector; 
+export type AppDispatch = typeof store.dispatch;

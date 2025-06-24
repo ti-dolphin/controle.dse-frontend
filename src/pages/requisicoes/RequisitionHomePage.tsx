@@ -1,9 +1,12 @@
-import React from 'react'
+import { Box } from "@mui/material";
+import RequisitionListPage from "./RequisitionListPage/RequisitionListPage";
 
-const Home = () => {
+const RequisitionHomePage = () => {
   return (
-    <div>Home</div>
-  )
-}
+    <Box sx={{ minHeight: "100vh", width: "100%" }}>
+      <RequisitionListPage />
+    </Box>
+  );
+};
 
-export default Home
+export default RequisitionHomePage;
