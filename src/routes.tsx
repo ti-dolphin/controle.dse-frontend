@@ -6,6 +6,7 @@ import { RootState, AppDispatch } from "./redux/store";
 import HomePage from "./pages/HomePage";
 import PatrimonyHomePage from "./pages/patrimonios/PatrimonyHomePage";
 import RequisitionHomePage from "./pages/requisicoes/RequisitionHomePage";
+import RequisitionDetailPage from "./pages/requisicoes/RequisitionDetailPage";
 
 // Exemplo de páginas
 const AppRoutes = () => { 
@@ -15,7 +16,7 @@ const AppRoutes = () => {
       <Route path="/" element={<HomePage />} />
       <Route path="/requisicoes" element={<RequisitionHomePage />} />
       {/* <Route path="/requisicoes/lista" element={<RequisitionListPage />} /> */}
-      {/* <Route path="/requisicoes/:id" element={<RequisitionDetailPage />} /> */}
+      <Route path="/requisicoes/:id_requisicao" element={<RequisitionDetailPage />} />
       {/* <Route path="/requisicoes/:id/quote" element={<QuoteDetailPage />} /> */}
 
       {/* Patrimônios */}

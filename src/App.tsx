@@ -7,24 +7,80 @@ import { ThemeProvider, createTheme, CssBaseline, AppBar, Toolbar } from "@mui/m
 import SnackBar from "./components/shared/SnackBar";
 import ProfileButton from "./components/shared/ProfileButton";
 import { ptBR } from "@mui/material/locale";
+import { green } from "@mui/material/colors";
 
-const theme = createTheme({
-  palette: {
-    primary: {
-      main: "#2B3990",
+const theme = createTheme(
+  {
+    palette: {
+      primary: {
+        main: "#2B3990",
+      },
+      secondary: {
+        main: "#F7941E",
+        light: "#e4f1fe",
+      },
+      text: {
+        primary: "#222831",
+        secondary: "#606470",
+      },
+      error: {
+        main: "#d32f2f",
+        dark: "#b71c1c",
+      },
+      success: {
+        main: "#4caf50",
+      },
     },
-    secondary: {
-      main: "#F7941E",
+    typography: {
+      fontFamily: "Roboto, sans-serif",
     },
-    text: {
-      primary: "#222831",
-      secondary: "#606470",
+    components: {
+      MuiButton: {
+        styleOverrides: {
+          root: {
+            backgroundColor: "#2B3990", // ou theme.palette.primary.main
+            color: "white",
+            textTransform: "capitalize",
+            borderRadius: 8,
+            maxWidth: 200,
+            display: "flex",
+            alignItems: "center",
+            gap: 8,
+            // Para manter o background no hover:
+            "&:hover": {
+              backgroundColor: "#1e285c", // ajuste para um tom mais escuro do primary
+            },
+            "&.MuiButton-containedError": {
+              backgroundColor: "#d32f2f",
+              color: "white",
+              textTransform: "capitalize",
+              maxWidth: 200,
+              display: "flex",
+              alignItems: "center",
+              gap: 1,
+              "&:hover": {
+                backgroundColor: "#b71c1c",
+              },
+            },
+            "&.MuiButton-containedSuccess": {
+              backgroundColor: green[500],
+              color: "white",
+              textTransform: "capitalize",
+              maxWidth: 200,
+              display: "flex",
+              alignItems: "center",
+              gap: 1,
+              "&:hover": {
+                backgroundColor: green[700],
+              },
+            },
+          },
+        },
+      },
     },
   },
-  typography: {
-    fontFamily: "Roboto, sans-serif",
-  }
-}, ptBR);
+  ptBR
+);
 
 const App = () => {
   return (
@@ -32,16 +88,7 @@ const App = () => {
       <CssBaseline />
       <Provider store={store}>
         <BrowserRouter>
-          {/* <AppBar
-            position="absolute"
-            color="inherit"
-            elevation={0}
-            sx={{ backgroundColor: "transparent", padding: 0 }}
-          >
-            <Toolbar sx={{ display: "flex", justifyContent: "flex-end", padding: 0, marginBottom: 2}}>
-              <ProfileButton />
-            </Toolbar>
-          </AppBar> */}
+         
           <SnackBar />
           <AppRoutes />
         </BrowserRouter>

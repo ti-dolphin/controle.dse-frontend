@@ -5,42 +5,44 @@ import { Theme } from "@mui/material/styles";
 const StyledDataGrid = styled(DataGrid)<{ theme: Theme }>(({ theme }) => ({
   border: "none",
   background: "#fff",
-  borderRadius: 16,
+  borderRadius: 0,
   boxShadow: "0 4px 24px 0 rgba(34, 40, 49, 0.08)",
+
   fontFamily: "Roboto, Arial, sans-serif",
   "& .MuiDataGrid-columnHeaders": {
     background: "#F5F6FA",
     color: theme.palette.primary.main,
     fontWeight: 600,
-    fontSize: "0.9rem",
-    borderTopLeftRadius: 16,
-    borderTopRightRadius: 16,
+    fontSize: "0.8rem",
+    borderTopLeftRadius: 0,
+    borderTopRightRadius: 0,
   },
   "& .MuiDataGrid-row": {
     background: "#fff",
     transition: "background 0.2s",
     cursor: 'pointer',
+    
     "&:hover": {
       background: "#F7F8FC",
     },
   },
   "& .MuiDataGrid-cell": {
-    fontSize: "0.8rem",
-    fontWeight: 'light',
+    fontSize: "12px",
+    fontWeight: '500',
     color: theme.palette.text.secondary,
     borderBottom: "1px solid #F0F0F0",
   },
   "& .MuiDataGrid-footerContainer": {
     background: "#F5F6FA",
-    borderBottomLeftRadius: 16,
-    borderBottomRightRadius: 16,
+    borderBottomLeftRadius: 0,
+    borderBottomRightRadius: 0,
   },
   "& .MuiDataGrid-selectedRowCount": {
     visibility: "hidden",
   },
   "& .MuiDataGrid-virtualScroller": {
-    borderBottomLeftRadius: 16,
-    borderBottomRightRadius: 16,
+    borderBottomLeftRadius: 0,
+    borderBottomRightRadius: 0,
   },
 }));
 export default StyledDataGrid;

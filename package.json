@@ -4,7 +4,7 @@
   "version": "0.0.0",
   "type": "module",
   "scripts": {
-    "dev": "vite",
+    "dev": "vite  --mode development",
     "build": "tsc && vite build",
     "lint": "eslint . --ext ts,tsx --report-unused-disable-directives --max-warnings 0",
     "preview": "vite preview"
@@ -28,6 +28,7 @@
     "axios": "^1.7.2",
     "chance": "^1.1.12",
     "dayjs": "^1.11.12",
+    "firebase": "^11.10.0",
     "framer-motion": "^11.2.6",
     "localforage": "^1.10.0",
     "lodash": "^4.17.21",
@@ -70,4 +71,5 @@
     "typescript": "^5.2.2",
     "vite": "^5.2.0"
   }
+ 
 }

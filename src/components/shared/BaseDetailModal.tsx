@@ -40,7 +40,7 @@ export function BaseDetailModal<T>({ open, onClose, columns, row, title, ref }: 
 
   return (
     <Dialog open={open} onClose={onClose} maxWidth="sm" fullWidth sx={{display: 'flex', justifyContent: 'end'}}>
-      <DialogTitle sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+      <DialogTitle sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', color: 'primary.main' }}>
         {title || 'Detalhes'}
         <IconButton onClick={onClose}>
           <CloseIcon />

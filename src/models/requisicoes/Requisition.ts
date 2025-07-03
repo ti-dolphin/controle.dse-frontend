@@ -5,23 +5,26 @@ import { RequisitionType } from "./RequisitionType";
 
 
 export interface Requisition {
-  ID_REQUISICAO: number;
-  DESCRIPTION: string;
-  ID_PROJETO: number;
-  ID_RESPONSAVEL: number;
-  data_alteracao: string;
-  data_criacao: string;
-  id_status_requisicao: number;
+  ID_REQUISICAO: number; //preenchido automáticamente, não aparece no form
+  DESCRIPTION: string; //campo texto, aparece no form
+  ID_PROJETO: number; //autocomplete, aparece no form
+  ID_RESPONSAVEL: number; //preenchido automáticamente (user.CODPESSOA), aparece no form
+  TIPO: number; //autocomplete, aparece no form
+  
+  data_alteracao: string; //preenchido automáticamente, não aparece no form
+
+  data_criacao: string; //preenchido automaticamente (new Date()), não aparece no form
+
+  id_status_requisicao: number; //autoComplete, não aparece no form
+
   OBSERVACAO: string | null;
-  alterado_por: number;
-  TIPO: number;
-  criado_por: number;
+
   tipo_requisicao?: RequisitionType;
   projeto?: Project;
   gerente?: ReducedUser;
   responsavel?: ReducedUser;
   status?: RequisitionStatus;
-  pessoa_criado_por?: ReducedUser;
-  pessoa_alterado_por?: ReducedUser;
+  criado_por?: ReducedUser;
+  alterado_por?: ReducedUser;
 }
 

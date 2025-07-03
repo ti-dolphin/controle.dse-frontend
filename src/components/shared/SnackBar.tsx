@@ -25,7 +25,7 @@ const SnackBar: React.FC = () => {
       <Alert
         onClose={handleClose}
         severity={type || 'info'}
-        sx={{ width: '100%' }}
+        sx={{ width: '100%', color: 'white' }}
         variant="filled"
       >
         {message}

@@ -10,4 +10,9 @@ export function formatDate(date: Date): string {
         month: 'numeric',
         day: 'numeric',
     });
-}
+};
+
+export const formatToISOstring = (date: Date): string => {
+    return date.toISOString();
+};
+
