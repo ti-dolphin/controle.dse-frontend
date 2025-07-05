@@ -28,7 +28,7 @@ import { setFeedback } from "../../redux/slices/feedBackSlice";
 import RequisitionTimeline from "../../components/requisicoes/RequisitionTimeline";
 import VisibilityIcon from '@mui/icons-material/Visibility';
 import RequisitionItemsTable from "../../components/requisicoes/RequisitionItemsTable";
-import { setAddingProducts, setUpdatingRecentProductsQuantity } from "../../redux/slices/requisicoes/requisitionItemSlice";
+import { clearNewItems, clearRecentProducts, setAddingProducts, setNewItems, setUpdatingRecentProductsQuantity } from "../../redux/slices/requisicoes/requisitionItemSlice";
 import ProductsTable from "../../components/requisicoes/ProductsTable";
 import RequisitionItemService from "../../services/requisicoes/RequisitionItemService";
 
@@ -36,10 +36,9 @@ const RequisitionDetailPage = () => {
 
   const dispatch = useDispatch();
   const user = useSelector((state: RootState) => state.user.user);
-  const addingProducts = useSelector((state: RootState) => state.requisitionItem.addingProducts);
+  const {addingProducts, updatingRecentProductsQuantity} = useSelector((state: RootState) => state.requisitionItem);
   const {id_requisicao} = useParams();
   const recentProductsAdded = useSelector((state: RootState) => state.requisitionItem.recentProductsAdded);
-
   const requisition = useSelector((state: RootState) => state.requisition.requisition);
   const [observation, setObservation] = useState('');
   const [editingObservation, setEditingObservation] = useState<boolean>(false);
@@ -96,11 +95,13 @@ const RequisitionDetailPage = () => {
 
   const createItemsFromProducts = async ( ) =>  {
     try{  
-      const newItems = await RequisitionItemService.createMany(recentProductsAdded, requisition.ID_REQUISICAO);
+      const newItemIds = await RequisitionItemService.createMany(recentProductsAdded, requisition.ID_REQUISICAO);
+      console.log("newItems: ", newItemIds)
       dispatch(setFeedback({ 
         message: 'Produtos adicionados com sucesso! Insira as quantidades desejadas',
         type: 'success'
       }));
+      dispatch(setNewItems(newItemIds));
       return;
 
     }catch(e : any){ 
@@ -112,9 +113,16 @@ const RequisitionDetailPage = () => {
   }
 
   const concludeAddProducts  = async (  ) =>  {
-    await createItemsFromProducts();
+ await createItemsFromProducts();
     dispatch(setAddingProducts(false));
+    dispatch(clearRecentProducts());
     dispatch(setUpdatingRecentProductsQuantity(true));
+  };
+
+  const concludeUpdateItemsQuantity = () => { 
+    dispatch(setUpdatingRecentProductsQuantity(false));
+    dispatch(clearNewItems());
+
   };
 
   const handleClose = () => {
@@ -276,7 +284,7 @@ const RequisitionDetailPage = () => {
           </Paper>
         </Grid>
       </Grid>
-
+      {/* Dialog para buscar os produtos, selecionar e adicioná-los aos itens da requisição */}
       <Dialog
         open={addingProducts}
         onClose={handleClose}
@@ -293,6 +301,31 @@ const RequisitionDetailPage = () => {
         <DialogActions>
           <Button
             onClick={concludeAddProducts}
+            variant="contained"
+            color="primary"
+            sx={{ textTransform: "none", minWidth: 120 }}
+          >
+            Concluir
+          </Button>
+        </DialogActions>
+      </Dialog>
+        {/* Dialog para atualizar os novos itens com as quantidades */}
+      <Dialog
+        open={updatingRecentProductsQuantity}
+        onClose={handleClose}
+        maxWidth="lg"
+        fullWidth
+        aria-labelledby="add-products-dialog-title"
+      >
+        <DialogTitle id="add-products-dialog-title">
+          Insira as quantidades dos produtos adicionados
+        </DialogTitle>
+        <DialogContent>
+          <RequisitionItemsTable />
+        </DialogContent>
+        <DialogActions>
+          <Button
+            onClick={concludeUpdateItemsQuantity}
             variant="contained"
             color="primary"
             sx={{ textTransform: "none", minWidth: 120 }}

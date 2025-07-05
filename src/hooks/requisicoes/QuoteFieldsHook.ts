@@ -1,0 +1,81 @@
+
+import { Option } from "../../types";
+
+export const useQuoteFields = (
+isSupplierRoute :boolean,
+  taxClassificationOptions: Option[],
+  paymentConditionOptions: Option[],
+  shipmentTypeOptions: Option[],
+) => {
+
+  const fields = [
+    {
+      name: "fornecedor",
+      label: "Fornecedor",
+      autoComplete: false,
+      options: [],
+    },
+    {
+      name: "descricao",
+      label: "Descrição",
+      autoComplete: false,
+      options: [],
+    },
+    {
+      name: "valor_frete",
+      label: "Valor Frete",
+      type: "number",
+      autoComplete: false,
+      options: [],
+    },
+    {
+      name: "id_tipo_frete",
+      label: "ID Tipo Frete",
+      autoComplete: true,
+      options: shipmentTypeOptions,
+    },
+    {
+      name: "id_classificacao_fiscal",
+      label: "Classificação fiscal",
+      autoComplete: true,
+      options: taxClassificationOptions,
+    },
+    {
+      name: "id_condicao_pagamento",
+      label: "ID Condição Pagamento",
+      autoComplete: true,
+      options: paymentConditionOptions,
+    },
+    {
+      name: "cnpj_fornecedor",
+      label: "CNPJ Fornecedor",
+      autoComplete: false,
+      options: [],
+    },
+    {
+      name: "cnpj_faturamento",
+      label: "CNPJ Faturamento",
+      autoComplete: false,
+      options: [],
+    },
+  ];
+
+  const disabledFields = isSupplierRoute
+    ? {
+        id_requisicao: true,
+        fornecedor: true,
+        data_cotacao: true,
+        id_tipo_frete: true,
+        id_classificacao_fiscal: true,
+        id_condicao_pagamento: true,
+        valor_frete: true,
+        observacao: true,
+        descricao: true,
+        cnpj_faturamento: true,
+      }
+    : {
+        cnpj_fornecedor: isSupplierRoute,
+      };
+
+  return {fields, disabledFields}
+};

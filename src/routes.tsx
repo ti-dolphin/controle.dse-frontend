@@ -7,6 +7,7 @@ import HomePage from "./pages/HomePage";
 import PatrimonyHomePage from "./pages/patrimonios/PatrimonyHomePage";
 import RequisitionHomePage from "./pages/requisicoes/RequisitionHomePage";
 import RequisitionDetailPage from "./pages/requisicoes/RequisitionDetailPage";
+import QuoteDetailPage from "./pages/requisicoes/QuoteDetalPage";
 
 // Exemplo de páginas
 const AppRoutes = () => { 
@@ -17,8 +18,8 @@ const AppRoutes = () => {
       <Route path="/requisicoes" element={<RequisitionHomePage />} />
       {/* <Route path="/requisicoes/lista" element={<RequisitionListPage />} /> */}
       <Route path="/requisicoes/:id_requisicao" element={<RequisitionDetailPage />} />
-      {/* <Route path="/requisicoes/:id/quote" element={<QuoteDetailPage />} /> */}
-
+      <Route path="/requisicoes/:id/cotacao/:id_cotacao" element={<QuoteDetailPage />} />
+      <Route path="/supplier/requisicoes/:id/cotacao/:id_cotacao" element={<QuoteDetailPage />} />
       {/* Patrimônios */}
       <Route path="/patrimonios" element={<PatrimonyHomePage />} />
       {/* <Route path="/patrimonios/lista" element={<PatrimonyListPage />} /> */}

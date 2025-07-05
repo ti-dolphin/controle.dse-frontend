@@ -4,7 +4,7 @@ import feedbackReducer from './slices/feedBackSlice';
 import requisitionTableReducer from './slices/requisicoes/requisitionTableSlice';
 import requisitionReducer from './slices/requisicoes/requisitionSlice';
 import requisitionItemReducer from './slices/requisicoes/requisitionItemSlice';
-
+import quoteReducer from './slices/requisicoes/quoteSlice';
 export const store = configureStore({
   reducer: {
     user: userReducer,
@@ -12,6 +12,7 @@ export const store = configureStore({
     requisitionTable: requisitionTableReducer,
     requisition: requisitionReducer,
     requisitionItem : requisitionItemReducer,
+    quote: quoteReducer
   },
 });
 

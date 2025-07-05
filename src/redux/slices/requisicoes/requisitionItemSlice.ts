@@ -38,6 +38,9 @@ const requisitionItemSlice = createSlice({
     clearRecentProducts(state) {
       state.recentProductsAdded = [];
     },
+    clearNewItems(state) {
+      state.newItems = [];
+    },
   },
 });
 
@@ -47,6 +50,8 @@ export const {
   setRecentAddedProducts,
   removeRecentProduct,
   clearRecentProducts,
+  setNewItems,
+  clearNewItems
 } = requisitionItemSlice.actions;
 
 export default requisitionItemSlice.reducer;

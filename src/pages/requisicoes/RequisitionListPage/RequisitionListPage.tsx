@@ -72,8 +72,7 @@ const RequisitionListPage = () => {
   };
 
   const gridRef = useGridApiRef();
-  const { columns, secondaryColumns } =
-    useRequisitionColumns(changeSelectedRow);
+  const { columns, secondaryColumns } = useRequisitionColumns(changeSelectedRow);
 
   const handleChangeKanban = React.useCallback(
     (event: SelectChangeEvent<unknown>) => {
@@ -91,7 +90,6 @@ const RequisitionListPage = () => {
 
   const handleChangeSearchTerm = React.useCallback(
     (event: React.ChangeEvent<HTMLInputElement>) => {
-      console.log("handleChangeSearchTerm");
       const value = event.target.value;
       dispatch(setSearchTerm(value.toLowerCase()));
     },

@@ -1,7 +1,11 @@
 import { GridColDef } from "@mui/x-data-grid";
 import { parseDate } from "../../utils";
+import { useSelector } from "react-redux";
+import { RootState } from "../../redux/store";
+import { cloneDeep } from "lodash";
 
 export const useRequisitionItemColumns = () => {
+  const {updatingRecentProductsQuantity} = useSelector((state: RootState) => state.requisitionItem)
   const columns: GridColDef[] = [
     {
       field: "id_item_requisicao",
@@ -13,20 +17,20 @@ export const useRequisitionItemColumns = () => {
       field: "produto_codigo",
       headerName: "Código Produto",
       type: "string",
-      flex: 0.5
+      flex: 0.5,
+    },
+    {
+      field: "produto_descricao",
+      headerName: "Descrição",
+      type: "string",
+      flex: 1,
     },
     {
       field: "quantidade",
       headerName: "Quantidade",
       type: "number",
       editable: true,
-      flex: 0.5
-    },
-    {
-      field: "produto_descricao",
-      headerName: "Descrição",
-      type: "string",
-      flex: 1
+      flex: 0.5,
     },
     {
       field: "data_entrega",
@@ -49,7 +53,7 @@ export const useRequisitionItemColumns = () => {
       headerName: "Quantidade em estoque",
       width: 150,
       type: "number",
-      flex: 0.4
+      flex: 0.4,
     },
     {
       field: "oc",
@@ -57,7 +61,7 @@ export const useRequisitionItemColumns = () => {
       editable: true,
       type: "string",
       valueGetter: (oc: string) => oc || "",
-      flex: 0.4
+      flex: 0.4,
     },
     {
       field: "observacao",
@@ -65,9 +69,15 @@ export const useRequisitionItemColumns = () => {
       type: "string",
       editable: true,
       valueGetter: (observacao: string) => observacao || "N/A",
-      flex: 1.5
+      flex: 1.5,
     },
   ];
 
+  if(updatingRecentProductsQuantity){ 
+    const selectedColumns = ['produto_descricao', 'quantidade'];
+    return {
+      columns: columns.filter((col) => selectedColumns.includes(col.field)),
+    };
+  }
   return { columns };
 };

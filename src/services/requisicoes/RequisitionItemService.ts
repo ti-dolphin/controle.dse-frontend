@@ -20,8 +20,8 @@ export class RequisitionItemService {
         return response.data;
     }
 
-    static async createMany(productIds : number[], id_requisicao : number)  : Promise<RequisitionItem[]> {
-        const response = await api.post(API_ENDPOINT, productIds, {
+    static async createMany(productIds : number[], id_requisicao : number)  : Promise<number[]> {
+        const response = await api.post(`${API_ENDPOINT}/many`, productIds, {
             params: { id_requisicao }
         });
         return response.data;

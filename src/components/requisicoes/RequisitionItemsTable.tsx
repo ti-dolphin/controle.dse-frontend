@@ -18,13 +18,14 @@ const RequisitionItemsTable = () => {
   const dispatch = useDispatch();
   const theme = useTheme();
   const user = useSelector((state: RootState) => state.user.user);
+  const {newItems, updatingRecentProductsQuantity} = useSelector((state: RootState) => state.requisitionItem);
   const requisition = useSelector((state: RootState) => state.requisition.requisition);
   const { editItemFieldsPermitted} = useRequisitionItemPermissions(user, requisition);
-  const { columns } = useRequisitionItemColumns();
   const [searchTerm, setSearchTerm ] = useState('');
   const [items, setItems] = useState<RequisitionItem[]>([]);
   const [cellModesModel, setCellModesModel] =  React.useState<GridCellModesModel>({});
   const [loading, setLoading] = useState(false);
+  const { columns } = useRequisitionItemColumns();
 
   const handleCellClick = React.useCallback(
     (params: GridCellParams, event: React.MouseEvent) => {
@@ -35,7 +36,7 @@ const RequisitionItemsTable = () => {
         }));
         return;
       }
-      if (editItemFieldsPermitted){
+      if (!editItemFieldsPermitted){
         dispatch(setFeedback({ 
           message: `Você não tem permissão para editar este campo`,
           type: 'error'
@@ -126,10 +127,18 @@ const RequisitionItemsTable = () => {
   const fetchData = useCallback(async () => {
     setLoading(true);
     try {
-      const data = await RequisitionItemService.getMany({
+      console.log('newItems: ', newItems)
+       const params = newItems.length > 0 ? { 
         id_requisicao: requisition.ID_REQUISICAO,
-        searchTerm,
-      });
+        id_item_requisicao: {in : [...newItems]},
+        searchTerm
+       } : { 
+        id_requisicao: requisition.ID_REQUISICAO,
+        searchTerm
+       };
+       console.log('parms: ', params)
+
+      const data = await RequisitionItemService.getMany(params);
       setItems(data);
       setLoading(false);
     } catch (e) {
@@ -143,12 +152,17 @@ const RequisitionItemsTable = () => {
     }
   }, [dispatch, requisition.ID_REQUISICAO, searchTerm]);
 
-  useEffect(() => { 
-    console.log("useEffect")
-    if(requisition){ 
+  useEffect(() => {
+    console.log("useEffect");
+    if (requisition) {
       fetchData();
     }
-  }, [dispatch, requisition.ID_REQUISICAO, fetchData])
+  }, [
+    dispatch,
+    requisition.ID_REQUISICAO,
+    fetchData,
+    updatingRecentProductsQuantity,
+  ]);
 
   return (
     <Box>
