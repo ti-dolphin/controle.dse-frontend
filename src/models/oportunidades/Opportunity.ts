@@ -1,6 +1,8 @@
 
 import { Project } from "../Project";
+import { ReducedUser } from "../User";
 import { Client } from "./Client";
+import { OpportunityStatus } from "./OpportunityStatus";
 
 export interface Opportunity {
   CODOS: number;
@@ -48,6 +50,8 @@ export interface Opportunity {
     observacoes: string;
     DESCRICAO_VENDA: string;
     EMAIL_VENDA_ENVIADO: boolean;
+    status: OpportunityStatus;
     cliente: Client;
     projeto: Project;
+    gerente: ReducedUser;
 }

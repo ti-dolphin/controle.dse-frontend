@@ -4,7 +4,6 @@ import OpportunityListPage from './OpportunityListPage';
 const OpportunityHomePage = () => {
   return (
     <div>
-
     <OpportunityListPage />
   </div>
   )

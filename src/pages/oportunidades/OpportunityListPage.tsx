@@ -2,7 +2,10 @@ import React from 'react'
 
 const OpportunityListPage = () => {
   return (
-    <div>OpportunityListPage</div>
+    <div>
+      
+
+    </div>
   )
 }
 
