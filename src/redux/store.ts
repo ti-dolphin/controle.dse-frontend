@@ -5,14 +5,17 @@ import requisitionTableReducer from './slices/requisicoes/requisitionTableSlice'
 import requisitionReducer from './slices/requisicoes/requisitionSlice';
 import requisitionItemReducer from './slices/requisicoes/requisitionItemSlice';
 import quoteReducer from './slices/requisicoes/quoteSlice';
+import quoteItemReducer from './slices/requisicoes/quoteItemSlice';
+
 export const store = configureStore({
   reducer: {
     user: userReducer,
     feedback: feedbackReducer,
     requisitionTable: requisitionTableReducer,
     requisition: requisitionReducer,
-    requisitionItem : requisitionItemReducer,
-    quote: quoteReducer
+    requisitionItem: requisitionItemReducer,
+    quote: quoteReducer,
+    quoteItem: quoteItemReducer,
   },
 });
 

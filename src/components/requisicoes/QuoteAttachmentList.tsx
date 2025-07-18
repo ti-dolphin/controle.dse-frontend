@@ -14,38 +14,37 @@ import {
 } from "@mui/material";
 import DeleteIcon from "@mui/icons-material/Delete";
 import CloudUploadIcon from "@mui/icons-material/CloudUpload";
-import { RequisitionFile } from "../../models/requisicoes/RequisitionFile";
-import RequisitionFileService from "../../services/requisicoes/RequisitionFileService";
+
 import StyledLink from "../shared/StyledLink";
 import { useDispatch, useSelector } from "react-redux";
 import { RootState } from "../../redux/store";
 import FirebaseService from "../../services/FireBaseService";
 import { setFeedback } from "../../redux/slices/feedBackSlice";
 import BaseDeleteDialog from "../shared/BaseDeleteDialog";
+import { QuoteFile } from "../../models/requisicoes/QuoteFile";
+import { QuoteFileService } from "../../services/requisicoes/QuoteFileService";
 import BaseViewFileDialog from "../shared/BaseVIewFileDialog";
 
-interface RequisitionAttachmentListProps {
-  id_requisicao: number;
+interface QuoteAttachmentListProps {
+  id_cotacao: number;
 }
 
-const RequisitionAttachmentList: React.FC<RequisitionAttachmentListProps> = ({
-  id_requisicao,
+const QuoteAttachmentList: React.FC<QuoteAttachmentListProps> = ({
+  id_cotacao,
 }) => {
   const dispatch = useDispatch();
   const user = useSelector((state: RootState) => state.user.user);
-
-  const [attachments, setAttachments] = useState<RequisitionFile[]>([]);
+  const isSupplierRoute = window.location.pathname.includes(
+    "/supplier/requisicoes"
+  );
+  const [attachments, setAttachments] = useState<QuoteFile[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
-  const [deletingFile, setDeletingFile] = useState<RequisitionFile | null>(
-    null
-  );
-  const [selectedFile, setSelectedFile] = useState<RequisitionFile | null>(
-    null
-  );
+  const [deletingFile, setDeletingFile] = useState<QuoteFile | null>(null);
+  const [selectedFile, setSelectedFile] = useState<QuoteFile | null>(null);
 
-  const openViewFile = (file: RequisitionFile) => {
+  const openViewFile = (file: QuoteFile) => {
     setSelectedFile(file);
   };
 
@@ -53,10 +52,10 @@ const RequisitionAttachmentList: React.FC<RequisitionAttachmentListProps> = ({
     setSelectedFile(null);
   };
 
-  const openDeleteDialog = (file: RequisitionFile) => {
+  const openDeleteDialog = (file: QuoteFile) => {
     const admin = Number(user?.PERM_ADMINISTRADOR) === 1;
-    const allowedToDelete = Number(user?.CODPESSOA) === Number(file.criado_por);
-    const deleteFilePermittedForUser = admin || allowedToDelete;
+    const purchaser = Number(user?.PERM_COMPRADOR) === 1;
+    const deleteFilePermittedForUser = admin || purchaser;
 
     if (!deleteFilePermittedForUser) {
       dispatch(
@@ -79,7 +78,7 @@ const RequisitionAttachmentList: React.FC<RequisitionAttachmentListProps> = ({
   const fetchAttachments = async () => {
     setLoading(true);
     try {
-      const files = await RequisitionFileService.getMany({ id_requisicao });
+      const files = await QuoteFileService.getMany({ id_cotacao });
       setAttachments(files);
     } catch (err: any) {
       setError("Erro ao buscar anexos.");
@@ -91,27 +90,23 @@ const RequisitionAttachmentList: React.FC<RequisitionAttachmentListProps> = ({
   useEffect(() => {
     fetchAttachments();
     // eslint-disable-next-line
-  }, [id_requisicao]);
+  }, [id_cotacao]);
 
   const handleFileChange = async (e: ChangeEvent<HTMLInputElement>) => {
     if (!e.target.files || e.target.files.length === 0) return;
     if (!user) return;
     const file = e.target.files[0];
-    const newFile: RequisitionFile = {
-      id: Math.random(),
-      id_requisicao,
-      arquivo: "",
+    const newFile: Partial<QuoteFile> = {
+      id_cotacao,
       nome_arquivo: file.name,
-      criado_por: user.CODPESSOA,
-      criado_em: "",
+      url: "",
     };
     setLoading(true);
     try {
-      const fileUrl = await FirebaseService.upload(file, newFile.nome_arquivo);
-      newFile.arquivo = fileUrl;
-      const createdFile = await RequisitionFileService.create(newFile);
+      const fileUrl = await FirebaseService.upload(file, newFile.nome_arquivo || '');
+      newFile.url = fileUrl;
+      const createdFile = await QuoteFileService.create(newFile);
       setAttachments((prev) => [...prev, createdFile]);
-      newFile.arquivo = fileUrl;
       fetchAttachments();
       dispatch(
         setFeedback({
@@ -133,12 +128,14 @@ const RequisitionAttachmentList: React.FC<RequisitionAttachmentListProps> = ({
 
   const handleDelete = async () => {
     if (!deletingFile) return;
-    const { id } = deletingFile;
+    const { id_anexo_cotacao } = deletingFile;
     setLoading(true);
     try {
-      await FirebaseService.delete(deletingFile.arquivo);
-      await RequisitionFileService.delete(id);
-      setAttachments((prev) => prev.filter((a) => a.id !== id));
+      await FirebaseService.delete(deletingFile.url);
+      await QuoteFileService.delete(id_anexo_cotacao);
+      setAttachments((prev) =>
+        prev.filter((a) => a.id_anexo_cotacao !== id_anexo_cotacao)
+      );
       dispatch(
         setFeedback({
           message: "Anexo excluído!",
@@ -175,14 +172,18 @@ const RequisitionAttachmentList: React.FC<RequisitionAttachmentListProps> = ({
             </Typography>
           )}
           {attachments.map((file) => (
-            <ListItem key={file.id} divider sx={{ maxHeight: 40 }}>
+            <ListItem
+              key={file.id_anexo_cotacao}
+              divider
+              sx={{ maxHeight: 40 }}
+            >
               <Stack direction="row" alignItems="center" gap={1}>
                 <StyledLink
-                  link={file.arquivo}
+                  link={file.url}
                   onClick={() => openViewFile(file)}
                 />
                 <Typography fontSize="12px" color="text.secondary">
-                  Por: {file.pessoa_criado_por?.NOME || ""}
+                  {/* Por: {file.pessoa_criado_por?.NOME || ""} */}
                 </Typography>
               </Stack>
 
@@ -218,11 +219,11 @@ const RequisitionAttachmentList: React.FC<RequisitionAttachmentListProps> = ({
       <BaseViewFileDialog
         open={selectedFile !== null}
         onClose={closeViewFile}
-        fileUrl={selectedFile?.arquivo || ''}
+        fileUrl={selectedFile?.url || ""}
         title={selectedFile?.nome_arquivo}
       />
     </Box>
   );
 };
 
-export default RequisitionAttachmentList;
+export default QuoteAttachmentList;

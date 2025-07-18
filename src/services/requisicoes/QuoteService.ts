@@ -8,8 +8,8 @@ import { TaxClassification } from "../../models/requisicoes/TaxClassification";
 const API_ENDPOINT = "/cotacoes";
 
 class QuoteService {
-  static async getMany(): Promise<any> {
-    const response = await api.get(API_ENDPOINT);
+  static async getMany(params?: any): Promise<any> {
+    const response = await api.get(API_ENDPOINT, { params });
     return response.data;
   }
 

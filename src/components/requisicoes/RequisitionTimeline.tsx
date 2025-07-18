@@ -14,7 +14,7 @@ import {
   Avatar,
 } from "@mui/material";
 import CircleIcon from "@mui/icons-material/Circle";
-import { formatDate, parseDate } from "../../utils";
+import { formatDate } from "../../utils";
 import { setFeedback } from "../../redux/slices/feedBackSlice";
 
 
@@ -47,7 +47,7 @@ const RequisitionTimeline = () => {
     if (requisition?.ID_REQUISICAO) {
       fetchData();
     }
-  }, [requisition?.ID_REQUISICAO]);
+  }, [requisition]);
 
   // Função para formatar a data
 

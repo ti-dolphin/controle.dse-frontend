@@ -2,13 +2,15 @@ import React, { ChangeEvent } from "react";
 import { TextField, Box, Button, Grid, Autocomplete } from "@mui/material";
 import { useDispatch, useSelector } from "react-redux";
 import { RootState } from "../../redux/store";
-import { parseDate, parseISODate } from "../../utils";
+import { isNumeric, parseDate, parseISODate } from "../../utils";
 import { parseISO } from "date-fns";
 import { useQuoteFieldOptions } from "../../hooks/requisicoes/QuoteFieldOptionsHook";
 import { setQuote } from "../../redux/slices/requisicoes/quoteSlice";
 import { Quote } from "../../models/requisicoes/Quote";
 import { Option } from "../../types";
 import { useQuoteFields } from "../../hooks/requisicoes/QuoteFieldsHook";
+import { useQuoteFieldPermissions } from "../../hooks/requisicoes/QuoteFiledPermissionsHook";
+import { setFeedback } from "../../redux/slices/feedBackSlice";
 interface QuoteFormProps {
   onSubmit: (e: React.FormEvent<HTMLFormElement>, data: any) => void;
 }
@@ -19,12 +21,19 @@ const QuoteForm = ({onSubmit }: QuoteFormProps) => {
     "/supplier/requisicoes"
   );
    const dispatch = useDispatch();
+   const user = useSelector((state: RootState) => state.user.user);
    const quote = useSelector((state: RootState) => state.quote.quote);
   const {
     taxClassificationOptions,
     paymentConditionOptions,
     shipmentTypeOptions,
   } = useQuoteFieldOptions();
+
+  const { permissionToEditFields } = useQuoteFieldPermissions(
+    user,
+    quote,
+    isSupplierRoute
+  );
 
   const {fields, disabledFields} = useQuoteFields(
     isSupplierRoute,
@@ -42,12 +51,34 @@ const QuoteForm = ({onSubmit }: QuoteFormProps) => {
     }
   };
 
+  //verifica a permissão para alterar
+  const handleFocus = (e : React.FocusEvent<HTMLInputElement> ) => {  
+    if(!permissionToEditFields){ 
+      e.target.blur();
+      dispatch(setFeedback({ 
+          type: 'error', 
+          message: ' Vocé nao tem permissão para alterar o status.' 
+      }));
+    }
+  }
+
   const handleChangeTextField = (
     e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>,
     field: keyof Quote
   ) => {
+    const {value} = e.target;
+
     if (quote) {
-      dispatch(setQuote({ ...quote, [field]: e.target.value }));
+      const codeFields = ["cnpj_fornecedor", "cnpj_faturamento"];
+      dispatch(
+        setQuote({
+          ...quote,
+          [field]:
+            isNumeric(value) && !codeFields.includes(field)
+              ? Number(value)
+              : value,
+        })
+      );
     }
   };
 
@@ -72,6 +103,7 @@ const QuoteForm = ({onSubmit }: QuoteFormProps) => {
                 getOptionKey={(option) => option.id}
                 renderInput={(params) => (
                   <TextField
+                    onFocus={handleFocus}
                     {...params}
                     label={field.label}
                     InputLabelProps={{
@@ -92,6 +124,7 @@ const QuoteForm = ({onSubmit }: QuoteFormProps) => {
               />
             ) : (
               <TextField
+                onFocus={handleFocus}
                 label={field.label}
                 name={field.name}
                 type={field.type}
@@ -100,7 +133,9 @@ const QuoteForm = ({onSubmit }: QuoteFormProps) => {
                 InputLabelProps={{
                   shrink: true,
                 }}
-                onChange={(e ) => handleChangeTextField(e, field.name as keyof Quote)}
+                onChange={(e) =>
+                  handleChangeTextField(e, field.name as keyof Quote)
+                }
                 disabled={
                   disabledFields[field.name as keyof typeof disabledFields]
                 }

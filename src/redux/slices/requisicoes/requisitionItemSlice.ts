@@ -4,13 +4,23 @@ interface RequisitionItemState {
   addingProducts: boolean;
   updatingRecentProductsQuantity: boolean;
   recentProductsAdded: number[];
-  newItems : number[]
+  productsAdded: number[];
+  replacingItemProduct: boolean;
+  itemBeingReplaced: number | null;
+  productSelected: number | null;
+  newItems : number[],
+  refresh : boolean
 }
 
 const initialState: RequisitionItemState = {
   addingProducts: false,
   updatingRecentProductsQuantity: false,
   recentProductsAdded: [],
+  productsAdded : [],
+  replacingItemProduct : false,
+  itemBeingReplaced: null,
+  productSelected: null,
+  refresh : false,
   newItems : []
 };
 
@@ -27,8 +37,26 @@ const requisitionItemSlice = createSlice({
     setNewItems(state, action: PayloadAction<number[]>) {
       state.newItems = action.payload;
     },
+
+    setRefresh(state, action: PayloadAction<boolean>) {
+      state.refresh = action.payload;
+    },
+    setReplacingItemProduct(state, action: PayloadAction<boolean>) {
+      state.replacingItemProduct = action.payload;
+    },
+
+    setProductSelected(state, action: PayloadAction<number | null>) {
+      state.productSelected = action.payload;
+    },
+
+    setItemBeingReplaced(state, action: PayloadAction<number | null>) {
+      state.itemBeingReplaced = action.payload;
+    },
     setRecentAddedProducts(state, action: PayloadAction<number[]>) {
       state.recentProductsAdded = action.payload;
+    },
+    setProductsAdded(state, action: PayloadAction<number[]>) {
+      state.productsAdded = action.payload;
     },
     removeRecentProduct(state, action: PayloadAction<number>) {
       state.recentProductsAdded = state.recentProductsAdded.filter(
@@ -51,7 +79,12 @@ export const {
   removeRecentProduct,
   clearRecentProducts,
   setNewItems,
-  clearNewItems
+  clearNewItems,
+  setProductsAdded,
+  setReplacingItemProduct,
+  setItemBeingReplaced,
+  setProductSelected,
+  setRefresh
 } = requisitionItemSlice.actions;
 
 export default requisitionItemSlice.reducer;

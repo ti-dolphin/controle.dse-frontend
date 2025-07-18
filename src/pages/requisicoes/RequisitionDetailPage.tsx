@@ -11,6 +11,8 @@ import {
   Dialog,
   DialogActions,
   DialogContent,
+  IconButton,
+  setRef,
 } from "@mui/material";
 import { ChangeEvent, useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
@@ -28,9 +30,12 @@ import { setFeedback } from "../../redux/slices/feedBackSlice";
 import RequisitionTimeline from "../../components/requisicoes/RequisitionTimeline";
 import VisibilityIcon from '@mui/icons-material/Visibility';
 import RequisitionItemsTable from "../../components/requisicoes/RequisitionItemsTable";
-import { clearNewItems, clearRecentProducts, setAddingProducts, setNewItems, setUpdatingRecentProductsQuantity } from "../../redux/slices/requisicoes/requisitionItemSlice";
+import { clearNewItems, clearRecentProducts, setAddingProducts, setItemBeingReplaced, setNewItems, setProductSelected, setRefresh, setReplacingItemProduct, setUpdatingRecentProductsQuantity } from "../../redux/slices/requisicoes/requisitionItemSlice";
 import ProductsTable from "../../components/requisicoes/ProductsTable";
 import RequisitionItemService from "../../services/requisicoes/RequisitionItemService";
+import QuoteList from "../../components/requisicoes/QuoteList";
+import CloseIcon from '@mui/icons-material/Close';
+import { formatCurrency } from "../../utils";
 
 const RequisitionDetailPage = () => {
 
@@ -38,12 +43,13 @@ const RequisitionDetailPage = () => {
   const user = useSelector((state: RootState) => state.user.user);
   const {addingProducts, updatingRecentProductsQuantity} = useSelector((state: RootState) => state.requisitionItem);
   const {id_requisicao} = useParams();
-  const recentProductsAdded = useSelector((state: RootState) => state.requisitionItem.recentProductsAdded);
+  const { recentProductsAdded, replacingItemProduct, itemBeingReplaced, productSelected, refresh } = useSelector((state: RootState) => state.requisitionItem);
   const requisition = useSelector((state: RootState) => state.requisition.requisition);
   const [observation, setObservation] = useState('');
   const [editingObservation, setEditingObservation] = useState<boolean>(false);
   const [detailView, setDetailView] = useState<boolean>(false);
- 
+  const [quoteListOpen, setQuoteListOpen] = useState<boolean>(false);
+
   const fetchData = useCallback(async () => { 
     const requisition = await RequisitionService.getById(Number(id_requisicao));
     dispatch(setRequisition(requisition));
@@ -96,14 +102,12 @@ const RequisitionDetailPage = () => {
   const createItemsFromProducts = async ( ) =>  {
     try{  
       const newItemIds = await RequisitionItemService.createMany(recentProductsAdded, requisition.ID_REQUISICAO);
-      console.log("newItems: ", newItemIds)
       dispatch(setFeedback({ 
         message: 'Produtos adicionados com sucesso! Insira as quantidades desejadas',
         type: 'success'
       }));
       dispatch(setNewItems(newItemIds));
       return;
-
     }catch(e : any){ 
       dispatch(setFeedback({ 
         message: 'Erro ao criar itens da requisição',
@@ -112,31 +116,54 @@ const RequisitionDetailPage = () => {
     }
   }
 
+  const concludeReplaceItemProduct = async ( ) =>   {
+    if(!itemBeingReplaced || !productSelected) return;
+    try{ 
+      const updatedItem = await RequisitionItemService.update(itemBeingReplaced, {id_produto: productSelected});
+      dispatch(setFeedback({
+        message: 'Produto substituído com sucesso',
+        type: 'success'
+      }))
+      dispatch(setRefresh(!refresh));
+      dispatch(setReplacingItemProduct(false));
+      dispatch(setItemBeingReplaced(null))
+      dispatch(setProductSelected(null))
+    }catch(e) {
+      dispatch(setFeedback({
+        message: 'Erro ao substituir produto',
+        type: 'error'
+      }))
+    }
+  }
+
   const concludeAddProducts  = async (  ) =>  {
- await createItemsFromProducts();
+    console.log("concludeAddProducts");
+    await createItemsFromProducts();
+    dispatch(setUpdatingRecentProductsQuantity(true));
     dispatch(setAddingProducts(false));
     dispatch(clearRecentProducts());
-    dispatch(setUpdatingRecentProductsQuantity(true));
   };
 
   const concludeUpdateItemsQuantity = () => { 
-    dispatch(setUpdatingRecentProductsQuantity(false));
-    dispatch(clearNewItems());
-
+    setTimeout(() => {
+      dispatch(setUpdatingRecentProductsQuantity(false));
+      dispatch(clearNewItems());
+    }, 1000);
   };
 
   const handleClose = () => {
     dispatch(setAddingProducts(false));
+    dispatch(setReplacingItemProduct(false));
   }
 
   useEffect(() => {
     if (id_requisicao) {
       fetchData();
     }
-  }, [id_requisicao, fetchData]);
+  }, [id_requisicao, fetchData, refresh]);
 
   return (
-    <Box height="100vh" width="100vw" p={{ xs: 1, md: 3 }} bgcolor="#f7f7f7">
+    <Box height="100vh" width="100vw" p={{ xs: 1, md: 2 }} bgcolor="background">
       <Grid container spacing={2}>
         {/* Header: Título, Projeto, Status Steps */}
         <Grid item xs={12}>
@@ -158,6 +185,7 @@ const RequisitionDetailPage = () => {
             </Box>
           </Paper>
         </Grid>
+
         {detailView ? (
           <>
             <Grid item xs={12}>
@@ -210,7 +238,7 @@ const RequisitionDetailPage = () => {
                   <BaseMultilineInput
                     onChange={(e) => handleChangeObservation(e)}
                     onFocus={startObservationEditMode}
-                    value={observation}
+                    value={observation || ""}
                   />
                   {editingObservation && (
                     <Button
@@ -238,10 +266,16 @@ const RequisitionDetailPage = () => {
                     <AddIcon />
                     Adicionar Itens
                   </Button>
-                  <Button variant="contained">Cotações</Button>
+                  <Button
+                    onClick={() => setQuoteListOpen(true)}
+                    variant="contained"
+                  >
+                    Cotações
+                  </Button>
                   <Box ml="auto" alignSelf="center">
                     <Typography variant="subtitle2" color="success.main">
-                      Total Parcial: R$ 0,00
+                      Custo total:{" "}
+                      {formatCurrency(Number(requisition.custo_total || 0))}
                     </Typography>
                   </Box>
                 </Stack>
@@ -260,7 +294,14 @@ const RequisitionDetailPage = () => {
             </Grid>
           </>
         ) : (
-          <Grid item xs={12}>
+          <Grid
+            item
+            xs={12}
+            sx={{
+              display: "flex",
+              alignItems: "center",
+            }}
+          >
             <Button
               variant="contained"
               startIcon={<VisibilityIcon />}
@@ -274,9 +315,6 @@ const RequisitionDetailPage = () => {
         {/* Tabela de Itens */}
         <Grid item xs={12}>
           <Paper sx={{ p: 2 }}>
-            <Typography variant="subtitle1" fontWeight={500} mb={1}>
-              Itens da Requisição
-            </Typography>
             <Divider sx={{ mb: 1 }} />
             <Box>
               <RequisitionItemsTable />
@@ -286,30 +324,47 @@ const RequisitionDetailPage = () => {
       </Grid>
       {/* Dialog para buscar os produtos, selecionar e adicioná-los aos itens da requisição */}
       <Dialog
-        open={addingProducts}
+        open={addingProducts || replacingItemProduct} //o modal será aberto se estiver sendo feita substituição ou adição de produtos
         onClose={handleClose}
         maxWidth="lg"
         fullWidth
         aria-labelledby="add-products-dialog-title"
       >
+        <IconButton
+          onClick={handleClose}
+          color="error"
+          sx={{ position: "absolute", top: 0, right: 0 }}
+        >
+          <CloseIcon />
+        </IconButton>
         <DialogTitle id="add-products-dialog-title">
           Adicionar Produtos
         </DialogTitle>
-        <DialogContent>
-          <ProductsTable />
-        </DialogContent>
+        <DialogContent>{addingProducts && <ProductsTable />}</DialogContent>
         <DialogActions>
-          <Button
-            onClick={concludeAddProducts}
-            variant="contained"
-            color="primary"
-            sx={{ textTransform: "none", minWidth: 120 }}
-          >
-            Concluir
-          </Button>
+          {addingProducts && recentProductsAdded.length > 0 && (
+            <Button
+              onClick={concludeAddProducts}
+              variant="contained"
+              color="primary"
+              sx={{ textTransform: "none", minWidth: 120 }}
+            >
+              Concluir
+            </Button>
+          )}
+          {replacingItemProduct && productSelected && (
+            <Button
+              onClick={concludeReplaceItemProduct}
+              variant="contained"
+              color="primary"
+              sx={{ textTransform: "none", minWidth: 120 }}
+            >
+              Substituir item
+            </Button>
+          )}
         </DialogActions>
       </Dialog>
-        {/* Dialog para atualizar os novos itens com as quantidades */}
+      {/* Dialog para atualizar os novos itens com as quantidades */}
       <Dialog
         open={updatingRecentProductsQuantity}
         onClose={handleClose}
@@ -321,7 +376,7 @@ const RequisitionDetailPage = () => {
           Insira as quantidades dos produtos adicionados
         </DialogTitle>
         <DialogContent>
-          <RequisitionItemsTable />
+          {updatingRecentProductsQuantity && <RequisitionItemsTable />}
         </DialogContent>
         <DialogActions>
           <Button
@@ -333,6 +388,26 @@ const RequisitionDetailPage = () => {
             Concluir
           </Button>
         </DialogActions>
+      </Dialog>
+
+      <Dialog maxWidth="md" fullWidth open={quoteListOpen}>
+        <DialogTitle color="primary.main">
+          Cotações desta requisição
+        </DialogTitle>
+        <DialogContent
+          sx={{
+            backgroundColor: "background.default",
+          }}
+        >
+          <QuoteList />
+          <IconButton
+            onClick={() => setQuoteListOpen(false)}
+            color="error"
+            sx={{ position: "absolute", top: 0, right: 0 }}
+          >
+            <CloseIcon />
+          </IconButton>
+        </DialogContent>
       </Dialog>
     </Box>
   );

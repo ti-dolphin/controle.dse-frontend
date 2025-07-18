@@ -9,6 +9,7 @@ export interface RequisitionItem {
     ativo: number;
     oc: string | null;
     data_entrega: string | null;
+    id_item_cotacao?: number;
     produto?: Product
     produto_descricao?: string;
     produto_codigo?: string;

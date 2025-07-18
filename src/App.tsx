@@ -14,6 +14,7 @@ const theme = createTheme(
     palette: {
       primary: {
         main: "#2B3990",
+        light: "#e4f1fe",
       },
       secondary: {
         main: "#F7941E",
@@ -22,6 +23,9 @@ const theme = createTheme(
       text: {
         primary: "#222831",
         secondary: "#606470",
+      },
+      background: {
+        default: "#e7eaf6"
       },
       error: {
         main: "#d32f2f",
@@ -32,7 +36,7 @@ const theme = createTheme(
       },
     },
     typography: {
-      fontFamily: "Roboto, sans-serif",
+      fontFamily: "Open Sans, Roboto, sans-serif",
     },
     components: {
       MuiButton: {

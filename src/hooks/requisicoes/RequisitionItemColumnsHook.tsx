@@ -1,11 +1,111 @@
+import React, { useCallback, useEffect, useState } from "react";
 import { GridColDef } from "@mui/x-data-grid";
-import { parseDate } from "../../utils";
-import { useSelector } from "react-redux";
+import { formatCurrency, parseDate, parseISODate } from "../../utils";
+import { useDispatch, useSelector } from "react-redux";
 import { RootState } from "../../redux/store";
-import { cloneDeep } from "lodash";
+import DeleteIcon from "@mui/icons-material/Delete";
+import { Box, Checkbox, IconButton, Tooltip, Typography } from "@mui/material";
+import EditIcon from "@mui/icons-material/Edit";
+import {
+  setItemBeingReplaced,
+  setReplacingItemProduct,
+} from "../../redux/slices/requisicoes/requisitionItemSlice";
+import ArticleOutlinedIcon from "@mui/icons-material/ArticleOutlined";
+import { setFeedback } from "../../redux/slices/feedBackSlice";
+import FillAllDialog from "../../components/shared/FillAllDialog";
+import RequisitionItemService from "../../services/requisicoes/RequisitionItemService";
+import { useParams } from "react-router-dom";
+import { QuoteItem } from "../../models/requisicoes/QuoteItem";
+import RadioButtonUncheckedIcon from "@mui/icons-material/RadioButtonUnchecked";
+import CheckCircleIcon from "@mui/icons-material/CheckCircle";
+import ErrorIcon from "@mui/icons-material/Error";
+import ContentCopyIcon from "@mui/icons-material/ContentCopy";
+export const useRequisitionItemColumns = (
+  addingReqItems: boolean,
+  editItemFieldsPermitted: boolean,
+  handleDeleteItem: (id_item_requisicao: number) => Promise<void>,
+  handleFillOCS: (ocValue: number) => void,
+  handleFillShippingDate: (date: string) => void,
+  handleChangeQuoteItemsSelected: (
+    e: React.ChangeEvent<HTMLInputElement>,
+    id_item_cotacao: number,
+    id_item_requisicao: number
+  ) => void,
+  quoteItemsSelected: Map<number, number>,
+  selectionModel: number[]
+) => {
+  const dispatch = useDispatch();
+  const { id_requisicao } = useParams();
+  const [fillingOC, setFillingOC] = useState(false);
+  const [ocValue, setOcValue] = useState<number | null>(null);
+  const [fillingShippingDate, setFillingShippingDate] = useState(false);
+  const [shippingDate, setShippingDate] = useState<string>("");
+  const [dinamicColumns, setDinamicColumns] = useState<GridColDef[]>([]);
 
-export const useRequisitionItemColumns = () => {
-  const {updatingRecentProductsQuantity} = useSelector((state: RootState) => state.requisitionItem)
+  const { updatingRecentProductsQuantity } = useSelector(
+    (state: RootState) => state.requisitionItem
+  );
+
+  const concludeFillingOC = async () => {
+    if (!ocValue) {
+      dispatch(
+        setFeedback({
+          message: "Digite um valor para preencher a OC",
+          type: "error",
+        })
+      );
+      return;
+    }
+    await handleFillOCS(ocValue);
+    setOcValue(null);
+    setFillingOC(false);
+  };
+
+  const concludeFillingShippingDate = async () => {
+    if (!shippingDate) {
+      dispatch(
+        setFeedback({
+          message: "Data inválida",
+          type: "error",
+        })
+      );
+      return;
+    }
+    await handleFillShippingDate(shippingDate);
+    setShippingDate("");
+    setFillingShippingDate(false);
+  };
+
+  const handleChangeshippingDate = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setShippingDate(e.target.value);
+  };
+
+  const openOCDialog = () => {
+    if (!selectionModel.length) {
+      dispatch(
+        setFeedback({
+          message: "Selecione os itens para preencher a OC",
+          type: "error",
+        })
+      );
+      return;
+    }
+    setFillingOC(true);
+  };
+
+  const openShippingDateDialog = () => {
+    if (!selectionModel.length) {
+      dispatch(
+        setFeedback({
+          message: "Selecione os itens para preencher a data de entrega",
+          type: "error",
+        })
+      );
+      return;
+    }
+    setFillingShippingDate(true);
+  };
+
   const columns: GridColDef[] = [
     {
       field: "id_item_requisicao",
@@ -24,6 +124,13 @@ export const useRequisitionItemColumns = () => {
       headerName: "Descrição",
       type: "string",
       flex: 1,
+      renderCell: (params: any) => (
+        <Box sx={{ display: "flex", alignItems: "center", height: "100%" }}>
+          <Typography fontSize="small" fontWeight="bold">
+            {params.value}
+          </Typography>
+        </Box>
+      ),
     },
     {
       field: "quantidade",
@@ -31,6 +138,20 @@ export const useRequisitionItemColumns = () => {
       type: "number",
       editable: true,
       flex: 0.5,
+      renderCell: (params: any) => (
+        <Box
+          sx={{
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "end",
+            height: "100%",
+          }}
+        >
+          <Typography fontSize="small" fontWeight="bold">
+            {params.value}
+          </Typography>
+        </Box>
+      ),
     },
     {
       field: "data_entrega",
@@ -38,9 +159,46 @@ export const useRequisitionItemColumns = () => {
       width: 150,
       type: "date",
       editable: true,
-      flex: 0.5,
+      flex: 0.75,
       valueGetter: (data_entrega: string) =>
-        data_entrega ? parseDate(data_entrega) : null,
+        data_entrega ? parseDate(parseISODate(data_entrega)) : null,
+      renderHeader: () => (
+        <Box
+          sx={{
+            height: "100%",
+            width: "100%",
+            display: "flex",
+            gap: 1,
+            alignItems: "center",
+          }}
+        >
+          <Typography fontSize="0.9rem" fontWeight="bold" color="primary">
+            Data entrega
+          </Typography>
+          {editItemFieldsPermitted && (
+            <Tooltip title="Preencher">
+              <IconButton
+                onClick={openShippingDateDialog}
+                sx={{ height: 24, width: 24 }}
+              >
+                <ArticleOutlinedIcon />
+              </IconButton>
+            </Tooltip>
+          )}
+          {editItemFieldsPermitted && (
+            <FillAllDialog
+              open={fillingShippingDate}
+              onClose={() => setFillingShippingDate(false)}
+              onChange={handleChangeshippingDate}
+              onConfirm={concludeFillingShippingDate}
+              value={shippingDate}
+              label="Data de entrega"
+              type="date"
+              title="Digite a data desejada para preencher todos os itens"
+            />
+          )}
+        </Box>
+      ),
     },
     {
       field: "produto_unidade",
@@ -49,19 +207,48 @@ export const useRequisitionItemColumns = () => {
       type: "string",
     },
     {
-      field: "produto_quantidade_estoque",
-      headerName: "Quantidade em estoque",
-      width: 150,
-      type: "number",
-      flex: 0.4,
-    },
-    {
       field: "oc",
       headerName: "OC",
       editable: true,
       type: "string",
       valueGetter: (oc: string) => oc || "",
-      flex: 0.4,
+      flex: 0.45,
+      renderHeader: () => (
+        <Box
+          sx={{
+            height: "100%",
+            width: "100%",
+            display: "flex",
+            gap: 1,
+            alignItems: "center",
+          }}
+        >
+          <Typography fontSize="0.9rem" fontWeight="bold" color="primary">
+            OC
+          </Typography>
+          {editItemFieldsPermitted && (
+            <Tooltip title="Preencher">
+              <IconButton onClick={openOCDialog} sx={{ height: 24, width: 24 }}>
+                <ArticleOutlinedIcon />
+              </IconButton>
+            </Tooltip>
+          )}
+          {editItemFieldsPermitted && (
+            <FillAllDialog
+              open={fillingOC}
+              onClose={() => setFillingOC(false)}
+              onConfirm={concludeFillingOC}
+              value={ocValue}
+              onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+                setOcValue(Number(e.target.value))
+              }
+              label="Número da OC"
+              type="number"
+              title="Digite o valor desejado para preencher todos os itens"
+            />
+          )}
+        </Box>
+      ),
     },
     {
       field: "observacao",
@@ -69,15 +256,176 @@ export const useRequisitionItemColumns = () => {
       type: "string",
       editable: true,
       valueGetter: (observacao: string) => observacao || "N/A",
-      flex: 1.5,
+      renderCell: (params) => (
+        <Box
+          sx={{
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "space-between",
+            height: "100%",
+          }}
+        >
+          <Typography fontSize="small" fontWeight="bold">
+            {params.value}
+          </Typography>
+          <Tooltip title="Copiar observação">
+            <IconButton
+              onClick={() => navigator.clipboard.writeText(params.value)}
+              sx={{ padding: 0 }}
+            >
+              <ContentCopyIcon fontSize="small" />
+            </IconButton>
+          </Tooltip>
+        </Box>
+      ),
+      flex: 0.6,
+    },
+    {
+      field: "actions",
+      headerName: "Ações",
+      type: "actions",
+      flex: 0.5,
+      renderCell: (row) => {
+        const { id } = row;
+        return (
+          <Box sx={{ display: "flex", justifyContent: "center", gap: 1 }}>
+            {editItemFieldsPermitted && (
+              <Tooltip title="Excluir item">
+                <IconButton
+                  onClick={() => handleDeleteItem(Number(id))}
+                  color="error"
+                >
+                  <DeleteIcon />
+                </IconButton>
+              </Tooltip>
+            )}
+            {editItemFieldsPermitted && (
+              <Tooltip title="Substituir produto">
+                <IconButton
+                  onClick={() => {
+                    dispatch(setReplacingItemProduct(true));
+                    dispatch(setItemBeingReplaced(Number(id)));
+                  }}
+                  sx={{ color: "primary.main" }}
+                >
+                  <EditIcon />
+                </IconButton>
+              </Tooltip>
+            )}
+          </Box>
+        );
+      },
     },
   ];
 
-  if(updatingRecentProductsQuantity){ 
-    const selectedColumns = ['produto_descricao', 'quantidade'];
-    return {
-      columns: columns.filter((col) => selectedColumns.includes(col.field)),
-    };
+  // Definindo filteredColumns para sempre executar hooks depois
+  let filteredColumns = columns;
+
+  if (updatingRecentProductsQuantity) {
+    const selectedColumns = ["produto_descricao", "quantidade"];
+    filteredColumns = columns.filter((col) =>
+      selectedColumns.includes(col.field)
+    );
+  } else if (addingReqItems) {
+    filteredColumns = columns.filter((col) =>
+      ["produto_descricao"].includes(col.field)
+    );
   }
-  return { columns };
+
+  const fetchDinamicColumns = useCallback(async () => {
+    try {
+      const rawCols = await RequisitionItemService.getDinamicColumns(
+        Number(id_requisicao)
+      );
+      const colsWithRenderCell = rawCols.map((col: GridColDef) => ({
+        ...col,
+        renderCell: (params: any) => {
+          const { id_item_requisicao } = params.row;
+          const quoteItem = params.row.items_cotacao.find(
+            (item: QuoteItem) =>
+              Number(item.id_cotacao) === Number(params.field)
+          );
+          const hasquoteItem = quoteItem && !quoteItem.indisponivel;
+          let parciallyQuoted = hasquoteItem ? Number(quoteItem.quantidade_cotada) < Number(quoteItem.quantidade_solicitada) :false;
+
+          return (
+            <Box sx={{display: 'flex', alignItems: 'center'}}>
+              {hasquoteItem && formatCurrency(Number(quoteItem?.subtotal) || 0)}
+              {hasquoteItem && (
+                <Checkbox
+                  onChange={(e) =>
+                    handleChangeQuoteItemsSelected(
+                      e,
+                      Number(quoteItem?.id_item_cotacao),
+                      Number(id_item_requisicao)
+                    )
+                  }
+                  checked={
+                    quoteItemsSelected.get(Number(id_item_requisicao)) ===
+                    Number(quoteItem?.id_item_cotacao)
+                      ? true
+                      : false
+                  }
+                  icon={<RadioButtonUncheckedIcon />}
+                  checkedIcon={<CheckCircleIcon />}
+                  sx={{ color: "primary.main" }}
+                />
+              )}
+              {quoteItem?.indisponivel > 0 && (
+                <Tooltip title={`Indisponível no fornecedor: ${col.headerName}`}>
+                  <ErrorIcon color="error" />
+                </Tooltip>
+              )}
+              {parciallyQuoted && (
+                <Tooltip title={`Quantidade cotada: ${quoteItem?.quantidade_cotada}`}>
+                  <ErrorIcon color="secondary" />
+                </Tooltip>
+              )}
+            </Box>
+          );
+        },
+      }));
+      setDinamicColumns(colsWithRenderCell);
+    } catch (e) {
+      dispatch(
+        setFeedback({
+          message: "Erro ao buscar colunas dinâmicas",
+          type: "error",
+        })
+      );
+    }
+  }, [
+    dispatch,
+    handleChangeQuoteItemsSelected,
+    id_requisicao,
+    quoteItemsSelected,
+  ]);
+
+  const isDinamicField = useCallback(
+    (field: string | number): boolean => {
+      // Descomente abaixo para ativar a checagem real de colunas dinâmicas
+      // return dinamicColumns.some((col) => col.field === field);
+      return true;
+    },
+    [dinamicColumns]
+  );
+
+  useEffect(() => {
+    if (addingReqItems) return;
+    if (updatingRecentProductsQuantity) return;
+    fetchDinamicColumns();
+  }, [fetchDinamicColumns, addingReqItems, updatingRecentProductsQuantity]);
+
+  return {
+    columns:
+      dinamicColumns.length > 0
+        ? [...filteredColumns, ...dinamicColumns]
+        : filteredColumns,
+    fillingOC,
+    ocValue,
+    fillingShippingDate,
+    shippingDate,
+    dinamicColumns,
+    isDinamicField,
+  };
 };

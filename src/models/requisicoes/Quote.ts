@@ -10,7 +10,8 @@ export interface Quote {
     observacao: string | null;
     descricao: string;
     cnpj_faturamento: string;
-    valor_frete: string;
+    valor_total: number;
+    valor_frete: number;
     id_tipo_frete: number;
     id_classificacao_fiscal: number;
     cnpj_fornecedor: string;

@@ -4,6 +4,7 @@ import {
   GridCellModesModel,
   GridCellParams,
   GridColDef,
+  GridColumnHeaders,
   GridRowModel,
   GridRowSelectionModel,
 } from "@mui/x-data-grid";
@@ -14,70 +15,28 @@ import { useDispatch, useSelector } from "react-redux";
 import { RootState } from "../../redux/store";
 import BaseDataTable from "../shared/BaseDataTable";
 import BaseTableToolBar from "../shared/BaseTableToolBar";
-import { debounce } from "lodash";
+import { debounce, set } from "lodash";
 import { setFeedback } from "../../redux/slices/feedBackSlice";
 import { useProductPermissions } from "../../hooks/productPermissionsHook";
 import { ProductService } from "../../services/ProductService";
-import { setRecentAddedProducts } from "../../redux/slices/requisicoes/requisitionItemSlice";
+import { setProductSelected, setRecentAddedProducts } from "../../redux/slices/requisicoes/requisitionItemSlice";
 import RequisitionItemService from "../../services/requisicoes/RequisitionItemService";
+import { useProductColumns } from "../../hooks/productColumnsHook";
 
 const ProductsTable = () => {
   const dispatch = useDispatch();
   const theme = useTheme();
   const user = useSelector((state: RootState) => state.user.user);
-
-  const { addingProducts, recentProductsAdded} = useSelector((state: RootState) => state.requisitionItem);
-  const requisition = useSelector((state: RootState) => state.requisition.requisition);
+  const { addingProducts, recentProductsAdded, productsAdded, replacingItemProduct} = useSelector((state: RootState) => state.requisitionItem);
 
   const { editProductFieldsPermitted } = useProductPermissions(user);
   const [searchTerm, setSearchTerm] = useState("");
   const [products, setProducts] = useState<Product[]>([]);
   const [cellModesModel, setCellModesModel]  = React.useState<GridCellModesModel>({});
   const [loading, setLoading] = useState(false);
-  const [rowSelectionModel, setRowSelectionModel] =
-    React.useState<GridRowSelectionModel>([]);
+  const [rowSelectionModel, setRowSelectionModel] = React.useState<GridRowSelectionModel>([]);
 
-  const columns: GridColDef[] = [
-    {
-      field: "ID",
-      headerName: "ID",
-      type: "number",
-      flex: 0.2,
-      editable: false,
-    },
-    {
-      field: "codigo",
-      headerName: "Código Produto",
-      type: "string",
-      flex: 0.5,
-      editable: false,
-      valueGetter: (value) => value || "",
-    },
-    {
-      field: "descricao",
-      headerName: "Descrição",
-      type: "string",
-      flex: 1,
-      editable: true,
-      valueGetter: (value) => value || "",
-    },
-    {
-      field: "unidade",
-      headerName: "Unidade",
-      type: "string",
-      flex: 0.4,
-      editable: true,
-      valueGetter: (value) => value || "",
-    },
-    {
-      field: "quantidade_estoque",
-      headerName: "Quantidade em Estoque",
-      type: "number",
-      flex: 0.4,
-      editable: true,
-      valueGetter: (value) => value || 0,
-    },
-  ];
+  const { columns } = useProductColumns();
 
   const handleCellClick = React.useCallback(
     (params: GridCellParams, event: React.MouseEvent) => {
@@ -150,10 +109,19 @@ const ProductsTable = () => {
     newRowSelectionModel: GridRowSelectionModel,
     details: GridCallbackDetails
   ) => {
-    dispatch(setRecentAddedProducts(newRowSelectionModel as number[]));
+    if(replacingItemProduct){ 
+      setRowSelectionModel(newRowSelectionModel);
+      dispatch(setProductSelected(Number(newRowSelectionModel[0])));
+      return;
+    }
+
+    if (productsAdded.includes(Number(newRowSelectionModel[0]))){ 
+      dispatch(setFeedback({ message: 'O produto ja foi adicionado a requisição', type: 'error' }));
+      return;
+    }
+      dispatch(setRecentAddedProducts(newRowSelectionModel as number[]));
   };
-
-
+  
   //Processa mudança de modo, edição ou visualização
   const handleCellModesModelChange = React.useCallback(
     (newModel: GridCellModesModel) => {
@@ -195,6 +163,10 @@ const ProductsTable = () => {
     const value = e.target.value;
     setSearchTerm(value.toLowerCase());
   };
+
+  const getRowSelectionModelForContext =( ) => { 
+    return addingProducts ? recentProductsAdded : rowSelectionModel;
+  };
   //faz debounce na mudançda da busca
   const debouncedHandleChangeSearchTerm = debounce(changeSearchTerm, 500);
 
@@ -219,6 +191,7 @@ const ProductsTable = () => {
     fetchData();
   }, [fetchData]);
 
+
   return (
     <Box>
       <BaseTableToolBar
@@ -227,10 +200,18 @@ const ProductsTable = () => {
       <BaseDataTable
         density="compact"
         rowSelection
-        rowSelectionModel={recentProductsAdded}
+        rowSelectionModel={getRowSelectionModelForContext()}
         disableRowSelectionOnClick
         disableColumnMenu
+        sx={{
+          '& .MuiDataGrid-columnHeaders': {
+            '& .MuiCheckbox-root': { 
+              display: 'none'
+            }
+        }
+        }}
         disableColumnFilter
+        disableMultipleRowSelection={replacingItemProduct}
         onRowSelectionModelChange={handleChangeSelection}
         checkboxSelection
         getRowId={(row: any) => row.ID}
@@ -252,3 +233,4 @@ const ProductsTable = () => {
 };
 
 export default ProductsTable;
+

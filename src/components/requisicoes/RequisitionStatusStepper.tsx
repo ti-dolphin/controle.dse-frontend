@@ -86,7 +86,6 @@ const RequisitionStatusStepper = ({
   const handleChangeStatus = async (
     type: "acao_anterior" | "acao_posterior"
   ) => {
-    console.log("permiSsionToChangeStatus: ", permissionToChangeStatus)
     if(!permissionToChangeStatus){ 
         dispatch(setFeedback({ 
             type: 'error', 
@@ -116,9 +115,11 @@ const RequisitionStatusStepper = ({
 
       const updatedRequisition = await RequisitionService.update(
         Number(id_requisicao),
-        { id_status_requisicao: newStatus.id_status_requisicao }
+        {
+          id_status_requisicao: newStatus.id_status_requisicao,
+          alterado_por: user?.CODPESSOA,
+        }
       );
-
       dispatch(setRequisition(updatedRequisition));
       dispatch(
         setFeedback({

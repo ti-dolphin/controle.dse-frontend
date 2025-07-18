@@ -10,7 +10,6 @@ export default class RequisitionService {
         const response = await api.get(API_ENDPOINT, { 
             params: {user, params}
         });
-        console.log("data: ", response.data)
         return response.data;
     }
 

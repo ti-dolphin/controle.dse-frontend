@@ -10,25 +10,28 @@ const StyledDataGrid = styled(DataGrid)<{ theme: Theme }>(({ theme }) => ({
 
   fontFamily: "Roboto, Arial, sans-serif",
   "& .MuiDataGrid-columnHeaders": {
-    background: "#F5F6FA",
+    backgroundColor: "#e7eaf6",
+    "& .MuiDataGrid-columnHeader": {
+      backgroundColor: 'white',
+    },
     color: theme.palette.primary.main,
     fontWeight: 600,
-    fontSize: "0.8rem",
+    fontSize: "0.9rem",
     borderTopLeftRadius: 0,
     borderTopRightRadius: 0,
   },
   "& .MuiDataGrid-row": {
     background: "#fff",
     transition: "background 0.2s",
-    cursor: 'pointer',
-    
+    cursor: "pointer",
+
     "&:hover": {
       background: "#F7F8FC",
     },
   },
   "& .MuiDataGrid-cell": {
     fontSize: "12px",
-    fontWeight: '500',
+    fontWeight: "500",
     color: theme.palette.text.secondary,
     borderBottom: "1px solid #F0F0F0",
   },

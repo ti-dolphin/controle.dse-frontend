@@ -4,7 +4,7 @@ export interface QuoteItem {
   id_item_cotacao: number;
   id_cotacao: number;
   descricao_item: string;
-  preco_unitario: string;
+  preco_unitario: number;
   quantidade_solicitada: number;
   subtotal: string;
   id_item_requisicao: number;
@@ -13,6 +13,7 @@ export interface QuoteItem {
   IPI: number;
   ST: number;
   quantidade_cotada: number;
+  indisponivel: boolean;
   id_produto: number | null;
   produto?: Product;
   produto_descricao?: string;

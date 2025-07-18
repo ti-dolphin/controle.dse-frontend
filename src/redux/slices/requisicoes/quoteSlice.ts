@@ -1,16 +1,19 @@
 // quoteSlice.ts
 import { createSlice, PayloadAction } from "@reduxjs/toolkit";
 import { Quote } from "../../../models/requisicoes/Quote";
+import { set } from "lodash";
 
 
 interface QuoteState {
   quote: Quote | null;
   accessType: string | null;
+ 
+
 }
 
 const initialState: QuoteState = {
   quote: null,
-  accessType: null,
+  accessType: null
 };
 
 const quoteSlice = createSlice({
@@ -23,6 +26,7 @@ const quoteSlice = createSlice({
     setAccesType(state, action: PayloadAction<string>) {
       state.accessType = action.payload;
     },
+
     resetQuote(state) {
       state.quote = null;
     },

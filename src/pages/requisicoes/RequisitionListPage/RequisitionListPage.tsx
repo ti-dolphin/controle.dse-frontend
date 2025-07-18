@@ -38,6 +38,7 @@ import BaseTableToolBar from "../../../components/shared/BaseTableToolBar";
 import { debounce } from "lodash";
 import BaseTableColumnFilters from "../../../components/shared/BaseTableColumnFilters";
 import RequisitionFormModal from "../../../components/requisicoes/RequisitionFormModal";
+import { useNavigate } from "react-router-dom";
 
 const RequisitionListPage = () => {
   useRequisitionKanban();
@@ -47,13 +48,14 @@ const RequisitionListPage = () => {
   const width = window.innerWidth;
   const user = useSelector((state: RootState) => state.user.user);
   const rows = useSelector((state: RootState) => state.requisitionTable.rows);
+  const navigate = useNavigate();
+  
   const searchTerm = useSelector(
     (state: RootState) => state.requisitionTable.searchTerm
   );
   const filters = useSelector(
     (state: RootState) => state.requisitionTable.filters
   );
-
   const loading = useSelector(
     (state: RootState) => state.requisitionTable.loading
   );
@@ -66,13 +68,12 @@ const RequisitionListPage = () => {
   const selectedKanban = useSelector(
     (state: RootState) => state.requisitionTable.selectedKanban
   );
-
   const changeSelectedRow = (row: any) => {
     dispatch(setSelectedRow(row));
   };
-
   const gridRef = useGridApiRef();
-  const { columns, secondaryColumns } = useRequisitionColumns(changeSelectedRow);
+
+  const { columns, secondaryColumns } = useRequisitionColumns(changeSelectedRow); //RETURNS MAIN COLUMNS ARRAY AND SECONDARY COLUMNS
 
   const handleChangeKanban = React.useCallback(
     (event: SelectChangeEvent<unknown>) => {
@@ -95,6 +96,12 @@ const RequisitionListPage = () => {
     },
     [dispatch]
   );
+
+  const navigateToRequisitionDetails = ( params : any) =>  {
+    console.log("params: ", params)
+    const {id} = params;
+    navigate(`/requisicoes/${id}`);
+  }
 
   const handleChangeFilters = React.useCallback(
     (
@@ -221,10 +228,12 @@ const RequisitionListPage = () => {
           rowHeight={44}
           columns={columns}
           loading={loading}
+          onRowClick={(params) => navigateToRequisitionDetails(params)}
           getRowId={(row: any) => row.ID_REQUISICAO}
           theme={theme}
         />
       </Box>
+      {/* DISPLAYS SECONDARY DATA */}
       <BaseDetailModal
         open={selectedRow !== null}
         onClose={() => dispatch(setSelectedRow(null))}
