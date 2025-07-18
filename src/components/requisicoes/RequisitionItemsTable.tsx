@@ -70,6 +70,7 @@ const RequisitionItemsTable = () => {
         (item) => item.id_item_requisicao !== id_item_requisicao
       );
       setItems(updatedItems);
+      dispatch(setRefresh(!refresh));
       dispatch(setProductsAdded(updatedItems.map((item) => item.id_produto)));
       dispatch(
         setFeedback({

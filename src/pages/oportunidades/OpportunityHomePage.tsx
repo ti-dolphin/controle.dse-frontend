@@ -1,9 +1,13 @@
 import React from 'react'
+import OpportunityListPage from './OpportunityListPage';
 
-const Home = () => {
+const OpportunityHomePage = () => {
   return (
-    <div>Home</div>
-  )
-}
+    <div>
 
-export default Home
+    <OpportunityListPage />
+  </div>
+  )
+};
+
+export default OpportunityHomePage
