@@ -71,7 +71,6 @@ const QuoteItemsTable = () => {
   
   const handleCellClick = useCallback(
     (params: GridCellParams, event: React.MouseEvent) => {
-      console.log(params.row);
 
       if (params.field === "indisponivel") return;
 

@@ -9,6 +9,8 @@ import AuthForm from "../components/AuthForm";
 const AuthPage = () => {
   const dispatch = useDispatch<AppDispatch>();
   const user = useSelector((state: RootState) => state.user.user);
+  const token = window.localStorage.getItem("token");
+
 
   const handleLogout = () => {
     dispatch(clearUser());
@@ -34,7 +36,7 @@ const AuthPage = () => {
           >
             Login
           </Typography>
-          {user ? (
+          {token && user ? (
             <>
               <Typography variant="body1" sx={{ mb: 2 }}>
                 Olá, {user.NOME}

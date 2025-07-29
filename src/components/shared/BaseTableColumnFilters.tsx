@@ -66,8 +66,7 @@ function BaseTableColumnFiltersComponent<T>({
               alignItems: "center",
               border: "2px solid",
               borderColor: "lightgray",
-              
-              borderRadius: 2,
+              borderRadius: 0,
               padding: 0.2,
               backgroundColor: "white",
             }}

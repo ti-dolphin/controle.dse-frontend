@@ -21,11 +21,7 @@ import { setRows } from "../../redux/slices/requisicoes/requisitionTableSlice";
 
 
 
-
-
-
 const RequisitionForm: React.FC = () => {
-   console.log('rendered RequisitionForm')
   const dispatch = useDispatch();
   const rows = useSelector((state: RootState) => state.requisitionTable.rows);
   const { projectOptions } = useProjectOptions();
@@ -38,49 +34,50 @@ const RequisitionForm: React.FC = () => {
   );
 
 const fields: FieldConfig[] = [
-    {
-        label: "Descrição",
-        field: "DESCRIPTION",
-        type: "text",
-        disbaled: false,
-        defaultValue: "",
-        value: requisition.DESCRIPTION ?? "",
-    },
-    { 
-        label: 'Observação',
-        field: 'OBSERVACAO',
-        type: 'text',
-        disbaled: false,
-        defaultValue: '',
-        value: requisition.OBSERVACAO ?? '',
-    },
-    {
-        label: "Projeto",
-        field: "ID_PROJETO",
-        type: "autocomplete",
-        disbaled: false,
-        defaultValue: '',
-        options: projectOptions,
-        value: projectOptions.find(opt => opt.id === requisition.ID_PROJETO) || null,
-    },
-    {
-        label: "Tipo",
-        field: "TIPO",
-        type: "autocomplete",
-        disbaled: true,
-        defaultValue: '',
-        options: reqTypeOptions,
-        value: reqTypeOptions.find(opt => opt.id === requisition.TIPO) || null,
-    },
-    {
-        label: "Responsável",
-        field: "ID_RESPONSAVEL",
-        type: "autocomplete",
-        disbaled: true,
-        defaultValue: user?.NOME || '',
-        options: [userOption],
-        value: userOption,
-    },
+  {
+    label: "Descrição",
+    field: "DESCRIPTION",
+    type: "text",
+    disabled: false,
+    defaultValue: "",
+    value: requisition.DESCRIPTION ?? "",
+  },
+  {
+    label: "Observação",
+    field: "OBSERVACAO",
+    type: "text",
+    disabled: false,
+    defaultValue: "",
+    value: requisition.OBSERVACAO ?? "",
+  },
+  {
+    label: "Projeto",
+    field: "ID_PROJETO",
+    type: "autocomplete",
+    disabled: false,
+    defaultValue: "",
+    options: projectOptions,
+    value:
+      projectOptions.find((opt) => opt.id === requisition.ID_PROJETO) || null,
+  },
+  {
+    label: "Tipo",
+    field: "TIPO",
+    type: "autocomplete",
+    disabled: true,
+    defaultValue: "",
+    options: reqTypeOptions,
+    value: reqTypeOptions.find((opt) => opt.id === requisition.TIPO) || null,
+  },
+  {
+    label: "Responsável",
+    field: "ID_RESPONSAVEL",
+    type: "autocomplete",
+    disabled: true,
+    defaultValue: user?.NOME || "",
+    options: [userOption],
+    value: userOption,
+  },
 ];
   
  //setando usuário como responsável default
@@ -102,7 +99,15 @@ const fields: FieldConfig[] = [
     dispatch(setLoading(true));
     try {
         if (mode === "create") {
-            const newRequisition = await RequisitionService.create(requisition);
+            const newRequisition = await RequisitionService.create({
+              //fields
+              DESCRIPTION : requisition.DESCRIPTION,
+              ID_PROJETO : requisition.ID_PROJETO,
+              //tipo default
+              TIPO : 10,
+              ID_RESPONSAVEL : requisition.ID_RESPONSAVEL,
+              OBSERVACAO : requisition.OBSERVACAO,
+            });
             dispatch(setRows([...rows, newRequisition]));
             dispatch(clearRequisition());
             dispatch(setLoading(false));
@@ -187,9 +192,12 @@ const fields: FieldConfig[] = [
               }}
               isOptionEqualToValue={(option, value) => option.id === value.id}
               onChange={(_, option) =>
-                handleChangeOptionField(config.field as keyof Requisition, option as Option)
+                handleChangeOptionField(
+                  config.field as keyof Requisition,
+                  option as Option
+                )
               }
-              disabled={isReadOnly || config.disbaled}
+              disabled={isReadOnly || config.disabled}
               renderInput={(params: AutocompleteRenderInputParams) => (
                 <TextField
                   {...params}
@@ -211,7 +219,7 @@ const fields: FieldConfig[] = [
             onChange={handleChange(config.field as keyof Requisition)}
             variant="outlined"
             fullWidth
-            disabled={isReadOnly || config.disbaled}
+            disabled={isReadOnly || config.disabled}
           />
         );
       })}

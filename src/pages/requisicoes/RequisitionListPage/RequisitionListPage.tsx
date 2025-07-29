@@ -39,6 +39,7 @@ import { debounce } from "lodash";
 import BaseTableColumnFilters from "../../../components/shared/BaseTableColumnFilters";
 import RequisitionFormModal from "../../../components/requisicoes/RequisitionFormModal";
 import { useNavigate } from "react-router-dom";
+import UpperNavigation from "../../../components/shared/UpperNavigation";
 
 const RequisitionListPage = () => {
   useRequisitionKanban();
@@ -97,8 +98,12 @@ const RequisitionListPage = () => {
     [dispatch]
   );
 
+
+  const handleBack = () => {
+    navigate("/");
+  }
+
   const navigateToRequisitionDetails = ( params : any) =>  {
-    console.log("params: ", params)
     const {id} = params;
     navigate(`/requisicoes/${id}`);
   }
@@ -130,7 +135,6 @@ const RequisitionListPage = () => {
     dispatch(setLoading(true));
     try {
       const prismaFilters = buildPrismaFilters(filters);
-      console.log("prismaFilters", JSON.stringify(prismaFilters));
       const data = await RequisitionService.getMany(user as ReducedUser, {
         id_kanban_requisicao: selectedKanban?.id_kanban_requisicao,
         searchTerm,
@@ -162,14 +166,16 @@ const RequisitionListPage = () => {
         width: "100%",
         display: "flex",
         flexDirection: "column",
-        alignItems: "center",
+        alignItems: "start",
         justifyContent: "center",
+        padding: 0.5,
       }}
     >
+      <UpperNavigation handleBack={handleBack} />
       <Box
         sx={{
-          height: "98%",
-          width: "98%",
+          height: "95%",
+          width: "100%",
           display: "flex",
           flexDirection: "column",
         }}
@@ -201,7 +207,7 @@ const RequisitionListPage = () => {
                         : "primary.main",
                     color: "white",
                     textTransform: "capitalize",
-                    borderRadius: 2,
+                    borderRadius: 0,
                   }}
                 >
                   {kanban.nome}
@@ -211,11 +217,10 @@ const RequisitionListPage = () => {
           <RequisitionFormModal />
         </BaseToolBar>
 
-        
         <BaseTableToolBar
           handleChangeSearchTerm={debouncedHandleChangeSearchTerm}
         />
-        
+
         <BaseTableColumnFilters
           columns={columns}
           filters={filters}
@@ -227,7 +232,7 @@ const RequisitionListPage = () => {
           rows={rows}
           disableColumnMenu
           disableColumnFilter
-          rowHeight={44}
+          rowHeight={40}
           columns={columns}
           loading={loading}
           onRowClick={(params) => navigateToRequisitionDetails(params)}
@@ -235,6 +240,7 @@ const RequisitionListPage = () => {
           theme={theme}
         />
       </Box>
+
       {/* DISPLAYS SECONDARY DATA */}
       <BaseDetailModal
         open={selectedRow !== null}

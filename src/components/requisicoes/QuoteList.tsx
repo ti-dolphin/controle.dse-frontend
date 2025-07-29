@@ -67,7 +67,7 @@ const QuoteList = () => {
       const data = await QuoteService.getMany({ 
         id_requisicao: requisition.ID_REQUISICAO
       });
-      console.log("quotes: ", data)
+
       setQuotes(data);
     }
   }, [requisition]);

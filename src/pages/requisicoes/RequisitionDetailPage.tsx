@@ -15,7 +15,7 @@ import {
   setRef,
 } from "@mui/material";
 import { ChangeEvent, useEffect, useState } from "react";
-import { useParams } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import RequisitionService from "../../services/requisicoes/RequisitionService";
 import { setRequisition } from "../../redux/slices/requisicoes/requisitionSlice";
 import RequisitionStatusStepper from "../../components/requisicoes/RequisitionStatusStepper";
@@ -36,10 +36,12 @@ import RequisitionItemService from "../../services/requisicoes/RequisitionItemSe
 import QuoteList from "../../components/requisicoes/QuoteList";
 import CloseIcon from '@mui/icons-material/Close';
 import { formatCurrency } from "../../utils";
+import UpperNavigation from "../../components/shared/UpperNavigation";
 
 const RequisitionDetailPage = () => {
 
   const dispatch = useDispatch();
+  const navigate = useNavigate();
   const user = useSelector((state: RootState) => state.user.user);
   const {addingProducts, updatingRecentProductsQuantity} = useSelector((state: RootState) => state.requisitionItem);
   const {id_requisicao} = useParams();
@@ -155,6 +157,10 @@ const RequisitionDetailPage = () => {
     dispatch(setReplacingItemProduct(false));
   }
 
+  const handleBack =( ) => {
+    navigate("/requisicoes");
+  };
+
   useEffect(() => {
     if (id_requisicao) {
       fetchData();
@@ -162,18 +168,19 @@ const RequisitionDetailPage = () => {
   }, [id_requisicao, fetchData, refresh]);
 
   return (
-    <Box height="100vh" width="100vw" p={{ xs: 1, md: 2 }} bgcolor="background">
-      <Grid container spacing={2}>
+    <Box height="100vh" width="100vw" p={{ xs: 1, md: 0.5 }} bgcolor="background">
+      <UpperNavigation handleBack={handleBack} />
+      <Grid container spacing={0.6}>
         {/* Header: Título, Projeto, Status Steps */}
         <Grid item xs={12}>
-          <Paper sx={{ p: 2, mb: 2 }}>
+          <Paper sx={{ p: 1.5, mb: 1 }}>
             <Typography
               sx={{ fontSize: "1rem" }}
               fontWeight={600}
               color="primary.main"
             >
               {requisition.ID_REQUISICAO} | {requisition.DESCRIPTION} |{" "}
-              {requisition.projeto?.DESCRICAO} | Status
+              {requisition.projeto?.DESCRICAO} 
             </Typography>
             <Box mt={2}>
               {id_requisicao && (
@@ -299,6 +306,7 @@ const RequisitionDetailPage = () => {
             sx={{
               display: "flex",
               alignItems: "center",
+              p: 0.5
             }}
           >
             <Button
@@ -313,7 +321,7 @@ const RequisitionDetailPage = () => {
 
         {/* Tabela de Itens */}
         <Grid item xs={12}>
-          <Paper sx={{ p: 2 }}>
+          <Paper sx={{ p: 1 }}>
             <Divider sx={{ mb: 1 }} />
             <Box>
               <RequisitionItemsTable />
@@ -380,6 +388,8 @@ const RequisitionDetailPage = () => {
           Insira as quantidades dos produtos adicionados
         </DialogTitle>
         <DialogContent>
+
+
           {updatingRecentProductsQuantity && <RequisitionItemsTable />}
         </DialogContent>
         <DialogActions>

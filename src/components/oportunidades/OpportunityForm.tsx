@@ -37,9 +37,8 @@ const OpportunityForm = () => {
     );
 
     const handleChangeTextField = (e: React.ChangeEvent<HTMLInputElement>) => {
-      console.log("handleChangeTextField");
       const { name, value } = e.target;
-      dispatch(setOpportunity({...opportunity, [name]: value}));
+      dispatch(setOpportunity({ ...opportunity, [name]: value }));
     }
 
     const handleChangeAutocomplete = (name: string, option: any) => {

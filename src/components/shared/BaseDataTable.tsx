@@ -7,16 +7,16 @@ const StyledDataGrid = styled(DataGrid)<{ theme: Theme }>(({ theme }) => ({
   background: "#fff",
   borderRadius: 0,
   boxShadow: "0 4px 24px 0 rgba(34, 40, 49, 0.08)",
-
   fontFamily: "Roboto, Arial, sans-serif",
   "& .MuiDataGrid-columnHeaders": {
     backgroundColor: "#e7eaf6",
     "& .MuiDataGrid-columnHeader": {
       backgroundColor: 'white',
+      
     },
     color: theme.palette.primary.main,
-    fontWeight: 600,
     fontSize: "0.9rem",
+    fontWeight: "bold",
     borderTopLeftRadius: 0,
     borderTopRightRadius: 0,
   },

@@ -50,8 +50,7 @@ export const buildPrismaFilters = (filters: RequisitionFilters) => {
         const start = new Date(date.setHours(0, 0, 0, 0));
         const end = new Date(start);
         end.setDate(end.getDate() + 1);
-        console.log("start: ", start)
-        console.log("end: ", end)
+
         return [
           { data_criacao: { gte: start.toISOString() } },
           { data_criacao: { lt: end.toISOString() } },

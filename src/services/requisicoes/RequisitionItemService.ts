@@ -52,7 +52,6 @@ export class RequisitionItemService {
     id_requisicao: number,
     data: any
   ): Promise<any> {
-    console.log("id_requisicao: ", id_requisicao);
     const response = await api.put<RequisitionItem[]>(
       `${API_ENDPOINT}/itens_cotacao_selecionados/update`,
       data,

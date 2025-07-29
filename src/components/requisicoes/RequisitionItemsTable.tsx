@@ -258,7 +258,6 @@ const RequisitionItemsTable = () => {
   //ATUALIZA LINHA NO BACKEND
   const processRowUpdate = React.useCallback(
     async (newRow: GridRowModel, oldRow: GridRowModel) => {
-      console.log("processRowUpdate");
       const payload = {
         id_item_requisicao: newRow.id_item_requisicao,
         quantidade: newRow.quantidade,
@@ -271,7 +270,6 @@ const RequisitionItemsTable = () => {
           newRow.id_item_requisicao,
           payload
         );
-         console.log(" end processRowUpdate");
         return updatedItem;
       } catch (e: any) {
         dispatch(
@@ -391,7 +389,7 @@ const RequisitionItemsTable = () => {
             };
 
       const data = await RequisitionItemService.getMany(params);
-      console.log("data: ", data);
+ 
       setItems(data);
       dispatch(setProductsAdded(data.map((item) => item.id_produto)));
       setLoading(false);

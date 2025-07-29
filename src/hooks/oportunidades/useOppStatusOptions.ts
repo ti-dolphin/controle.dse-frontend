@@ -9,7 +9,7 @@ const useOppStatusOptions = () => {
     const [options, setOptions] = useState<Option[]>([])
 
     const fetchData = React.useCallback(async () => {
-      console.log("fetchData");
+
       const oppStatus = await OpportunityService.getOppStatusOptions();
       const options = oppStatus.map((status: OpportunityStatus) => ({
         id: status.CODSTATUS,

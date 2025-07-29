@@ -3,6 +3,7 @@ import React from 'react'
 import crm from '../assets/images/crm.jpg'
 import patrimonios from '../assets/images/patrimonios.jpg';
 import requisicoes from '../assets/images/requisicoes.jpg';
+import { useNavigate } from 'react-router-dom';
 
 const modules = [
   {
@@ -26,6 +27,9 @@ const modules = [
 ]
 
 const HomePage = () => {
+
+  const navigate = useNavigate();
+  
   return (
     <Box
       sx={{
@@ -34,10 +38,16 @@ const HomePage = () => {
         alignItems: "center",
         padding: 4,
         minHeight: "100vh",
-        bgcolor: "#fff"
+        bgcolor: "#fff",
       }}
     >
-      <Typography variant="h4" color="primary" gutterBottom textAlign="center" fontWeight={600}>
+      <Typography
+        variant="h4"
+        color="primary"
+        gutterBottom
+        textAlign="center"
+        fontWeight={600}
+      >
         Bem Vindo ao Dolphin Controle
       </Typography>
       <Grid
@@ -51,13 +61,20 @@ const HomePage = () => {
             sm: "90%",
             md: "70%",
           },
-          mt: 2
+          mt: 2,
         }}
       >
         {modules.map((module) => (
-          <Grid item xs={12} sm={6} md={4} key={module.name} sx={{height: 600}}>
+          <Grid
+            item
+            xs={12}
+            sm={6}
+            md={4}
+            key={module.name}
+            sx={{ height: 600 }}
+          >
             <Box
-            onClick={() => window.location.href = module.path}
+              onClick={() => navigate(module.path)}
               sx={{
                 p: 0,
                 borderRadius: 4,
@@ -67,11 +84,11 @@ const HomePage = () => {
                 display: "flex",
                 flexDirection: "column",
                 alignItems: "center",
-                transition: 'box-shadow 0.3s, transform 0.3s',
-                cursor: 'pointer',
-                '&:hover': {
+                transition: "box-shadow 0.3s, transform 0.3s",
+                cursor: "pointer",
+                "&:hover": {
                   boxShadow: 8,
-                  transform: 'translateY(-6px) scale(1.03)',
+                  transform: "translateY(-6px) scale(1.03)",
                 },
               }}
             >
@@ -88,8 +105,13 @@ const HomePage = () => {
                   mb: 2,
                 }}
               />
-              <Box sx={{ px: 3, pb: 3, width: '100%' }}>
-                <Typography fontSize="1.25rem" textAlign="center" color="#222831" mb={1}>
+              <Box sx={{ px: 3, pb: 3, width: "100%" }}>
+                <Typography
+                  fontSize="1.25rem"
+                  textAlign="center"
+                  color="#222831"
+                  mb={1}
+                >
                   {module.name}
                 </Typography>
                 <Typography variant="body2" color="text.secondary">

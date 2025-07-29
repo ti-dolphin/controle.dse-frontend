@@ -32,7 +32,7 @@ export function useRequisitionColumns(changeSelectedRow: (row: any) => void) {
                 justifyContent: "center",
               }}
             >
-              <Typography fontSize="12px" fontWeight="bold">
+              <Typography fontSize="12px" fontWeight="bold" color="text.primary">
                 {params.value}
               </Typography>
             </Box>

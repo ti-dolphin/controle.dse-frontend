@@ -66,50 +66,51 @@ const OpportunityAttachmentList = () => {
   const fetchData = React.useCallback(async () => {
     setLoading(true);
     try {
-      const attachments = await OpportunityAttachmentService.getMany(Number(CODOS));
+      const attachments = await OpportunityAttachmentService.getMany(
+        Number(CODOS)
+      );
       setAttachments(attachments);
     } catch (error) {
-      dispatch(setFeedback({
-        message: "Erro ao buscar anexos",
-        type: "error"
-      }));
-      console.log(error);
+      dispatch(
+        setFeedback({
+          message: "Erro ao buscar anexos",
+          type: "error",
+        })
+      );
     } finally {
       setLoading(false);
     }
   }, [CODOS, dispatch]);
 
-
-   const handleDelete = React.useCallback(async () => {
-     if (attachmentBeingDeleted) {
-       try {
-         const {id_anexo_os} = attachmentBeingDeleted;
+  const handleDelete = React.useCallback(async () => {
+    if (attachmentBeingDeleted) {
+      try {
+        const { id_anexo_os } = attachmentBeingDeleted;
         await FirebaseService.delete(attachmentBeingDeleted.arquivo);
         await OpportunityAttachmentService.delete(id_anexo_os);
-         setAttachments(
-           attachments.filter(
-             (attachment) =>
-               attachment.id_anexo_os !== attachmentBeingDeleted.id_anexo_os
-           )
-         );
-         dispatch(
-           setFeedback({
-             message: "Anexo excluído com sucesso",
-             type: "success",
-           })
-         );
-         setAttachmentBeingDeleted(null);
-       } catch (error) {
-         dispatch(
-           setFeedback({
-             message: "Erro ao excluir anexo",
-             type: "error",
-           })
-         );
-         console.log(error);
-       }
-     }
-   }, [attachmentBeingDeleted, dispatch, fetchData]);
+        setAttachments(
+          attachments.filter(
+            (attachment) =>
+              attachment.id_anexo_os !== attachmentBeingDeleted.id_anexo_os
+          )
+        );
+        dispatch(
+          setFeedback({
+            message: "Anexo excluído com sucesso",
+            type: "success",
+          })
+        );
+        setAttachmentBeingDeleted(null);
+      } catch (error) {
+        dispatch(
+          setFeedback({
+            message: "Erro ao excluir anexo",
+            type: "error",
+          })
+        );
+      }
+    }
+  }, [attachmentBeingDeleted, dispatch, fetchData]);
 
   React.useEffect(() => {
     fetchData();

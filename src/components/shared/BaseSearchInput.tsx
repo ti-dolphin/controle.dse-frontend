@@ -22,7 +22,7 @@ const BaseSearchInput = ({ onChange, value, showIcon, label, placeholder, styles
         alignItems: "center",
         border: "2px solid",
         borderColor: "lightgray",
-        borderRadius: 2,
+        borderRadius: 0,
         paddingX: 2,
         backgroundColor: "white",
         ...styles

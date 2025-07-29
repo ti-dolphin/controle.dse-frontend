@@ -44,8 +44,7 @@ const QuoteDetailPage = () => {
     (async () => {
       const data : Quote = await QuoteService.getById(Number(id_cotacao));
        const reqData : Requisition = await RequisitionService.getById(Number(data.id_requisicao));
-      console.log('reqData: ', reqData);
-      console.log("quoteData: ", data);
+
       dispatch(setQuote(data))
       dispatch(setRequisition(reqData));
     })();

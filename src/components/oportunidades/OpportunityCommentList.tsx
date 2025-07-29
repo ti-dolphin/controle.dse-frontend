@@ -58,9 +58,7 @@ const OpportunityCommentList = () => {
         )
       );
       setCommentBeingEdited(comment);
-    } catch (e) {
-      console.log(e);
-    }
+    } catch (e) {}
   };
 
   const debounceSaveComment = React.useMemo(
@@ -72,12 +70,12 @@ const OpportunityCommentList = () => {
     e: React.ChangeEvent<HTMLInputElement>
   ) => {
     if (!commentBeingEdited) return;
-    if(!user ) return;
+    if (!user) return;
     setCommentBeingEdited({ ...commentBeingEdited, DESCRICAO: e.target.value });
     debounceSaveComment({ ...commentBeingEdited, DESCRICAO: e.target.value });
   };
 
-  const handleCreateComment = async ( ) => { 
+  const handleCreateComment = async () => {
     if (!CODOS) return;
     const commnent = await OpportunityCommentService.create({
       DESCRICAO: newComment,
@@ -86,7 +84,6 @@ const OpportunityCommentList = () => {
       CODAPONT: 0,
       RECCREATEDON: formatDateToISOstring(new Date()),
     });
-    console.log("commnent: ", commnent);
     setComments([...comments, commnent]);
     setCreating(false);
     setNewComment("");
