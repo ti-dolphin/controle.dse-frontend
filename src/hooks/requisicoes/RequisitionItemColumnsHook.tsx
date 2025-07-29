@@ -1,6 +1,6 @@
 import React, { useCallback, useEffect, useState } from "react";
 import { GridColDef } from "@mui/x-data-grid";
-import { formatCurrency, parseDate, parseISODate } from "../../utils";
+import { formatCurrency, getDateFromDateString, getDateFromISOstring, getDateStringFromISOstring } from "../../utils";
 import { useDispatch, useSelector } from "react-redux";
 import { RootState } from "../../redux/store";
 import DeleteIcon from "@mui/icons-material/Delete";
@@ -161,7 +161,7 @@ export const useRequisitionItemColumns = (
       editable: true,
       flex: 0.75,
       valueGetter: (data_entrega: string) =>
-        data_entrega ? parseDate(parseISODate(data_entrega)) : null,
+        data_entrega ? getDateFromISOstring(data_entrega) : null,
       renderHeader: () => (
         <Box
           sx={{

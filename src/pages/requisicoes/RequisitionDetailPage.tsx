@@ -137,7 +137,6 @@ const RequisitionDetailPage = () => {
   }
 
   const concludeAddProducts  = async (  ) =>  {
-    console.log("concludeAddProducts");
     await createItemsFromProducts();
     dispatch(setUpdatingRecentProductsQuantity(true));
     dispatch(setAddingProducts(false));
@@ -338,9 +337,14 @@ const RequisitionDetailPage = () => {
           <CloseIcon />
         </IconButton>
         <DialogTitle id="add-products-dialog-title">
-          Adicionar Produtos
+          <Typography variant="h6" fontWeight={600} color="primary.main">
+            {" "}
+            Adicionar Itens
+          </Typography>
         </DialogTitle>
-        <DialogContent>{addingProducts && <ProductsTable />}</DialogContent>
+        <DialogContent>
+          {(addingProducts || replacingItemProduct) && <ProductsTable />}
+        </DialogContent>
         <DialogActions>
           {addingProducts && recentProductsAdded.length > 0 && (
             <Button

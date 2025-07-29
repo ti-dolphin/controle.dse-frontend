@@ -14,6 +14,11 @@ export class UserService {
     return data;
   }
 
+  static async getComercialUsers(): Promise<User[]> {
+    const { data } = await api.get<User[]>(`${API_URL}/comercial/pessoa_comercial`);
+    return data;
+  }
+
   static async login({ LOGIN, SENHA }: { LOGIN: string; SENHA: string }): Promise<{ user: User; token: string }> {
     const { data } = await api.post<{ user: User; token: string }>(`${API_URL}/login`, { LOGIN, SENHA });
     return data;

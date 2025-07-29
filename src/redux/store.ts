@@ -6,7 +6,8 @@ import requisitionReducer from './slices/requisicoes/requisitionSlice';
 import requisitionItemReducer from './slices/requisicoes/requisitionItemSlice';
 import quoteReducer from './slices/requisicoes/quoteSlice';
 import quoteItemReducer from './slices/requisicoes/quoteItemSlice';
-
+import opportunityTableReducer from './slices/oportunidades/opportunityTableSlice';
+import opportunityReducer from './slices/oportunidades/opportunitySlice';
 export const store = configureStore({
   reducer: {
     user: userReducer,
@@ -16,6 +17,8 @@ export const store = configureStore({
     requisitionItem: requisitionItemReducer,
     quote: quoteReducer,
     quoteItem: quoteItemReducer,
+    opportunityTable : opportunityTableReducer,
+    opportunity: opportunityReducer
   },
 });
 

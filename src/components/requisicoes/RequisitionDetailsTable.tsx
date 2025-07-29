@@ -1,6 +1,6 @@
 import { Table, TableBody, TableRow, TableCell, Typography } from "@mui/material";
-import { formatDate, parseDate } from "../../utils";
 import { Requisition } from "../../models/requisicoes/Requisition";
+import { getDateStringFromISOstring } from "../../utils";
 
 const RequisitionDetailsTable = ({ requisition }: { requisition: Requisition }) => {
   return (
@@ -14,7 +14,7 @@ const RequisitionDetailsTable = ({ requisition }: { requisition: Requisition }) 
           </TableCell>
           <TableCell>
             {requisition.data_criacao
-              ? formatDate(new Date(requisition.data_criacao))
+              ? getDateStringFromISOstring(requisition.data_criacao)
               : "-"}
           </TableCell>
         </TableRow>
@@ -26,7 +26,7 @@ const RequisitionDetailsTable = ({ requisition }: { requisition: Requisition }) 
           </TableCell>
           <TableCell>
             {requisition.data_alteracao
-              ? formatDate(new Date(requisition.data_alteracao))
+              ? getDateStringFromISOstring(requisition.data_alteracao)
               : "-"}
           </TableCell>
         </TableRow>

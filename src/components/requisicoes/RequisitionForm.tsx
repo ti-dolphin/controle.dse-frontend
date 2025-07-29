@@ -12,22 +12,14 @@ import {
 import { Box, Button, TextField, CircularProgress, Autocomplete, AutocompleteRenderInputParams, Typography } from "@mui/material";
 import { Requisition } from "../../models/requisicoes/Requisition";
 import { useProjectOptions } from "../../hooks/projectOptionsHook";
-import { Option } from "../../types";
+import { FieldConfig, Option } from "../../types";
 import { useRequisitionTypeOptions } from "../../hooks/requisicoes/RequisitionTypeOptionsHook";
 import { useNavigate } from "react-router-dom";
 import RequisitionService from "../../services/requisicoes/RequisitionService";
 import { setFeedback } from "../../redux/slices/feedBackSlice";
 import { setRows } from "../../redux/slices/requisicoes/requisitionTableSlice";
 
-type FieldConfig = {
-    label: string;
-    field: keyof Requisition;
-    type: "text" | "autocomplete";
-    disbaled: boolean;
-    defaultValue: string;
-    value?: any;
-    options?: Option[]
-};
+
 
 
 
@@ -75,7 +67,7 @@ const fields: FieldConfig[] = [
         label: "Tipo",
         field: "TIPO",
         type: "autocomplete",
-        disbaled: false,
+        disbaled: true,
         defaultValue: '',
         options: reqTypeOptions,
         value: reqTypeOptions.find(opt => opt.id === requisition.TIPO) || null,
@@ -174,7 +166,7 @@ const fields: FieldConfig[] = [
       >
         Nova requisição
       </Typography>
-      {fields.map((config) => {
+      {fields.map((config, index) => {
         if (config.type === "autocomplete") {
           return (
             <Autocomplete
@@ -184,7 +176,6 @@ const fields: FieldConfig[] = [
               getOptionKey={(option) => option.id}
               value={config.value}
               aria-required
-            
               defaultValue={config.defaultValue}
               slotProps={{
                 popper: {
@@ -196,7 +187,7 @@ const fields: FieldConfig[] = [
               }}
               isOptionEqualToValue={(option, value) => option.id === value.id}
               onChange={(_, option) =>
-                handleChangeOptionField(config.field, option as Option)
+                handleChangeOptionField(config.field as keyof Requisition, option as Option)
               }
               disabled={isReadOnly || config.disbaled}
               renderInput={(params: AutocompleteRenderInputParams) => (
@@ -216,8 +207,8 @@ const fields: FieldConfig[] = [
             key={config.field}
             label={config.label}
             required
-            value={requisition[config.field] ?? ""}
-            onChange={handleChange(config.field)}
+            value={requisition[config.field as keyof Requisition] ?? ""}
+            onChange={handleChange(config.field as keyof Requisition)}
             variant="outlined"
             fullWidth
             disabled={isReadOnly || config.disbaled}

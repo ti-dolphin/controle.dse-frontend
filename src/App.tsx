@@ -36,7 +36,7 @@ const theme = createTheme(
       },
     },
     typography: {
-      fontFamily: "Open Sans, Roboto, sans-serif",
+      fontFamily: "Poppins, sans-serif",
     },
     components: {
       MuiButton: {

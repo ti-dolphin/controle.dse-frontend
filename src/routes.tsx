@@ -9,7 +9,7 @@ import RequisitionHomePage from "./pages/requisicoes/RequisitionHomePage";
 import RequisitionDetailPage from "./pages/requisicoes/RequisitionDetailPage";
 import QuoteDetailPage from "./pages/requisicoes/QuoteDetalPage";
 import OpportunityHomePage from "./pages/oportunidades/OpportunityHomePage";
-
+import OportunityDetailPage from "./pages/oportunidades/OpportunityDetailPage";
 // Exemplo de páginas
 const AppRoutes = () => { 
   return (
@@ -29,7 +29,7 @@ const AppRoutes = () => {
 
       {/* Oportunidades */}
       <Route path="/oportunidades" element={<OpportunityHomePage />} />
-      {/* <Route path="/oportunidades/:id" element={<OportunityDetailPage />} /> */}
+      <Route path="/oportunidades/:CODOS" element={<OportunityDetailPage />} />
       {/* <Route path="/oportunidades/novo" element={<OpportunityCreationModal />} /> */}
       {/* <Route path="/oportunidades/form" element={<OpportunityForm />} /> */}
     </Routes>

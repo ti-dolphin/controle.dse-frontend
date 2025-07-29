@@ -14,10 +14,11 @@ export const useRequisitionStatus =  ( ) =>  {
     const [canceledStatus, setCanceledStatus] = useState<RequisitionStatus>();
 
     const fetchData = useCallback(async () => { 
+        //FUNCTION THE FETCHES THE DATA
         try { 
             const statuses = await RequisitionStatusService.getMany();
             const canceledStatus = statuses.find(status => status.nome === 'Cancelado');
-            setStatusList(statuses.filter((status) => status.nome !== 'Cancelado'));
+            setStatusList(statuses.filter((status) => status.nome !== 'Cancelado')); //FILTERS OUT THE "CANCELED" STATUS
             setCanceledStatus(canceledStatus);
             
         } catch (e) { 

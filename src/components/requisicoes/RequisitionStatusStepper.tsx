@@ -81,7 +81,7 @@ const RequisitionStatusStepper = ({
   const { permissionToChangeStatus } = useRequisitionStatusPermissions(user, requisition);
 
   const currentStatusIndex = requisition.status?.etapa ?? 0;
-  const { statusList, canceledStatus } = useRequisitionStatus();
+  const { statusList, canceledStatus } = useRequisitionStatus(); //STATUS LIST 
 
   const handleChangeStatus = async (
     type: "acao_anterior" | "acao_posterior"
@@ -101,7 +101,7 @@ const RequisitionStatusStepper = ({
           : type === "acao_anterior"
           ? currentStep - 1
           : currentStep;
-      const newStatus = statusList.find((status) => status.etapa === nextStep);
+      const newStatus = statusList.find((status) => status.etapa === nextStep); //FINDS THE CORRESPONDING  NEW STATUS
 
       if (!newStatus) {
         dispatch(
@@ -113,7 +113,7 @@ const RequisitionStatusStepper = ({
         return;
       }
 
-      const updatedRequisition = await RequisitionService.update(
+      const updatedRequisition = await RequisitionService.update( //SEND IT TO THE BACKEND!
         Number(id_requisicao),
         {
           id_status_requisicao: newStatus.id_status_requisicao,
@@ -123,7 +123,7 @@ const RequisitionStatusStepper = ({
       dispatch(setRequisition(updatedRequisition));
       dispatch(
         setFeedback({
-          type: "success",
+          type: "success", //DISPLAYS SUCCESS MESSAGE ON SCREEN
           message: "Status atualizado com sucesso!",
         })
       );
@@ -145,7 +145,7 @@ const RequisitionStatusStepper = ({
         pb: 2,
         display: "flex",
         flexDirection: "column",
-        gap: 2,
+        gap: 2
       }}
     >
       <Stepper

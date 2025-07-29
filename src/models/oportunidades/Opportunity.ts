@@ -3,6 +3,7 @@ import { Project } from "../Project";
 import { ReducedUser } from "../User";
 import { Client } from "./Client";
 import { OpportunityStatus } from "./OpportunityStatus";
+import { ProjectAdicional } from "./ProjectAdicional";
 
 export interface Opportunity {
   CODOS: number;
@@ -32,24 +33,26 @@ export interface Opportunity {
     RELACIONAMENTO: number;
     FK_CODCLIENTE: string;
     FK_CODCOLIGADA: number;
-    VALORFATDIRETO: string;
+    VALORFATDIRETO: number;
     VALORSERVICOMO: string | null;
     VALORSERVICOMATAPLICADO: string | null;
     VALORMATERIAL: string | null;
-    VALORTOTAL: string | null;
+    VALOR_TOTAL: number;
     CODSEGMENTO: number;
     CODCIDADE: number;
     VALORLOCACAO: string | null;
     ID_ADICIONAL: number;
     ID_PROJETO: number;
     DATAINTERACAO: string | null;
-    VALORFATDOLPHIN: string;
+    VALORFATDOLPHIN: number;
     PRINCIPAL: boolean;
-    VALOR_COMISSAO: string;
+    VALOR_COMISSAO: number;
     id_motivo_perdido: number;
     observacoes: string;
     DESCRICAO_VENDA: string;
     EMAIL_VENDA_ENVIADO: boolean;
+    responsavel: ReducedUser;
+    adicional: ProjectAdicional;
     status: OpportunityStatus;
     cliente: Client;
     projeto: Project;

@@ -210,6 +210,8 @@ const RequisitionListPage = () => {
           </Box>
           <RequisitionFormModal />
         </BaseToolBar>
+
+        
         <BaseTableToolBar
           handleChangeSearchTerm={debouncedHandleChangeSearchTerm}
         />

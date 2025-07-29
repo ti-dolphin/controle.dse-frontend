@@ -24,6 +24,7 @@ import RequisitionItemService from "../../services/requisicoes/RequisitionItemSe
 import { useProductColumns } from "../../hooks/productColumnsHook";
 
 const ProductsTable = () => {
+  console.log('ProductsTable');
   const dispatch = useDispatch();
   const theme = useTheme();
   const user = useSelector((state: RootState) => state.user.user);
@@ -171,6 +172,7 @@ const ProductsTable = () => {
   const debouncedHandleChangeSearchTerm = debounce(changeSearchTerm, 500);
 
   const fetchData = useCallback(async () => {
+    console.log('fetchData');
     setLoading(true);
     try {
       const data = await ProductService.getMany({ searchTerm });

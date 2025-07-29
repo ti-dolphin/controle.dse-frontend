@@ -48,7 +48,7 @@ function BaseTableColumnFiltersComponent<T>({
         display: "flex",
         gap: 1,
         padding: 1,
-        backgroundColor: "secondary.light",
+        backgroundColor: "white",
       }}
     >
       {columns.map((col) => {
@@ -64,8 +64,9 @@ function BaseTableColumnFiltersComponent<T>({
               flex: col.flex || 1,
               minWidth: 0,
               alignItems: "center",
-              border: "1px solid",
+              border: "2px solid",
               borderColor: "lightgray",
+              
               borderRadius: 2,
               padding: 0.2,
               backgroundColor: "white",

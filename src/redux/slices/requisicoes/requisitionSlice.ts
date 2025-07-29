@@ -10,15 +10,18 @@ interface RequisitionFormState {
 
 const initialState: RequisitionFormState = {
   requisition: {
-      ID_REQUISICAO: 0,
-      DESCRIPTION: "",
-      ID_PROJETO: 0,
-      ID_RESPONSAVEL: 0,
-      TIPO: 0,
-      data_alteracao: "",
-      data_criacao: "",
-      id_status_requisicao: 1,
-      OBSERVACAO: null
+    ID_REQUISICAO: 0,
+    DESCRIPTION: "",
+    ID_PROJETO: 0,
+    ID_RESPONSAVEL: 0,
+    TIPO: 0,
+    data_alteracao: "",
+    data_criacao: "",
+    id_status_requisicao: 1,
+    OBSERVACAO: null,
+    custo_total_frete: 0,
+    custo_total_itens: 0,
+    custo_total: 0
   },
   mode: "view", // inicia em visualização
   loading: false,

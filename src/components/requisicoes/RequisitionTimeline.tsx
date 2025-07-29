@@ -14,8 +14,8 @@ import {
   Avatar,
 } from "@mui/material";
 import CircleIcon from "@mui/icons-material/Circle";
-import { formatDate } from "../../utils";
 import { setFeedback } from "../../redux/slices/feedBackSlice";
+import { getDateStringFromISOstring } from "../../utils";
 
 
 const RequisitionTimeline = () => {
@@ -102,7 +102,7 @@ const RequisitionTimeline = () => {
                     secondary={
                       <Box>
                         <Typography fontSize="small">
-                          { formatDate(new Date(alteration.data_alteracao))}
+                          { getDateStringFromISOstring(alteration.data_alteracao)}
                         </Typography>
                         {alteration.justificativa && (
                           <Typography

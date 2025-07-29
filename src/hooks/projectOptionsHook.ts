@@ -10,14 +10,22 @@ export function useProjectOptions() {
     const dispatch = useDispatch();
     const [options, setOptions] = useState<Option[]>([]);
 
+    const getProjectDesc = (proj: Project ) => { 
+        const validDescription = proj.DESCRICAO !== null && proj.DESCRICAO !== undefined && proj.DESCRICAO !== ''
+        if(validDescription) {
+             return proj.DESCRICAO;
+        } 
+        return `Projeto sem descricao - ${proj.ID}`
+       
+    }
+
     const fetchProjects = useCallback(async () => {
         try { 
             const projects: Project[] = await ProjectService.getMany({});
             const options = projects.map((proj: Project) => ({
               id: proj.ID,
-              name: String(proj.DESCRICAO),
+              name: getProjectDesc(proj),
             }));
-           
             setOptions(options);
         } catch (e: any) { 
             dispatch(setFeedback({ 

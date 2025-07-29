@@ -12,27 +12,39 @@ interface BaseTableToolBar {
   >;
   data?: any;
   columns?: string[];
+  children?: React.ReactNode;
 }
 
-const BaseTableToolBar = ({data, columns, handleChangeSearchTerm } : BaseTableToolBar) => {
-
-  const searchTerm = useSelector((state: RootState) => state.requisitionTable.searchTerm);
-
+const BaseTableToolBar = ({
+  data,
+  columns,
+  handleChangeSearchTerm,
+  children,
+}: BaseTableToolBar) => {
+  const searchTerm = useSelector(
+    (state: RootState) => state.requisitionTable.searchTerm
+  );
 
   return (
     <Box
       sx={{
         width: "100%",
         display: "flex",
+        gap: 1,
         justifyContent: "start",
         alignItems: "center",
         padding: 1,
-        backgroundColor: "secondary.light",
+        backgroundColor: "white",
         borderRadius: "0",
         border: "1px solid lightgray",
       }}
     >
-      <BaseSearchInput showIcon={true} onChange={handleChangeSearchTerm} value={searchTerm} />
+      <BaseSearchInput
+        showIcon={true}
+        onChange={handleChangeSearchTerm}
+        value={searchTerm}
+      />
+      {children}
     </Box>
   );
 };

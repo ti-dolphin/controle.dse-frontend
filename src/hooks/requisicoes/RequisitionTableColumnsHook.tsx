@@ -2,7 +2,7 @@ import { GridColDef, GridRenderCellParams } from "@mui/x-data-grid";
 import { Project } from "../../models/Project";
 import { ReducedUser } from "../../models/User";
 import { RequisitionStatus } from "../../models/requisicoes/RequisitionStatus";
-import { parseDate } from "../../utils";
+import { getDateFromISOstring } from "../../utils";
 import { Box, IconButton, Typography } from "@mui/material";
 import VisibilityIcon from "@mui/icons-material/Visibility";
 import { useMemo } from "react";
@@ -69,7 +69,7 @@ export function useRequisitionColumns(changeSelectedRow: (row: any) => void) {
         flex: 0.5,
         type: "date",
         valueGetter: (value) => {
-          return parseDate(value);
+          return getDateFromISOstring(value);
         },
       },
 
@@ -124,7 +124,7 @@ export function useRequisitionColumns(changeSelectedRow: (row: any) => void) {
         flex: 1,
         type: "date",
         valueGetter: (value) => {
-          return parseDate(value);
+          return getDateFromISOstring(value);
         },
       },
       {

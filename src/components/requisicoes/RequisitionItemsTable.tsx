@@ -33,8 +33,9 @@ import {
   setQuoteItems,
 } from "../../redux/slices/requisicoes/quoteItemSlice";
 import QuoteItemsTable from "./QuoteItemsTable";
-import { formatToISOstring, parseDate, parseISODate } from "../../utils";
+
 import { setRequisition } from "../../redux/slices/requisicoes/requisitionSlice";
+import { formatDateStringtoISOstring } from "../../utils";
 
 const RequisitionItemsTable = () => {
   const dispatch = useDispatch();
@@ -45,14 +46,17 @@ const RequisitionItemsTable = () => {
   const requisition = useSelector(
     (state: RootState) => state.requisition.requisition
   );
+
   const quote = useSelector((state: RootState) => state.quote.quote);
 
   const quoteItems = useSelector(
     (state: RootState) => state.quoteItem.quoteItems
   );
+
   const addingReqItems = useSelector(
     (state: RootState) => state.quoteItem.addingReqItems
   );
+  
   const user = useSelector((state: RootState) => state.user.user);
 
   const { editItemFieldsPermitted } = useRequisitionItemPermissions(
@@ -101,8 +105,8 @@ const RequisitionItemsTable = () => {
   };
   //PREENCHER DATA DE ENTREGA DOS ITENS SELECIONADOS
   const handleFillShippingDate = async (date: string) => {
-    const dateValue = parseDate(date);
-    if (!dateValue) {
+ 
+    if (!date) {
       dispatch(
         setFeedback({
           message: "Data inválida ou no formato errado",
@@ -111,8 +115,8 @@ const RequisitionItemsTable = () => {
       );
       return;
     }
-    if (dateValue) {
-      const isoDate = formatToISOstring(dateValue);
+    if (date) {
+      const isoDate = formatDateStringtoISOstring(date);
       try {
         const itemsWithShippingDate =
           await RequisitionItemService.updateShippingDate(
