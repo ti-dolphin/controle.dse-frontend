@@ -114,10 +114,11 @@ const OpportunityForm = () => {
                     <Autocomplete
                       options={field.options}
                       getOptionLabel={(option) => option?.name || ""}
+                      getOptionKey={(option) => option.id}
                       aria-required={field.required}
                       slotProps={{
-                        popper: { sx: { fontSize: 14 } },
-                        paper: { sx: { fontSize: 14 } },
+                        popper: { sx: { fontSize: 12 } },
+                        paper: { sx: { fontSize: 12 } },
                       }}
                       fullWidth
                       key={field.field}

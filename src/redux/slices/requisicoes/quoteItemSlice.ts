@@ -19,6 +19,15 @@ const quoteItemSlice = createSlice({
       state.quoteItems = action.payload;
     },
 
+    setSingleQuoteItem(state, action: PayloadAction<QuoteItem>) {
+      state.quoteItems = state.quoteItems.map((item) => {
+        if (item.id_item_cotacao === action.payload.id_item_cotacao) {
+          return action.payload;
+        }
+        return item;
+      });
+    },
+
     setAddingReqItems(state, action: PayloadAction<boolean>) {
       state.addingReqItems = action.payload;
     },
@@ -40,6 +49,7 @@ export const {
   setAddingReqItems,
   addQuoteItem,
   removeQuoteItem,
+  setSingleQuoteItem,
 } = quoteItemSlice.actions;
 export default quoteItemSlice.reducer;
 

@@ -8,7 +8,7 @@ import {
   GridRowModel,
   GridColDef,
 } from "@mui/x-data-grid";
-import { useState, useCallback, useEffect, ChangeEvent } from "react";
+import { useState, useCallback, useEffect, ChangeEvent, useMemo } from "react";
 import { QuoteItem } from "../../models/requisicoes/QuoteItem";
 import { setFeedback } from "../../redux/slices/feedBackSlice";
 import { QuoteItemService } from "../../services/requisicoes/QuoteItemService";
@@ -21,7 +21,7 @@ import RequisitionItemsTable from "./RequisitionItemsTable";
 import RequisitionService from "../../services/requisicoes/RequisitionService";
 import { Requisition } from "../../models/requisicoes/Requisition";
 import CloseIcon from '@mui/icons-material/Close';
-import { setAddingReqItems, setQuoteItems } from "../../redux/slices/requisicoes/quoteItemSlice";
+import { setAddingReqItems, setQuoteItems, setSingleQuoteItem } from "../../redux/slices/requisicoes/quoteItemSlice";
 
 const QuoteItemsTable = () => {
   const dispatch = useDispatch();
@@ -35,31 +35,49 @@ const QuoteItemsTable = () => {
 
   const isSupplierRoute = window.location.pathname.includes("/supplier/requisicoes");
 
-  const handleUpdateUnavailable = async (e: ChangeEvent<HTMLInputElement>, itemId : number) => {
+  const handleUpdateUnavailable = async (
+    e: ChangeEvent<HTMLInputElement>,
+    itemId: number
+  ) => {
     const item = quoteItems.find((item) => item.id_item_cotacao === itemId);
-    if(!item) return
-    const payload = {
-      quantidade_cotada: item.quantidade_cotada,
-      ICMS: Number(item.ICMS),
-      IPI: Number(item.IPI),
-      ST: Number(item.ST),
-      observacao: item.observacao,
-      preco_unitario: item.preco_unitario,
-      subtotal: item.subtotal,
-      id_cotacao: Number(item.id_cotacao),
-      indisponivel: e.target.checked ? 1 : 0,
-      id_item_requisicao: Number(item.id_item_requisicao),
-    };
-    const updatedItem = await QuoteItemService.update(itemId, payload); 
-    dispatch(
-      setQuoteItems(
-        quoteItems.map((item) =>
-          item.id_item_cotacao === updatedItem.id_item_cotacao
-            ? updatedItem
-            : item
-        )
-      )
-    );
+    if (!item) return;
+    try {
+      const payload = {
+        quantidade_cotada: item.quantidade_cotada,
+        ICMS: Number(item.ICMS),
+        IPI: Number(item.IPI),
+        ST: Number(item.ST),
+        observacao: item.observacao,
+        preco_unitario: item.preco_unitario,
+        subtotal: item.subtotal,
+        id_cotacao: Number(item.id_cotacao),
+        indisponivel: e.target.checked ? 1 : 0,
+        id_item_requisicao: Number(item.id_item_requisicao),
+      };
+      const updatedItem : QuoteItem = {
+        ...item,
+        ...payload,
+        subtotal: e.target.checked ? 0 : item.subtotal,
+      };
+      if(!e.target.checked){ 
+        //caso o item seja desmarcado, precisa ser enviado ao backend e depois atualizado para que o novo subtotal seja calculado
+        const updatedItem =  await QuoteItemService.update(itemId, payload);
+        dispatch(setSingleQuoteItem(updatedItem));
+        return;
+      }
+      dispatch(setSingleQuoteItem(updatedItem));
+      await QuoteItemService.update(itemId, payload);
+      return;
+    } catch (e: any) {
+      dispatch(setSingleQuoteItem(item));
+      dispatch(
+        setFeedback({
+          message: `Erro ao atualizar o item ${item.produto_descricao}`,
+          type: "error",
+        })
+      );
+
+    }
   };
 
   const { columns } = useQuoteItemColumns(handleUpdateUnavailable);
@@ -144,9 +162,63 @@ const QuoteItemsTable = () => {
     []
   );
 
+/**
+ * Atualiza um item da cotação.
+ * Verifica se a quantidade cotada  maior que a quantidade solicitada,
+ * se a quantidade cotada   menor que zero, e se o pre o unit rio est  zerado.
+ *
+ * @param {Object} payload - Payload com campos para atualizar o item da cota o.
+ * @param {number} id_item_cotacao - ID do item da cota o.
+ * @param {Object} previousItem - Item da cotacaoo anterior para restaurar se houver erros.
+ */
+ const sendUpdate = async (
+   payload: any,
+   id_item_cotacao: number,
+   previousItem: any
+ ) => {
+   const validations = [
+     {
+       condition: payload.quantidade_cotada > payload.quantidade_solicitada,
+       message: `Quantidade cotada maior que quantidade solicitada`,
+     },
+     {
+       condition: payload.quantidade_cotada < 0,
+       message: `Quantidade cotada menor que zero`,
+     },
+     {
+       condition: !(payload.preco_unitario > 0),
+       message: `Preço unitário zerado, marque como indisponível se não houver o produto`,
+     },
+   ];
+   try {
+     validations.forEach((validation) => {
+       if (validation.condition) {
+         throw new Error(validation.message);
+       }
+     });
+     QuoteItemService.update(id_item_cotacao, payload);
+   } catch (e: any) {
+     dispatch(
+       setQuoteItems(
+         quoteItems.map((item) =>
+           item.id_item_cotacao === id_item_cotacao ? previousItem : item
+         )
+       )
+     );
+     dispatch(
+       setFeedback({
+         message: `Erro ao atualizar item da cotação: ${e.message}`,
+         type: "error",
+       })
+     );
+     return;
+   }
+ };
+
+  const debouncedSave = useMemo(() => debounce(sendUpdate, 400), []);
+
   const processRowUpdate = useCallback(
     async (newRow: GridRowModel, oldRow: GridRowModel) => {
-      
       const payload = {
         quantidade_cotada: newRow.quantidade_cotada,
         ICMS: Number(newRow.ICMS),
@@ -157,31 +229,9 @@ const QuoteItemsTable = () => {
         id_cotacao: Number(newRow.id_cotacao),
         id_item_requisicao: Number(newRow.id_item_requisicao),
       };
-      const validations = [
-        {
-          condition: payload.quantidade_cotada > newRow.quantidade_solicitada,
-          message: `Quantidade cotada maior que quantidade solicitada`,
-        },
-        {
-          condition: payload.quantidade_cotada < 0,
-          message: `Quantidade cotada menor que zero`,
-        },
-        {
-          condition: !(payload.preco_unitario > 0),
-          message: `Preço unitário zerado, marque como indisponível se não houver o produto`,
-        },
-      ];
       try {
-        validations.forEach((validation) => {
-          if (validation.condition) {
-            throw new Error(validation.message);
-          }
-        });
-        const updatedItem = await QuoteItemService.update(
-          newRow.id_item_cotacao,
-          payload
-        );
-        return updatedItem;
+        debouncedSave(payload, newRow.id_item_cotacao, oldRow);
+        return newRow;
       } catch (e: any) {
         dispatch(
           setFeedback({

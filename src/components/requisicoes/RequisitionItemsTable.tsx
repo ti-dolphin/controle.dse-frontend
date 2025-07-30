@@ -69,20 +69,17 @@ const RequisitionItemsTable = () => {
   );
   const handleDeleteItem = async (id_item_requisicao: number) => {
     try {
-      await RequisitionItemService.delete(id_item_requisicao);
+      //atualiza UI imediatamente
       const updatedItems = items.filter(
         (item) => item.id_item_requisicao !== id_item_requisicao
       );
       setItems(updatedItems);
+      await RequisitionItemService.delete(id_item_requisicao);
       dispatch(setRefresh(!refresh));
       dispatch(setProductsAdded(updatedItems.map((item) => item.id_produto)));
-      dispatch(
-        setFeedback({
-          message: "Itens excluídos com sucesso!",
-          type: "success",
-        })
-      );
+    
     } catch (e: any) {
+      dispatch(setRefresh(!refresh));
       dispatch(
         setFeedback({ message: "Erro ao excluir itens", type: "error" })
       );
@@ -148,6 +145,7 @@ const RequisitionItemsTable = () => {
   >(new Map());
   const [loading, setLoading] = useState(false);
   //map de <id_item_requisicao, id_item_cotacao>
+  //SELECIONA PREÇOS DA COTAÇÃO
   const handleChangeQuoteItemsSelected = useCallback(
     async (
       e: React.ChangeEvent<HTMLInputElement>,
@@ -155,7 +153,7 @@ const RequisitionItemsTable = () => {
       id_item_requisicao: number
     ) => {
       if (e.target.checked) {
-        quoteItemsSelected.set(id_item_requisicao, id_item_cotacao)
+        setQuoteItemsSelected(new Map(quoteItemsSelected.set(id_item_requisicao, id_item_cotacao)));
         const {updatedItems, updatedRequisition} =
           await RequisitionItemService.updateQuoteItemsSelected(
             Number(id_requisicao),
@@ -166,6 +164,7 @@ const RequisitionItemsTable = () => {
         return;
       }
       quoteItemsSelected.delete(id_item_requisicao);
+      setQuoteItemsSelected(new Map(quoteItemsSelected));
       const {updatedItems, updatedRequisition} = await RequisitionItemService.updateQuoteItemsSelected(Number(id_requisicao),Object.fromEntries(quoteItemsSelected));
       setItems(updatedItems);
       dispatch(setRequisition(updatedRequisition));
@@ -389,8 +388,8 @@ const RequisitionItemsTable = () => {
             };
 
       const data = await RequisitionItemService.getMany(params);
- 
       setItems(data);
+       defineSelectedQuoteItemsMap(data);
       dispatch(setProductsAdded(data.map((item) => item.id_produto)));
       setLoading(false);
     } catch (e) {
@@ -426,12 +425,6 @@ const RequisitionItemsTable = () => {
     refresh,
   ]);
 
-  useEffect(() => { 
-
-   if(items.length > 0) {
-    defineSelectedQuoteItemsMap(items);
-   }
-  }, [items]);
 
   return (
     <Box>
