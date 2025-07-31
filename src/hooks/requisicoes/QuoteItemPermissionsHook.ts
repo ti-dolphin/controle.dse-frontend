@@ -8,15 +8,15 @@ export const useQuoteItemPermissions = (user : User | null, isSupplierRoute : bo
     const [permissionToAddItems, setPermissionToAddItems] = useState<boolean>(false);
 
     useEffect(() => {
-        if (user) {
-            if (user.PERM_ADMINISTRADOR === 1 || user.PERM_COMPRADOR === 1 || isSupplierRoute) {
-                setPermissionToEditItems(true);
-            }
-            if(user.PERM_ADMINISTRADOR === 1 || user.PERM_COMPRADOR === 1){ 
-                setPermissionToAddItems(true);
-            }
+      if (user) {
+        if (user.PERM_ADMINISTRADOR === 1 || user.PERM_COMPRADOR === 1) {
+          setPermissionToEditItems(true);
+          setPermissionToAddItems(true);
+          return;
         }
-    }, [user]);
+      }
+      if (isSupplierRoute) setPermissionToEditItems(true);
+    }, [isSupplierRoute, user]);
     return { permissionToEditItems, permissionToAddItems };
 
 };

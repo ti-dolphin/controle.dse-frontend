@@ -25,7 +25,6 @@ const RequisitionFormModal: React.FC = () => {
 
   const handleOpen = () => {
     dispatch(setMode("create"));
-   
   };
 
   const handleClose = () => {
@@ -34,21 +33,28 @@ const RequisitionFormModal: React.FC = () => {
 
   return (
     <>
-    <IconButton
-      sx={{
-        bgcolor: 'secondary.main',
-        color: 'white',
-        borderRadius: '50%',
-        '&:hover': {
-        bgcolor: 'secondary.main',
-        },
-      }}
-      onClick={handleOpen}
-      aria-label="Adicionar Requisição"
-    >
-      <AddIcon />
-    </IconButton>
-      <Modal open={mode === 'create'} onClose={handleClose}>
+      <IconButton
+        sx={{
+          bgcolor: "secondary.main",
+          color: "white",
+          borderRadius: "50%",
+          width: 32,
+          height: 30,
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          "&:hover": {
+            bgcolor: "secondary.main",
+            scale: "1.1",
+            transition: "all 0.2s ease-in-out",
+          },
+        }}
+        onClick={handleOpen}
+        aria-label="Adicionar Requisição"
+      >
+        <AddIcon sx={{ width: 24, height: 24 }} />
+      </IconButton>
+      <Modal open={mode === "create"} onClose={handleClose}>
         <Box sx={style}>
           <RequisitionForm />
         </Box>

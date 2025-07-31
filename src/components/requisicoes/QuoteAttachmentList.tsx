@@ -25,6 +25,7 @@ import BaseDeleteDialog from "../shared/BaseDeleteDialog";
 import { QuoteFile } from "../../models/requisicoes/QuoteFile";
 import { QuoteFileService } from "../../services/requisicoes/QuoteFileService";
 import BaseViewFileDialog from "../shared/BaseVIewFileDialog";
+import { useParams, useSearchParams } from "react-router-dom";
 
 interface QuoteAttachmentListProps {
   id_cotacao: number;
@@ -34,10 +35,10 @@ const QuoteAttachmentList: React.FC<QuoteAttachmentListProps> = ({
   id_cotacao,
 }) => {
   const dispatch = useDispatch();
+
   const user = useSelector((state: RootState) => state.user.user);
-  const isSupplierRoute = window.location.pathname.includes(
-    "/supplier/requisicoes"
-  );
+  const accesType = useSelector((state : RootState) => state.quote.accessType);
+  const isSupplierRoute = accesType === "supplier" ? true : false;
   const [attachments, setAttachments] = useState<QuoteFile[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -77,6 +78,7 @@ const QuoteAttachmentList: React.FC<QuoteAttachmentListProps> = ({
   };
 
   const fetchAttachments = async () => {
+    
     setLoading(true);
     try {
       const files = await QuoteFileService.getMany({ id_cotacao });
@@ -89,13 +91,14 @@ const QuoteAttachmentList: React.FC<QuoteAttachmentListProps> = ({
   };
 
   useEffect(() => {
+   
     fetchAttachments();
     // eslint-disable-next-line
   }, [id_cotacao]);
 
   const handleFileChange = async (e: ChangeEvent<HTMLInputElement>) => {
     if (!e.target.files || e.target.files.length === 0) return;
-    if (!user) return;
+    
     const file = e.target.files[0];
     const newFile: Partial<QuoteFile> = {
       id_cotacao,

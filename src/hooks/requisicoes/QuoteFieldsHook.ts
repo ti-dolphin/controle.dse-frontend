@@ -1,4 +1,5 @@
 
+import { useParams } from "react-router-dom";
 import { Option } from "../../types";
 
 export const useQuoteFields = (
@@ -8,17 +9,20 @@ isSupplierRoute :boolean,
   shipmentTypeOptions: Option[],
 ) => {
 
+
   const fields = [
     {
       name: "fornecedor",
       label: "Fornecedor",
       autoComplete: false,
+      disabled: isSupplierRoute,
       options: [],
     },
     {
       name: "descricao",
       label: "Descrição",
       autoComplete: false,
+      disabled: isSupplierRoute,
       options: [],
     },
     {
@@ -32,18 +36,21 @@ isSupplierRoute :boolean,
       name: "id_tipo_frete",
       label: "ID Tipo Frete",
       autoComplete: true,
+      disabled: isSupplierRoute,
       options: shipmentTypeOptions,
     },
     {
       name: "id_classificacao_fiscal",
       label: "Classificação fiscal",
       autoComplete: true,
+      disabled: isSupplierRoute,
       options: taxClassificationOptions,
     },
     {
       name: "id_condicao_pagamento",
       label: "ID Condição Pagamento",
       autoComplete: true,
+      disabled: isSupplierRoute,
       options: paymentConditionOptions,
     },
     {
@@ -56,6 +63,7 @@ isSupplierRoute :boolean,
       name: "cnpj_faturamento",
       label: "CNPJ Faturamento",
       autoComplete: false,
+      disabled: isSupplierRoute,
       options: [],
     },
   ];

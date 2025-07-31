@@ -13,38 +13,63 @@ class QuoteService {
     return response.data;
   }
 
-  static async getById(id_cotacao: number): Promise<any> {
-    const response = await api.get(`${API_ENDPOINT}/${id_cotacao}`);
+  static async getById(id_cotacao: number, token?: string): Promise<any> {
+    const config = token ? { headers: { Authorization: token } } : {};
+    const response = await api.get(`${API_ENDPOINT}/${id_cotacao}`, config);
     return response.data;
   }
 
-  static async getTaxClassifications(): Promise<TaxClassification[]> {
-    const response = await api.get(`${API_ENDPOINT}/cf/classificacoes-fiscais`);
+  static async getTaxClassifications(
+    token?: string
+  ): Promise<TaxClassification[]> {
+    const config = token ? { headers: { Authorization: token } } : {};
+    const response = await api.get(
+      `${API_ENDPOINT}/cf/classificacoes-fiscais`,
+      config
+    );
     return response.data;
   }
 
-  static async getShipmentTypes(): Promise<ShipmentType[]> {
-    const response = await api.get(`${API_ENDPOINT}/tf/tipos-frete`);
+  static async getShipmentTypes(token?: string): Promise<ShipmentType[]> {
+    const config = token ? { headers: { Authorization: token } } : {};
+    const response = await api.get(`${API_ENDPOINT}/tf/tipos-frete`, config);
     return response.data;
   }
 
-  static async getPaymentConditions(): Promise<PaymentCondition[]> {
-    const response = await api.get(`${API_ENDPOINT}/cp/condicoes-pagamento`);
+  static async getPaymentConditions(
+    token?: string
+  ): Promise<PaymentCondition[]> {
+    const config = token ? { headers: { Authorization: token } } : {};
+    const response = await api.get(
+      `${API_ENDPOINT}/cp/condicoes-pagamento`,
+      config
+    );
     return response.data;
   }
 
-  static async create(data: any): Promise<any> {
-    const response = await api.post(API_ENDPOINT, data);
+  static async create(data: any, token?: string): Promise<any> {
+    const config = token ? { headers: { Authorization: token } } : {};
+    const response = await api.post(API_ENDPOINT, data, config);
     return response.data;
   }
 
-  static async update(id_cotacao: number, data: any): Promise<Quote> {
-    const response = await api.put(`${API_ENDPOINT}/${id_cotacao}`, data);
+  static async update(
+    id_cotacao: number,
+    data: any,
+    token?: string
+  ): Promise<Quote> {
+    const config = token ? { headers: { Authorization: token } } : {};
+    const response = await api.put(
+      `${API_ENDPOINT}/${id_cotacao}`,
+      data,
+      config
+    );
     return response.data;
   }
 
-  static async delete(id_cotacao: number): Promise<any> {
-    const response = await api.delete(`${API_ENDPOINT}/${id_cotacao}`);
+  static async delete(id_cotacao: number, token?: string): Promise<any> {
+    const config = token ? { headers: { Authorization: token } } : {};
+    const response = await api.delete(`${API_ENDPOINT}/${id_cotacao}`, config);
     return response.data;
   }
 }

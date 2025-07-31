@@ -3,7 +3,8 @@ import { GridColDef } from "@mui/x-data-grid";
 import { ChangeEvent } from "react";
 
 export const useQuoteItemColumns = (
-  handleUpdateUnavailable: (params: ChangeEvent<HTMLInputElement>, itemId : number) => void
+  handleUpdateUnavailable: (params: ChangeEvent<HTMLInputElement>, itemId : number) => void,
+  blockFields: boolean
 )  => {
 
   
@@ -113,6 +114,7 @@ export const useQuoteItemColumns = (
         return (
           <Box sx={{ display: "flex", alignItems: "center" }}>
             <Checkbox
+              disabled={blockFields}
               checked={Number(params.value) === 1 ? true : false}
               onChange={(changeParams) =>
                 handleUpdateUnavailable(changeParams, Number(params.id))

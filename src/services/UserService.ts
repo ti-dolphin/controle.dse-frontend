@@ -4,7 +4,17 @@ import api from '../api';
 const API_URL = '/users'; // ajuste conforme seu backend
 
 export class UserService {
-  static async getById(CODPESSOA: number): Promise<User> {
+
+  static async getSupplierAcces (id_cotacao : number, id_requisicao : number) {
+      const response = await api.get(`authorization/getSupplierAccess`, { 
+          params: {
+              id_cotacao,
+              id_requisicao
+          }
+      });
+      return response.data;
+  }
+    static async getById(CODPESSOA: number): Promise<User> {
     const { data } = await api.get<User>(`${API_URL}/${CODPESSOA}`);
     return data;
   }

@@ -32,7 +32,8 @@ export const useRequisitionItemColumns = (
     id_item_requisicao: number
   ) => void,
   quoteItemsSelected: Map<number, number>,
-  selectionModel: number[]
+  selectionModel: number[],
+  blockFields: boolean
 ) => {
   const dispatch = useDispatch();
   const { id_requisicao } = useParams();
@@ -292,6 +293,7 @@ export const useRequisitionItemColumns = (
             {editItemFieldsPermitted && (
               <Tooltip title="Excluir item">
                 <IconButton
+                  disabled={blockFields}
                   onClick={() => handleDeleteItem(Number(id))}
                   color="error"
                 >
@@ -353,6 +355,7 @@ export const useRequisitionItemColumns = (
               {hasquoteItem && formatCurrency(Number(quoteItem?.subtotal) || 0)}
               {hasquoteItem && (
                 <Checkbox
+                  disabled={blockFields || !editItemFieldsPermitted}
                   onChange={(e) =>
                     handleChangeQuoteItemsSelected(
                       e,
@@ -404,8 +407,7 @@ export const useRequisitionItemColumns = (
   const isDinamicField = useCallback(
     (field: string | number): boolean => {
       // Descomente abaixo para ativar a checagem real de colunas dinâmicas
-      // return dinamicColumns.some((col) => col.field === field);
-      return true;
+      return dinamicColumns.some((col) => col.field === field);
     },
     [dinamicColumns]
   );

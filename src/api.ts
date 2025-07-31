@@ -8,11 +8,11 @@ const api = axios.create({
         'Content-Type': 'application/json',
     }
 });
-import { getAuth } from "firebase/auth";
 
 api.interceptors.request.use(
     async config => {
-       const token = await window.localStorage.getItem('token');
+       const token =  window.localStorage.getItem('token');
+      
        config.headers.Authorization = token;
         return config;
     },

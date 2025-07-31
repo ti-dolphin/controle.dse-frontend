@@ -34,17 +34,20 @@ import {
 } from "../../redux/slices/requisicoes/quoteItemSlice";
 import QuoteItemsTable from "./QuoteItemsTable";
 
-import { setRequisition } from "../../redux/slices/requisicoes/requisitionSlice";
+import {
+  setRefreshRequisition,
+  setRequisition,
+} from "../../redux/slices/requisicoes/requisitionSlice";
 import { formatDateStringtoISOstring } from "../../utils";
 
 const RequisitionItemsTable = () => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const theme = useTheme();
-  const {id_requisicao} = useParams();
+  const { id_requisicao } = useParams();
 
-  const requisition = useSelector(
-    (state: RootState) => state.requisition.requisition
+  const { requisition, refreshRequisition } = useSelector(
+    (state: RootState) => state.requisition
   );
 
   const quote = useSelector((state: RootState) => state.quote.quote);
@@ -56,7 +59,7 @@ const RequisitionItemsTable = () => {
   const addingReqItems = useSelector(
     (state: RootState) => state.quoteItem.addingReqItems
   );
-  
+
   const user = useSelector((state: RootState) => state.user.user);
 
   const { editItemFieldsPermitted } = useRequisitionItemPermissions(
@@ -68,6 +71,7 @@ const RequisitionItemsTable = () => {
     (state: RootState) => state.requisitionItem
   );
   const handleDeleteItem = async (id_item_requisicao: number) => {
+    setBlockFields(true);
     try {
       //atualiza UI imediatamente
       const updatedItems = items.filter(
@@ -75,17 +79,19 @@ const RequisitionItemsTable = () => {
       );
       setItems(updatedItems);
       await RequisitionItemService.delete(id_item_requisicao);
-      dispatch(setRefresh(!refresh));
+      dispatch(setRefreshRequisition(!refreshRequisition));
       dispatch(setProductsAdded(updatedItems.map((item) => item.id_produto)));
-    
+      setBlockFields(false);
+      return;
     } catch (e: any) {
-      dispatch(setRefresh(!refresh));
+      dispatch(setRefreshRequisition(!refreshRequisition));
       dispatch(
         setFeedback({ message: "Erro ao excluir itens", type: "error" })
       );
+      setBlockFields(false);
     }
   };
-  
+
   const handleFillOCS = async (ocValue: number) => {
     try {
       const itemsWithOC = await RequisitionItemService.updateOCS(
@@ -102,7 +108,6 @@ const RequisitionItemsTable = () => {
   };
   //PREENCHER DATA DE ENTREGA DOS ITENS SELECIONADOS
   const handleFillShippingDate = async (date: string) => {
- 
     if (!date) {
       dispatch(
         setFeedback({
@@ -144,8 +149,9 @@ const RequisitionItemsTable = () => {
     Map<number, number>
   >(new Map());
   const [loading, setLoading] = useState(false);
+  const [blockFields, setBlockFields] = useState(false);
   //map de <id_item_requisicao, id_item_cotacao>
-  //SELECIONA PREÇOS DA COTAÇÃO
+  //SELECIONA ITEMS DA COTAÇÃO
   const handleChangeQuoteItemsSelected = useCallback(
     async (
       e: React.ChangeEvent<HTMLInputElement>,
@@ -153,8 +159,10 @@ const RequisitionItemsTable = () => {
       id_item_requisicao: number
     ) => {
       if (e.target.checked) {
-        setQuoteItemsSelected(new Map(quoteItemsSelected.set(id_item_requisicao, id_item_cotacao)));
-        const {updatedItems, updatedRequisition} =
+        setQuoteItemsSelected(
+          new Map(quoteItemsSelected.set(id_item_requisicao, id_item_cotacao))
+        );
+        const { updatedItems, updatedRequisition } =
           await RequisitionItemService.updateQuoteItemsSelected(
             Number(id_requisicao),
             Object.fromEntries(quoteItemsSelected)
@@ -165,14 +173,18 @@ const RequisitionItemsTable = () => {
       }
       quoteItemsSelected.delete(id_item_requisicao);
       setQuoteItemsSelected(new Map(quoteItemsSelected));
-      const {updatedItems, updatedRequisition} = await RequisitionItemService.updateQuoteItemsSelected(Number(id_requisicao),Object.fromEntries(quoteItemsSelected));
+      const { updatedItems, updatedRequisition } =
+        await RequisitionItemService.updateQuoteItemsSelected(
+          Number(id_requisicao),
+          Object.fromEntries(quoteItemsSelected)
+        );
       setItems(updatedItems);
       dispatch(setRequisition(updatedRequisition));
     },
     [quoteItemsSelected, requisition, setItems]
   );
 
-//CRIA E RENDERIZA AS COLUNAS DA TABELA COM FUNCOES 
+  //CRIA E RENDERIZA AS COLUNAS DA TABELA COM FUNCOES
   const { columns, isDinamicField } = useRequisitionItemColumns(
     addingReqItems,
     editItemFieldsPermitted,
@@ -181,7 +193,8 @@ const RequisitionItemsTable = () => {
     handleFillShippingDate,
     handleChangeQuoteItemsSelected,
     quoteItemsSelected,
-    selectionModel as number[]
+    selectionModel as number[],
+    blockFields
   );
   //CLIQUE NA CÈLULA
   const handleCellClick = (params: GridCellParams, event: React.MouseEvent) => {
@@ -214,7 +227,6 @@ const RequisitionItemsTable = () => {
       (event.target as any).nodeType === 1 &&
       !event.currentTarget.contains(event.target as Element)
     ) {
-      // Ignore portal
       return;
     }
     setCellModesModel((prevModel) => {
@@ -252,7 +264,7 @@ const RequisitionItemsTable = () => {
     (newModel: GridCellModesModel) => {
       setCellModesModel(newModel);
     },
-    [dispatch]
+    []
   );
   //ATUALIZA LINHA NO BACKEND
   const processRowUpdate = React.useCallback(
@@ -294,7 +306,6 @@ const RequisitionItemsTable = () => {
       itemIds: selectionModel,
     });
     if (quote) {
- 
       navigate(`cotacao/${quote.id_cotacao}`);
     }
   };
@@ -314,7 +325,7 @@ const RequisitionItemsTable = () => {
           descricao_item: "",
           preco_unitario: 0,
         }));
-       
+
         const incrementedQuoteItems = await QuoteItemService.create(
           newQuoteItems
         );
@@ -372,7 +383,6 @@ const RequisitionItemsTable = () => {
   const debouncedHandleChangeSearchTerm = debounce(changeSearchTerm, 500);
   //BUSCA ITENS DA REQUISIÇÃO
   const fetchData = useCallback(async () => {
-    
     setLoading(true);
     try {
       const params =
@@ -389,7 +399,7 @@ const RequisitionItemsTable = () => {
 
       const data = await RequisitionItemService.getMany(params);
       setItems(data);
-       defineSelectedQuoteItemsMap(data);
+      defineSelectedQuoteItemsMap(data);
       dispatch(setProductsAdded(data.map((item) => item.id_produto)));
       setLoading(false);
     } catch (e) {
@@ -402,15 +412,15 @@ const RequisitionItemsTable = () => {
       );
     }
   }, [dispatch, requisition.ID_REQUISICAO, searchTerm, newItems]);
-  
+
   //CONFIGURA O MAPA DE ITENS DE COTAÇÃO  SELECIONADOS POR ITENS DE REQUISIÇÃO
-  const defineSelectedQuoteItemsMap = (items: RequisitionItem[] ) => { 
-      // const map = new Map<number, number>();
-      items.forEach((item) => {
-        if(item.id_item_cotacao){ 
-          quoteItemsSelected.set(item.id_item_requisicao, item.id_item_cotacao);
-        }
-      });
+  const defineSelectedQuoteItemsMap = (items: RequisitionItem[]) => {
+    // const map = new Map<number, number>();
+    items.forEach((item) => {
+      if (item.id_item_cotacao) {
+        quoteItemsSelected.set(item.id_item_requisicao, item.id_item_cotacao);
+      }
+    });
   };
 
   useEffect(() => {
@@ -425,10 +435,8 @@ const RequisitionItemsTable = () => {
     refresh,
   ]);
 
-
   return (
     <Box>
-
       {selectionModel.length > 0 && (
         <Box sx={{ p: 1 }}>
           {!addingReqItems && (

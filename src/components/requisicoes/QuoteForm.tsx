@@ -1,28 +1,32 @@
-import React, { ChangeEvent } from "react";
+import React, { ChangeEvent, useEffect } from "react";
 import { TextField, Box, Button, Grid, Autocomplete } from "@mui/material";
 import { useDispatch, useSelector } from "react-redux";
 import { RootState } from "../../redux/store";
 import { isNumeric } from "../../utils";
 import { parseISO } from "date-fns";
 import { useQuoteFieldOptions } from "../../hooks/requisicoes/QuoteFieldOptionsHook";
-import { setQuote } from "../../redux/slices/requisicoes/quoteSlice";
+import {
+  setAccesType,
+  setQuote,
+} from "../../redux/slices/requisicoes/quoteSlice";
 import { Quote } from "../../models/requisicoes/Quote";
 import { Option } from "../../types";
 import { useQuoteFields } from "../../hooks/requisicoes/QuoteFieldsHook";
 import { useQuoteFieldPermissions } from "../../hooks/requisicoes/QuoteFiledPermissionsHook";
 import { setFeedback } from "../../redux/slices/feedBackSlice";
+import { useParams } from "react-router-dom";
 interface QuoteFormProps {
   onSubmit: (e: React.FormEvent<HTMLFormElement>, data: any) => void;
 }
 
-
-const QuoteForm = ({onSubmit }: QuoteFormProps) => {
-  const isSupplierRoute = window.location.pathname.includes(
-    "/supplier/requisicoes"
+const QuoteForm = ({ onSubmit }: QuoteFormProps) => {
+  const dispatch = useDispatch();
+  const user = useSelector((state: RootState) => state.user.user);
+  const { quote, accessType } = useSelector((state: RootState) => state.quote);
+  const [isSupplierRoute, setIsSupplierRoute] = React.useState(
+    accessType === "supplier"
   );
-   const dispatch = useDispatch();
-   const user = useSelector((state: RootState) => state.user.user);
-   const quote = useSelector((state: RootState) => state.quote.quote);
+
   const {
     taxClassificationOptions,
     paymentConditionOptions,
@@ -31,42 +35,40 @@ const QuoteForm = ({onSubmit }: QuoteFormProps) => {
 
   const { permissionToEditFields } = useQuoteFieldPermissions(
     user,
-    quote,
     isSupplierRoute
   );
 
-  const {fields, disabledFields} = useQuoteFields(
+  const { fields, disabledFields } = useQuoteFields(
     isSupplierRoute,
     taxClassificationOptions,
     paymentConditionOptions,
     shipmentTypeOptions
   );
 
-  const handleChangeOptionField = (
-    field: keyof Quote,
-    option: Option
-  ) => {
+  const handleChangeOptionField = (field: keyof Quote, option: Option) => {
     if (quote) {
-       dispatch(setQuote({ ...quote, [field]: option.id }));
+      dispatch(setQuote({ ...quote, [field]: option.id }));
     }
   };
 
   //verifica a permissão para alterar
-  const handleFocus = (e : React.FocusEvent<HTMLInputElement> ) => {  
-    if(!permissionToEditFields){ 
+  const handleFocus = (e: React.FocusEvent<HTMLInputElement>) => {
+    if (!permissionToEditFields) {
       e.target.blur();
-      dispatch(setFeedback({ 
-          type: 'error', 
-          message: ' Vocé nao tem permissão para alterar o status.' 
-      }));
+      dispatch(
+        setFeedback({
+          type: "error",
+          message: " Vocé nao tem permissão para editar o campo.",
+        })
+      );
     }
-  }
+  };
 
   const handleChangeTextField = (
     e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>,
     field: keyof Quote
   ) => {
-    const {value} = e.target;
+    const { value } = e.target;
 
     if (quote) {
       const codeFields = ["cnpj_fornecedor", "cnpj_faturamento"];
@@ -82,6 +84,17 @@ const QuoteForm = ({onSubmit }: QuoteFormProps) => {
     }
   };
 
+  useEffect(() => {
+    if (user) {
+      setIsSupplierRoute(false);
+      return;
+    }
+    if (window.localStorage.getItem("token")) {
+      setIsSupplierRoute(true);
+      setAccesType("supplier");
+    }
+  }, []);
+
   return (
     <Box
       component="form"
@@ -96,9 +109,12 @@ const QuoteForm = ({onSubmit }: QuoteFormProps) => {
             {field.autoComplete && field.options.length > 0 ? (
               <Autocomplete
                 options={field.options}
-                value={field.options.find(
-                  (option) => option.id === quote?.[field.name as keyof Quote]
-                )}
+                value={
+                  field.options.find(
+                    (option) => option.id === quote?.[field.name as keyof Quote]
+                  ) || { id: "", name: "" }
+                }
+                disabled={field.disabled}
                 getOptionLabel={(option) => option.name}
                 getOptionKey={(option) => option.id}
                 renderInput={(params) => (
@@ -128,7 +144,7 @@ const QuoteForm = ({onSubmit }: QuoteFormProps) => {
                 label={field.label}
                 name={field.name}
                 type={field.type}
-                value={quote?.[field.name as keyof Quote]}
+                value={quote?.[field.name as keyof Quote] || ""}
                 fullWidth
                 InputLabelProps={{
                   shrink: true,
@@ -136,9 +152,7 @@ const QuoteForm = ({onSubmit }: QuoteFormProps) => {
                 onChange={(e) =>
                   handleChangeTextField(e, field.name as keyof Quote)
                 }
-                disabled={
-                  disabledFields[field.name as keyof typeof disabledFields]
-                }
+                disabled={field.disabled}
               />
             )}
           </Grid>
@@ -163,4 +177,3 @@ const QuoteForm = ({onSubmit }: QuoteFormProps) => {
 };
 
 export default QuoteForm;
-

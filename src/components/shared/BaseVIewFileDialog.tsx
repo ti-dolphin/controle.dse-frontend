@@ -12,7 +12,7 @@ interface BaseViewFileDialogProps {
 // Supported file types
 const SUPPORTED_EXTENSIONS = {
   pdf: ["pdf"],
-  image: ["png", "jpg", "jpeg", "gif", "bmp", "webp"],
+  image: ["png", "jpg", "jpeg", "gif", "bmp", "webp", "svg", ],
   xlsx: ["xlsx", "xls"],
 };
 
@@ -29,9 +29,11 @@ const BaseViewFileDialog: React.FC<BaseViewFileDialogProps> = ({
     const regex = /\.([a-zA-Z0-9]+)(?=\?|$)/;
     const extension = url.match(regex)?.[1] || "";
 
-    if (SUPPORTED_EXTENSIONS.pdf.includes(extension)) return "pdf";
-    if (SUPPORTED_EXTENSIONS.image.includes(extension)) return "image";
-    if (SUPPORTED_EXTENSIONS.xlsx.includes(extension)) return "xlsx";
+    if (SUPPORTED_EXTENSIONS.pdf.includes(extension.toLowerCase())) return "pdf";
+    if (SUPPORTED_EXTENSIONS.image.includes(extension.toLowerCase()))
+      return "image";
+    if (SUPPORTED_EXTENSIONS.xlsx.includes(extension.toLowerCase()))
+      return "xlsx";
     return "unsupported";
   };
 

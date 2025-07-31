@@ -17,7 +17,7 @@ import {
 import { ChangeEvent, useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import RequisitionService from "../../services/requisicoes/RequisitionService";
-import { setRequisition } from "../../redux/slices/requisicoes/requisitionSlice";
+import { clearRequisition, setMode, setRequisition } from "../../redux/slices/requisicoes/requisitionSlice";
 import RequisitionStatusStepper from "../../components/requisicoes/RequisitionStatusStepper";
 import { useDispatch, useSelector } from "react-redux";
 import { RootState } from "../../redux/store";
@@ -46,7 +46,7 @@ const RequisitionDetailPage = () => {
   const {addingProducts, updatingRecentProductsQuantity} = useSelector((state: RootState) => state.requisitionItem);
   const {id_requisicao} = useParams();
   const { recentProductsAdded, replacingItemProduct, itemBeingReplaced, productSelected, refresh } = useSelector((state: RootState) => state.requisitionItem);
-  const requisition = useSelector((state: RootState) => state.requisition.requisition);
+  const {requisition, refreshRequisition} = useSelector((state: RootState) => state.requisition);
   const [observation, setObservation] = useState('');
   const [editingObservation, setEditingObservation] = useState<boolean>(false);
   const [detailView, setDetailView] = useState<boolean>(false);
@@ -159,13 +159,14 @@ const RequisitionDetailPage = () => {
 
   const handleBack =( ) => {
     navigate("/requisicoes");
+    dispatch(clearRequisition());
   };
 
   useEffect(() => {
     if (id_requisicao) {
       fetchData();
     }
-  }, [id_requisicao, fetchData, refresh]);
+  }, [id_requisicao, fetchData, refreshRequisition]);
 
   return (
     <Box height="100vh" width="100vw" p={{ xs: 1, md: 0.5 }} bgcolor="background">
