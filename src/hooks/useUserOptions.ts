@@ -12,7 +12,7 @@ export const useUserOptions  = () =>  {
           id: user.CODPESSOA,
           name: user.NOME,
         }));
-       
+  
         setUserOptions(options);
       }, []);
     

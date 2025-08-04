@@ -106,6 +106,7 @@ const fields: FieldConfig[] = [
               //tipo default
               TIPO : 10,
               ID_RESPONSAVEL : requisition.ID_RESPONSAVEL,
+              id_status_requisicao: 1,
               OBSERVACAO : requisition.OBSERVACAO,
             });
             dispatch(setRows([...rows, newRequisition]));

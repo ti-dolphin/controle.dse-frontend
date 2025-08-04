@@ -37,6 +37,7 @@ import QuoteList from "../../components/requisicoes/QuoteList";
 import CloseIcon from '@mui/icons-material/Close';
 import { formatCurrency } from "../../utils";
 import UpperNavigation from "../../components/shared/UpperNavigation";
+import { gridColumnGroupsUnwrappedModelSelector } from "@mui/x-data-grid";
 
 const RequisitionDetailPage = () => {
 
@@ -162,6 +163,14 @@ const RequisitionDetailPage = () => {
     dispatch(clearRequisition());
   };
 
+  const shouldShowAddItemsButton = ( ) => { 
+    return (
+      user?.PERM_COMPRADOR ||
+      (requisition.criado_por?.CODPESSOA === user?.CODPESSOA &&
+        requisition.status?.nome === 'Em edição')
+    );
+  }
+
   useEffect(() => {
     if (id_requisicao) {
       fetchData();
@@ -169,7 +178,12 @@ const RequisitionDetailPage = () => {
   }, [id_requisicao, fetchData, refreshRequisition]);
 
   return (
-    <Box height="100vh" width="100vw" p={{ xs: 1, md: 0.5 }} bgcolor="background">
+    <Box
+      height="100vh"
+      width="100vw"
+      p={{ xs: 1, md: 0.5 }}
+      bgcolor="background"
+    >
       <UpperNavigation handleBack={handleBack} />
       <Grid container spacing={0.6}>
         {/* Header: Título, Projeto, Status Steps */}
@@ -181,7 +195,7 @@ const RequisitionDetailPage = () => {
               color="primary.main"
             >
               {requisition.ID_REQUISICAO} | {requisition.DESCRIPTION} |{" "}
-              {requisition.projeto?.DESCRICAO} 
+              {requisition.projeto?.DESCRICAO}
             </Typography>
             <Box mt={2}>
               {id_requisicao && (
@@ -192,133 +206,102 @@ const RequisitionDetailPage = () => {
             </Box>
           </Paper>
         </Grid>
-
-        {detailView ? (
-          <>
-            <Grid item xs={12}>
-              <Button
-                variant="contained"
-                startIcon={<VisibilityIcon />}
-                onClick={() => setDetailView(false)}
-              >
-                Ocultar detalhes
-              </Button>
-            </Grid>
-            <Grid item xs={12} md={4}>
-              <Paper sx={{ p: 2, mb: 2 }}>
-                <Typography
-                  variant="subtitle1"
-                  color="primary.main"
-                  fontWeight={500}
-                  mb={1}
-                >
-                  Detalhes da requisição
-                </Typography>
-                <Divider sx={{ mb: 1 }} />
-                <RequisitionDetailsTable requisition={requisition} />
-              </Paper>
-            </Grid>
-
-            <Grid item xs={12} md={4}>
-              <Paper sx={{ p: 2, mb: 1 }}>
-                <Typography variant="subtitle1" fontWeight={500} mb={1}>
-                  Anexos e Links
-                </Typography>
-                <Divider sx={{ mb: 0.5 }} />
-                <RequisitionAttachmentList
-                  id_requisicao={Number(id_requisicao)}
-                />
-              </Paper>
-              <Paper sx={{ p: 2, mb: 2 }}>
-                <Typography variant="subtitle1" fontWeight={500} mb={1}>
-                  Observação
-                </Typography>
-                <Divider sx={{ mb: 1 }} />
-                <Box
-                  sx={{
-                    display: "flex",
-                    flexDirection: "column",
-                    alignItems: "start",
-                    gap: 1,
-                  }}
-                >
-                  <BaseMultilineInput
-                    onChange={(e) => handleChangeObservation(e)}
-                    onFocus={startObservationEditMode}
-                    value={observation || ""}
-                  />
-                  {editingObservation && (
-                    <Button
-                      onClick={handleSaveObservation}
-                      variant="contained"
-                      color="success"
-                    >
-                      Salvar
-                    </Button>
-                  )}
-                </Box>
-              </Paper>
-              <Paper sx={{ p: 2 }}>
-                <Stack
-                  direction={{ xs: "column", sm: "row" }}
-                  spacing={2}
-                  justifyContent="flex-end"
-                >
-                  <Button
-                    onClick={() => {
-                      dispatch(setAddingProducts(true));
-                    }}
-                    variant="contained"
-                  >
-                    <AddIcon />
-                    Adicionar Itens
-                  </Button>
-                  <Button
-                    onClick={() => setQuoteListOpen(true)}
-                    variant="contained"
-                  >
-                    Cotações
-                  </Button>
-                  <Box ml="auto" alignSelf="center">
-                    <Typography variant="subtitle2" color="success.main">
-                      Custo total:{" "}
-                      {formatCurrency(Number(requisition.custo_total || 0))}
-                    </Typography>
-                  </Box>
-                </Stack>
-              </Paper>
-            </Grid>
-            <Grid item xs={12} md={4}>
-              <Paper sx={{ p: 2 }}>
-                <Typography variant="subtitle1" fontWeight={500} mb={1}>
-                  Timeline / Histórico
-                </Typography>
-                <Divider sx={{ mb: 1 }} />
-                <Box>
-                  <RequisitionTimeline />
-                </Box>
-              </Paper>
-            </Grid>
-          </>
-        ) : (
-          <Grid
-            item
-            xs={12}
-            sx={{
-              display: "flex",
-              alignItems: "center",
-              p: 0.5
-            }}
-          >
-            <Button
-              variant="contained"
-              startIcon={<VisibilityIcon />}
-              onClick={() => setDetailView(true)}
+        {/* Detalhes da requisição */}
+        <Grid item xs={12} md={4}>
+          <Paper sx={{ p: 2, mb: 2 }}>
+            <Typography
+              variant="subtitle1"
+              color="primary.main"
+              fontWeight={500}
+              mb={1}
             >
-              Ver detalhes
-            </Button>
-          </Grid>
-        )}
+              Detalhes da requisição
+            </Typography>
+            <Divider sx={{ mb: 1 }} />
+            <RequisitionDetailsTable requisition={requisition} />
+          </Paper>
+        </Grid>
+
+        <Grid item xs={12} md={4}>
+          <Paper sx={{ p: 2, mb: 1 }}>
+            <Typography variant="subtitle1" fontWeight={500} mb={1}>
+              Anexos e Links
+            </Typography>
+            <Divider sx={{ mb: 0.5 }} />
+            <RequisitionAttachmentList id_requisicao={Number(id_requisicao)} />
+          </Paper>
+          <Paper sx={{ p: 2, mb: 2 }}>
+            <Typography variant="subtitle1" fontWeight={500} mb={1}>
+              Comnentários
+            </Typography>
+            <Divider sx={{ mb: 1 }} />
+            <Box
+              sx={{
+                display: "flex",
+                flexDirection: "column",
+                alignItems: "start",
+                gap: 1,
+              }}
+            >
+              <BaseMultilineInput
+                onChange={(e) => handleChangeObservation(e)}
+                onFocus={startObservationEditMode}
+                value={observation || ""}
+              />
+              {editingObservation && (
+                <Button
+                  onClick={handleSaveObservation}
+                  variant="contained"
+                  color="success"
+                >
+                  Salvar
+                </Button>
+              )}
+            </Box>
+          </Paper>
+          <Paper sx={{ p: 2 }}>
+            <Stack
+              direction={{ xs: "column", sm: "row" }}
+              spacing={2}
+              justifyContent="flex-end"
+            >
+              {shouldShowAddItemsButton() && (
+                <Button
+                  onClick={() => {
+                    dispatch(setAddingProducts(true));
+                  }}
+                  variant="contained"
+                >
+                  <AddIcon />
+                  Adicionar Itens
+                </Button>
+              )}
+              <Button
+                onClick={() => setQuoteListOpen(true)}
+                variant="contained"
+              >
+                Cotações
+              </Button>
+              <Box ml="auto" alignSelf="center">
+                <Typography variant="subtitle2" color="success.main">
+                  Custo total:{" "}
+                  {formatCurrency(Number(requisition.custo_total || 0))}
+                </Typography>
+              </Box>
+            </Stack>
+          </Paper>
+        </Grid>
+        <Grid item xs={12} md={4}>
+          <Paper sx={{ p: 2 }}>
+            <Typography variant="subtitle1" fontWeight={500} mb={1}>
+              Timeline / Histórico
+            </Typography>
+            <Divider sx={{ mb: 1 }} />
+            <Box>
+              <RequisitionTimeline />
+            </Box>
+          </Paper>
+        </Grid>
 
         {/* Tabela de Itens */}
         <Grid item xs={12}>
@@ -389,8 +372,6 @@ const RequisitionDetailPage = () => {
           Insira as quantidades dos produtos adicionados
         </DialogTitle>
         <DialogContent>
-
-
           {updatingRecentProductsQuantity && <RequisitionItemsTable />}
         </DialogContent>
         <DialogActions>

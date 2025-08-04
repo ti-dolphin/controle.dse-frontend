@@ -1,16 +1,16 @@
-import { GridColDef, GridRenderCellParams } from "@mui/x-data-grid";
+import { GridApi, GridColDef, GridRenderCellParams, MuiEvent, useGridApiRef } from "@mui/x-data-grid";
 import { Project } from "../../models/Project";
 import { ReducedUser } from "../../models/User";
 import { RequisitionStatus } from "../../models/requisicoes/RequisitionStatus";
 import { getDateFromISOstring } from "../../utils";
 import { Box, IconButton, Typography } from "@mui/material";
 import VisibilityIcon from "@mui/icons-material/Visibility";
-import { useMemo } from "react";
+import { MutableRefObject, useMemo } from "react";
 import { RequisitionType } from "../../models/requisicoes/RequisitionType";
+import { GridApiCommunity } from "@mui/x-data-grid/internals";
 
 
-export function useRequisitionColumns(changeSelectedRow: (row: any) => void) {
-
+export function useRequisitionColumns(changeSelectedRow: (row: any) => void, gridRef: MutableRefObject<GridApiCommunity>) {
   const columns: GridColDef[] = useMemo(
     () => [
       {
@@ -32,7 +32,11 @@ export function useRequisitionColumns(changeSelectedRow: (row: any) => void) {
                 justifyContent: "center",
               }}
             >
-              <Typography fontSize="12px" fontWeight="bold" color="text.primary">
+              <Typography
+                fontSize="12px"
+                fontWeight="bold"
+                color="text.primary"
+              >
                 {params.value}
               </Typography>
             </Box>
@@ -60,7 +64,7 @@ export function useRequisitionColumns(changeSelectedRow: (row: any) => void) {
         headerName: "Status",
         flex: 0.5,
         valueGetter: (status: RequisitionStatus) => {
-          return status.nome;
+          return status ? status.nome : '';
         },
       },
       {
@@ -77,12 +81,15 @@ export function useRequisitionColumns(changeSelectedRow: (row: any) => void) {
         field: "actions",
         headerName: "",
         flex: 0.5,
+      
         renderCell: (params: GridRenderCellParams) => {
           const { row } = params;
           return (
-            <Box>
+            <Box sx={{zIndex: 30}}>
               <IconButton
-                onClick={() => changeSelectedRow(row)}
+                onClick={() => { 
+                   changeSelectedRow(row);
+                }}
                 sx={{ color: "primary.main" }}
               >
                 <VisibilityIcon />
@@ -90,7 +97,7 @@ export function useRequisitionColumns(changeSelectedRow: (row: any) => void) {
             </Box>
           );
         },
-      }
+      },
     ],
     []
   );
@@ -135,14 +142,14 @@ export function useRequisitionColumns(changeSelectedRow: (row: any) => void) {
           return requisitionType.nome_tipo;
         },
       },
-      { 
-        field: 'gerente',
-        headerName: 'Gerente',
+      {
+        field: "gerente",
+        headerName: "Gerente",
         flex: 1,
         valueGetter: (user: ReducedUser) => {
           return user.NOME;
         },
-      }
+      },
     ],
     []
   );

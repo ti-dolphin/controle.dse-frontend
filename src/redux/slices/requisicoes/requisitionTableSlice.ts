@@ -133,6 +133,22 @@ const requisitionTableSlice = createSlice({
     setFilters(state, action: PayloadAction<RequisitionFilters>) {
       state.filters = action.payload;
     },
+
+    clearfilters(state) {
+      state.filters = {
+        ID_REQUISICAO: null,
+        DESCRIPTION: "",
+        OBSERVACAO: "",
+        responsavel: "",
+        pessoa_alterado_por: "",
+        pessoa_criado_por: "",
+        projeto: "",
+        gerente: "",
+        status: "",
+        tipo: "",
+        data_criacao: "",
+      };
+    }, 
     clearRows(state) {
       state.rows = [];
       state.loading = false;
@@ -150,6 +166,7 @@ export const {
   setKanbans,
   setSelectedKanban,
   setSearchTerm,
+  clearfilters,
   setFilters,
 } = requisitionTableSlice.actions;
 export default requisitionTableSlice.reducer;

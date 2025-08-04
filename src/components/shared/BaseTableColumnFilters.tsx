@@ -25,7 +25,8 @@ function BaseTableColumnFiltersComponent<T>({
   handleChangeFilters,
   debouncedSetTriggerFetch,
 }: BaseTableColumnFiltersProps<T>) {
-  const [localFilters, setLocalFilters] = useState<Record<string, string>>({
+  
+  const [localFilters, setLocalFilters] = useState<any>({
     ...filters,
   });
 
@@ -76,18 +77,13 @@ function BaseTableColumnFiltersComponent<T>({
               value={localFilters[col.field] || ""}
               placeholder={col.headerName || "Pesquisar..."}
               onChange={(e) => {
-                const value = e.target.value;
-                setLocalFilters((prev) => ({
-                  ...prev,
-                  [col.field]: value,
-                }));
-                // Se o valor for vazio, atualiza global instantaneamente
-                if (value === "") {
-                  handleChangeFilters(e, col.field);
-                  debouncedSetTriggerFetch();
-                } else {
-                  debouncedSync(col.field, value);
-                }
+                  // handleChangeFilters(e, col.field);
+                    setLocalFilters((prev: any) => ({
+                      ...prev,
+                      [col.field]: e.target.value,
+                    }));
+                    debouncedSync(col.field, e.target.value);
+                
               }}
               style={{
                 minWidth: 0,

@@ -1,6 +1,6 @@
 
-import { Box, Dialog, DialogContent, DialogTitle, IconButton, List, ListItem, ListItemButton, ListItemSecondaryAction, ListItemText, Stack, Tooltip, Typography } from '@mui/material';
-import React, { useEffect } from 'react';
+import { Autocomplete, AutocompleteRenderInputParams, Box, Button, Dialog, DialogContent, DialogTitle, IconButton, List, ListItem, ListItemButton, ListItemSecondaryAction, ListItemText, Stack, TextField, Tooltip, Typography } from '@mui/material';
+import React, { useEffect, useState } from 'react';
 import OpportunityService from '../../services/oportunidades/OpportunityService';
 import { ProjectService } from '../../services/ProjectService';
 import { Opportunity } from '../../models/oportunidades/Opportunity';
@@ -14,6 +14,8 @@ import { RootState } from '../../redux/store';
 import { setFeedback } from '../../redux/slices/feedBackSlice';
 import AddIcon from '@mui/icons-material/Add';
 import { useUserOptions } from '../../hooks/useUserOptions';
+import CloseIcon from '@mui/icons-material/Close';
+import { Option } from '../../types';
 
 interface props { 
     CODOS? : number;
@@ -21,13 +23,14 @@ interface props {
 }
 const OpportunityFollowerList = ({CODOS, ID_PROJETO}: props) => {
 
-
     const dispatch = useDispatch();
     const user = useSelector((state: RootState) => state.user.user);
     const [followers, setFollowers] = React.useState<ProjectFollower[]>([]);
     const [followerBeingDeleted, setFollowerBeingDeleted] = React.useState<ProjectFollower | null>(null);
     const [addingFollower, setAddingFollower] = React.useState<boolean>(false);
-
+    const [selectedFollower, setSelectedFollower] = React.useState<Option | null>(null);
+    const [opp, setOpp] = useState<Partial<Opportunity>>();
+    
     const {userOptions} = useUserOptions();
   
   const handleDeleteFollower = () => {
@@ -63,6 +66,26 @@ const OpportunityFollowerList = ({CODOS, ID_PROJETO}: props) => {
     }
   };
 
+  const handleAddFollower = async () => {
+    if(!selectedFollower || !opp) return;
+    try {
+      const follower = await ProjectService.addFollower(
+        Number(opp.ID_PROJETO),
+        Number(selectedFollower.id)
+      );
+      setFollowers([...followers, follower]);
+      setSelectedFollower(null);
+      setAddingFollower(false);
+    } catch (err: any) {
+      dispatch(
+        setFeedback({
+          message: `Erro ao adicionar seguidor: ${err.message}`,
+          type: "error",
+        })
+      );
+    }
+  };
+
   const fetchData = async () => {
     if(!CODOS && !ID_PROJETO) return;
     const opp : Opportunity = await OpportunityService.getById(Number(CODOS));
@@ -70,11 +93,13 @@ const OpportunityFollowerList = ({CODOS, ID_PROJETO}: props) => {
     const {ID} = project;
     const followers = await ProjectService.getFollowers(ID);
     setFollowers(followers);
+    setOpp(opp);
   }
 
   useEffect(() => {
       fetchData();
   }, []);
+
 
   return (
     <Box>
@@ -84,7 +109,7 @@ const OpportunityFollowerList = ({CODOS, ID_PROJETO}: props) => {
         </Typography>
         <Tooltip title="Adicionar Seguidor">
           <IconButton
-             onClick={() => setAddingFollower(true)}
+            onClick={() => setAddingFollower(true)}
             sx={{
               backgroundColor: "primary.main",
               color: "white",
@@ -94,7 +119,6 @@ const OpportunityFollowerList = ({CODOS, ID_PROJETO}: props) => {
                 backgroundColor: "primary.dark",
               },
             }}
-           
           >
             <AddIcon />
           </IconButton>
@@ -152,16 +176,45 @@ const OpportunityFollowerList = ({CODOS, ID_PROJETO}: props) => {
         onCancel={() => setFollowerBeingDeleted(null)}
       />
       <Dialog open={addingFollower}>
-          <DialogTitle>
-              <Typography variant='h6' fontWeight="bold" color="primary.main">
-                  Adicionar Seguidor
-              </Typography>
-          </DialogTitle>
-          <DialogContent>
-              
-          </DialogContent>
+        <DialogTitle>
+          <Typography variant="h6" fontWeight="bold" color="primary.main">
+            Adicionar Seguidor
+          </Typography>
+        </DialogTitle>
+        <DialogContent
+          sx={{
+            minWidth: 300,
+            display: "flex",
+            flexDirection: "column",
+            gap: 2
+          }}
+        >
+          <IconButton
+            onClick={() => setAddingFollower(false)}
+            color="error"
+            sx={{ position: "absolute", top: 0, right: 0 }}
+          >
+            <CloseIcon />
+          </IconButton>
+          <Autocomplete
+            sx={{ mt: 2 }}
+            fullWidth
+            renderInput={(params) => <TextField {...params} label="Seguidor" />}
+            slotProps={{
+              popper: { sx: { fontSize: 12 } },
+              paper: { sx: { fontSize: 12 } },
+            }}
+            value={selectedFollower || { id: 0, name: "-" }}
+            onChange={(event, newValue) => setSelectedFollower(newValue)}
+            getOptionKey={(option) => option.id}
+            getOptionLabel={(option) => option.name}
+            options={userOptions}
+          />
+          <Button variant="contained" onClick={handleAddFollower}>
+            Adicionar seguidor
+          </Button>
+        </DialogContent>
       </Dialog>
-      
     </Box>
   );
 }

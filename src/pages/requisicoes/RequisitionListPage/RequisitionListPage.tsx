@@ -12,6 +12,7 @@ import {
   RequisitionFilters,
   filterFieldMap,
   buildPrismaFilters,
+  clearfilters,
 } from "../../../redux/slices/requisicoes/requisitionTableSlice";
 import { setFeedback } from "../../../redux/slices/feedBackSlice";
 import RequisitionService from "../../../services/requisicoes/RequisitionService";
@@ -74,7 +75,10 @@ const RequisitionListPage = () => {
   };
   const gridRef = useGridApiRef();
 
-  const { columns, secondaryColumns } = useRequisitionColumns(changeSelectedRow); //RETURNS MAIN COLUMNS ARRAY AND SECONDARY COLUMNS
+  const { columns, secondaryColumns } = useRequisitionColumns(
+    changeSelectedRow,
+    gridRef
+  ); //RETURNS MAIN COLUMNS ARRAY AND SECONDARY COLUMNS
 
   const handleChangeKanban = React.useCallback(
     (event: SelectChangeEvent<unknown>) => {
@@ -104,6 +108,7 @@ const RequisitionListPage = () => {
   }
 
   const navigateToRequisitionDetails = ( params : any) =>  {
+    if(params.field=== 'actions') return;
     const {id} = params;
     navigate(`/requisicoes/${id}`);
   }
@@ -123,6 +128,8 @@ const RequisitionListPage = () => {
     [dispatch, filters]
   );
 
+  const handleCleanFilter = () => [dispatch(clearfilters())];
+
   const debouncedHandleChangeSearchTerm = useMemo(() => {
     return debounce(handleChangeSearchTerm, 500);
   }, [handleChangeSearchTerm]);
@@ -135,6 +142,7 @@ const RequisitionListPage = () => {
     dispatch(setLoading(true));
     try {
       const prismaFilters = buildPrismaFilters(filters);
+      console.log("req prisma filters", prismaFilters);
       const data = await RequisitionService.getMany(user as ReducedUser, {
         id_kanban_requisicao: selectedKanban?.id_kanban_requisicao,
         searchTerm,
@@ -219,7 +227,11 @@ const RequisitionListPage = () => {
 
         <BaseTableToolBar
           handleChangeSearchTerm={debouncedHandleChangeSearchTerm}
-        />
+        >
+          <Button variant="contained" onClick={handleCleanFilter}>
+            Limpar filtros
+          </Button>
+        </BaseTableToolBar>
 
         <BaseTableColumnFilters
           columns={columns}
@@ -235,7 +247,8 @@ const RequisitionListPage = () => {
           rowHeight={40}
           columns={columns}
           loading={loading}
-          onRowClick={(params) => navigateToRequisitionDetails(params)}
+          // onRowClick={(params) => navigateToRequisitionDetails(params)}
+          onCellClick={(params) => navigateToRequisitionDetails(params)}
           getRowId={(row: any) => row.ID_REQUISICAO}
           theme={theme}
         />

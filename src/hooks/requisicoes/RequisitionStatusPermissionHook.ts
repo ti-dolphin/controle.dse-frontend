@@ -13,9 +13,8 @@ export interface RequisitionStatusPermissions{
 export const useRequisitionStatusPermissions = (user: User | null, requisition: Requisition ) => { 
     const dispatch = useDispatch();
     const [permissionToChangeStatus, setPermissionToChangeStatus] = useState<boolean>(false);
-
     const fetchPermission = useCallback(async () => { 
-    if (user) {
+    if (user && requisition.ID_REQUISICAO > 0) {
       try {
         const permissions = await RequisitionStatusService.getStatusPermissions(
         user,

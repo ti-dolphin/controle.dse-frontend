@@ -5,7 +5,7 @@ import { User } from "../../models/User";
 
 export const useRequisitionItemPermissions = (user : User | null, requisition : Requisition) =>  {
     const adm = Number(user?.PERM_ADMINISTRADOR) == 1 
-    const responsable = Number(user?.CODPESSOA) == Number(requisition.ID_RESPONSAVEL);   
+    const responsable = Number(user?.CODPESSOA) == Number(requisition.ID_RESPONSAVEL) && requisition.status?.nome === 'Em edição';   
     const editItemFieldsPermitted = adm || responsable
     const changeProductItemPermitted = adm || responsable;
 

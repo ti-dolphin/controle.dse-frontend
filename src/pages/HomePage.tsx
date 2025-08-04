@@ -1,9 +1,10 @@
-import { Box, Grid, Typography } from '@mui/material'
+import { Box, Grid, IconButton, Menu, MenuItem, Typography } from '@mui/material'
 import React from 'react'
 import crm from '../assets/images/crm.jpg'
 import patrimonios from '../assets/images/patrimonios.jpg';
 import requisicoes from '../assets/images/requisicoes.jpg';
 import { useNavigate } from 'react-router-dom';
+import AccountCircleIcon from '@mui/icons-material/AccountCircle';
 
 const modules = [
   {
@@ -29,6 +30,15 @@ const modules = [
 const HomePage = () => {
 
   const navigate = useNavigate();
+  const [anchorEl, setAnchorEl] = React.useState<null | HTMLElement>(null);
+  const open = Boolean(anchorEl);
+
+  const handleClick = (event: React.MouseEvent<HTMLButtonElement>) => {
+    setAnchorEl(event.currentTarget);
+  };
+  const handleClose = () => {
+    setAnchorEl(null);
+  };
   
   return (
     <Box
@@ -41,6 +51,45 @@ const HomePage = () => {
         bgcolor: "#fff",
       }}
     >
+
+      <IconButton
+        aria-label="more"
+        aria-controls="long-menu"
+        aria-haspopup="true"
+        onClick={handleClick}
+        sx={{
+          color: "primary.main",
+          position: "absolute",
+          right: 16,
+          top: 16,
+        }}
+      >
+        <AccountCircleIcon />
+      </IconButton>
+      <Menu
+        id="long-menu"
+        MenuListProps={{
+          "aria-labelledby": "long-button",
+        }}
+        anchorEl={anchorEl}
+        open={open}
+        onClose={handleClose}
+        PaperProps={{
+          style: {
+            maxHeight: 48 * 4.5,
+            width: "20ch",
+          },
+        }}
+      >
+        <MenuItem onClick={handleClose}>
+          Perfil
+        </MenuItem>
+        <MenuItem onClick={( ) => navigate('/auth')}>
+          Logout
+        </MenuItem>
+      </Menu>
+      
+   
       <Typography
         variant="h4"
         color="primary"

@@ -23,6 +23,17 @@ export const ProjectService = {
     return response.data;
   },
 
+  async addFollower(id_projeto: number, id_seguidor: number): Promise<ProjectFollower> {
+    const response = await api.post<ProjectFollower>(
+      `/${API_ENDPOINT}/${id_projeto}/seguidores`,
+      {
+        codpessoa: id_seguidor,
+        id_projeto: id_projeto,
+      }
+    );
+    return response.data;
+  },
+
   async getFollowers(ID: number): Promise<ProjectFollower[]> {
     const response = await api.get<ProjectFollower[]>(
       `/${API_ENDPOINT}/${ID}/seguidores`

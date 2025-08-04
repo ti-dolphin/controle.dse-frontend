@@ -6,6 +6,7 @@ import {
   GridColDef,
   GridRowModel,
   GridRowSelectionModel,
+  useGridApiRef,
 } from "@mui/x-data-grid";
 import React, { useCallback, useEffect, useState } from "react";
 import { useRequisitionItemColumns } from "../../hooks/requisicoes/RequisitionItemColumnsHook";
@@ -41,6 +42,9 @@ import {
 import { formatDateStringtoISOstring } from "../../utils";
 
 const RequisitionItemsTable = () => {
+
+  
+
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const theme = useTheme();
@@ -50,6 +54,7 @@ const RequisitionItemsTable = () => {
     (state: RootState) => state.requisition
   );
 
+  const gridApiRef = useGridApiRef();
   const quote = useSelector((state: RootState) => state.quote.quote);
 
   const quoteItems = useSelector(
@@ -194,7 +199,8 @@ const RequisitionItemsTable = () => {
     handleChangeQuoteItemsSelected,
     quoteItemsSelected,
     selectionModel as number[],
-    blockFields
+    blockFields,
+    
   );
   //CLIQUE NA CÈLULA
   const handleCellClick = (params: GridCellParams, event: React.MouseEvent) => {
@@ -451,6 +457,7 @@ const RequisitionItemsTable = () => {
       />
       <Box sx={{ height: 400 }}>
         <BaseDataTable
+          apiRef={gridApiRef}
           density="compact"
           getRowId={(row: any) => row.id_item_requisicao}
           loading={loading}

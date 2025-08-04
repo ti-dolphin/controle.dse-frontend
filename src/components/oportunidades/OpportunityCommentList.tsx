@@ -186,7 +186,7 @@ const OpportunityCommentList = () => {
             Novo Comentário
           </Typography>
         </DialogTitle>
-        <DialogContent>
+        <DialogContent sx={{minWidth: 300}}>
           <TextField
             label="Comentário"
             multiline
