@@ -18,6 +18,7 @@ import { useNavigate } from "react-router-dom";
 import RequisitionService from "../../services/requisicoes/RequisitionService";
 import { setFeedback } from "../../redux/slices/feedBackSlice";
 import { setRows } from "../../redux/slices/requisicoes/requisitionTableSlice";
+import { setAddingProducts } from "../../redux/slices/requisicoes/requisitionItemSlice";
 
 
 
@@ -119,6 +120,7 @@ const fields: FieldConfig[] = [
                 })
             );
             handleClose();
+            dispatch(setAddingProducts(true))
             navigate(`/requisicoes/${newRequisition.ID_REQUISICAO}`);
             return;
         }

@@ -41,10 +41,11 @@ import {
 } from "../../redux/slices/requisicoes/requisitionSlice";
 import { formatDateStringtoISOstring } from "../../utils";
 
-const RequisitionItemsTable = () => {
-
-  
-
+interface RequisitionItemsTable { 
+    tableMaxHeight?: number;
+    hideFooter: boolean
+}
+const RequisitionItemsTable = ({ tableMaxHeight, hideFooter }: RequisitionItemsTable) => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const theme = useTheme();
@@ -199,8 +200,7 @@ const RequisitionItemsTable = () => {
     handleChangeQuoteItemsSelected,
     quoteItemsSelected,
     selectionModel as number[],
-    blockFields,
-    
+    blockFields
   );
   //CLIQUE NA CÈLULA
   const handleCellClick = (params: GridCellParams, event: React.MouseEvent) => {
@@ -312,6 +312,7 @@ const RequisitionItemsTable = () => {
       itemIds: selectionModel,
     });
     if (quote) {
+      
       navigate(`cotacao/${quote.id_cotacao}`);
     }
   };
@@ -445,17 +446,21 @@ const RequisitionItemsTable = () => {
     <Box>
       {selectionModel.length > 0 && (
         <Box sx={{ p: 1 }}>
-          {!addingReqItems && (
-            <Button variant="contained" onClick={createQuoteFromSelectedItems}>
-              Criar cotação
-            </Button>
-          )}
+          {!addingReqItems &&
+            !updatingRecentProductsQuantity &&(
+              <Button
+                variant="contained"
+                onClick={createQuoteFromSelectedItems}
+              >
+                Criar cotação
+              </Button>
+            )}
         </Box>
       )}
       <BaseTableToolBar
         handleChangeSearchTerm={debouncedHandleChangeSearchTerm}
       />
-      <Box sx={{ height: 400 }}>
+      <Box sx={{ height: tableMaxHeight ? tableMaxHeight : "auto" }}>
         <BaseDataTable
           apiRef={gridApiRef}
           density="compact"
@@ -473,7 +478,7 @@ const RequisitionItemsTable = () => {
           onCellModesModelChange={handleCellModesModelChange}
           onCellClick={handleCellClick}
           processRowUpdate={processRowUpdate}
-          hideFooter
+          hideFooter={hideFooter}
         />
       </Box>
       {addingReqItems && (

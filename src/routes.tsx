@@ -10,6 +10,8 @@ import RequisitionDetailPage from "./pages/requisicoes/RequisitionDetailPage";
 import QuoteDetailPage from "./pages/requisicoes/QuoteDetalPage";
 import OpportunityHomePage from "./pages/oportunidades/OpportunityHomePage";
 import OportunityDetailPage from "./pages/oportunidades/OpportunityDetailPage";
+import PatrimonyDetailPage from "./pages/patrimonios/PatrimonyDetailPage";
+import ChecklistListPage from "./pages/patrimonios/ChecklistListListPage";
 // Exemplo de páginas
 const AppRoutes = () => { 
   return (
@@ -24,8 +26,8 @@ const AppRoutes = () => {
       {/* Patrimônios */}
       <Route path="/patrimonios" element={<PatrimonyHomePage />} />
       {/* <Route path="/patrimonios/lista" element={<PatrimonyListPage />} /> */}
-      {/* <Route path="/patrimonios/:id" element={<PatrimonyDetailPage />} /> */}
-      {/* <Route path="/patrimonios/:id/checklists" element={<ChecklistListPage />} /> */}
+      <Route path="/patrimonios/:id_patrimonio" element={<PatrimonyDetailPage />} />
+      <Route path="/patrimonios/checklists" element={<ChecklistListPage />} />
 
       {/* Oportunidades */}
       <Route path="/oportunidades" element={<OpportunityHomePage />} />

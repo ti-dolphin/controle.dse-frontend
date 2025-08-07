@@ -8,6 +8,9 @@ import quoteReducer from './slices/requisicoes/quoteSlice';
 import quoteItemReducer from './slices/requisicoes/quoteItemSlice';
 import opportunityTableReducer from './slices/oportunidades/opportunityTableSlice';
 import opportunityReducer from './slices/oportunidades/opportunitySlice';
+import patrimonyTableReducer from './slices/patrimonios/PatrimonyTableSlice';
+import checklistTableReducer from './slices/patrimonios/ChecklistTableSlice';
+
 export const store = configureStore({
   reducer: {
     user: userReducer,
@@ -18,7 +21,9 @@ export const store = configureStore({
     quote: quoteReducer,
     quoteItem: quoteItemReducer,
     opportunityTable : opportunityTableReducer,
-    opportunity: opportunityReducer
+    opportunity: opportunityReducer,
+    patrionyTable : patrimonyTableReducer,
+    checklistTable : checklistTableReducer
   },
 });
 

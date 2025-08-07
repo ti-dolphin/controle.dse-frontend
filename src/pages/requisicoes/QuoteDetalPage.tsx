@@ -1,6 +1,6 @@
 import React, { useCallback, useEffect } from "react";
-import { Box, Button, Grid, Paper, Typography } from "@mui/material";
-import { useParams, useSearchParams } from "react-router-dom";
+import { Box, Button, Dialog, DialogTitle, Grid, IconButton, Paper, Stack, Typography } from "@mui/material";
+import { useNavigate, useParams, useSearchParams } from "react-router-dom";
 import QuoteService from "../../services/requisicoes/QuoteService";
 import QuoteForm from "../../components/requisicoes/QuoteForm";
 import { useDispatch, useSelector } from "react-redux";
@@ -14,18 +14,21 @@ import { setRequisition } from "../../redux/slices/requisicoes/requisitionSlice"
 import RequisitionService from "../../services/requisicoes/RequisitionService";
 import { UserService } from "../../services/UserService";
 import { RootState } from "../../redux/store";
-
+import FullscreenIcon from "@mui/icons-material/Fullscreen";
+import UpperNavigation from "../../components/shared/UpperNavigation";
 
 const QuoteDetailPage = () => {
   const dispatch = useDispatch();
   const { id_cotacao } = useParams<{ id_cotacao: string }>();
   const [searchParams] = useSearchParams();
   const token = searchParams.get("token");
+  const navigate = useNavigate();
   const user  = useSelector((state : RootState) => state.user.user);
   const domain = window.location.origin;
   
  const accesType = useSelector((state : RootState) => state.quote.accessType);
  const requisition = useSelector((state : RootState) => state.requisition.requisition);
+ const [fullScreenItems, setFullScreenItems] = React.useState(false);
   const handleSubmitQuote  = async (e : React.FormEvent<HTMLFormElement>, data : Quote) =>  { 
       e.preventDefault();
       try{ 
@@ -46,6 +49,10 @@ const QuoteDetailPage = () => {
       }catch(e : any){ 
         dispatch(setFeedback({ message: `Erro ao atualizar cotação : ${e.message}`, type: 'error' }));
       }
+  }
+
+  const handleBack = () => {
+    navigate(-1);
   }
 
   const hanldeCreateSupplierAccess = async ( ) => { 
@@ -101,6 +108,7 @@ const QuoteDetailPage = () => {
         backgroundColor: "background",
       }}
     >
+     { accesType !== "supplier" && <UpperNavigation handleBack={handleBack} /> }
       {/* Header Section - Will display quotation title and metadata (e.g., ID, date) */}
 
       <Grid container spacing={2} sx={{ justifyContent: "center" }}>
@@ -137,10 +145,41 @@ const QuoteDetailPage = () => {
         {/* Left Column - Table Area - Will load the quotation items table */}
         <Grid item xs={12}>
           <Paper sx={{ p: 2, mb: 2, elevation: 1, borderRadius: 2 }}>
-            <QuoteItemsTable />
+            <Stack direction="row" alignItems="center" gap={2}>
+              {" "}
+              <Typography variant="h6" color="primary.main">
+                Itens da cotação
+              </Typography>
+              <IconButton onClick={() => setFullScreenItems(true)}>
+                <FullscreenIcon />
+              </IconButton>
+            </Stack>
+            <QuoteItemsTable hideFooter={false} tableMaxHeight={400} />
           </Paper>
         </Grid>
       </Grid>
+
+      <Dialog
+        open={fullScreenItems}
+        onClose={() => setFullScreenItems(false)}
+        fullScreen
+      >
+        <DialogTitle>
+          <Stack direction="row" alignItems="center" gap={2}>
+            <Typography variant="h6" color="primary.main">
+              Itens da cotação
+            </Typography>
+            <Button
+              variant="contained"
+              onClick={() => setFullScreenItems(false)}
+              color="error"
+            >
+              Fechar
+            </Button>
+          </Stack>
+        </DialogTitle>
+        <QuoteItemsTable hideFooter={false} tableMaxHeight={600}/>
+      </Dialog>
     </Box>
   );
 };

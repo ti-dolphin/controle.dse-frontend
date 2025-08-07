@@ -38,6 +38,7 @@ import CloseIcon from '@mui/icons-material/Close';
 import { formatCurrency } from "../../utils";
 import UpperNavigation from "../../components/shared/UpperNavigation";
 import { gridColumnGroupsUnwrappedModelSelector } from "@mui/x-data-grid";
+import FullscreenIcon from "@mui/icons-material/Fullscreen";
 
 const RequisitionDetailPage = () => {
 
@@ -52,6 +53,7 @@ const RequisitionDetailPage = () => {
   const [editingObservation, setEditingObservation] = useState<boolean>(false);
   const [detailView, setDetailView] = useState<boolean>(false);
   const [quoteListOpen, setQuoteListOpen] = useState<boolean>(false);
+  const [fullScreenItems, setFullScreenItems] = useState<boolean>(false);
 
   const fetchData = useCallback(async () => { 
     const requisition = await RequisitionService.getById(Number(id_requisicao));
@@ -166,8 +168,8 @@ const RequisitionDetailPage = () => {
   const shouldShowAddItemsButton = ( ) => { 
     return (
       user?.PERM_COMPRADOR ||
-      (requisition.criado_por?.CODPESSOA === user?.CODPESSOA &&
-        requisition.status?.nome === 'Em edição')
+      (Number(requisition.criado_por?.CODPESSOA) === Number(user?.CODPESSOA) &&
+        requisition.status?.nome === "Em edição")
     );
   }
 
@@ -180,8 +182,17 @@ const RequisitionDetailPage = () => {
   return (
     <Box
       height="100vh"
-      width="100vw"
-      p={{ xs: 1, md: 0.5 }}
+      width="98vw"
+      p={{
+        xs: 1,
+        md: 0.5,
+      }}
+      sx={{
+        display: "flex",
+        flexDirection: "column",
+        alignItems: "center",
+        margin: "auto",
+      }}
       bgcolor="background"
     >
       <UpperNavigation handleBack={handleBack} />
@@ -304,11 +315,23 @@ const RequisitionDetailPage = () => {
         </Grid>
 
         {/* Tabela de Itens */}
-        <Grid item xs={12}>
+        <Grid
+          item
+          xs={12}
+          sx={{
+            minHeight: {
+              xs: 800,
+              md: 400,
+            },
+          }}
+        >
           <Paper sx={{ p: 1 }}>
+            <IconButton onClick={() => setFullScreenItems(true)}>
+              <FullscreenIcon />
+            </IconButton>
             <Divider sx={{ mb: 1 }} />
             <Box>
-              <RequisitionItemsTable />
+              <RequisitionItemsTable hideFooter={false} tableMaxHeight={400} />
             </Box>
           </Paper>
         </Grid>
@@ -372,7 +395,7 @@ const RequisitionDetailPage = () => {
           Insira as quantidades dos produtos adicionados
         </DialogTitle>
         <DialogContent>
-          {updatingRecentProductsQuantity && <RequisitionItemsTable />}
+          {updatingRecentProductsQuantity && <RequisitionItemsTable hideFooter={false}/>}
         </DialogContent>
         <DialogActions>
           <Button
@@ -385,7 +408,7 @@ const RequisitionDetailPage = () => {
           </Button>
         </DialogActions>
       </Dialog>
-
+      {/* Dialog da lista de cotações */}
       <Dialog maxWidth="md" fullWidth open={quoteListOpen}>
         <DialogTitle color="primary.main">
           Cotações desta requisição
@@ -403,6 +426,31 @@ const RequisitionDetailPage = () => {
           >
             <CloseIcon />
           </IconButton>
+        </DialogContent>
+      </Dialog>
+
+      {/* Dialog tela cheia items */}
+      <Dialog
+        fullScreen
+        open={fullScreenItems}
+        onClose={() => setFullScreenItems(false)}
+      >
+        <DialogTitle>
+          <Stack direction="row" alignItems="center" gap={2}>
+            <Typography variant="h6" color="primary.main" gutterBottom>
+              Itens
+            </Typography>
+            <Button
+              variant="contained"
+              color="error"
+              onClick={() => setFullScreenItems(false)}
+            >
+              Fechar
+            </Button>
+          </Stack>
+        </DialogTitle>
+        <DialogContent >
+            <RequisitionItemsTable hideFooter={false} tableMaxHeight={580}/>
         </DialogContent>
       </Dialog>
     </Box>

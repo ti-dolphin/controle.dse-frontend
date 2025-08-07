@@ -8,10 +8,11 @@ export interface Patrimony {
     nserie: string;
     descricao: string;
     pat_legado: string;
-    tipo?: PatrimonyType;
+    tipo: number;
+    tipo_patrimonio?: PatrimonyType;
     ativo: number;
     fabricante: string | null;
-    valor_compra: string;
+    valor_compra: number;
     id_produto: number;
 }
 

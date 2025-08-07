@@ -1,7 +1,8 @@
+import PatrimonyListPage from "./PatrimonyListPage"
 
 const Home = () => {
   return (
-    <div>Home</div>
+    <PatrimonyListPage />
   )
 }
 

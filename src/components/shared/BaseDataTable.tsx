@@ -32,7 +32,7 @@ const StyledDataGrid = styled(DataGrid)<{ theme: Theme }>(({ theme }) => ({
   "& .MuiDataGrid-cell": {
     fontSize: "12px",
     fontWeight: "500",
-    color: theme.palette.text.secondary,
+    color: theme.palette.text.primary,
     borderBottom: "1px solid #F0F0F0",
   },
   "& .MuiDataGrid-footerContainer": {

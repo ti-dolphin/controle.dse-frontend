@@ -1,5 +1,3 @@
-import React from "react";
-import { RequisitionStatus } from "../../models/requisicoes/RequisitionStatus";
 import { useDispatch, useSelector } from "react-redux";
 import { RootState } from "../../redux/store";
 import { useRequisitionStatus } from "../../hooks/requisicoes/RequisitionStatusHook";
@@ -19,7 +17,6 @@ import {
   Button,
 } from "@mui/material";
 import CheckIcon from "@mui/icons-material/Check";
-import RequisitionStatusService from "../../services/requisicoes/RequisitionStatusService";
 import RequisitionService from "../../services/requisicoes/RequisitionService";
 import { setRequisition } from "../../redux/slices/requisicoes/requisitionSlice";
 import { setFeedback } from "../../redux/slices/feedBackSlice";
@@ -145,7 +142,7 @@ const RequisitionStatusStepper = ({
         pb: 2,
         display: "flex",
         flexDirection: "column",
-        gap: 2
+        gap: 2,
       }}
     >
       <Stepper
@@ -224,6 +221,9 @@ const RequisitionStatusStepper = ({
             {requisition.status?.acao_posterior}
           </Typography>
           <ArrowCircleRightIcon sx={{ mr: 1 }} />
+        </Button>
+        <Button variant="contained" color="error">
+          Cancelar
         </Button>
       </Stack>
     </Box>

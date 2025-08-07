@@ -24,95 +24,109 @@ import CloseIcon from '@mui/icons-material/Close';
 import { setAddingReqItems, setQuoteItems, setSingleQuoteItem } from "../../redux/slices/requisicoes/quoteItemSlice";
 import { useParams } from "react-router-dom";
 
-const QuoteItemsTable = () => {
+
+interface QuoteItemsTableProps {
+  tableMaxHeight? : number;
+  hideFooter : boolean
+}
+
+
+const QuoteItemsTable = ({
+  tableMaxHeight,
+  hideFooter,
+}: QuoteItemsTableProps) => {
   const dispatch = useDispatch();
-  const {token } = useParams();
+  const { token } = useParams();
   const user = useSelector((state: RootState) => state.user.user);
   const theme = useTheme();
-  const {quote, accessType} = useSelector((state: RootState) => state.quote);
-  const { quoteItems, addingReqItems } = useSelector((state: RootState) => state.quoteItem);
+  const { quote, accessType } = useSelector((state: RootState) => state.quote);
+  const { quoteItems, addingReqItems } = useSelector(
+    (state: RootState) => state.quoteItem
+  );
   const [searchTerm, setSearchTerm] = useState("");
   const [cellModesModel, setCellModesModel] = useState<GridCellModesModel>({});
   const [loading, setLoading] = useState(false);
   const [blockFields, setBlockFields] = useState(false);
   const isSupplierRoute = accessType === "supplier" ? true : false;
 
- const handleUpdateUnavailable = async (
-   e: ChangeEvent<HTMLInputElement>,
-   itemId: number
- ) => {
-  setBlockFields(true);
-   const item = quoteItems.find((item) => item.id_item_cotacao === itemId);
-   if (!item) return;
-   try {
-     const payload = {
-       quantidade_cotada: item.quantidade_cotada,
-       ICMS: Number(item.ICMS),
-       IPI: Number(item.IPI),
-       ST: Number(item.ST),
-       observacao: item.observacao,
-       preco_unitario: item.preco_unitario,
-       subtotal: item.subtotal,
-       id_cotacao: Number(item.id_cotacao),
-       indisponivel: e.target.checked ? 1 : 0,
-       id_item_requisicao: Number(item.id_item_requisicao),
-     };
-     const updatedItem: QuoteItem = {
-       ...item,
-       ...payload,
-       subtotal: e.target.checked ? 0 : item.subtotal,
-     };
-     if (!e.target.checked) {
-       //caso o item seja desmarcado, precisa ser enviado ao backend e depois atualizado para que o novo subtotal seja calculado
-       if(token){ 
-        //se tiver token na url, enviar ao backend
-         const updatedItem = await QuoteItemService.update(itemId, payload, token);
-         dispatch(setSingleQuoteItem(updatedItem));
-         setBlockFields(false);
-         return;
-       }
-       const updatedItem = await QuoteItemService.update(itemId, payload);
-       dispatch(setSingleQuoteItem(updatedItem));
-       setBlockFields(false);
-       return;
-     }
-     dispatch(setSingleQuoteItem(updatedItem));
-     debouncedSave(payload, item.id_item_cotacao, item);
-     return;
-   } catch (e: any) {
-     dispatch(setSingleQuoteItem(item));
-     dispatch(
-       setFeedback({
-         message: `Erro ao atualizar o item ${item.produto_descricao} - ${e.message}`,
-         type: "error",
-       })
-     );
-   }
- };
+  const handleUpdateUnavailable = async (
+    e: ChangeEvent<HTMLInputElement>,
+    itemId: number
+  ) => {
+    setBlockFields(true);
+    const item = quoteItems.find((item) => item.id_item_cotacao === itemId);
+    if (!item) return;
+    try {
+      const payload = {
+        quantidade_cotada: item.quantidade_cotada,
+        ICMS: Number(item.ICMS),
+        IPI: Number(item.IPI),
+        ST: Number(item.ST),
+        observacao: item.observacao,
+        preco_unitario: item.preco_unitario,
+        subtotal: item.subtotal,
+        id_cotacao: Number(item.id_cotacao),
+        indisponivel: e.target.checked ? 1 : 0,
+        id_item_requisicao: Number(item.id_item_requisicao),
+      };
+      const updatedItem: QuoteItem = {
+        ...item,
+        ...payload,
+        subtotal: e.target.checked ? 0 : item.subtotal,
+      };
+      if (!e.target.checked) {
+        //caso o item seja desmarcado, precisa ser enviado ao backend e depois atualizado para que o novo subtotal seja calculado
+        if (token) {
+          //se tiver token na url, enviar ao backend
+          const updatedItem = await QuoteItemService.update(
+            itemId,
+            payload,
+            token
+          );
+          dispatch(setSingleQuoteItem(updatedItem));
+          setBlockFields(false);
+          return;
+        }
+        const updatedItem = await QuoteItemService.update(itemId, payload);
+        dispatch(setSingleQuoteItem(updatedItem));
+        setBlockFields(false);
+        return;
+      }
+      dispatch(setSingleQuoteItem(updatedItem));
+      debouncedSave(payload, item.id_item_cotacao, item);
+      return;
+    } catch (e: any) {
+      dispatch(setSingleQuoteItem(item));
+      dispatch(
+        setFeedback({
+          message: `Erro ao atualizar o item ${item.produto_descricao} - ${e.message}`,
+          type: "error",
+        })
+      );
+    }
+  };
 
   const { columns } = useQuoteItemColumns(handleUpdateUnavailable, blockFields);
 
-  const { permissionToEditItems, permissionToAddItems} = useQuoteItemPermissions(
-    user,
-    isSupplierRoute
-  );
-  
+  const { permissionToEditItems, permissionToAddItems } =
+    useQuoteItemPermissions(user, isSupplierRoute);
+
   const handleCellClick = useCallback(
     (params: GridCellParams, event: React.MouseEvent) => {
-
-      if(blockFields) return;
+      if (blockFields) return;
 
       if (params.field === "indisponivel") return;
 
-      if(params.row.indisponivel) { 
+      if (params.row.indisponivel) {
         dispatch(
           setFeedback({
             message: `O item ${params.row.produto_descricao} nao pode ser editado pois esta indisponivel`,
             type: "error",
-          }));
-        return
+          })
+        );
+        return;
       }
-     
+
       if (!params.isEditable) {
         dispatch(
           setFeedback({
@@ -169,68 +183,73 @@ const QuoteItemsTable = () => {
 
   const handleCellModesModelChange = useCallback(
     (newModel: GridCellModesModel) => {
-      
       setCellModesModel(newModel);
     },
     []
   );
 
-/**
- * Atualiza um item da cotação.
- * Verifica se a quantidade cotada  maior que a quantidade solicitada,
- * se a quantidade cotada   menor que zero, e se o pre o unit rio est  zerado.
- *
- * @param {Object} payload - Payload com campos para atualizar o item da cota o.
- * @param {number} id_item_cotacao - ID do item da cota o.
- * @param {Object} previousItem - Item da cotacaoo anterior para restaurar se houver erros.
- */
- const sendUpdate = async (
-   payload: any,
-   id_item_cotacao: number,
-   previousItem: any
- ) => {
-   const validations = [
-     {
-       condition: payload.quantidade_cotada > payload.quantidade_solicitada,
-       message: `Quantidade cotada maior que quantidade solicitada`,
-     },
-     {
-       condition: payload.quantidade_cotada < 0,
-       message: `Quantidade cotada menor que zero`,
-     },
-   ];
-   try {
-     validations.forEach((validation) => {
-       if (validation.condition) {
-         throw new Error(validation.message);
-       }
-     });
-     if(token){ 
-       const updatedItem = await QuoteItemService.update(id_item_cotacao, payload, token);
-       dispatch(setSingleQuoteItem(updatedItem));
-       return;
-     }
-     const updatedItem = await QuoteItemService.update(id_item_cotacao, payload);
-     dispatch(setSingleQuoteItem(updatedItem));
-   } catch (e: any) {
-     dispatch(setSingleQuoteItem({...previousItem}));
-     dispatch(
-       setFeedback({
-         message: `Erro ao atualizar item da cotação: ${e.message}`,
-         type: "error",
-       })
-     );
-     return;
-   }finally{ 
-     setBlockFields(false);
-   }
- };
+  /**
+   * Atualiza um item da cotação.
+   * Verifica se a quantidade cotada  maior que a quantidade solicitada,
+   * se a quantidade cotada   menor que zero, e se o pre o unit rio est  zerado.
+   *
+   * @param {Object} payload - Payload com campos para atualizar o item da cota o.
+   * @param {number} id_item_cotacao - ID do item da cota o.
+   * @param {Object} previousItem - Item da cotacaoo anterior para restaurar se houver erros.
+   */
+  const sendUpdate = async (
+    payload: any,
+    id_item_cotacao: number,
+    previousItem: any
+  ) => {
+    const validations = [
+      {
+        condition: payload.quantidade_cotada > payload.quantidade_solicitada,
+        message: `Quantidade cotada maior que quantidade solicitada`,
+      },
+      {
+        condition: payload.quantidade_cotada < 0,
+        message: `Quantidade cotada menor que zero`,
+      },
+    ];
+    try {
+      validations.forEach((validation) => {
+        if (validation.condition) {
+          throw new Error(validation.message);
+        }
+      });
+      if (token) {
+        const updatedItem = await QuoteItemService.update(
+          id_item_cotacao,
+          payload,
+          token
+        );
+        dispatch(setSingleQuoteItem(updatedItem));
+        return;
+      }
+      const updatedItem = await QuoteItemService.update(
+        id_item_cotacao,
+        payload
+      );
+      dispatch(setSingleQuoteItem(updatedItem));
+    } catch (e: any) {
+      dispatch(setSingleQuoteItem({ ...previousItem }));
+      dispatch(
+        setFeedback({
+          message: `Erro ao atualizar item da cotação: ${e.message}`,
+          type: "error",
+        })
+      );
+      return;
+    } finally {
+      setBlockFields(false);
+    }
+  };
 
   const debouncedSave = useMemo(() => debounce(sendUpdate, 300), []);
 
   const processRowUpdate = useCallback(
     async (newRow: GridRowModel, oldRow: GridRowModel) => {
-     
       const payload = {
         quantidade_cotada: newRow.quantidade_cotada,
         ICMS: Number(newRow.ICMS),
@@ -270,10 +289,10 @@ const QuoteItemsTable = () => {
         id_cotacao: quote?.id_cotacao, // Adjust to your quotation state property
         searchTerm,
       };
-      if(token){ 
-         const data = await QuoteItemService.getMany(params, token);
-         dispatch(setQuoteItems(data));
-         return;
+      if (token) {
+        const data = await QuoteItemService.getMany(params, token);
+        dispatch(setQuoteItems(data));
+        return;
       }
       const data = await QuoteItemService.getMany(params);
       dispatch(setQuoteItems(data));
@@ -297,11 +316,10 @@ const QuoteItemsTable = () => {
 
   return (
     <Box>
-      <Box display="flex" justifyContent="space-between" mb={1}>
-        <Typography variant="h6" color="primary.main">
-          Itens da cotação
-        </Typography>
-        {permissionToAddItems && (
+      <BaseTableToolBar
+        handleChangeSearchTerm={debouncedHandleChangeSearchTerm}
+      >
+         {permissionToAddItems && (
           <Button
             variant="contained"
             onClick={() => {
@@ -311,24 +329,23 @@ const QuoteItemsTable = () => {
             Adicionar itens
           </Button>
         )}
+      </BaseTableToolBar>
+      <Box sx={{ height: tableMaxHeight ? tableMaxHeight : "auto" }}>
+        <BaseDataTable
+          density="compact"
+          disableColumnMenu
+          getRowId={(row: any) => row.id_item_cotacao}
+          loading={loading}
+          theme={theme}
+          rows={quoteItems}
+          columns={columns}
+          cellModesModel={cellModesModel}
+          onCellModesModelChange={handleCellModesModelChange}
+          onCellClick={handleCellClick}
+          processRowUpdate={processRowUpdate}
+          hideFooter={hideFooter}
+        />
       </Box>
-      <BaseTableToolBar
-        handleChangeSearchTerm={debouncedHandleChangeSearchTerm}
-      />
-      <BaseDataTable
-        density="compact"
-        disableColumnMenu
-        getRowId={(row: any) => row.id_item_cotacao}
-        loading={loading}
-        theme={theme}
-        rows={quoteItems}
-        columns={columns}
-        cellModesModel={cellModesModel}
-        onCellModesModelChange={handleCellModesModelChange}
-        onCellClick={handleCellClick}
-        processRowUpdate={processRowUpdate}
-        hideFooter
-      />
 
       <Dialog
         open={addingReqItems}
@@ -344,7 +361,7 @@ const QuoteItemsTable = () => {
           >
             <CloseIcon />
           </IconButton>
-          {addingReqItems && <RequisitionItemsTable />}
+          {addingReqItems && <RequisitionItemsTable hideFooter />}
         </DialogContent>
       </Dialog>
     </Box>
