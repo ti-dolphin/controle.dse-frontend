@@ -10,21 +10,20 @@ export const usePatrimonyFormPermissions = (mode : string, patrimony : Partial<P
 
     useEffect(( ) => { 
          if (mode === "create") {
-           console.log(`${user?.NOME} has permission to create`);
            setPermissionToEdit(true);
            return;
          }
-        if(user && patrimony){
+         if (user && patrimony) {
            setPermissionToEdit(false);
-           const responsableForType = Number(user?.CODPESSOA) === Number(patrimony?.tipo_patrimonio?.responsavel_tipo);
+           const responsableForType =
+             Number(user?.CODPESSOA) ===
+             Number(patrimony?.tipo_patrimonio?.responsavel_tipo);
            const adm = Number(user?.PERM_ADMINISTRADOR) === 1;
-           if ((responsableForType && mode === 'edit') || adm) {
-            console.log(`${user?.NOME} has permission to edit`);
-            setPermissionToEdit(true);
-            return;
+           if ((responsableForType && mode === "edit") || adm) {
+             setPermissionToEdit(true);
+             return;
            }
-
-        }
+         }
     }, [user, patrimony, mode]);
 
     return { permissionToEdit };

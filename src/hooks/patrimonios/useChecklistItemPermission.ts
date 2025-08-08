@@ -15,7 +15,7 @@ export const useChecklistItemPermission = (checklist  : Partial<Checklist> )=> {
             const adm = Number(user.PERM_ADMINISTRADOR) === 1
           if (responsable || adm) {
             setPermissionToUploadImage(true);
-            console.log("has permission to upload image");
+
             return;
           }
         }

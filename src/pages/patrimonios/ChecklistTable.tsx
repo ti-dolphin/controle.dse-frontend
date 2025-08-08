@@ -150,18 +150,17 @@ const ChecklistTable = () => {
 
   const fetchChecklistsByPatrimony = React.useCallback(async () => {
     try {
-      console.log("fetchChecklistsByPatrimony");
       if (!id_patrimonio) return;
-      setLoading(true)
+      setLoading(true);
       const params = {
         filters: formatFilters(filters),
         searchTerm,
         id_patrimonio: Number(id_patrimonio),
       };
       const data = await CheckListService.getMany(params);
-      
+
       dispatch(setRows(data));
-      setLoading(false)
+      setLoading(false);
     } catch (e) {
       setLoading(false);
       dispatch(
@@ -174,16 +173,15 @@ const ChecklistTable = () => {
   }, [filters, searchTerm, id_patrimonio, dispatch, refresh]);
 
   const fetchChecklistsByUser = React.useCallback(async () => {
-    console.log("fetchChecklistsByUser");
     try {
-      if(!user) return;
+      if (!user) return;
       setLoading(true);
       const params = {
         situacao: situation,
         filters: formatFilters(filters),
         searchTerm,
       };
-      const data = await CheckListService.getManyByUser(user.CODPESSOA, params) ;
+      const data = await CheckListService.getManyByUser(user.CODPESSOA, params);
       dispatch(setRows(data));
       setLoading(false);
     } catch (e) {
@@ -269,7 +267,7 @@ const ChecklistTable = () => {
         open={Boolean(checklistSelected)}
         onClose={() => {
           setChecklistSelected(null);
-          console.log("refresh");
+          
           dispatch(setRefresh(!refresh));
         }}
       >
@@ -289,7 +287,7 @@ const ChecklistTable = () => {
             color="error"
             onClick={() => {
               setChecklistSelected(null);
-              console.log("refresh");
+              
               dispatch(setRefresh(!refresh));
             }}
             aria-label="close"

@@ -42,7 +42,6 @@ function BaseTableColumnFiltersComponent<T>({
   );
 
   useEffect(() => {
-    console.log("filters: ", filters);
     setLocalFilters({ ...filters });
   }, [filters]);
 

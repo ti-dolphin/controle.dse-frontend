@@ -85,7 +85,7 @@ export const useOpportunityFilters = () => {
       field: string,
     ) => {
       const value = e.target.value;
-      console.log("filters: ", { ...filters, [field]: value });
+
       dispatch(setFilters({ ...filters, [field]: value }));
     },
     [filters, dispatch]

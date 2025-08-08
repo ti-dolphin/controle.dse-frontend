@@ -44,13 +44,13 @@ const PatrimonyForm = () => {
 
   const fetchData = async () => {
     try {
-      if (!id_patrimonio) { 
+      if (!id_patrimonio) {
         setMode("create");
         return;
-      };
+      }
       setMode("edit");
       const data = await PatrimonyService.getById(Number(id_patrimonio));
-      console.log("data: ", data);
+
       setPatrimony(data);
       setFormData({
         nome: data.nome,

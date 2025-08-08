@@ -77,16 +77,14 @@ const { filters, handleChangeFilters, buildPrismaFilters, clearFilters } = useOp
    fetchData();
  }, [fetchData]);
 
- useEffect(()=> { 
-  if(toolbarRef.current){ 
-    setToolbarHeight(toolbarRef.current.clientHeight);
-  }
-  if(columnFiltersRef.current){
-    setColumnFiltersHeight(columnFiltersRef.current.clientHeight);
-  }
-  //log heihgts
-  console.log("toolbarHeight", toolbarHeight);
-  console.log("columnFiltersHeight", columnFiltersHeight);
+ useEffect(()=> {
+   if (toolbarRef.current) {
+     setToolbarHeight(toolbarRef.current.clientHeight);
+   }
+   if (columnFiltersRef.current) {
+     setColumnFiltersHeight(columnFiltersRef.current.clientHeight);
+   }
+   //log heihgts
  }, [toolbarRef.current, columnFiltersRef.current]);
 
   return (

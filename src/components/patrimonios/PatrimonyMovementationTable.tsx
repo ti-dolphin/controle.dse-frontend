@@ -60,14 +60,13 @@ const PatrimonyMovementationTable = () => {
           const newMov = await MovementationService.create({...formData});
           dispatch(setFeedback({ message: 'Movimentação criada com sucesso', type: 'success' }));
           setCreating(false);
-          setRows([...rows, newMov]);
+          setRows([newMov, ...rows]);
         } catch (error) {
           dispatch(setFeedback({ message: 'Erro ao criar movimentação', type: 'error' }));
         }
       }
 
-      
-
+  
       const fetchData = async () => {
         try {
             const data = await MovementationService.getMany({ 

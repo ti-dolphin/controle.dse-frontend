@@ -8,9 +8,6 @@ import { ReducedUser } from '../../models/User';
 
 
 const useMovementationColumns = (deletingMov : number | null, setDeletingMov : React.Dispatch<React.SetStateAction<number | null>>, permissionToDelete : boolean) => {
-
-  console.log("permissionToDelete: ", permissionToDelete);
-
   const columns: GridColDef[] = [
     {
       field: "id_movimentacao",
@@ -48,7 +45,7 @@ const useMovementationColumns = (deletingMov : number | null, setDeletingMov : R
       field: "data",
       headerName: "Data",
       flex: 0.6,
-      type: 'date',
+      type: "date",
       valueGetter: (date: string) => (date ? getDateFromISOstring(date) : ""),
       // valueFormatter: (value: any) =>
       //   value ? getDateStringFromISOstring(value) : "",

@@ -60,11 +60,27 @@ export function useRequisitionColumns(changeSelectedRow: (row: any) => void, gri
         },
       },
       {
+        field: "gerente",
+        headerName: "Gerente",
+        flex: 1,
+        valueGetter: (user: ReducedUser) => {
+          return user.NOME;
+        },
+      },
+      {
+        field: "responsavel_projeto",
+        headerName: "Responsável Projeto",
+        flex: 1,
+        valueGetter: (user: ReducedUser) => {
+          return user.NOME;
+        },
+      },
+      {
         field: "status",
         headerName: "Status",
         flex: 0.5,
         valueGetter: (status: RequisitionStatus) => {
-          return status ? status.nome : '';
+          return status ? status.nome : "";
         },
       },
       // {
@@ -76,38 +92,38 @@ export function useRequisitionColumns(changeSelectedRow: (row: any) => void, gri
       //     return getDateFromISOstring(value);
       //   },
       // },
-      { 
-        field: 'custo_total',
-        headerName: 'Custo Total',
+      {
+        field: "custo_total",
+        headerName: "Custo Total",
         flex: 0.4,
-        type: 'number',
+        type: "number",
         renderCell: (params: GridRenderCellParams) => {
           return (
             <Box
               sx={{
-                display: 'flex',
-                flexDirection: 'column',
-                height: '100%',
-                justifyContent: 'center',
+                display: "flex",
+                flexDirection: "column",
+                height: "100%",
+                justifyContent: "center",
               }}
             >
-             {formatCurrency(Number(params.value))}
+              {formatCurrency(Number(params.value))}
             </Box>
           );
-        }
+        },
       },
       {
         field: "actions",
         headerName: "",
         flex: 0.5,
-      
+
         renderCell: (params: GridRenderCellParams) => {
           const { row } = params;
           return (
-            <Box sx={{zIndex: 30}}>
+            <Box sx={{ zIndex: 30 }}>
               <IconButton
-                onClick={() => { 
-                   changeSelectedRow(row);
+                onClick={() => {
+                  changeSelectedRow(row);
                 }}
                 sx={{ color: "primary.main" }}
               >

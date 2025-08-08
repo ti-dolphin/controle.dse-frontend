@@ -10,8 +10,6 @@ import {
   setSearchTerm,
   setFilters,
   RequisitionFilters,
-  filterFieldMap,
-  buildPrismaFilters,
   clearfilters,
 } from "../../../redux/slices/requisicoes/requisitionTableSlice";
 import { setFeedback } from "../../../redux/slices/feedBackSlice";
@@ -131,11 +129,10 @@ const RequisitionListPage = () => {
   const fetchData = React.useCallback(async () => {
     dispatch(setLoading(true));
     try {
-      const prismaFilters = buildPrismaFilters(filters);
       const data = await RequisitionService.getMany(user as ReducedUser, {
         id_kanban_requisicao: selectedKanban?.id_kanban_requisicao,
         searchTerm,
-        filters: prismaFilters,
+        filters,
       });
       dispatch(setRows(data));
       dispatch(setLoading(false));

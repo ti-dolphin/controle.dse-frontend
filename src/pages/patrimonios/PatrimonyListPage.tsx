@@ -3,6 +3,7 @@ import { useDispatch, useSelector } from "react-redux";
 import { RootState } from "../../redux/store";
 import {
   buildPatrimonyPrismaFilters,
+  cleanFilters,
   deleteSingleRow,
   setFilters,
   setIsLoading,
@@ -11,7 +12,16 @@ import {
   setSearch,
 } from "../../redux/slices/patrimonios/PatrimonyTableSlice";
 import MovementationService from "../../services/patrimonios/MovementationService";
-import { Box, Button, Dialog, DialogContent, DialogTitle, IconButton, Stack, Typography } from "@mui/material";
+import {
+  Box,
+  Button,
+  Dialog,
+  DialogContent,
+  DialogTitle,
+  IconButton,
+  Stack,
+  Typography,
+} from "@mui/material";
 import { usePatMovementationColumns } from "../../hooks/patrimonios/usePatMovementationColumns";
 import { useTheme } from "@mui/material/styles";
 import BaseToolBar from "../../components/shared/BaseToolBar";
@@ -37,9 +47,8 @@ const PatrimonyListPage = () => {
   const navigate = useNavigate();
   const theme = useTheme();
   const user = useSelector((state: RootState) => state.user.user);
-  const { rows, isLoading, filters, search , patrimonyBeingDeleted} = useSelector(
-    (state: RootState) => state.patrionyTable
-  );
+  const { rows, isLoading, filters, search, patrimonyBeingDeleted } =
+    useSelector((state: RootState) => state.patrionyTable);
   const [creating, setCreating] = React.useState(false);
 
   const { columns } = usePatMovementationColumns();
@@ -49,8 +58,8 @@ const PatrimonyListPage = () => {
     navigate("/");
   };
 
-  const navigateToPatrimonyDetail = (params: any ) => {
-    if(params.field=== 'actions') return;
+  const navigateToPatrimonyDetail = (params: any) => {
+    if (params.field === "actions") return;
     navigate(`/patrimonios/${params.row.id_patrimonio}`);
   };
 
@@ -71,7 +80,7 @@ const PatrimonyListPage = () => {
       if (value && !isNaN(Number(value)) && value.trim() !== "") {
         value = Number(value);
       }
-      console.log("filters: ", { ...filters, [field]: value });
+
       dispatch(setFilters({ ...filters, [field]: value }));
     },
     [dispatch, filters]
@@ -109,20 +118,20 @@ const PatrimonyListPage = () => {
 
   const handleCleanFilter = () => {
     // Implement filter cleaning logic here
-    console.log("Filters cleared");
+    dispatch(cleanFilters());
   };
 
   const fetchData = React.useCallback(async () => {
     dispatch(setIsLoading(true));
     try {
       const prismaFilters = buildPatrimonyPrismaFilters(filters);
-      console.log("prismaFilters: ", prismaFilters);
+
       const data = await MovementationService.getMany({
-        from: 'patrimonios',
+        from: "patrimonios",
         search,
         prismaFilters,
       });
-      console.log("data: ", data);
+
       dispatch(setRows(data));
       dispatch(setIsLoading(false));
     } catch (e: any) {
@@ -222,14 +231,13 @@ const PatrimonyListPage = () => {
         </DialogContent>
       </Dialog>
 
-      <BaseDeleteDialog 
+      <BaseDeleteDialog
         open={patrimonyBeingDeleted !== null}
-        onCancel={() => { 
-          dispatch(setPatrimonyBeingDeleted(null))
+        onCancel={() => {
+          dispatch(setPatrimonyBeingDeleted(null));
         }}
         onConfirm={() => deletePatrimony()}
       />
-
     </Box>
   );
 };

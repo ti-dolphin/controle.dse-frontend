@@ -242,33 +242,7 @@ const RequisitionDetailPage = () => {
             <RequisitionAttachmentList id_requisicao={Number(id_requisicao)} />
           </Paper>
           <Paper sx={{ p: 2, mb: 2 }}>
-            <Typography variant="subtitle1" fontWeight={500} mb={1}>
-              Comnentários
-            </Typography>
-            <Divider sx={{ mb: 1 }} />
-            <Box
-              sx={{
-                display: "flex",
-                flexDirection: "column",
-                alignItems: "start",
-                gap: 1,
-              }}
-            >
-              <BaseMultilineInput
-                onChange={(e) => handleChangeObservation(e)}
-                onFocus={startObservationEditMode}
-                value={observation || ""}
-              />
-              {editingObservation && (
-                <Button
-                  onClick={handleSaveObservation}
-                  variant="contained"
-                  color="success"
-                >
-                  Salvar
-                </Button>
-              )}
-            </Box>
+            
           </Paper>
           <Paper sx={{ p: 2 }}>
             <Stack
