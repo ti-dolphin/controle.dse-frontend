@@ -41,6 +41,7 @@ const BaseTableToolBar = ({
     >
       <BaseSearchInput
         showIcon={true}
+     
         onChange={handleChangeSearchTerm}
         value={searchTerm}
       />

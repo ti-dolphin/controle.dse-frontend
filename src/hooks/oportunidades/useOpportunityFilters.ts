@@ -31,7 +31,7 @@ export const filterFieldMap: Record<string, string> = {
   VALOR_TOTAL: "VALOR_TOTAL.gt",
   cliente: "cliente.NOMEFANTASIA.contains",
   projeto: "projeto.DESCRICAO.contains",
-  responsavel: "responsavel.NOME.contains",
+  responsavel: "pessoa.NOME.contains",
   status: "status.NOME.contains",
   adicional: "adicionais.NUMERO.equals",
 };

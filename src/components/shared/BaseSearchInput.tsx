@@ -34,6 +34,7 @@ const BaseSearchInput = ({ onChange, value, showIcon, label, placeholder, styles
         placeholder={placeholder || "Pesquisar..."}
         aria-label={label && label}
         onChange={onChange}
+        onKeyDown={(e) => e.key === "Enter" && e.preventDefault()}
         style={{
           padding: "8px 12px",
           borderRadius: "4px",

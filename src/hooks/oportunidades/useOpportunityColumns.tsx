@@ -7,12 +7,14 @@ import { ProjectAdicional } from "../../models/oportunidades/ProjectAdicional";
 import { Box, Typography } from "@mui/material";
 import { getDateFromISOstring } from "../../utils";
 import { last } from "lodash";
-
+import InfoIcon from "@mui/icons-material/Info";
+import ErrorIcon from "@mui/icons-material/Error";
+import CheckCircleIcon from "@mui/icons-material/CheckCircle";
 
 
 
 export const useOpportunityColumns = ( ) =>  {
-  const columns: any[] = [
+  const columns:any = [
     {
       field: "CODOS",
       headerName: "Nº OS",
@@ -73,7 +75,7 @@ export const useOpportunityColumns = ( ) =>  {
       depth: 1,
       lastChildKey: 'NOMEFANTASIA',
       valueGetter: (client: Client) => client.NOMEFANTASIA || "", // ajusta de acordo com sua estrutura
-      flex: 2,
+      flex: 1.5,
     },
     {
       field: "projeto",
@@ -127,7 +129,16 @@ export const useOpportunityColumns = ( ) =>  {
         return getDateFromISOstring(value);
       },
     },
-
+    { 
+      field: 'DATAINTERACAO',
+      headerName: 'Interação',
+      flex: 1,
+      sortable: true,
+      type: "date",
+      valueGetter: (value: any) => {
+        return getDateFromISOstring(value);
+      }
+    },
     {
       field: "VALOR_TOTAL",
       headerName: "Valor Total",
@@ -144,6 +155,29 @@ export const useOpportunityColumns = ( ) =>  {
             })}`
           : "",
     },
+    { 
+      field: 'situacao',
+      headerName: 'Situação',
+      flex: 0.5,
+      sortable: true,
+      valueParser: (value: any) => { 
+        const valueOrderMap : any = { 
+          expirada : 1,
+          expirando: 2,
+          ativa: 3,
+        }
+        return valueOrderMap[value];
+      },
+      renderCell: (params: any) =>  { 
+        const iconMap : any = { 
+          expirada : <ErrorIcon color="error"/>,
+          expirando: <InfoIcon color="warning"/>,
+          ativa: <CheckCircleIcon color="success"/>,
+        }
+
+        return <Box sx={{display: "flex", alignItems: "center", height: "100%"}}>{iconMap[params.value]}</Box>;
+      },
+    }
   ];
     return {columns}
 };

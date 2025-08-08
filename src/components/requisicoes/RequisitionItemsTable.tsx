@@ -68,7 +68,8 @@ const RequisitionItemsTable = ({ tableMaxHeight, hideFooter }: RequisitionItemsT
 
   const user = useSelector((state: RootState) => state.user.user);
 
-  const { editItemFieldsPermitted } = useRequisitionItemPermissions(
+  const { editItemFieldsPermitted,
+      createQuotePermitted, } = useRequisitionItemPermissions(
     user,
     requisition
   );
@@ -447,7 +448,8 @@ const RequisitionItemsTable = ({ tableMaxHeight, hideFooter }: RequisitionItemsT
       {selectionModel.length > 0 && (
         <Box sx={{ p: 1 }}>
           {!addingReqItems &&
-            !updatingRecentProductsQuantity &&(
+            !updatingRecentProductsQuantity &&
+            createQuotePermitted &&(
               <Button
                 variant="contained"
                 onClick={createQuoteFromSelectedItems}

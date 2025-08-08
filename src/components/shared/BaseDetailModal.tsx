@@ -2,7 +2,7 @@ import React from "react";
 import { Dialog, DialogTitle, DialogContent, IconButton, Box, Typography, Divider, Grid } from "@mui/material";
 import CloseIcon from "@mui/icons-material/Close";
 import { GridColDef } from "@mui/x-data-grid";
-import { getDateStringFromISOstring } from "../../utils";
+import { getDateStringFromDateObject, getDateStringFromISOstring } from "../../utils";
 
 interface BaseDetailModalProps<T> {
   open: boolean;
@@ -31,7 +31,7 @@ export function BaseDetailModal<T>({ open, onClose, columns, row, title, ref }: 
     if (typeof col.valueGetter === "function") {
       const value = col.valueGetter(row[col.field] as never, row, col, ref);
       if (detectType(value) === "date") {
-        return getDateStringFromISOstring(value);
+        return getDateStringFromDateObject(value);
       }
       return value;
     }

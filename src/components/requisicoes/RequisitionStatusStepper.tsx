@@ -75,10 +75,10 @@ const RequisitionStatusStepper = ({
   const user = useSelector((state: RootState) => state.user.user);
   const dispatch = useDispatch();
   const { requisition } = useSelector((state: RootState) => state.requisition);
-  const { permissionToChangeStatus } = useRequisitionStatusPermissions(user, requisition);
+  const { permissionToChangeStatus, permissionToCancel, permissionToActivate } = useRequisitionStatusPermissions(user, requisition);
 
   const currentStatusIndex = requisition.status?.etapa ?? 0;
-  const { statusList, canceledStatus } = useRequisitionStatus(); //STATUS LIST 
+  const { statusList, canceledStatus } = useRequisitionStatus(); 
 
   const handleChangeStatus = async (
     type: "acao_anterior" | "acao_posterior"
@@ -134,6 +134,46 @@ const RequisitionStatusStepper = ({
     }
   };
 
+  const handleCancel = async ( ) =>  {
+    try {
+      const updatedRequisition = await RequisitionService.cancel(Number(id_requisicao));
+      dispatch(setRequisition(updatedRequisition));
+      dispatch(
+        setFeedback({
+          type: "success", //DISPLAYS SUCCESS MESSAGE ON SCREEN
+          message: "Requisição cancelada com sucesso!",
+        })
+      );
+    }catch(e : any){ 
+      dispatch(
+        setFeedback({
+          type: "error",
+          message: `Erro ao cancelar requisição: ${e.message}`,
+        })
+      );
+    }
+  }
+
+  const handleActivate = async ( ) =>  {
+    try {
+      const updatedRequisition = await RequisitionService.activate(Number(id_requisicao));
+      dispatch(setRequisition(updatedRequisition));
+      dispatch(
+        setFeedback({
+          type: "success", //DISPLAYS SUCCESS MESSAGE ON SCREEN
+          message: "Requisição ativada com sucesso!",
+        })
+      );
+    }catch(e : any){ 
+      dispatch(
+        setFeedback({
+          type: "error",
+          message: `Erro ao ativar requisição: ${e.message}`,
+        })
+      );
+    }
+  }
+
   return (
     <Box
       sx={{
@@ -145,44 +185,48 @@ const RequisitionStatusStepper = ({
         gap: 2,
       }}
     >
-      <Stepper
-        alternativeLabel
-        activeStep={currentStatusIndex}
-        connector={<CustomConnector />}
-        sx={{ minWidth: 600 }}
-      >
-        {statusList.map((status, idx) => (
-          <Step key={status.id_status_requisicao}>
-            <StepLabel
-              StepIconComponent={CustomStepIcon}
-              sx={{
-                "& .MuiStepLabel-label": {
-                  mt: 1,
-                  fontWeight: idx === currentStatusIndex ? 700 : 400,
-                  color:
-                    idx === currentStatusIndex
-                      ? "text.primary"
-                      : "text.secondary",
-                },
-              }}
-            >
-              <Typography
-                fontWeight={idx === currentStatusIndex ? 700 : 400}
-                color={
-                  idx === currentStatusIndex ? "text.primary" : "text.secondary"
-                }
+      {requisition.status?.nome !== "Cancelado" && (
+        <Stepper
+          alternativeLabel
+          activeStep={currentStatusIndex}
+          connector={<CustomConnector />}
+          sx={{ minWidth: 600 }}
+        >
+          {statusList.map((status, idx) => (
+            <Step key={status.id_status_requisicao}>
+              <StepLabel
+                StepIconComponent={CustomStepIcon}
                 sx={{
-                  textTransform: "none",
-                  fontSize: idx === currentStatusIndex ? 14 : 14,
-                  textAlign: "center",
+                  "& .MuiStepLabel-label": {
+                    mt: 1,
+                    fontWeight: idx === currentStatusIndex ? 700 : 400,
+                    color:
+                      idx === currentStatusIndex
+                        ? "text.primary"
+                        : "text.secondary",
+                  },
                 }}
               >
-                {status.nome}
-              </Typography>
-            </StepLabel>
-          </Step>
-        ))}
-      </Stepper>
+                <Typography
+                  fontWeight={idx === currentStatusIndex ? 700 : 400}
+                  color={
+                    idx === currentStatusIndex
+                      ? "text.primary"
+                      : "text.secondary"
+                  }
+                  sx={{
+                    textTransform: "none",
+                    fontSize: idx === currentStatusIndex ? 14 : 14,
+                    textAlign: "center",
+                  }}
+                >
+                  {status.nome}
+                </Typography>
+              </StepLabel>
+            </Step>
+          ))}
+        </Stepper>
+      )}
       <Stack direction="row" justifyContent="center" sx={{ gap: 2 }}>
         <Button
           variant="contained"
@@ -222,9 +266,16 @@ const RequisitionStatusStepper = ({
           </Typography>
           <ArrowCircleRightIcon sx={{ mr: 1 }} />
         </Button>
-        <Button variant="contained" color="error">
-          Cancelar
-        </Button>
+        {permissionToCancel && (
+          <Button onClick={handleCancel} variant="contained" color="error">
+            Cancelar
+          </Button>
+        )}
+        {permissionToActivate && (
+          <Button onClick={handleActivate} variant="contained" color="success">
+            Reativar
+          </Button>
+        )}
       </Stack>
     </Box>
   );

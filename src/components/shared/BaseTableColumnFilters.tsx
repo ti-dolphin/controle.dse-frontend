@@ -27,13 +27,15 @@ function BaseTableColumnFiltersComponent<T>({
   debouncedSetTriggerFetch,
   handleCleanFilters,
 }: BaseTableColumnFiltersProps<T>) {
-  
   const [localFilters, setLocalFilters] = useState<any>({});
 
   const debouncedSync = useMemo(
     () =>
       debounce((field: string, value: string) => {
-        handleChangeFilters({ target: { value : value === "" ? null : value } } as any, field);
+        handleChangeFilters(
+          { target: { value: value === "" ? '' : value } } as any,
+          field
+        );
         debouncedSetTriggerFetch();
       }, 600),
     [handleChangeFilters, debouncedSetTriggerFetch]
@@ -54,7 +56,9 @@ function BaseTableColumnFiltersComponent<T>({
       }}
     >
       {handleCleanFilters && (
-        <Box sx={{width: '100%', display: 'flex', justifyContent: 'flex-end'}}>
+        <Box
+          sx={{ width: "100%", display: "flex", justifyContent: "flex-end" }}
+        >
           <Button
             variant="contained"
             onClick={handleCleanFilters}
@@ -89,8 +93,14 @@ function BaseTableColumnFiltersComponent<T>({
                 type={col.type || "text"}
                 value={localFilters[col.field] || ""}
                 placeholder={col.headerName || "Pesquisar..."}
+                onKeyDown={(e: React.KeyboardEvent<HTMLInputElement>) => {
+                   if(e.key === "Enter") {
+                    e.preventDefault();
+                    debouncedSync(col.field, (e.target as HTMLInputElement).value);
+                   }
+                }
+                }
                 onChange={(e) => {
-                  // handleChangeFilters(e, col.field);
                   setLocalFilters((prev: any) => ({
                     ...prev,
                     [col.field]: e.target.value,

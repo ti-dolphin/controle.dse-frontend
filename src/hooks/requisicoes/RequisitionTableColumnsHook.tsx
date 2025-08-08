@@ -2,7 +2,7 @@ import { GridApi, GridColDef, GridRenderCellParams, MuiEvent, useGridApiRef } fr
 import { Project } from "../../models/Project";
 import { ReducedUser } from "../../models/User";
 import { RequisitionStatus } from "../../models/requisicoes/RequisitionStatus";
-import { getDateFromISOstring } from "../../utils";
+import { formatCurrency, getDateFromISOstring } from "../../utils";
 import { Box, IconButton, Typography } from "@mui/material";
 import VisibilityIcon from "@mui/icons-material/Visibility";
 import { MutableRefObject, useMemo } from "react";
@@ -53,7 +53,7 @@ export function useRequisitionColumns(changeSelectedRow: (row: any) => void, gri
       },
       {
         field: "responsavel",
-        headerName: "Responsável",
+        headerName: "Requisitante",
         flex: 1,
         valueGetter: (user: ReducedUser) => {
           return user.NOME;
@@ -67,16 +67,35 @@ export function useRequisitionColumns(changeSelectedRow: (row: any) => void, gri
           return status ? status.nome : '';
         },
       },
-      {
-        field: "data_criacao",
-        headerName: "Data de Criação",
-        flex: 0.5,
-        type: "date",
-        valueGetter: (value) => {
-          return getDateFromISOstring(value);
-        },
+      // {
+      //   field: "data_criacao",
+      //   headerName: "Data de Criação",
+      //   flex: 0.5,
+      //   type: "date",
+      //   valueGetter: (value) => {
+      //     return getDateFromISOstring(value);
+      //   },
+      // },
+      { 
+        field: 'custo_total',
+        headerName: 'Custo Total',
+        flex: 0.4,
+        type: 'number',
+        renderCell: (params: GridRenderCellParams) => {
+          return (
+            <Box
+              sx={{
+                display: 'flex',
+                flexDirection: 'column',
+                height: '100%',
+                justifyContent: 'center',
+              }}
+            >
+             {formatCurrency(Number(params.value))}
+            </Box>
+          );
+        }
       },
-
       {
         field: "actions",
         headerName: "",
@@ -133,6 +152,15 @@ export function useRequisitionColumns(changeSelectedRow: (row: any) => void, gri
         valueGetter: (value) => {
           return getDateFromISOstring(value);
         },
+      },
+      { 
+        field: 'data_criacao',
+        headerName: 'Data de Criação',
+        flex: 1,
+        type: 'date',
+        valueGetter: (value) => {
+          return getDateFromISOstring(value);
+        }
       },
       {
         field: "tipo_requisicao",

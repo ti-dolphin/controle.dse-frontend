@@ -40,6 +40,7 @@ const fields: FieldConfig[] = [
     field: "DESCRIPTION",
     type: "text",
     disabled: false,
+    required: true,
     defaultValue: "",
     value: requisition.DESCRIPTION ?? "",
   },
@@ -48,6 +49,7 @@ const fields: FieldConfig[] = [
     field: "OBSERVACAO",
     type: "text",
     disabled: false,
+    required: false,
     defaultValue: "",
     value: requisition.OBSERVACAO ?? "",
   },
@@ -217,7 +219,7 @@ const fields: FieldConfig[] = [
           <TextField
             key={config.field}
             label={config.label}
-            required
+            required={config.required}
             value={requisition[config.field as keyof Requisition] ?? ""}
             onChange={handleChange(config.field as keyof Requisition)}
             variant="outlined"

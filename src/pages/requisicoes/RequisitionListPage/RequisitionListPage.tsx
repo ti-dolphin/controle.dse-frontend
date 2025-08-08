@@ -47,29 +47,19 @@ const RequisitionListPage = () => {
   const [triggerFetch, setTriggerFetch] = useState(0);
   const dispatch = useDispatch();
   const theme = useTheme();
-  const width = window.innerWidth;
   const user = useSelector((state: RootState) => state.user.user);
   const rows = useSelector((state: RootState) => state.requisitionTable.rows);
   const navigate = useNavigate();
   
-  const searchTerm = useSelector(
-    (state: RootState) => state.requisitionTable.searchTerm
-  );
-  const filters = useSelector(
-    (state: RootState) => state.requisitionTable.filters
-  );
-  const loading = useSelector(
-    (state: RootState) => state.requisitionTable.loading
-  );
-  const selectedRow = useSelector(
-    (state: RootState) => state.requisitionTable.selectedRow
-  );
-  const kanbans = useSelector(
-    (state: RootState) => state.requisitionTable.kanbans
-  );
-  const selectedKanban = useSelector(
-    (state: RootState) => state.requisitionTable.selectedKanban
-  );
+  const {
+    searchTerm,
+    filters,
+    loading,
+    selectedRow,
+    kanbans,
+    selectedKanban,
+  } = useSelector((state: RootState) => state.requisitionTable);
+
   const changeSelectedRow = (row: any) => {
     dispatch(setSelectedRow(row));
   };
@@ -142,7 +132,6 @@ const RequisitionListPage = () => {
     dispatch(setLoading(true));
     try {
       const prismaFilters = buildPrismaFilters(filters);
-      console.log("req prisma filters", prismaFilters);
       const data = await RequisitionService.getMany(user as ReducedUser, {
         id_kanban_requisicao: selectedKanban?.id_kanban_requisicao,
         searchTerm,

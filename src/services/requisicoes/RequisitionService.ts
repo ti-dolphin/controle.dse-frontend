@@ -23,6 +23,16 @@ export default class RequisitionService {
         return response.data;
     }
 
+    static async cancel(id_requisicao: number) {
+        const response = await api.put(`${API_ENDPOINT}/${id_requisicao}/cancelar`);
+        return response.data;
+    }
+
+    static async activate(id_requisicao: number) {
+        const response = await api.put(`${API_ENDPOINT}/${id_requisicao}/ativar`);
+        return response.data;
+    }
+
     static async update(id_requisicao: number, data: any) {
         const response = await api.put(`${API_ENDPOINT}/${id_requisicao}`, data);
         return response.data;

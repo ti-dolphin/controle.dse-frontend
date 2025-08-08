@@ -14,12 +14,22 @@ export const useRequisitionStatusPermissions = (user: User | null, requisition: 
     const dispatch = useDispatch();
     const [permissionToChangeStatus, setPermissionToChangeStatus] = useState<boolean>(false);
     const [permissionToCancel, setPermissionToCancel] = useState<boolean>(false);
+    const [permissionToActivate, setPermissionToActivate] = useState<boolean>(false);
 
     const fetchPermission = useCallback(async () => { 
+    setPermissionToCancel(false);
+    setPermissionToActivate(false);
+    setPermissionToChangeStatus(false);
     const admOrBuyer = user?.PERM_ADMINISTRADOR === 1 || user?.PERM_COMPRADOR === 1;
-    if (admOrBuyer) {
+    const notCancelled = requisition.status?.nome !== "Cancelado";
+    const cancelled = requisition.status?.nome === "Cancelado";
+
+    if(admOrBuyer && cancelled) { 
+      setPermissionToActivate(true);
+    }
+  
+    if (admOrBuyer && notCancelled) {
       setPermissionToCancel(true);
-      return;
     }
     if (user && requisition.ID_REQUISICAO > 0) {
       setPermissionToChangeStatus(false)
@@ -28,7 +38,6 @@ export const useRequisitionStatusPermissions = (user: User | null, requisition: 
         user,
         requisition
         );
-   
         setPermissionToChangeStatus(permissions.permissionToChangeStatus);
       } catch (error: any) {
         dispatch(
@@ -46,7 +55,11 @@ export const useRequisitionStatusPermissions = (user: User | null, requisition: 
         fetchPermission();
     }, [fetchPermission]);
 
-    return { permissionToChangeStatus };
+    return {
+      permissionToChangeStatus,
+      permissionToCancel,
+      permissionToActivate,
+    };
 
 };
 

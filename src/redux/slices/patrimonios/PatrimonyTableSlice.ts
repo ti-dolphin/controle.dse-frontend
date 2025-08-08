@@ -16,7 +16,7 @@ const filterFieldMap: Record<string, string> = {
 
   responsavel: "pessoa.NOME.contains",
   projeto: "projetos.DESCRICAO.contains",
-  gerente: "projetos.PESSOA.NOME.contains",
+  gerente: "projetos.pessoa.NOME.contains",
 };
 
 interface PatrimonyFilters {
