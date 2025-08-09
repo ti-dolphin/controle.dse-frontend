@@ -15,7 +15,10 @@ export const useRequisitionItemPermissions = (user : User | null, requisition : 
         adm || responsable || Number(user?.PERM_COMPRADOR) === 1
       );
       setChangeProductItemPermitted(adm || responsable);
-      setCreateQuotePermitted(adm || Number(user?.PERM_COMPRADOR) === 1 && requisition.status?.nome === 'Em Cotação');
+      setCreateQuotePermitted(
+        (adm || Number(user?.PERM_COMPRADOR) === 1) &&
+          requisition.status?.nome === "Em cotação"
+      );
     }, [user, requisition]);
 
 
