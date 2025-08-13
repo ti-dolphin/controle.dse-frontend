@@ -1,5 +1,4 @@
 import api from '../../api';
-import { Product } from '../../models/Product';
 import { RequisitionItem } from '../../models/requisicoes/RequisitionItem';
 
 const API_ENDPOINT = '/item_requisicao';

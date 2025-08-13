@@ -1,6 +1,5 @@
 import { createSlice, PayloadAction } from "@reduxjs/toolkit";
 import { Requisition } from "../../../models/requisicoes/Requisition";
-import { setRefresh } from "./requisitionItemSlice";
 
 interface RequisitionFormState {
   requisition: Requisition;
@@ -8,6 +7,7 @@ interface RequisitionFormState {
   loading: boolean;
   error: string | null;
   refreshRequisition: boolean
+  creating : boolean
 }
 
 const initialState: RequisitionFormState = {
@@ -23,12 +23,13 @@ const initialState: RequisitionFormState = {
     OBSERVACAO: null,
     custo_total_frete: 0,
     custo_total_itens: 0,
-    custo_total: 0
+    custo_total: 0,
   },
   mode: "view", // inicia em visualização
   loading: false,
   error: null,
-  refreshRequisition: false
+  refreshRequisition: false,
+  creating : false
 };
 
 const requisitionFormSlice = createSlice({
@@ -54,6 +55,10 @@ const requisitionFormSlice = createSlice({
     setError(state, action: PayloadAction<string | null>) {
       state.error = action.payload;
     },
+
+    setCreating(state, action: PayloadAction<boolean>) {
+      state.creating = action.payload;
+    },
     setRefreshRequisition(state, action: PayloadAction<boolean>) {
       state.refreshRequisition = action.payload;
     },
@@ -74,5 +79,6 @@ export const {
   setError,
   clearRequisition,
   setRefreshRequisition,
+  setCreating
 } = requisitionFormSlice.actions;
 export default requisitionFormSlice.reducer;

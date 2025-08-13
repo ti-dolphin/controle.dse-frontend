@@ -1,4 +1,4 @@
-import { GridApi, GridColDef, GridRenderCellParams, MuiEvent, useGridApiRef } from "@mui/x-data-grid";
+import { GridColDef, GridRenderCellParams } from "@mui/x-data-grid";
 import { Project } from "../../models/Project";
 import { ReducedUser } from "../../models/User";
 import { RequisitionStatus } from "../../models/requisicoes/RequisitionStatus";
@@ -10,7 +10,7 @@ import { RequisitionType } from "../../models/requisicoes/RequisitionType";
 import { GridApiCommunity } from "@mui/x-data-grid/internals";
 
 
-export function useRequisitionColumns(changeSelectedRow: (row: any) => void, gridRef: MutableRefObject<GridApiCommunity>) {
+export function useRequisitionColumns(changeSelectedRow: (row: any) => void, _gridRef: MutableRefObject<GridApiCommunity>) {
   const columns: GridColDef[] = useMemo(
     () => [
       {

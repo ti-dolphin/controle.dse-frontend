@@ -2,14 +2,11 @@ import { useSelector } from "react-redux";
 import { RootState } from "../../redux/store";
 import { useEffect, useState } from "react";
 import { Checklist } from "../../models/patrimonios/Checklist";
-import { set } from "lodash";
-import { useIsMobile } from "../useIsMobile";
 
 export const useChecklistPermission = (checklist: Partial<Checklist>) => {
   const user = useSelector((state: RootState) => state.user.user);
   const [permissionToFullfill, setPermissionToFullfill] = useState(false);
   const [permissionToAprove, setPermissionToAprove] = useState(false);
-  const isMobile = useIsMobile();
 
   useEffect(() => {
     setPermissionToFullfill(false);

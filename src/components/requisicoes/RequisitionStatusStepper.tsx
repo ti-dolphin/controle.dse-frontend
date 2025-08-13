@@ -21,6 +21,8 @@ import RequisitionService from "../../services/requisicoes/RequisitionService";
 import { setRequisition } from "../../redux/slices/requisicoes/requisitionSlice";
 import { setFeedback } from "../../redux/slices/feedBackSlice";
 import { useRequisitionStatusPermissions } from "../../hooks/requisicoes/RequisitionStatusPermissionHook";
+import { RequisitionStatus } from "../../models/requisicoes/RequisitionStatus";
+import RequisitionItemService from "../../services/requisicoes/RequisitionItemService";
 
 interface RequisitionStatusStepperProps {
   id_requisicao: number;
@@ -78,7 +80,19 @@ const RequisitionStatusStepper = ({
   const { permissionToChangeStatus, permissionToCancel, permissionToActivate } = useRequisitionStatusPermissions(user, requisition);
 
   const currentStatusIndex = requisition.status?.etapa ?? 0;
-  const { statusList, canceledStatus } = useRequisitionStatus(); 
+  const { statusList } = useRequisitionStatus(); 
+
+
+  const validationRules = async (newStatus: RequisitionStatus ) =>  {
+      if(newStatus.nome === 'Validação') {
+        const items = await RequisitionItemService.getMany({id_requisicao});
+        const noItems = items.length === 0;
+        if(noItems) {
+          throw new Error('Requisição sem itens');
+        } 
+      }
+      return;
+  } 
 
   const handleChangeStatus = async (
     type: "acao_anterior" | "acao_posterior"
@@ -90,6 +104,7 @@ const RequisitionStatusStepper = ({
         }));
         return;
     }
+
     try {
       const currentStep = requisition.status?.etapa ?? 0;
       const nextStep =
@@ -99,7 +114,9 @@ const RequisitionStatusStepper = ({
           ? currentStep - 1
           : currentStep;
       const newStatus = statusList.find((status) => status.etapa === nextStep); //FINDS THE CORRESPONDING  NEW STATUS
-
+      if(newStatus){ 
+        await validationRules(newStatus);
+      }
       if (!newStatus) {
         dispatch(
           setFeedback({
@@ -179,7 +196,6 @@ const RequisitionStatusStepper = ({
       sx={{
         width: "100%",
         overflowX: "auto",
-        pb: 2,
         display: "flex",
         flexDirection: "column",
         gap: 2,
@@ -190,35 +206,29 @@ const RequisitionStatusStepper = ({
           alternativeLabel
           activeStep={currentStatusIndex}
           connector={<CustomConnector />}
-          sx={{ minWidth: 600 }}
+          sx={{
+            minWidth: 600,
+            p: 0,
+            m: 0,
+            "& .MuiStepLabel-label": {
+              mt: 0.5, // reduz espaço entre ícone e texto
+              fontSize: 12,
+              fontWeight: 500,
+            },
+          }}
         >
           {statusList.map((status, idx) => (
             <Step key={status.id_status_requisicao}>
-              <StepLabel
-                StepIconComponent={CustomStepIcon}
-                sx={{
-                  "& .MuiStepLabel-label": {
-                    mt: 1,
-                    fontWeight: idx === currentStatusIndex ? 700 : 400,
-                    color:
-                      idx === currentStatusIndex
-                        ? "text.primary"
-                        : "text.secondary",
-                  },
-                }}
-              >
+              <StepLabel StepIconComponent={CustomStepIcon}>
                 <Typography
-                  fontWeight={idx === currentStatusIndex ? 700 : 400}
+                  fontSize={12}
+                  fontWeight={idx === currentStatusIndex ? 600 : 400}
                   color={
                     idx === currentStatusIndex
                       ? "text.primary"
                       : "text.secondary"
                   }
-                  sx={{
-                    textTransform: "none",
-                    fontSize: idx === currentStatusIndex ? 14 : 14,
-                    textAlign: "center",
-                  }}
+                  sx={{ textAlign: "center", whiteSpace: "nowrap" }}
                 >
                   {status.nome}
                 </Typography>
@@ -227,52 +237,48 @@ const RequisitionStatusStepper = ({
           ))}
         </Stepper>
       )}
-      <Stack direction="row" justifyContent="center" sx={{ gap: 2 }}>
+      <Stack direction="row" justifyContent="center" spacing={1} >
         <Button
+          size="small"
           variant="contained"
           onClick={() => handleChangeStatus("acao_anterior")}
-          sx={{
-            backgroundColor: "primary.main",
-            color: "white",
-            textTransform: "capitalize",
-            borderRadius: 2,
-            maxWidth: 200,
-            display: "flex",
-            alignItems: "center",
-            gap: 1,
-          }}
+          sx={{ minHeight: 28, px: 1 }}
         >
-          <ArrowCircleLeftIcon sx={{ mr: 1 }} />
-          <Typography fontSize="small">
+          <ArrowCircleLeftIcon fontSize="small" />
+          <Typography fontSize={12}>
             {requisition.status?.acao_anterior}
           </Typography>
         </Button>
         <Button
+          size="small"
           variant="contained"
           onClick={() => handleChangeStatus("acao_posterior")}
-          sx={{
-            backgroundColor: "primary.main",
-            color: "white",
-            textTransform: "capitalize",
-            borderRadius: 2,
-            maxWidth: 200,
-            display: "flex",
-            alignItems: "center",
-            gap: 1,
-          }}
+          sx={{ minHeight: 28, px: 1 }}
         >
-          <Typography fontSize="small">
+          <Typography fontSize={12}>
             {requisition.status?.acao_posterior}
           </Typography>
-          <ArrowCircleRightIcon sx={{ mr: 1 }} />
+          <ArrowCircleRightIcon fontSize="small" />
         </Button>
         {permissionToCancel && (
-          <Button onClick={handleCancel} variant="contained" color="error">
+          <Button
+            size="small"
+            variant="contained"
+            color="error"
+            sx={{ minHeight: 28 }}
+            onClick={handleCancel}
+          >
             Cancelar
           </Button>
         )}
         {permissionToActivate && (
-          <Button onClick={handleActivate} variant="contained" color="success">
+          <Button
+            size="small"
+            variant="contained"
+            color="success"
+            sx={{ minHeight: 28 }}
+            onClick={handleActivate}
+          >
             Reativar
           </Button>
         )}

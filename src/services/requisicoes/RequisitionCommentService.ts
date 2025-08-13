@@ -26,6 +26,6 @@ static async getMany(params: any) {
     const response = await api.delete(`/comentarios_requisicao/${id}`);
     return response.data;
   }
-};
+}
 
 export default RequisitionCommentService;

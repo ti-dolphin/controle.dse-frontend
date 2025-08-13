@@ -1,7 +1,6 @@
 
-import { Box, Typography, IconButton, CardContent, Button, CircularProgress } from "@mui/material"
+import { Box, Typography, CardContent, Button, CircularProgress } from "@mui/material"
 import { ChecklistItem } from "../../models/patrimonios/ChecklistItem"
-import VisibilityIcon from '@mui/icons-material/Visibility';
 import imagePlaceholder from '../../assets/images/imagePlaceholder.svg';
 import { Checklist } from "../../models/patrimonios/Checklist";
 import { useChecklistItemPermission } from "../../hooks/patrimonios/useChecklistItemPermission";
@@ -10,7 +9,6 @@ import FirebaseService from "../../services/FireBaseService";
 import { ChecklistItemService } from "../../services/patrimonios/ChecklistItemService";
 import { useDispatch } from "react-redux";
 import { setFeedback } from "../../redux/slices/feedBackSlice";
-import { set } from "lodash";
 import { useState } from "react";
 import BaseViewFileDialog from "../../components/shared/BaseVIewFileDialog";
 
@@ -36,7 +34,7 @@ export default function ChecklistItemCard({
   const uploadImage = async (e: React.ChangeEvent<HTMLInputElement>) => {
     if (!e.target.files || e.target.files.length === 0) return;
     if (!checklistItem) return;
-    if(!updateSingleItem) return;
+  if(!updateSingleItem) return;
     try {
       setLoading(true);
       const file = e.target.files[0];

@@ -1,4 +1,4 @@
-import { useState, useCallback } from "react";
+import { useCallback } from "react";
 import { formatDateStringtoISOstring } from "../../utils";
 import { useDispatch, useSelector } from "react-redux";
 import { RootState } from "../../redux/store";
@@ -61,7 +61,7 @@ export const filterFieldMap: Record<string, string> = {
       }
       const path = filterFieldMap[field];
       if (!path) return [];
-      let finalValue = value;
+      const finalValue = value;
         return [
           path
             .split(".")

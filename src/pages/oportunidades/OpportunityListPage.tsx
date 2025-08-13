@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react'
+import React from 'react'
 import OpportunityTable from '../../components/oportunidades/OpportunityTable'
 import { Box } from '@mui/material'
 import UpperNavigation from '../../components/shared/UpperNavigation'

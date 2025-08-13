@@ -1,6 +1,5 @@
 
 import { Typography } from '@mui/material'
-import React from 'react'
 
 interface StyledLinkProps{ 
     link: string
@@ -19,7 +18,7 @@ const StyledLink = ({ link, onClick }: StyledLinkProps) => {
             '&:hover': {
                 textDecoration: 'underline',
             },
-            maxWidth: 220,
+            maxWidth: 150,
             overflow: 'hidden',
             textOverflow: 'ellipsis',
             whiteSpace: 'nowrap',

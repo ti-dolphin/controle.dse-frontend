@@ -176,7 +176,7 @@ const fields: FieldConfig[] = [
       >
         Nova requisição
       </Typography>
-      {fields.map((config, index) => {
+      {fields.map((config) => {
         if (config.type === "autocomplete") {
           return (
             <Autocomplete

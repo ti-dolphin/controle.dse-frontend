@@ -21,9 +21,6 @@ export const useRequisitionItemPermissions = (user : User | null, requisition : 
       );
     }, [user, requisition]);
 
-
- 
-
     return {
       editItemFieldsPermitted,
       changeProductItemPermitted,

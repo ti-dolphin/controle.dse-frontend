@@ -1,8 +1,7 @@
-import React, { useEffect, useState } from "react";
+import React, {  useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { useNavigate, useParams } from "react-router-dom";
+import { useParams } from "react-router-dom";
 import { RootState } from "../../redux/store";
-import { Movimentation } from "../../models/patrimonios/Movementation";
 import { Checklist } from "../../models/patrimonios/Checklist";
 import { CheckListService } from "../../services/patrimonios/ChecklistService";
 import { setFeedback } from "../../redux/slices/feedBackSlice";
@@ -21,7 +20,7 @@ import BaseTableToolBar from "../../components/shared/BaseTableToolBar";
 import { debounce } from "lodash";
 import CloseIcon from "@mui/icons-material/Close";
 import ChecklistView from "./ChecklistView";
-import { ChecklistFilters, cleanFilters, setFilters, setRefresh, setRows, setSearchTerm } from "../../redux/slices/patrimonios/ChecklistTableSlice";
+import { ChecklistFilters, setFilters, setRefresh, setRows, setSearchTerm } from "../../redux/slices/patrimonios/ChecklistTableSlice";
 
 
 
@@ -35,7 +34,6 @@ const ChecklistTable = () => {
   const theme = useTheme();
   const { id_patrimonio } = useParams();
   const dispatch = useDispatch();
-  const navigate = useNavigate();
   const user = useSelector((state: RootState) => state.user.user);
   const {rows, filters, searchTerm, refresh} = useSelector((state: RootState) => state.checklistTable);
   const [from, setFrom] = useState<"patrimonio" | "checklists">("patrimonio");
@@ -101,10 +99,6 @@ const ChecklistTable = () => {
     },
   ];
 
-  const handleCleanFilters = () =>  {
-    dispatch(cleanFilters());
-  }
-
   const handleChangeFilters = (
     e: React.ChangeEvent<HTMLInputElement>,
     field: string
@@ -119,7 +113,7 @@ const ChecklistTable = () => {
 
   const formatFilters = (filters: ChecklistFilters) => {
     const dateFilters = ["data_realizado", "data_aprovado"];
-    let formattedFilters: any = { ...filters };
+    const formattedFilters: any = { ...filters };
     dateFilters.forEach((field: string) => {
       const dateValue = getDateFromDateString(
         String(filters[field as keyof ChecklistFilters])
@@ -272,7 +266,7 @@ const ChecklistTable = () => {
         }}
       >
         <DialogTitle>
-          <Typography variant="h6" color="primary.main">
+          <Typography component='a' variant="h6" color="primary.main" href={`/patrimonios/${checklistSelected?.patrimonio?.id_patrimonio}`}>
             {checklistSelected?.id_checklist_movimentacao} -{" "}
             {checklistSelected?.patrimonio_nome}
           </Typography>

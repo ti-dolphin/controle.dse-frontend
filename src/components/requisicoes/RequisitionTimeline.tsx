@@ -11,7 +11,6 @@ import {
   Box,
   Typography,
   Divider,
-  Avatar,
 } from "@mui/material";
 import CircleIcon from "@mui/icons-material/Circle";
 import { setFeedback } from "../../redux/slices/feedBackSlice";
@@ -52,17 +51,19 @@ const RequisitionTimeline = () => {
   // Função para formatar a data
 
   return (
-    <Box sx={{ maxWidth: 600, maxHeight: 300, overflow: 'auto', mx: "auto", my: 2 }}>
-      <List>
+    <Box sx={{ maxWidth: 600, maxHeight: 120, overflow: 'auto', mx: "auto", my: 2 }}>
+      <List sx={{ display: "flex", flexDirection: "column", gap: 1 }}>
         {alterations.length > 0 ? (
           alterations.map(
             (alteration: RequisitionStatusAlteration, index: number) => (
               <React.Fragment key={alteration.id_alteracao}>
                 <ListItem
                   sx={{
-                    alignItems: "flex-start",
+                    display: "flex",
+                    alignItems: "center",
                     position: "relative",
                     pl: 6,
+                    height: 30,
                   }}
                 >
                   {/* Ponto da timeline */}

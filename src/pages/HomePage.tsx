@@ -5,6 +5,7 @@ import patrimonios from '../assets/images/patrimonios.jpg';
 import requisicoes from '../assets/images/requisicoes.jpg';
 import { useNavigate } from 'react-router-dom';
 import AccountCircleIcon from '@mui/icons-material/AccountCircle';
+import { useSelector } from 'react-redux';
 
 const modules = [
   {
@@ -32,6 +33,9 @@ const HomePage = () => {
   const navigate = useNavigate();
   const [anchorEl, setAnchorEl] = React.useState<null | HTMLElement>(null);
   const open = Boolean(anchorEl);
+  const user = useSelector((state: any) => state.user.user);
+  const isAdmin = user.PERM_ADMINISTRADOR === 1;
+
 
   const handleClick = (event: React.MouseEvent<HTMLButtonElement>) => {
     setAnchorEl(event.currentTarget);
@@ -87,6 +91,11 @@ const HomePage = () => {
         <MenuItem onClick={( ) => navigate('/auth')}>
           Logout
         </MenuItem>
+         {isAdmin && (
+          <MenuItem onClick={( ) => navigate('/admin')}>
+            painel admin
+          </MenuItem>
+        )}
       </Menu>
       
    

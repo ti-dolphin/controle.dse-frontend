@@ -1,4 +1,3 @@
-import { GridColDef } from "@mui/x-data-grid";
 import { Project } from "../../models/Project";
 import { ReducedUser } from "../../models/User";
 import { OpportunityStatus } from "../../models/oportunidades/OpportunityStatus";
@@ -6,7 +5,6 @@ import { Client } from "../../models/oportunidades/Client";
 import { ProjectAdicional } from "../../models/oportunidades/ProjectAdicional";
 import { Box, Typography } from "@mui/material";
 import { getDateFromISOstring } from "../../utils";
-import { last } from "lodash";
 import InfoIcon from "@mui/icons-material/Info";
 import ErrorIcon from "@mui/icons-material/Error";
 import CheckCircleIcon from "@mui/icons-material/CheckCircle";

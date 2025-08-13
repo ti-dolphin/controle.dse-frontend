@@ -9,16 +9,13 @@ import {
   Autocomplete,
   Stack,
   Button,
-  CircularProgress,
 } from "@mui/material";
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { Opportunity } from "../../models/oportunidades/Opportunity";
 import { FieldConfig, Option } from "../../types";
 import { useDispatch, useSelector } from "react-redux";
-import { setOpportunity } from "../../redux/slices/oportunidades/opportunitySlice";
-import { Navigate, useNavigate, useParams } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import OpportunityService from "../../services/oportunidades/OpportunityService";
-import { debounce } from "lodash";
 import { setFeedback } from "../../redux/slices/feedBackSlice";
 import { RootState } from "../../redux/store";
 import { useOppDetailedFields } from "../../hooks/oportunidades/useOppDetailedFields";
@@ -27,7 +24,6 @@ import {
   formatDateStringtoISOstring,
   getDateStringFromISOstring,
 } from "../../utils";
-import { setDefaultEventParameters } from "firebase/analytics";
 import BaseDeleteDialog from "../shared/BaseDeleteDialog";
 
 const OpportunityDetailedForm = () => {
@@ -37,21 +33,16 @@ const OpportunityDetailedForm = () => {
   const user = useSelector((state: RootState) => state.user.user);
   const [opportunity, setOpportunity] = useState<Partial<Opportunity>>({});
   const [formData, setFormData] = useState<any>({});
-  const [blockedFields, setBlockedFields] = useState<boolean>(false);
-  const { fields, fieldsMap } = useOppDetailedFields(user, opportunity);
-  const [loading, setLoading] = useState<boolean>(false); 
+  const { fieldsMap } = useOppDetailedFields(user, opportunity);
   const [deletingOpp, setDeletingOpp] = useState<Partial<Opportunity> | null>(null);
 
   const { CODOS } = useParams();
 
   const saveOpp = async () => {
     if (!CODOS) return;
-
-    setBlockedFields(true);
     try {
       const opp = await OpportunityService.update(Number(CODOS), formData);
       setOpportunity(opp);
-      setBlockedFields(false);
       dispatch(setFeedback({ message: "Oportunidade salva com sucesso", type: "success" }));
     } catch (error) {
       setFeedback({ message: "Erro ao salvar oportunidade", type: "error" });
@@ -126,12 +117,10 @@ const OpportunityDetailedForm = () => {
     const fetchOpportunity = async () => {
       if (!CODOS) return;
       try {
-        setLoading(true);
+     
         const opportunity = await OpportunityService.getById(Number(CODOS));
         setOpportunity(opportunity);
-        setLoading(false);
       } catch (e) {
-        setLoading(false);
         dispatch(
           setFeedback({
             message: "Erro ao buscar oportunidade",
@@ -178,7 +167,7 @@ const OpportunityDetailedForm = () => {
                             option.id ===
                             opportunity[field.field as keyof Opportunity]
                         )}
-                        onChange={(e, value) =>
+                        onChange={(_e, value) =>
                           handleAutocompleteChange(
                             field.field,
                             value,
@@ -336,7 +325,7 @@ const OpportunityDetailedForm = () => {
                           option.id ===
                           opportunity[field.field as keyof Opportunity]
                       )}
-                      onChange={(e, value) =>
+                      onChange={(_e, value) =>
                         handleAutocompleteChange(field.field, value, "venda")
                       }
                       renderInput={(params) => (

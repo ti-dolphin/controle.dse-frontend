@@ -6,18 +6,16 @@ import {
   Divider,
   Stack,
   Button,
-  useTheme,
   DialogTitle,
   Dialog,
   DialogActions,
   DialogContent,
   IconButton,
-  setRef,
 } from "@mui/material";
-import { ChangeEvent, useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import RequisitionService from "../../services/requisicoes/RequisitionService";
-import { clearRequisition, setMode, setRequisition } from "../../redux/slices/requisicoes/requisitionSlice";
+import { clearRequisition, setRequisition } from "../../redux/slices/requisicoes/requisitionSlice";
 import RequisitionStatusStepper from "../../components/requisicoes/RequisitionStatusStepper";
 import { useDispatch, useSelector } from "react-redux";
 import { RootState } from "../../redux/store";
@@ -25,10 +23,8 @@ import { useCallback } from "react";
 import RequisitionDetailsTable from "../../components/requisicoes/RequisitionDetailsTable";
 import AddIcon from "@mui/icons-material/Add";
 import RequisitionAttachmentList from "../../components/requisicoes/RequisitionAttachmentList";
-import BaseMultilineInput from "../../components/shared/BaseMultilineInput";
 import { setFeedback } from "../../redux/slices/feedBackSlice";
 import RequisitionTimeline from "../../components/requisicoes/RequisitionTimeline";
-import VisibilityIcon from '@mui/icons-material/Visibility';
 import RequisitionItemsTable from "../../components/requisicoes/RequisitionItemsTable";
 import { clearNewItems, clearRecentProducts, setAddingProducts, setItemBeingReplaced, setNewItems, setProductSelected, setRefresh, setReplacingItemProduct, setUpdatingRecentProductsQuantity } from "../../redux/slices/requisicoes/requisitionItemSlice";
 import ProductsTable from "../../components/requisicoes/ProductsTable";
@@ -37,8 +33,8 @@ import QuoteList from "../../components/requisicoes/QuoteList";
 import CloseIcon from '@mui/icons-material/Close';
 import { formatCurrency } from "../../utils";
 import UpperNavigation from "../../components/shared/UpperNavigation";
-import { gridColumnGroupsUnwrappedModelSelector } from "@mui/x-data-grid";
 import FullscreenIcon from "@mui/icons-material/Fullscreen";
+import RequisitionCommentList from "../../components/requisicoes/RequisitionCommentList";
 
 const RequisitionDetailPage = () => {
 
@@ -49,60 +45,58 @@ const RequisitionDetailPage = () => {
   const {id_requisicao} = useParams();
   const { recentProductsAdded, replacingItemProduct, itemBeingReplaced, productSelected, refresh } = useSelector((state: RootState) => state.requisitionItem);
   const {requisition, refreshRequisition} = useSelector((state: RootState) => state.requisition);
-  const [observation, setObservation] = useState('');
-  const [editingObservation, setEditingObservation] = useState<boolean>(false);
-  const [detailView, setDetailView] = useState<boolean>(false);
+
   const [quoteListOpen, setQuoteListOpen] = useState<boolean>(false);
   const [fullScreenItems, setFullScreenItems] = useState<boolean>(false);
-
+  const fullScreenItemsTableContainer = useRef<HTMLDivElement>(null);
+  
   const fetchData = useCallback(async () => { 
     const requisition = await RequisitionService.getById(Number(id_requisicao));
     dispatch(setRequisition(requisition));
-    setObservation(requisition.OBSERVACAO);
   }, [id_requisicao, dispatch]);
 
-  const handleChangeObservation = (e: ChangeEvent<HTMLTextAreaElement>) => {
-    const {value} = e.target;
-    setObservation(value);
-  };
+  // const handleChangeObservation = (e: ChangeEvent<HTMLTextAreaElement>) => {
+  //   const {value} = e.target;
+  //   setObservation(value);
+  // };
 
-  const startObservationEditMode= (e:  React.FocusEvent<HTMLTextAreaElement>) => { 
-    const admin = Number(user?.PERM_ADMINISTRADOR) === 1;
-    const allowedToEdit = Number(user?.CODPESSOA) === Number(requisition.criado_por);
-    const editObservationPermittedForUser = admin || allowedToEdit;
-    if (!editObservationPermittedForUser) {
-      dispatch(
-        setFeedback({
-          message: "Você não tem permissão para editar esta observação.",
-          type: "error",
-        })
-      );
-      e.target.blur();
-      return;
-    }
-    setEditingObservation(true);
-  }
+  // const startObservationEditMode= (e:  React.FocusEvent<HTMLTextAreaElement>) => { 
+  //   const admin = Number(user?.PERM_ADMINISTRADOR) === 1;
+  //   const allowedToEdit = Number(user?.CODPESSOA) === Number(requisition.criado_por);
+  //   const editObservationPermittedForUser = admin || allowedToEdit;
+  //   if (!editObservationPermittedForUser) {
+  //     dispatch(
+  //       setFeedback({
+  //         message: "Você não tem permissão para editar esta observação.",
+  //         type: "error",
+  //       })
+  //     );
+  //     e.target.blur();
+  //     return;
+  //   }
+  //   setEditingObservation(true);
+  // }
 
-  const handleSaveObservation = async ( ) =>  { 
-    try{ 
-      const updatedRequisition = await RequisitionService.update((Number(requisition.ID_REQUISICAO)), { 
-        OBSERVACAO: observation
-      });
-      dispatch(setRequisition(updatedRequisition));
-      setEditingObservation(false);
-      dispatch(setFeedback({ 
-        message: 'Observação salva com sucesso',
-        type: 'success'
-      }));
-      return;
-    }catch(e){ 
-      dispatch(setFeedback({ 
-        message: 'Erro ao salvar observação',
-        type: 'error'
-      }))
-    }
+  // const handleSaveObservation = async ( ) =>  { 
+  //   try{ 
+  //     const updatedRequisition = await RequisitionService.update((Number(requisition.ID_REQUISICAO)), { 
+  //       OBSERVACAO: observation
+  //     });
+  //     dispatch(setRequisition(updatedRequisition));
+  //     setEditingObservation(false);
+  //     dispatch(setFeedback({ 
+  //       message: 'Observação salva com sucesso',
+  //       type: 'success'
+  //     }));
+  //     return;
+  //   }catch(e){ 
+  //     dispatch(setFeedback({ 
+  //       message: 'Erro ao salvar observação',
+  //       type: 'error'
+  //     }))
+  //   }
 
-  };
+  // };
 
   const createItemsFromProducts = async ( ) =>  {
     try{  
@@ -124,7 +118,7 @@ const RequisitionDetailPage = () => {
   const concludeReplaceItemProduct = async ( ) =>   {
     if(!itemBeingReplaced || !productSelected) return;
     try{ 
-      const updatedItem = await RequisitionItemService.update(itemBeingReplaced, {id_produto: productSelected});
+      await RequisitionItemService.update(itemBeingReplaced, {id_produto: productSelected});
       dispatch(setFeedback({
         message: 'Produto substituído com sucesso',
         type: 'success'
@@ -195,20 +189,21 @@ const RequisitionDetailPage = () => {
       }}
       bgcolor="background"
     >
-      <UpperNavigation handleBack={handleBack} />
+      <UpperNavigation handleBack={handleBack}>
+        <Typography
+          sx={{ fontSize: "1rem" }}
+          fontWeight={600}
+          color="primary.main"
+        >
+          {requisition.ID_REQUISICAO} | {requisition.DESCRIPTION} |{" "}
+          {requisition.projeto?.DESCRICAO}
+        </Typography>
+      </UpperNavigation>
       <Grid container spacing={0.6}>
         {/* Header: Título, Projeto, Status Steps */}
         <Grid item xs={12}>
-          <Paper sx={{ p: 1.5, mb: 1 }}>
-            <Typography
-              sx={{ fontSize: "1rem" }}
-              fontWeight={600}
-              color="primary.main"
-            >
-              {requisition.ID_REQUISICAO} | {requisition.DESCRIPTION} |{" "}
-              {requisition.projeto?.DESCRICAO}
-            </Typography>
-            <Box mt={2}>
+          <Paper>
+            <Box sx={{ p: 1 }}>
               {id_requisicao && (
                 <RequisitionStatusStepper
                   id_requisicao={Number(id_requisicao)}
@@ -218,13 +213,13 @@ const RequisitionDetailPage = () => {
           </Paper>
         </Grid>
         {/* Detalhes da requisição */}
-        <Grid item xs={12} md={4}>
-          <Paper sx={{ p: 2, mb: 2 }}>
+        <Grid item xs={12} md={3}>
+          <Paper sx={{ p: 1 }}>
             <Typography
               variant="subtitle1"
               color="primary.main"
               fontWeight={500}
-              mb={1}
+              mb={0.5}
             >
               Detalhes da requisição
             </Typography>
@@ -232,56 +227,85 @@ const RequisitionDetailPage = () => {
             <RequisitionDetailsTable requisition={requisition} />
           </Paper>
         </Grid>
-
-        <Grid item xs={12} md={4}>
-          <Paper sx={{ p: 2, mb: 1 }}>
-            <Typography variant="subtitle1" fontWeight={500} mb={1}>
-              Anexos e Links
-            </Typography>
-            <Divider sx={{ mb: 0.5 }} />
-            <RequisitionAttachmentList id_requisicao={Number(id_requisicao)} />
-          </Paper>
-          <Paper sx={{ p: 2, mb: 2 }}>
-            
-          </Paper>
-          <Paper sx={{ p: 2 }}>
-            <Stack
-              direction={{ xs: "column", sm: "row" }}
-              spacing={2}
-              justifyContent="flex-end"
-            >
-              {shouldShowAddItemsButton() && (
-                <Button
-                  onClick={() => {
-                    dispatch(setAddingProducts(true));
-                  }}
-                  variant="contained"
-                >
-                  <AddIcon />
-                  Adicionar Itens
-                </Button>
-              )}
-              <Button
-                onClick={() => setQuoteListOpen(true)}
-                variant="contained"
+        {/* Anexos, Comentários e Adicionar Itens */}
+        <Grid item xs={12} md={6}>
+          <Grid container spacing={1}>
+            {/* Comentários */}
+            <Grid item xs={12} md={6}>
+              <Paper
+                sx={{
+                  p: 1,
+                  height: "100%",
+                  display: "flex",
+                  flexDirection: "column",
+                }}
               >
-                Cotações
-              </Button>
-              <Box ml="auto" alignSelf="center">
-                <Typography variant="subtitle2" color="success.main">
-                  Custo total:{" "}
-                  {formatCurrency(Number(requisition.custo_total || 0))}
+                <Typography
+                  variant="subtitle1"
+                  color="primary.main"
+                  fontWeight={500}
+                  mb={0.5}
+                >
+                  Comentários
                 </Typography>
-              </Box>
-            </Stack>
-          </Paper>
+                <Divider sx={{ mb: 1 }} />
+                <Box
+                  sx={{
+                    flex: 1,
+                    maxHeight: 140,
+                    overflowY: "auto",
+                  }}
+                >
+                  <RequisitionCommentList />
+                </Box>
+              </Paper>
+            </Grid>
+
+            {/* Anexos */}
+            <Grid item xs={12} md={6}>
+              <Paper
+                sx={{
+                  p: 1,
+                  height: "100%",
+                  display: "flex",
+                  flexDirection: "column",
+                  justifyContent: "space-between",
+                }}
+              >
+                <Typography
+                  variant="subtitle1"
+                  color="primary.main"
+                  fontWeight={500}
+                  mb={0.5}
+                >
+                  Anexos e Links
+                </Typography>
+                <Divider />
+                <Box sx={{ flex: 1, overflowY: "auto" }}>
+                  <RequisitionAttachmentList
+                    id_requisicao={Number(id_requisicao)}
+                  />
+                </Box>
+              </Paper>
+            </Grid>
+
+            {/* Ações */}
+            <Grid item xs={12}></Grid>
+          </Grid>
         </Grid>
-        <Grid item xs={12} md={4}>
-          <Paper sx={{ p: 2 }}>
-            <Typography variant="subtitle1" fontWeight={500} mb={1}>
+
+        {/* Timline/Histórico */}
+        <Grid item xs={12} md={3}>
+          <Paper sx={{ p: 1 }}>
+            <Typography
+              variant="subtitle1"
+              color="primary.main"
+              fontWeight={500}
+              mb={0}
+            >
               Timeline / Histórico
             </Typography>
-            <Divider sx={{ mb: 1 }} />
+            <Divider />
             <Box>
               <RequisitionTimeline />
             </Box>
@@ -300,9 +324,43 @@ const RequisitionDetailPage = () => {
           }}
         >
           <Paper sx={{ p: 1 }}>
-            <IconButton onClick={() => setFullScreenItems(true)}>
-              <FullscreenIcon />
-            </IconButton>
+            <Stack direction="row" gap={2}>
+              {/* Tela cheia */}
+              <IconButton onClick={() => setFullScreenItems(true)}>
+                <FullscreenIcon />
+              </IconButton>
+              {/* Adicionar itens */}
+              <Stack
+                direction={{ xs: "column", sm: "row" }}
+                spacing={1}
+                alignItems="center"
+              >
+                {shouldShowAddItemsButton() && (
+                  <Button
+                    onClick={() => dispatch(setAddingProducts(true))}
+                    variant="contained"
+                    size="small"
+                  >
+                    <AddIcon fontSize="small" />
+                    Adicionar Itens
+                  </Button>
+                )}
+                <Button
+                  onClick={() => setQuoteListOpen(true)}
+                  variant="contained"
+                  size="small"
+                >
+                  Cotações
+                </Button>
+                <Box ml="auto">
+                  <Typography variant="subtitle2" color="success.main">
+                    Custo total:{" "}
+                    {formatCurrency(Number(requisition.custo_total || 0))}
+                  </Typography>
+                </Box>
+              </Stack>
+            </Stack>
+
             <Divider sx={{ mb: 1 }} />
             <Box>
               <RequisitionItemsTable hideFooter={false} tableMaxHeight={400} />
@@ -369,7 +427,9 @@ const RequisitionDetailPage = () => {
           Insira as quantidades dos produtos adicionados
         </DialogTitle>
         <DialogContent>
-          {updatingRecentProductsQuantity && <RequisitionItemsTable hideFooter={false}/>}
+          {updatingRecentProductsQuantity && (
+            <RequisitionItemsTable hideFooter={false} />
+          )}
         </DialogContent>
         <DialogActions>
           <Button
@@ -408,23 +468,64 @@ const RequisitionDetailPage = () => {
         fullScreen
         open={fullScreenItems}
         onClose={() => setFullScreenItems(false)}
+        sx={{ display: "flex", flexDirection: "column" }}
       >
-        <DialogTitle>
+        <DialogTitle sx={{ maxHeight: 60 }}>
           <Stack direction="row" alignItems="center" gap={2}>
-            <Typography variant="h6" color="primary.main" gutterBottom>
+            <Typography fontSize="normal" color="primary.main" gutterBottom>
               Itens
             </Typography>
             <Button
               variant="contained"
               color="error"
+              sx={{ fontSize: "small" }}
               onClick={() => setFullScreenItems(false)}
             >
               Fechar
             </Button>
+
+            <Stack
+              direction={{ xs: "column", sm: "row" }}
+              spacing={1}
+              alignItems="center"
+            >
+              {shouldShowAddItemsButton() && (
+                <Button
+                  onClick={() => dispatch(setAddingProducts(true))}
+                  variant="contained"
+                  size="small"
+                >
+                  <AddIcon fontSize="small" />
+                  Adicionar Itens
+                </Button>
+              )}
+              <Button
+                onClick={() => setQuoteListOpen(true)}
+                variant="contained"
+                size="small"
+              >
+                Cotações
+              </Button>
+              <Box ml="auto">
+                <Typography variant="subtitle2" color="success.main">
+                  Custo total:{" "}
+                  {formatCurrency(Number(requisition.custo_total || 0))}
+                </Typography>
+              </Box>
+            </Stack>
           </Stack>
         </DialogTitle>
-        <DialogContent >
-            <RequisitionItemsTable hideFooter={false} tableMaxHeight={580}/>
+
+        <DialogContent
+          ref={fullScreenItemsTableContainer}
+          sx={{ background: "background.default" }}
+        >
+          <RequisitionItemsTable
+            hideFooter={false}
+            tableMaxHeight={
+              (fullScreenItemsTableContainer.current?.offsetHeight || 0) - 60
+            }
+          />
         </DialogContent>
       </Dialog>
     </Box>

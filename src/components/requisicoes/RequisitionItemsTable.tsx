@@ -1,9 +1,7 @@
 import {
-  GridCallbackDetails,
   GridCellModes,
   GridCellModesModel,
   GridCellParams,
-  GridColDef,
   GridRowModel,
   GridRowSelectionModel,
   useGridApiRef,
@@ -27,13 +25,11 @@ import {
 import QuoteService from "../../services/requisicoes/QuoteService";
 import { useNavigate, useParams } from "react-router-dom";
 import { Quote } from "../../models/requisicoes/Quote";
-import { rowSelectionStateInitializer } from "@mui/x-data-grid/internals";
 import { QuoteItemService } from "../../services/requisicoes/QuoteItemService";
 import {
   setAddingReqItems,
   setQuoteItems,
 } from "../../redux/slices/requisicoes/quoteItemSlice";
-import QuoteItemsTable from "./QuoteItemsTable";
 
 import {
   setRefreshRequisition,
@@ -190,6 +186,8 @@ const RequisitionItemsTable = ({ tableMaxHeight, hideFooter }: RequisitionItemsT
     },
     [quoteItemsSelected, requisition, setItems]
   );
+
+  const toolbarRef = React.useRef<HTMLDivElement>(null);
 
   //CRIA E RENDERIZA AS COLUNAS DA TABELA COM FUNCOES
   const { columns, isDinamicField } = useRequisitionItemColumns(
@@ -355,7 +353,6 @@ const RequisitionItemsTable = ({ tableMaxHeight, hideFooter }: RequisitionItemsT
   //SELECIONA ou DESELECIONA UMA LINHA
   const handleChangeSelection = async (
     newRowSelectionModel: GridRowSelectionModel,
-    details: GridCallbackDetails
   ) => {
     if (!(editItemFieldsPermitted || addingReqItems)) {
       dispatch(
@@ -460,6 +457,7 @@ const RequisitionItemsTable = ({ tableMaxHeight, hideFooter }: RequisitionItemsT
         </Box>
       )}
       <BaseTableToolBar
+        ref={toolbarRef}
         handleChangeSearchTerm={debouncedHandleChangeSearchTerm}
       />
       <Box sx={{ height: tableMaxHeight ? tableMaxHeight : "auto" }}>

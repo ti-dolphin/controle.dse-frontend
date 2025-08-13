@@ -1,15 +1,13 @@
-import React, { useEffect, useMemo, useRef, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { RootState } from "../../../redux/store";
 import {
   setRows,
   setSelectedRow,
-  setKanbans,
   setSelectedKanban,
   setLoading,
   setSearchTerm,
   setFilters,
-  RequisitionFilters,
   clearfilters,
 } from "../../../redux/slices/requisicoes/requisitionTableSlice";
 import { setFeedback } from "../../../redux/slices/feedBackSlice";
@@ -17,11 +15,7 @@ import RequisitionService from "../../../services/requisicoes/RequisitionService
 import {
   Box,
   Button,
-  ButtonGroup,
-  CircularProgress,
-  Grid,
   SelectChangeEvent,
-  TextField,
   useTheme,
 } from "@mui/material";
 import { useRequisitionColumns } from "../../../hooks/requisicoes/RequisitionTableColumnsHook";

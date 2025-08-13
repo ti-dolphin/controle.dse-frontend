@@ -1,6 +1,5 @@
 import { useState, useEffect } from 'react';
 import { RequisitionStatus } from '../../models/requisicoes/RequisitionStatus';
-import RequisitionStatusStepper from '../../components/requisicoes/RequisitionStatusStepper';
 import RequisitionStatusService from '../../services/requisicoes/RequisitionStatusService';
 import { useDispatch } from 'react-redux';
 import { setFeedback } from '../../redux/slices/feedBackSlice';

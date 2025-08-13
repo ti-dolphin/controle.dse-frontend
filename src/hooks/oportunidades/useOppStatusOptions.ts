@@ -2,7 +2,6 @@ import React, { useState } from 'react';
 import { Option } from '../../types';
 import OpportunityService from '../../services/oportunidades/OpportunityService';
 import { useDispatch } from 'react-redux';
-import { OpportunityState } from '../../redux/slices/oportunidades/opportunitySlice';
 import { OpportunityStatus } from '../../models/oportunidades/OpportunityStatus';
 const useOppStatusOptions = () => {
     const dispatch = useDispatch();

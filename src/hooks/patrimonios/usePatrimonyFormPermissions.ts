@@ -2,7 +2,6 @@ import { useSelector } from "react-redux";
 import { RootState } from "../../redux/store";
 import { useEffect, useState } from "react";
 import { Patrimony } from "../../models/patrimonios/Patrimony";
-import { set } from "lodash";
 
 export const usePatrimonyFormPermissions = (mode : string, patrimony : Partial<Patrimony> | undefined ) => { 
     const user = useSelector((state: RootState) => state.user.user);

@@ -1,8 +1,5 @@
-import React from "react";
 import { Routes, Route } from "react-router-dom";
 import AuthPage from "./pages/AuthPage";
-import { useSelector } from "react-redux";
-import { RootState, AppDispatch } from "./redux/store";
 import HomePage from "./pages/HomePage";
 import PatrimonyHomePage from "./pages/patrimonios/PatrimonyHomePage";
 import RequisitionHomePage from "./pages/requisicoes/RequisitionHomePage";
@@ -12,12 +9,16 @@ import OpportunityHomePage from "./pages/oportunidades/OpportunityHomePage";
 import OportunityDetailPage from "./pages/oportunidades/OpportunityDetailPage";
 import PatrimonyDetailPage from "./pages/patrimonios/PatrimonyDetailPage";
 import ChecklistListPage from "./pages/patrimonios/ChecklistListListPage";
+import AdminPage from "./pages/AdminPage";
 // Exemplo de páginas
 const AppRoutes = () => { 
   return (
     <Routes>
       <Route path={ "/auth"} element={<AuthPage />} />
       <Route path="/" element={<HomePage />} />
+
+      <Route path="/admin" element={<AdminPage />} />
+
       <Route path="/requisicoes" element={<RequisitionHomePage />} />
       {/* <Route path="/requisicoes/lista" element={<RequisitionListPage />} /> */}
       <Route path="/requisicoes/:id_requisicao" element={<RequisitionDetailPage />} />

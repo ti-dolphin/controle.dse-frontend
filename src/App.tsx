@@ -1,11 +1,9 @@
-import React from "react";
 import { BrowserRouter } from "react-router-dom";
 import AppRoutes from "./routes";
 import { Provider } from "react-redux";
 import { store } from "./redux/store";
-import { ThemeProvider, createTheme, CssBaseline, AppBar, Toolbar } from "@mui/material";
+import { ThemeProvider, createTheme, CssBaseline } from "@mui/material";
 import SnackBar from "./components/shared/SnackBar";
-import ProfileButton from "./components/shared/ProfileButton";
 import { ptBR } from "@mui/material/locale";
 import { green } from "@mui/material/colors";
 

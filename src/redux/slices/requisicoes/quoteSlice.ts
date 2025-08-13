@@ -1,7 +1,6 @@
 // quoteSlice.ts
 import { createSlice, PayloadAction } from "@reduxjs/toolkit";
 import { Quote } from "../../../models/requisicoes/Quote";
-import { set } from "lodash";
 
 
 interface QuoteState {

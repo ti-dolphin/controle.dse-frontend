@@ -15,10 +15,9 @@ import {
   Typography,
   Stack,
 } from "@mui/material";
-import React, { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import { OpportunityCommentService } from "../../services/oportunidades/OpportunityCommentService";
-import { debounce, set } from "lodash";
 import { OpportunityComment } from "../../models/oportunidades/OpportunityComment";
 import DeleteIcon from "@mui/icons-material/Delete";
 import { useDispatch, useSelector } from "react-redux";
@@ -26,7 +25,7 @@ import { setFeedback } from "../../redux/slices/feedBackSlice";
 import BaseDeleteDialog from "../shared/BaseDeleteDialog";
 import AddIcon from "@mui/icons-material/Add";
 import { RootState } from "../../redux/store";
-import { formatDateToISOstring, getDateStringFromDateObject, getDateStringFromISOstring } from "../../utils";
+import { formatDateToISOstring, getDateStringFromISOstring } from "../../utils";
 
 const OpportunityCommentList = () => {
   const dispatch = useDispatch();
@@ -36,8 +35,7 @@ const OpportunityCommentList = () => {
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [commentBeingDeleted, setCommentBeingDeleted] =
     useState<OpportunityComment | null>(null);
-  const [commentBeingEdited, setCommentBeingEdited] =
-    useState<OpportunityComment | null>(null);
+  // const [commentBeingEdited, setCommentBeingEdited] = useState<OpportunityComment | null>(null);
   const [newComment, setNewComment] = useState<string>("");
   const [creating, setCreating] = useState<boolean>(false);
   const handleOpenDeleteDialog = (comment: OpportunityComment) => {
@@ -45,35 +43,22 @@ const OpportunityCommentList = () => {
     setDeleteDialogOpen(true);
   };
 
-  const saveComment = async (updatedComment: Partial<OpportunityComment>) => {
-    if (!updatedComment.CODCOMENTARIO) return;
-    try {
-      const comment = await OpportunityCommentService.update(
-        updatedComment.CODCOMENTARIO,
-        updatedComment
-      );
-      setComments(
-        comments.map((c) =>
-          c.CODCOMENTARIO === comment.CODCOMENTARIO ? comment : c
-        )
-      );
-      setCommentBeingEdited(comment);
-    } catch (e) {}
-  };
+  // const saveComment = async (updatedComment: Partial<OpportunityComment>) => {
+  //   if (!updatedComment.CODCOMENTARIO) return;
+  //   try {
+  //     const comment = await OpportunityCommentService.update(
+  //       updatedComment.CODCOMENTARIO,
+  //       updatedComment
+  //     );
+  //     setComments(
+  //       comments.map((c) =>
+  //         c.CODCOMENTARIO === comment.CODCOMENTARIO ? comment : c
+  //       )
+  //     );
+  //     setCommentBeingEdited(comment);
+  //   } catch (e) {}
+  // };
 
-  const debounceSaveComment = React.useMemo(
-    () => debounce(saveComment, 800),
-    [commentBeingEdited, comments]
-  );
-
-  const handleChangeCommentBeingEdited = (
-    e: React.ChangeEvent<HTMLInputElement>
-  ) => {
-    if (!commentBeingEdited) return;
-    if (!user) return;
-    setCommentBeingEdited({ ...commentBeingEdited, DESCRICAO: e.target.value });
-    debounceSaveComment({ ...commentBeingEdited, DESCRICAO: e.target.value });
-  };
 
   const handleCreateComment = async () => {
     if (!CODOS) return;

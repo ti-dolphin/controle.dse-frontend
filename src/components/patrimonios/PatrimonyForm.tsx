@@ -7,9 +7,7 @@ import { PatrimonyService } from "../../services/patrimonios/PatrimonyService";
 import MovementationService from "../../services/patrimonios/MovementationService";
 import { useDispatch } from "react-redux";
 import { useNavigate, useParams } from "react-router-dom";
-import { set } from "lodash";
 import { usePatrimonyTypeOptions } from "../../hooks/patrimonios/usePatrimonyTypeOptions";
-import { formatDateToISOstring } from "../../utils";
 import { Patrimony } from "../../models/patrimonios/Patrimony";
 import { usePatrimonyFormPermissions } from "../../hooks/patrimonios/usePatrimonyFormPermissions";
 
@@ -136,7 +134,7 @@ const PatrimonyForm = () => {
     if (!permissionToEdit)  { 
       e.target.blur();
       dispatch(setFeedback({type: "error", message: "Você nao tem permissão para editar o campo."}));
-    };
+    }
   }
 
   React.useEffect(() => {
@@ -231,7 +229,7 @@ const PatrimonyForm = () => {
             (option) => option.id === formData.tipo
           ) || { id: 0, name: "" }
         }
-        onChange={(e, newValue) =>
+        onChange={(_e, newValue) =>
           setFormData({ ...formData, tipo: Number(newValue?.id) })
         }
         disabled={!permissionToEdit}
@@ -263,7 +261,7 @@ const PatrimonyForm = () => {
             value={userOptions.find(
               (option) => option.id === formData.responsavel
             )}
-            onChange={(e, newValue) =>
+            onChange={(_e, newValue) =>
               setFormData({ ...formData, responsavel: Number(newValue?.id) })
             }
             disabled={!permissionToEdit}
@@ -294,7 +292,7 @@ const PatrimonyForm = () => {
             value={projectOptions.find(
               (option) => option.id === formData.projeto
             )}
-            onChange={(e, newValue) =>
+            onChange={(_e, newValue) =>
               setFormData({ ...formData, projeto: Number(newValue?.id) })
             }
             disabled={!permissionToEdit}

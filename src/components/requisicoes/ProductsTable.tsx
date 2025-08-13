@@ -1,10 +1,7 @@
 import {
-  GridCallbackDetails,
   GridCellModes,
   GridCellModesModel,
   GridCellParams,
-  GridColDef,
-  GridColumnHeaders,
   GridRowModel,
   GridRowSelectionModel,
 } from "@mui/x-data-grid";
@@ -15,12 +12,11 @@ import { useDispatch, useSelector } from "react-redux";
 import { RootState } from "../../redux/store";
 import BaseDataTable from "../shared/BaseDataTable";
 import BaseTableToolBar from "../shared/BaseTableToolBar";
-import { debounce, set } from "lodash";
+import { debounce } from "lodash";
 import { setFeedback } from "../../redux/slices/feedBackSlice";
 import { useProductPermissions } from "../../hooks/productPermissionsHook";
 import { ProductService } from "../../services/ProductService";
 import { setProductSelected, setRecentAddedProducts } from "../../redux/slices/requisicoes/requisitionItemSlice";
-import RequisitionItemService from "../../services/requisicoes/RequisitionItemService";
 import { useProductColumns } from "../../hooks/productColumnsHook";
 
 const ProductsTable = () => {
@@ -29,7 +25,6 @@ const ProductsTable = () => {
   const theme = useTheme();
   const user = useSelector((state: RootState) => state.user.user);
   const { addingProducts, recentProductsAdded, productsAdded, replacingItemProduct} = useSelector((state: RootState) => state.requisitionItem);
-
   const { editProductFieldsPermitted } = useProductPermissions(user);
   const [searchTerm, setSearchTerm] = useState("");
   const [products, setProducts] = useState<Product[]>([]);
@@ -107,9 +102,7 @@ const ProductsTable = () => {
   );
 
   const handleChangeSelection = async (
-    newRowSelectionModel: GridRowSelectionModel,
-    details: GridCallbackDetails
-  ) => {
+    newRowSelectionModel: GridRowSelectionModel  ) => {
     if(replacingItemProduct){ 
       setRowSelectionModel(newRowSelectionModel);
       dispatch(setProductSelected(Number(newRowSelectionModel[0])));

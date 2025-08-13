@@ -1,14 +1,10 @@
 
 import React from "react";
-import { Modal, Box, Typography, IconButton, TextField, FormControl, InputLabel, Select, MenuItem, Dialog, DialogTitle, DialogActions, Button } from "@mui/material";
+import { Modal, Box, Typography, IconButton } from "@mui/material";
 import CloseIcon from "@mui/icons-material/Close";
-import { Opportunity } from "../../models/oportunidades/Opportunity";
-import { useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { RootState } from "../../redux/store";
 import { setCreating, setViewing } from "../../redux/slices/oportunidades/opportunitySlice";
-import { create } from "lodash";
-import { useNavigate } from "react-router-dom";
 import OpportunityForm from "./OpportunityForm";
 
 const style = {
@@ -31,8 +27,7 @@ const style = {
 
 const OpportunityFormModal: React.FC = () => {
   const dispatch = useDispatch();
-  const navigate = useNavigate();
-  const {creating, viewing, editing} = useSelector((state: RootState) => state.opportunity);
+  const {creating, viewing} = useSelector((state: RootState) => state.opportunity);
 
 
   const close = () => {

@@ -13,5 +13,5 @@ export interface FieldConfig {
     value?: any;
     required?: boolean;
     options?: Option[]
-};
+}
 

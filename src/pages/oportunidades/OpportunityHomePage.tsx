@@ -1,4 +1,3 @@
-import React from 'react'
 import OpportunityListPage from './OpportunityListPage';
 
 const OpportunityHomePage = () => {

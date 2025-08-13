@@ -13,6 +13,7 @@ import {
 } from "../../redux/slices/patrimonios/PatrimonyTableSlice";
 import MovementationService from "../../services/patrimonios/MovementationService";
 import {
+  Badge,
   Box,
   Button,
   Dialog,
@@ -24,14 +25,11 @@ import {
 } from "@mui/material";
 import { usePatMovementationColumns } from "../../hooks/patrimonios/usePatMovementationColumns";
 import { useTheme } from "@mui/material/styles";
-import BaseToolBar from "../../components/shared/BaseToolBar";
 import BaseTableToolBar from "../../components/shared/BaseTableToolBar";
 import BaseTableColumnFilters from "../../components/shared/BaseTableColumnFilters";
 import BaseDataTable from "../../components/shared/BaseDataTable";
-import { GridApiCommunity } from "@mui/x-data-grid/internals";
 import { debounce, filter } from "lodash";
 import { useGridApiRef } from "@mui/x-data-grid";
-import { setLoading } from "../../redux/slices/requisicoes/requisitionTableSlice";
 import { setFeedback } from "../../redux/slices/feedBackSlice";
 import { useNavigate } from "react-router-dom";
 import UpperNavigation from "../../components/shared/UpperNavigation";
@@ -41,6 +39,7 @@ import CloseIcon from "@mui/icons-material/Close";
 import NotificationsIcon from "@mui/icons-material/Notifications";
 import BaseDeleteDialog from "../../components/shared/BaseDeleteDialog";
 import { PatrimonyService } from "../../services/patrimonios/PatrimonyService";
+import { useChecklistNotifications } from "../../hooks/patrimonios/useChecklistNotifications";
 
 const PatrimonyListPage = () => {
   const dispatch = useDispatch();
@@ -50,7 +49,7 @@ const PatrimonyListPage = () => {
   const { rows, isLoading, filters, search, patrimonyBeingDeleted } =
     useSelector((state: RootState) => state.patrionyTable);
   const [creating, setCreating] = React.useState(false);
-
+  const {notifications} = useChecklistNotifications();
   const { columns } = usePatMovementationColumns();
   const gridRef = useGridApiRef();
 
@@ -180,7 +179,9 @@ const PatrimonyListPage = () => {
                 height: 34,
               }}
             >
-              <NotificationsIcon />
+              <Badge badgeContent={notifications} color="primary">
+                <NotificationsIcon />
+              </Badge>
             </IconButton>
           </Stack>
         </BaseTableToolBar>

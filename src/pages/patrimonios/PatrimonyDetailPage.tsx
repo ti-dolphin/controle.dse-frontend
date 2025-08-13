@@ -1,45 +1,21 @@
-import React, { useEffect } from 'react'
-import { useNavigate, useParams } from 'react-router-dom';
-import { PatrimonyService } from '../../services/patrimonios/PatrimonyService';
-import { Patrimony } from '../../models/patrimonios/Patrimony';
-import { useDispatch, useSelector } from 'react-redux';
-import { RootState } from '../../redux/store';
-import { setFeedback } from '../../redux/slices/feedBackSlice';
-import { Container, Grid, Paper, Typography, Box, TableContainer, Table, TableHead, TableRow, TableCell, TableBody, Stack, IconButton, Dialog, DialogTitle, DialogContent, Button } from '@mui/material';
+import React from 'react'
+import { useNavigate } from 'react-router-dom';
+import { Grid, Paper, Typography, Box, Stack, IconButton, Dialog, DialogTitle, DialogContent, Button } from '@mui/material';
 import PatrimonyMovementationTable from '../../components/patrimonios/PatrimonyMovementationTable';
 import PatrimonyForm from '../../components/patrimonios/PatrimonyForm';
 import ChecklistTable from './ChecklistTable';
 import UpperNavigation from '../../components/shared/UpperNavigation';
 import FullscreenIcon from "@mui/icons-material/Fullscreen";
-import CloseIcon from "@mui/icons-material/Close";
 
 const PatrimonyDetailPage = () => {
 
-  const user = useSelector((state: RootState) => state.user.user);
   const navigate = useNavigate()
-  const dispatch = useDispatch();
-  const [patrimony, setPatrimony] = React.useState<Patrimony>();
   const [fullScreenChecklist, setFullScreenChecklist] = React.useState(false);
 
-  const {id_patrimonio} = useParams();
-
-
-const fetchData = async ( ) => { 
-   try{ 
-      const data = await PatrimonyService.getById(Number(id_patrimonio));
-      setPatrimony(data); 
-   }catch(e){
-      dispatch(setFeedback({message: 'Houve um erro ao buscar o patrimônio', type: 'error'}));
-   }
-  }
    const handleBack = () => {
      navigate("/patrimonios");
    };
 
-  //useEffect
-  useEffect(() => {
-    fetchData();
-  }, [dispatch, id_patrimonio])
   return (
     <Box>
       <UpperNavigation handleBack={handleBack} />

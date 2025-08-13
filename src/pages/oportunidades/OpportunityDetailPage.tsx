@@ -1,13 +1,7 @@
-import { ThemeProvider } from "@emotion/react";
 import {
   Box,
-  Typography,
   Grid,
   Paper,
-  List,
-  ListItem,
-  ListItemText,
-  Divider,
   useTheme,
 } from "@mui/material";
 import OpportunityDetailedForm from "../../components/oportunidades/OpportunityDetailedForm";

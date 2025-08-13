@@ -1,4 +1,3 @@
-import { Quote } from "../../models/requisicoes/Quote";
 import { useEffect, useState } from "react";
 import { User } from "../../models/User";
 

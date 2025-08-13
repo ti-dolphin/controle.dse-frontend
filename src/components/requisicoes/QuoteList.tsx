@@ -1,17 +1,14 @@
-import React, { useCallback, useEffect, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
 import { RootState } from '../../redux/store';
 import QuoteService from '../../services/requisicoes/QuoteService';
 import { Quote } from '../../models/requisicoes/Quote';
-import { setQuote } from '../../redux/slices/requisicoes/quoteSlice';
-import { Box, Chip, IconButton, List, ListItem, ListItemButton, ListItemText, Stack, Typography } from '@mui/material';
+import { Box, IconButton, List, ListItem, ListItemButton, Stack, Typography } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
 import { formatCurrency } from '../../utils';
 import DeleteIcon from '@mui/icons-material/Delete';
 import { setFeedback } from '../../redux/slices/feedBackSlice';
 import BaseDeleteDialog from '../shared/BaseDeleteDialog';
-import { set } from 'lodash';
-import CircleIcon from "@mui/icons-material/Circle";
 import { setRefresh } from '../../redux/slices/requisicoes/requisitionItemSlice';
 
 const QuoteList = () => {
@@ -34,7 +31,7 @@ const QuoteList = () => {
         })
       );
       return;
-    };
+    }
     setQuoteIdToDelete(id_cotacao);
     setDeleteDialogOpen(true);
   };

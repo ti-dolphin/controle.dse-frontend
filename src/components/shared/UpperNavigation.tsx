@@ -1,12 +1,13 @@
 import React from 'react';
-import { AppBar, Toolbar, IconButton, Box } from '@mui/material';
+import { Toolbar, IconButton, Box } from '@mui/material';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 
 interface UpperNavigationProps {
   handleBack: () => void;
+  children?: React.ReactNode;
 }
 
-const UpperNavigation: React.FC<UpperNavigationProps> = ({ handleBack }) => {
+const UpperNavigation: React.FC<UpperNavigationProps> = ({ handleBack, children }) => {
   return (
     <Box
       sx={{
@@ -17,7 +18,8 @@ const UpperNavigation: React.FC<UpperNavigationProps> = ({ handleBack }) => {
         justifyContent: "flex-start",
         backgroundColor: "white",
         mb: 0.5,
-        borderRadius: 1
+        borderRadius: 1,
+        gap: 2
       }}
       position="static"
     >
@@ -39,6 +41,7 @@ const UpperNavigation: React.FC<UpperNavigationProps> = ({ handleBack }) => {
           <ArrowBackIcon sx={{ fontSize: 20 }}/>
         </IconButton>
       </Toolbar>
+        {children}
     </Box>
   );
 };

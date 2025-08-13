@@ -5,7 +5,6 @@ import {
   IconButton,
   List,
   ListItem,
-  ListItemText,
   ListItemSecondaryAction,
   Button,
   CircularProgress,
@@ -33,7 +32,6 @@ const RequisitionAttachmentList: React.FC<RequisitionAttachmentListProps> = ({
 }) => {
   const dispatch = useDispatch();
   const user = useSelector((state: RootState) => state.user.user);
-
   const [attachments, setAttachments] = useState<RequisitionFile[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -175,15 +173,15 @@ const RequisitionAttachmentList: React.FC<RequisitionAttachmentListProps> = ({
             </Typography>
           )}
           {attachments.map((file) => (
-            <ListItem key={file.id} divider sx={{ maxHeight: 40 }}>
-              <Stack direction="row" alignItems="center" gap={1}>
+            <ListItem key={file.id} divider sx={{ height: 30 }}>
+              <Stack direction="column" alignItems="start" gap={0.2}>
                 <StyledLink
                   link={file.arquivo}
                   onClick={() => openViewFile(file)}
                 />
-                <Typography fontSize="12px" color="text.secondary">
+                {/* <Typography fontSize="12px" color="text.secondary">
                   Por: {file.pessoa_criado_por?.NOME || ""}
-                </Typography>
+                </Typography> */}
               </Stack>
 
               <ListItemSecondaryAction>
@@ -203,9 +201,11 @@ const RequisitionAttachmentList: React.FC<RequisitionAttachmentListProps> = ({
       )}
       <Button
         variant="contained"
-        component="label"
-        startIcon={<CloudUploadIcon />}
+
+        startIcon={<CloudUploadIcon sx={{height: '20px', width: '20px'}}/>}
+        sx={{fontSize: 'small'}}
         disabled={loading}
+        component="label"
       >
         Adicionar Anexo
         <input type="file" hidden onChange={handleFileChange} accept="*" />

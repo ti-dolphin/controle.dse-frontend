@@ -6,7 +6,6 @@ import {
   IconButton,
   List,
   ListItem,
-  ListItemText,
   ListItemSecondaryAction,
   Button,
   CircularProgress,
@@ -25,7 +24,6 @@ import BaseDeleteDialog from "../shared/BaseDeleteDialog";
 import { QuoteFile } from "../../models/requisicoes/QuoteFile";
 import { QuoteFileService } from "../../services/requisicoes/QuoteFileService";
 import BaseViewFileDialog from "../shared/BaseVIewFileDialog";
-import { useParams, useSearchParams } from "react-router-dom";
 
 interface QuoteAttachmentListProps {
   id_cotacao: number;
@@ -37,8 +35,6 @@ const QuoteAttachmentList: React.FC<QuoteAttachmentListProps> = ({
   const dispatch = useDispatch();
 
   const user = useSelector((state: RootState) => state.user.user);
-  const accesType = useSelector((state : RootState) => state.quote.accessType);
-  const isSupplierRoute = accesType === "supplier" ? true : false;
   const [attachments, setAttachments] = useState<QuoteFile[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);

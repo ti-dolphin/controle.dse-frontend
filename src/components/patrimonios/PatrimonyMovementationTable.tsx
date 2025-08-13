@@ -1,12 +1,10 @@
 import React, { useEffect } from 'react'
-import { useSelector, useDispatch } from 'react-redux';
-import { useNavigate, useParams } from 'react-router-dom';
-import { RootState } from '../../redux/store';
+import { useDispatch } from 'react-redux';
+import { useParams } from 'react-router-dom';
 import { setFeedback } from '../../redux/slices/feedBackSlice';
 import MovementationService from '../../services/patrimonios/MovementationService';
 import { Movimentation } from '../../models/patrimonios/Movementation';
 import { useProjectOptions } from '../../hooks/projectOptionsHook';
-import { useClientOptions } from '../../hooks/oportunidades/useClientOptions';
 import { useUserOptions } from '../../hooks/useUserOptions';
 import { Autocomplete, Box, Button, Dialog, DialogContent, DialogTitle, Stack, TextField, Typography, useTheme } from '@mui/material';
 import useMovementationColumns from '../../hooks/patrimonios/useMovementationColumns';
@@ -14,7 +12,6 @@ import BaseDataTable from '../shared/BaseDataTable';
 import BaseDeleteDialog from '../shared/BaseDeleteDialog';
 import { BaseAddButton } from '../shared/BaseAddButton';
 import { Option } from '../../types';
-import { formatDateToISOstring } from '../../utils';
 import { useMovementationPermissions } from '../../hooks/patrimonios/useMovementationPermissions';
 
 
@@ -34,8 +31,6 @@ const PatrimonyMovementationTable = () => {
         id_projeto: 0,
         id_responsavel: 0
       });
-      const user = useSelector((state: RootState) => state.user.user);
-      const navigate = useNavigate();
       const dispatch = useDispatch();
 
       const deleteMov  = async () => {
@@ -156,13 +151,7 @@ function MovimentationForm(props: {
 }) {
   const { formData, setFormData, onCancel, onConfirm, projectOptions, userOptions } = props
 
-  const handleChange = (event: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-    setFormData({ ...formData, [event.target.name]: event.target.value })
-  }
 
-  const handleSelectChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
-    setFormData({ ...formData, [event.target.name]: Number(event.target.value) })
-  }
 
   return (
     <Stack
@@ -187,7 +176,7 @@ function MovimentationForm(props: {
             },
           },
         }}
-        onChange={(event, newValue) => {
+        onChange={(_event, newValue) => {
           setFormData({ ...formData, id_projeto: newValue ? newValue.id : 0 });
         }}
         fullWidth
@@ -201,7 +190,7 @@ function MovimentationForm(props: {
         value={userOptions.find(
           (option) => option.id === formData.id_responsavel
         )}
-        onChange={(event, newValue) => {
+        onChange={(_event, newValue) => {
           setFormData({
             ...formData,
             id_responsavel: newValue ? newValue.id : 0,

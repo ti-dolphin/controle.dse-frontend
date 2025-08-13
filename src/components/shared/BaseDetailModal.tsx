@@ -1,8 +1,8 @@
 import React from "react";
-import { Dialog, DialogTitle, DialogContent, IconButton, Box, Typography, Divider, Grid } from "@mui/material";
+import { Dialog, DialogTitle, DialogContent, IconButton, Typography, Divider, Grid } from "@mui/material";
 import CloseIcon from "@mui/icons-material/Close";
 import { GridColDef } from "@mui/x-data-grid";
-import { getDateStringFromDateObject, getDateStringFromISOstring } from "../../utils";
+import { getDateStringFromDateObject } from "../../utils";
 
 interface BaseDetailModalProps<T> {
   open: boolean;

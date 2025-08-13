@@ -1,4 +1,4 @@
-import { Box, Button, Dialog, DialogContent, DialogTitle, IconButton, Typography, useTheme } from "@mui/material";
+import { Box, Button, Dialog, DialogContent, DialogTitle, IconButton, useTheme } from "@mui/material";
 import { useDispatch, useSelector } from "react-redux";
 import { RootState } from "../../redux/store";
 import {
@@ -6,7 +6,6 @@ import {
   GridCellParams,
   GridCellModes,
   GridRowModel,
-  GridColDef,
 } from "@mui/x-data-grid";
 import { useState, useCallback, useEffect, ChangeEvent, useMemo } from "react";
 import { QuoteItem } from "../../models/requisicoes/QuoteItem";
@@ -18,8 +17,6 @@ import { debounce } from "lodash";
 import { useQuoteItemColumns } from "../../hooks/requisicoes/QuoteItemColumnsHoook";
 import { useQuoteItemPermissions } from "../../hooks/requisicoes/QuoteItemPermissionsHook";
 import RequisitionItemsTable from "./RequisitionItemsTable";
-import RequisitionService from "../../services/requisicoes/RequisitionService";
-import { Requisition } from "../../models/requisicoes/Requisition";
 import CloseIcon from '@mui/icons-material/Close';
 import { setAddingReqItems, setQuoteItems, setSingleQuoteItem } from "../../redux/slices/requisicoes/quoteItemSlice";
 import { useParams } from "react-router-dom";

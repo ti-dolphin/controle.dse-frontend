@@ -1,6 +1,6 @@
 import React, { useCallback, useEffect, useState } from "react";
 import { GridColDef } from "@mui/x-data-grid";
-import { formatCurrency, getDateFromDateString, getDateFromISOstring, getDateStringFromISOstring } from "../../utils";
+import { formatCurrency, getDateFromISOstring } from "../../utils";
 import { useDispatch, useSelector } from "react-redux";
 import { RootState } from "../../redux/store";
 import DeleteIcon from "@mui/icons-material/Delete";
@@ -348,7 +348,7 @@ export const useRequisitionItemColumns = (
               Number(item.id_cotacao) === Number(params.field)
           );
           const hasquoteItem = quoteItem && !quoteItem.indisponivel;
-          let parciallyQuoted = hasquoteItem ? Number(quoteItem.quantidade_cotada) < Number(quoteItem.quantidade_solicitada) :false;
+          const parciallyQuoted = hasquoteItem ? Number(quoteItem.quantidade_cotada) < Number(quoteItem.quantidade_solicitada) :false;
 
           return (
             <Box sx={{display: 'flex', alignItems: 'center'}}>

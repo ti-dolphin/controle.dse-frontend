@@ -1,6 +1,5 @@
 import { Autocomplete, AutocompleteRenderInputParams, Box, Button, Checkbox, Grid, Stack, TextField, Typography } from '@mui/material'
 import React, { useState } from 'react'
-import { FieldConfig } from '../../types'
 import { useProjectOptions } from '../../hooks/projectOptionsHook';
 import RadioButtonUncheckedIcon from "@mui/icons-material/RadioButtonUnchecked";
 import CheckCircleIcon from "@mui/icons-material/CheckCircle";
@@ -124,7 +123,7 @@ const OpportunityForm = () => {
                       key={field.field}
                       aria-label={field.label}
                       value={field.value}
-                      onChange={(e, value) =>
+                      onChange={(_e, value) =>
                         handleChangeAutocomplete(field.field, value)
                       }
                       renderInput={(params: AutocompleteRenderInputParams) => (

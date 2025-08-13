@@ -5,15 +5,13 @@ import OpportunityService from '../../services/oportunidades/OpportunityService'
 import { RootState } from '../../redux/store';
 import BaseTableToolBar from '../shared/BaseTableToolBar';
 import { setLoading, setRows, setSearchTerm } from '../../redux/slices/oportunidades/opportunityTableSlice';
-import { debounce, filter } from 'lodash';
+import { debounce } from 'lodash';
 import BaseDataTable from '../shared/BaseDataTable';
-import { useGridApiRef } from '@mui/x-data-grid';
 import { Box, Button, IconButton, Paper, useTheme } from '@mui/material';
 import AddIcon from '@mui/icons-material/Add';
 import { setCreating } from '../../redux/slices/oportunidades/opportunitySlice';
 import OpportunityFormModal from './OpportunityFormModal';
 import { useNavigate } from 'react-router-dom';
-import UpperNavigation from '../shared/UpperNavigation';
 import BaseTableColumnFilters from '../shared/BaseTableColumnFilters';
 import { useOpportunityFilters } from '../../hooks/oportunidades/useOpportunityFilters';
 import { setFeedback } from '../../redux/slices/feedBackSlice';
@@ -24,7 +22,6 @@ const OpportunityTable = () => {
   const navigate = useNavigate();
  const {loading, rows, searchTerm } = useSelector((state: RootState) => state.opportunityTable);
  const { columns } = useOpportunityColumns();
- const gridRef = useGridApiRef(); 
  const theme=  useTheme();
 const toolbarRef = React.useRef<HTMLDivElement>(null);
 const [toolbarHeight, setToolbarHeight] = useState(0);

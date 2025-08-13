@@ -1,5 +1,5 @@
 import React from 'react';
-import { FormControl, InputLabel, Select, MenuItem, SelectProps, SelectChangeEvent } from '@mui/material';
+import { FormControl, Select, MenuItem, SelectProps, SelectChangeEvent } from '@mui/material';
 
 export interface BaseDropdownOption {
     label: string;

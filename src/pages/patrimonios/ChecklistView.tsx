@@ -1,5 +1,4 @@
-import { useDispatch, useSelector } from "react-redux";
-import { RootState } from "../../redux/store";
+import { useDispatch } from "react-redux";
 import { useEffect, useState } from "react";
 import { Checklist } from "../../models/patrimonios/Checklist";
 import { CheckListService } from "../../services/patrimonios/ChecklistService";
@@ -8,7 +7,6 @@ import { ChecklistItem } from "../../models/patrimonios/ChecklistItem";
 import { Box, Button, Grid, Stack, Typography } from "@mui/material";
 import ChecklistItemCard from "./ChecklistItemCard";
 import { useChecklistPermission } from "../../hooks/patrimonios/useChecklistPermission";
-import { rearg } from "lodash";
 import { updateSingleRow } from "../../redux/slices/patrimonios/ChecklistTableSlice";
 
 interface ChecklistViewProps {
@@ -18,7 +16,7 @@ const ChecklistView = ({ id_checklist }: ChecklistViewProps) => {
   const dispatch = useDispatch();
   const [checklist, setChecklist] = useState<Partial<Checklist>>({});
   const [items, setItems] = useState<Partial<ChecklistItem>[]>([]);
-  const [loading, setLoading] = useState(false);
+  // const [loading, setLoading] = useState(false);
   const { permissionToFullfill, permissionToAprove } =
     useChecklistPermission(checklist);
 
@@ -141,14 +139,11 @@ const ChecklistView = ({ id_checklist }: ChecklistViewProps) => {
 
   const fetchData = async () => {
     try {
-      setLoading(true);
       const data = await CheckListService.getById(id_checklist);
 
       setChecklist(data);
       setItems(data.items);
-      setLoading(false);
     } catch (error) {
-      setLoading(false);
       dispatch(
         setFeedback({
           message: "Failed to fetch checklist data",

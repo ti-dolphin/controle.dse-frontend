@@ -1,12 +1,11 @@
 
-import { Autocomplete, AutocompleteRenderInputParams, Box, Button, Dialog, DialogContent, DialogTitle, IconButton, List, ListItem, ListItemButton, ListItemSecondaryAction, ListItemText, Stack, TextField, Tooltip, Typography } from '@mui/material';
+import { Autocomplete, Box, Button, Dialog, DialogContent, DialogTitle, IconButton, List, ListItem, ListItemSecondaryAction, Stack, TextField, Tooltip, Typography } from '@mui/material';
 import React, { useEffect, useState } from 'react';
 import OpportunityService from '../../services/oportunidades/OpportunityService';
 import { ProjectService } from '../../services/ProjectService';
 import { Opportunity } from '../../models/oportunidades/Opportunity';
 import { Project } from '../../models/Project';
 import { ProjectFollower } from '../../models/oportunidades/ProjectFollower';
-import { GridColDef } from '@mui/x-data-grid';
 import { useDispatch, useSelector } from 'react-redux';
 import DeleteIcon from '@mui/icons-material/Delete';
 import BaseDeleteDialog from '../shared/BaseDeleteDialog';
@@ -205,7 +204,7 @@ const OpportunityFollowerList = ({CODOS, ID_PROJETO}: props) => {
               paper: { sx: { fontSize: 12 } },
             }}
             value={selectedFollower || { id: 0, name: "-" }}
-            onChange={(event, newValue) => setSelectedFollower(newValue)}
+            onChange={(_event, newValue) => setSelectedFollower(newValue)}
             getOptionKey={(option) => option.id}
             getOptionLabel={(option) => option.name}
             options={userOptions}

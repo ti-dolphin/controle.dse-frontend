@@ -1,5 +1,4 @@
 import { createSlice } from "@reduxjs/toolkit";
-import { Patrimony } from "../../../models/patrimonios/Patrimony";
 import { Movimentation } from "../../../models/patrimonios/Movementation";
 
 const filterFieldMap: Record<string, string> = {
@@ -77,7 +76,7 @@ const initialState: PatrimonyTableState ={
 
 export const buildPatrimonyPrismaFilters = (filters: PatrimonyFilters) => {
   return Object.entries(filters)
-    .filter(([field, value]) => {
+    .filter(([_field, value]) => {
       if (typeof value === "number" && value === null) return false;
       if (typeof value === "string" && value === "") return false;
       return true;
@@ -85,7 +84,7 @@ export const buildPatrimonyPrismaFilters = (filters: PatrimonyFilters) => {
     .flatMap(([field, value]) => {
       const path = filterFieldMap[field];
       if (!path) return [];
-      let finalValue = value;
+      const finalValue = value;
       return [
         path
           .split(".")

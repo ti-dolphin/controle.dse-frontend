@@ -1,7 +1,6 @@
 //useOppDetailedFields
 import { FieldConfig } from "../../types";
-import { useParams } from "react-router-dom";
-import { useCallback, useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { Opportunity } from "../../models/oportunidades/Opportunity";
 import { useProjectOptions } from "../projectOptionsHook";
 import useOppStatusOptions from "./useOppStatusOptions";
@@ -10,7 +9,7 @@ import { useComercialResponsableOptions } from "./useComercialResponsableOptions
 import { User } from "../../models/User";
 
 export const useOppDetailedFields = (user: User | null, opportunity: Partial<Opportunity>) => {
-
+    console.log("user", user);
     const {projectOptions} = useProjectOptions();
     const {oppStatusOptions} = useOppStatusOptions();
     const {clientOptions} = useClientOptions();

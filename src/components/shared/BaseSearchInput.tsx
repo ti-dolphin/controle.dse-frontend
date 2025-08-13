@@ -1,5 +1,5 @@
 import SearchIcon from "@mui/icons-material/Search";
-import { Box, Icon } from "@mui/material";
+import { Box } from "@mui/material";
 import { DebouncedFunc } from "lodash";
 import React from 'react'
 
@@ -13,7 +13,7 @@ interface BaseSearchInput {
   styles? : any;
 }
 
-const BaseSearchInput = ({ onChange, value, showIcon, label, placeholder, styles} : BaseSearchInput) => {
+const BaseSearchInput = ({ onChange, showIcon, label, placeholder, styles} : BaseSearchInput) => {
   return (
     <Box
       component="form"

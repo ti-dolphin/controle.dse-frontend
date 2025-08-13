@@ -1,7 +1,6 @@
 
 
 import { Checklist } from "./Checklist"
-import { Movimentation } from "./Movementation"
 
 export interface ChecklistItem { 
     id_item_checklist_movimentacao: number

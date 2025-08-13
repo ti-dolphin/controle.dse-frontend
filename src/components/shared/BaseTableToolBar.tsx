@@ -1,5 +1,4 @@
 import { Box } from "@mui/material";
-import SearchIcon from "@mui/icons-material/Search";
 import React from "react";
 import BaseSearchInput from "./BaseSearchInput";
 import { DebouncedFunc } from "lodash";
@@ -13,11 +12,10 @@ interface BaseTableToolBar {
   data?: any;
   columns?: string[];
   children?: React.ReactNode;
+  ref?: React.MutableRefObject<any>;
 }
 
 const BaseTableToolBar = ({
-  data,
-  columns,
   handleChangeSearchTerm,
   children,
 }: BaseTableToolBar) => {

@@ -1,9 +1,8 @@
 import { GridColDef } from "@mui/x-data-grid";
-import { RootState } from "../redux/store";
-import { useSelector } from "react-redux";
+
 
 export const useProductColumns = ( ) => { 
-    const replacingItemProduct = useSelector((state: RootState) => state.requisitionItem.replacingItemProduct);
+
     const columns: GridColDef[] = [
       {
         field: "ID",

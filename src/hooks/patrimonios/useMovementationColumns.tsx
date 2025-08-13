@@ -1,13 +1,14 @@
 import { Box, IconButton, Typography } from '@mui/material'
 import { GridColDef } from '@mui/x-data-grid'
 import React from 'react'
-import { getDateFromISOstring, getDateStringFromISOstring } from '../../utils'
+import { getDateFromISOstring } from '../../utils'
 import DeleteIcon from '@mui/icons-material/Delete';
 import { Project } from '../../models/Project';
 import { ReducedUser } from '../../models/User';
 
 
 const useMovementationColumns = (deletingMov : number | null, setDeletingMov : React.Dispatch<React.SetStateAction<number | null>>, permissionToDelete : boolean) => {
+  console.log("deletingMov", deletingMov);
   const columns: GridColDef[] = [
     {
       field: "id_movimentacao",

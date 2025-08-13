@@ -1,7 +1,6 @@
 import { useCallback, useEffect, useState } from "react";
-import { PaymentCondition } from "../../models/requisicoes/PaymentCondition";
-import { TaxClassification } from "../../models/requisicoes/TaxClassification";
-import { useDispatch, useSelector } from "react-redux";
+
+import { useDispatch } from "react-redux";
 import { setFeedback } from "../../redux/slices/feedBackSlice";
 import QuoteService from "../../services/requisicoes/QuoteService";
 import { Option } from "../../types";

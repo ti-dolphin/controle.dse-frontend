@@ -23,7 +23,6 @@ const QuoteDetailPage = () => {
   const [searchParams] = useSearchParams();
   const token = searchParams.get("token");
   const navigate = useNavigate();
-  const user  = useSelector((state : RootState) => state.user.user);
   const domain = window.location.origin;
   
  const accesType = useSelector((state : RootState) => state.quote.accessType);

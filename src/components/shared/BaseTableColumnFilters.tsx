@@ -9,7 +9,7 @@ type Column = {
   type?: string;
 };
 
-type BaseTableColumnFiltersProps<T> = {
+type BaseTableColumnFiltersProps = {
   columns: Column[];
   filters: Record<string, any>;
   handleChangeFilters: (
@@ -20,13 +20,13 @@ type BaseTableColumnFiltersProps<T> = {
   debouncedSetTriggerFetch: () => void;
 };
 
-function BaseTableColumnFiltersComponent<T>({
+function BaseTableColumnFiltersComponent({
   columns,
   filters,
   handleChangeFilters,
   debouncedSetTriggerFetch,
   handleCleanFilters,
-}: BaseTableColumnFiltersProps<T>) {
+}: BaseTableColumnFiltersProps) {
   const [localFilters, setLocalFilters] = useState<any>({});
 
   const debouncedSync = useMemo(

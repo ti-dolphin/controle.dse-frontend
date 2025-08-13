@@ -18,6 +18,13 @@ const OpportunityService = {
         const response = await api.get(`${API_ENDPOINT}/status/status_oportunidade`);
         return response.data;
     },
+
+    getReportInfo: async () => {
+        const response = await api.get(
+          `${API_ENDPOINT}/relatorio/verificar_relatorio_semanal`
+        );
+        return response.data;
+    },
     create: async (data: any, params: any) => {
         const response = await api.post(API_ENDPOINT, data, { 
             params: params
