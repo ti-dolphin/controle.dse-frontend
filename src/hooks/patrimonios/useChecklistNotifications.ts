@@ -5,10 +5,10 @@ import { RootState } from '../../redux/store';
 import { CheckListService } from '../../services/patrimonios/ChecklistService';
 
 export const useChecklistNotifications = () => {
+
     const user = useSelector((state: RootState) => state.user.user);
     const dispatch = useDispatch();
     const [notifications, setNotifications] = React.useState<number>();
-
     const fetchChecklistsByUser = React.useCallback(async () => {
       try {
         if (!user) return;
@@ -17,7 +17,6 @@ export const useChecklistNotifications = () => {
           situacao: "todas",
         };
         const data = await CheckListService.getManyByUser(user.CODPESSOA, params);
-        console.log("data", data.length);
         setNotifications(data.length);
       } catch (e) {
         dispatch(

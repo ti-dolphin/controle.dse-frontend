@@ -40,8 +40,10 @@ import NotificationsIcon from "@mui/icons-material/Notifications";
 import BaseDeleteDialog from "../../components/shared/BaseDeleteDialog";
 import { PatrimonyService } from "../../services/patrimonios/PatrimonyService";
 import { useChecklistNotifications } from "../../hooks/patrimonios/useChecklistNotifications";
+import { useIsMobile } from "../../hooks/useIsMobile";
 
 const PatrimonyListPage = () => {
+  console.log("PatrimonyListPage");
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const theme = useTheme();
@@ -49,7 +51,8 @@ const PatrimonyListPage = () => {
   const { rows, isLoading, filters, search, patrimonyBeingDeleted } =
     useSelector((state: RootState) => state.patrionyTable);
   const [creating, setCreating] = React.useState(false);
-  const {notifications} = useChecklistNotifications();
+  const { isMobile } = useIsMobile();
+  const {notifications} = useChecklistNotifications(); 
   const { columns } = usePatMovementationColumns();
   const gridRef = useGridApiRef();
 
@@ -186,25 +189,29 @@ const PatrimonyListPage = () => {
           </Stack>
         </BaseTableToolBar>
 
-        <BaseTableColumnFilters
-          columns={columns}
-          filters={filters}
-          handleChangeFilters={handleChangeFilters}
-          debouncedSetTriggerFetch={debouncedSetTriggerFetch}
-        />
+        {!isMobile && (
+          <BaseTableColumnFilters
+            columns={columns}
+            filters={filters}
+            handleChangeFilters={handleChangeFilters}
+            debouncedSetTriggerFetch={debouncedSetTriggerFetch}
+          />
+        )}
 
-        <BaseDataTable
-          apiRef={gridRef}
-          onCellClick={navigateToPatrimonyDetail}
-          rows={rows}
-          disableColumnMenu
-          disableColumnFilter
-          rowHeight={40}
-          columns={columns}
-          loading={isLoading}
-          getRowId={(row: any) => row.id_movimentacao}
-          theme={theme}
-        />
+        {!isMobile && (
+          <BaseDataTable
+            apiRef={gridRef}
+            onCellClick={navigateToPatrimonyDetail}
+            rows={rows}
+            disableColumnMenu
+            disableColumnFilter
+            rowHeight={40}
+            columns={columns}
+            loading={isLoading}
+            getRowId={(row: any) => row.id_movimentacao}
+            theme={theme}
+          />
+        )}
       </Box>
 
       <Dialog open={creating}>
@@ -225,8 +232,11 @@ const PatrimonyListPage = () => {
             },
           }}
         >
-          <IconButton sx={{ position: "absolute", top: 0, right: 0 }}>
-            <CloseIcon color="error" onClick={() => setCreating(false)} />
+          <IconButton
+            onClick={() => setCreating(false)}
+             sx={{ position: "absolute", top: 0, right: 0 }}
+          >
+            <CloseIcon color="error" />
           </IconButton>
           <PatrimonyForm />
         </DialogContent>

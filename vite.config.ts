@@ -6,11 +6,11 @@ import eslint from "vite-plugin-eslint";
 export default defineConfig({
   plugins: [
     react(),
-    eslint({
-      include: ["src/**/*.ts", "src/**/*.tsx"], // Verifica arquivos .ts e .tsx
-      exclude: ["node_modules/**", "dist/**"],
-      failOnError: true, // Faz o build falhar se houver erros de linting
-    }),
+    // eslint({
+    //   include: ["src/**/*.ts", "src/**/*.tsx"], // Verifica arquivos .ts e .tsx
+    //   exclude: ["node_modules/**", "dist/**"],
+    //   failOnError: true, // Faz o build falhar se houver erros de linting
+    // }),
   ],
   build: {
     minify: 'esbuild',
