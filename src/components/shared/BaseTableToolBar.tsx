@@ -28,6 +28,7 @@ const BaseTableToolBar = ({
       sx={{
         width: "100%",
         display: "flex",
+        flexWrap: 'wrap',
         gap: 1,
         justifyContent: "start",
         alignItems: "center",
@@ -39,7 +40,6 @@ const BaseTableToolBar = ({
     >
       <BaseSearchInput
         showIcon={true}
-     
         onChange={handleChangeSearchTerm}
         value={searchTerm}
       />

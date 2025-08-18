@@ -19,8 +19,10 @@ import { debounce } from "lodash";
 import { setFeedback } from "../../redux/slices/feedBackSlice";
 import { useRequisitionItemPermissions } from "../../hooks/requisicoes/RequisitionItemPermissionsHook";
 import {
+  setCurrentQuoteIdSelected,
   setProductsAdded,
   setRefresh,
+  setSelectedQuote,
 } from "../../redux/slices/requisicoes/requisitionItemSlice";
 import QuoteService from "../../services/requisicoes/QuoteService";
 import { useNavigate, useParams } from "react-router-dom";
@@ -36,6 +38,7 @@ import {
   setRequisition,
 } from "../../redux/slices/requisicoes/requisitionSlice";
 import { formatDateStringtoISOstring } from "../../utils";
+import RequisitionService from "../../services/requisicoes/RequisitionService";
 
 interface RequisitionItemsTable { 
     tableMaxHeight?: number;
@@ -70,7 +73,7 @@ const RequisitionItemsTable = ({ tableMaxHeight, hideFooter }: RequisitionItemsT
     requisition
   );
 
-  const { newItems, updatingRecentProductsQuantity, refresh } = useSelector(
+  const { newItems, updatingRecentProductsQuantity, refresh, currentQuoteIdSelected, selectedQuote } = useSelector(
     (state: RootState) => state.requisitionItem
   );
   const handleDeleteItem = async (id_item_requisicao: number) => {
@@ -144,13 +147,9 @@ const RequisitionItemsTable = ({ tableMaxHeight, hideFooter }: RequisitionItemsT
   };
   const [searchTerm, setSearchTerm] = useState("");
   const [items, setItems] = useState<RequisitionItem[]>([]);
-  const [cellModesModel, setCellModesModel] =
-    React.useState<GridCellModesModel>({});
-  const [selectionModel, setSelectionModel] =
-    React.useState<GridRowSelectionModel>([]);
-  const [quoteItemsSelected, setQuoteItemsSelected] = useState<
-    Map<number, number>
-  >(new Map());
+  const [cellModesModel, setCellModesModel] = React.useState<GridCellModesModel>({});
+  const [selectionModel, setSelectionModel] = React.useState<GridRowSelectionModel>([]);
+  const [quoteItemsSelected, setQuoteItemsSelected] = useState<Map<number, number>>(new Map());
   const [loading, setLoading] = useState(false);
   const [blockFields, setBlockFields] = useState(false);
   //map de <id_item_requisicao, id_item_cotacao>
@@ -428,6 +427,53 @@ const RequisitionItemsTable = ({ tableMaxHeight, hideFooter }: RequisitionItemsT
     });
   };
 
+  const fetchQuoteSelected = async () => {
+    if (!currentQuoteIdSelected) return;
+    try {
+     
+    } catch (e) {
+      dispatch(
+        setFeedback({
+          message: "Erro ao buscar cotação selecionada",
+          type: "error",
+        })
+      );
+    }
+  };
+
+  const handleChangeQuoteSelected = useCallback(
+  async  () => {
+      if (currentQuoteIdSelected) {
+         const quote : Partial<Quote> = await QuoteService.getById(currentQuoteIdSelected);
+        if (quote && quote.items) {
+          const quoteItems  = quote.items.map((item) => item.id_item_cotacao);
+          const itemIds = items.filter((item) => quoteItems.includes(item.id_item_cotacao || 0)).map((item) => item.id_item_requisicao);
+          setSelectionModel(itemIds);
+          dispatch(setSelectedQuote(quote));
+          return;
+        }
+      }
+      setSelectionModel([]);
+    },
+    [currentQuoteIdSelected, quoteItems]
+  );
+
+  const createParcialReq = async () => {
+    try {
+      setLoading(true);
+      const newRequisition = await RequisitionService.createFromOther(requisition.ID_REQUISICAO, selectionModel as number[]);
+      setLoading(false);
+    } catch (e) {
+      setLoading(false);
+      dispatch(
+        setFeedback({
+          message: "Erro ao criar requisição parcial",
+          type: "error",
+        })
+      );
+    }
+  };
+
   useEffect(() => {
     if (requisition) {
       fetchData();
@@ -440,18 +486,33 @@ const RequisitionItemsTable = ({ tableMaxHeight, hideFooter }: RequisitionItemsT
     refresh,
   ]);
 
+  useEffect(() => {
+    handleChangeQuoteSelected();
+  }, [handleChangeQuoteSelected]);
+
+  useEffect(() =>  {
+
+  }, [currentQuoteIdSelected])
+
   return (
     <Box>
       {selectionModel.length > 0 && (
-        <Box sx={{ p: 1 }}>
+        <Box sx={{ p: 1, display: "flex", gap: 1 }}>
           {!addingReqItems &&
             !updatingRecentProductsQuantity &&
-            createQuotePermitted &&(
+            createQuotePermitted && (
               <Button
                 variant="contained"
                 onClick={createQuoteFromSelectedItems}
               >
                 Criar cotação
+              </Button>
+            )}
+          {!addingReqItems &&
+            !updatingRecentProductsQuantity &&
+            selectedQuote && (
+              <Button variant="contained" onClick={createParcialReq}>
+                Criar requisição parcial
               </Button>
             )}
         </Box>

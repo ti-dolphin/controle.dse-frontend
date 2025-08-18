@@ -34,7 +34,7 @@ const HomePage = () => {
   const [anchorEl, setAnchorEl] = React.useState<null | HTMLElement>(null);
   const open = Boolean(anchorEl);
   const user = useSelector((state: any) => state.user.user);
-  const isAdmin = user.PERM_ADMINISTRADOR === 1;
+  const isAdmin = user ? user.PERM_ADMINISTRADOR === 1 : false;
 
 
   const handleClick = (event: React.MouseEvent<HTMLButtonElement>) => {

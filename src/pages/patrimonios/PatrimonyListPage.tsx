@@ -41,15 +41,16 @@ import BaseDeleteDialog from "../../components/shared/BaseDeleteDialog";
 import { PatrimonyService } from "../../services/patrimonios/PatrimonyService";
 import { useChecklistNotifications } from "../../hooks/patrimonios/useChecklistNotifications";
 import { useIsMobile } from "../../hooks/useIsMobile";
+import { FixedSizeGrid } from "react-window";
+import PatrimonyCard from "../../components/patrimonios/PatrimonyCard";
+
 
 const PatrimonyListPage = () => {
-  console.log("PatrimonyListPage");
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const theme = useTheme();
   const user = useSelector((state: RootState) => state.user.user);
-  const { rows, isLoading, filters, search, patrimonyBeingDeleted } =
-    useSelector((state: RootState) => state.patrionyTable);
+  const { rows, isLoading, filters, search, patrimonyBeingDeleted } = useSelector((state: RootState) => state.patrionyTable);
   const [creating, setCreating] = React.useState(false);
   const { isMobile } = useIsMobile();
   const {notifications} = useChecklistNotifications(); 
@@ -164,15 +165,18 @@ const PatrimonyListPage = () => {
           width: "100%",
           display: "flex",
           flexDirection: "column",
+          alignItems: "center",
         }}
       >
         <BaseTableToolBar
           handleChangeSearchTerm={debouncedHandleChangeSearchTerm}
         >
           <Stack direction="row" alignItems="center" gap={1}>
-            <Button variant="contained" onClick={handleCleanFilter}>
-              Limpar filtros
-            </Button>
+            {!isMobile && (
+              <Button variant="contained" onClick={handleCleanFilter}>
+                Limpar filtros
+              </Button>
+            )}
             <BaseAddButton handleOpen={() => setCreating(true)} />
             <IconButton
               onClick={() => navigate("/patrimonios/checklists")}
@@ -189,6 +193,28 @@ const PatrimonyListPage = () => {
           </Stack>
         </BaseTableToolBar>
 
+        {isMobile && (
+          <FixedSizeGrid
+            columnCount={1}
+            columnWidth={280}
+            rowCount={rows.length}
+            rowHeight={310}
+            height={600}
+            width={300}
+          >
+            {({ columnIndex, rowIndex, style }) => {
+              const row = rows[rowIndex];
+              return (
+                <PatrimonyCard
+                  styles={style}
+                  key={row.id_movimentacao}
+                  patrimonyMov={row}
+                />
+              );
+            }}
+          </FixedSizeGrid>
+        )}
+
         {!isMobile && (
           <BaseTableColumnFilters
             columns={columns}
@@ -197,7 +223,6 @@ const PatrimonyListPage = () => {
             debouncedSetTriggerFetch={debouncedSetTriggerFetch}
           />
         )}
-
         {!isMobile && (
           <BaseDataTable
             apiRef={gridRef}
@@ -234,7 +259,7 @@ const PatrimonyListPage = () => {
         >
           <IconButton
             onClick={() => setCreating(false)}
-             sx={{ position: "absolute", top: 0, right: 0 }}
+            sx={{ position: "absolute", top: 0, right: 0 }}
           >
             <CloseIcon color="error" />
           </IconButton>

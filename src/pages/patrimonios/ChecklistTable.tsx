@@ -21,6 +21,9 @@ import { debounce } from "lodash";
 import CloseIcon from "@mui/icons-material/Close";
 import ChecklistView from "./ChecklistView";
 import { ChecklistFilters, setFilters, setRefresh, setRows, setSearchTerm } from "../../redux/slices/patrimonios/ChecklistTableSlice";
+import { useIsMobile } from "../../hooks/useIsMobile";
+import { FixedSizeGrid } from "react-window";
+import ChecklistCard from "../../components/checklists/ChecklistCard";
 
 
 
@@ -40,7 +43,7 @@ const ChecklistTable = () => {
   const [situation, setSituation] = React.useState<string | "cobrar" | "aprovar" | 'pendente'>("pendente");
   const [loading, setLoading] = React.useState(false);
   const  [checklistSelected, setChecklistSelected] = React.useState<Partial<Checklist> | null>(null);
-
+  const {isMobile } = useIsMobile();
   const columns: GridColDef[] = [
     {
       field: "id_checklist_movimentacao",
@@ -106,6 +109,10 @@ const ChecklistTable = () => {
     const value = e.target.value;
     dispatch(setFilters({ ...filters, [field]: value }));
   };
+
+  const openChecklistView  = (checklist: Partial<Checklist> ) => { 
+    setChecklistSelected(checklist);
+  }
 
   const handleRowClick = (checklist : Partial<Checklist> ) =>  {
     setChecklistSelected(checklist);
@@ -210,7 +217,7 @@ const ChecklistTable = () => {
   }, [fetchChecklistsByPatrimony, fetchChecklistsByUser]);
 
   return (
-    <Box sx={{ display: "flex", flexDirection: "column", height: "100%" }}>
+    <Box sx={{ display: "flex", flexDirection: "column", alignItems:"center", height: "100%" }}>
       <BaseTableToolBar handleChangeSearchTerm={debouncedHanleChangeSearchTerm}>
         {from === "checklists" && (
           <Stack direction={"row"} spacing={2}>
@@ -233,40 +240,56 @@ const ChecklistTable = () => {
           </Stack>
         )}
       </BaseTableToolBar>
-      <BaseTableColumnFilters
-        columns={columns}
-        filters={filters}
-        handleChangeFilters={handleChangeFilters}
-        debouncedSetTriggerFetch={function (): void {
-          throw new Error("Function not implemented.");
-        }}
-      />
+      {!isMobile && (
+        <BaseTableColumnFilters
+          columns={columns}
+          filters={filters}
+          handleChangeFilters={handleChangeFilters}
+          debouncedSetTriggerFetch={function (): void {
+            throw new Error("Function not implemented.");
+          }}
+        />
+      )}
 
-      <BaseDataTable
-        rows={rows}
-        columns={columns}
-        loading={loading}
-        disableColumnMenu
-        getRowId={(row: Partial<Checklist>) =>
-          row.id_checklist_movimentacao || Math.random()
-        }
-        onRowClick={(params) => handleRowClick(params.row)}
-        hideFooter={from === "patrimonio"}
-        rowHeight={36}
-        theme={theme}
-      />
+      {isMobile && (
+        <FixedSizeGrid
+          columnCount={1}
+          columnWidth={280}
+          rowCount={rows.length}
+          rowHeight={310}
+          height={600}
+          width={300}
+        >
+          {({ columnIndex, rowIndex, style }) => {
+            const row = rows[rowIndex];
+            return (
+              <ChecklistCard
+                styles={style}
+                key={row.id_checklist_movimentacao}
+                openChecklistView={openChecklistView}
+                checklist={row}
+              />
+            );
+          }}
+        </FixedSizeGrid>
+      )}
 
       <Dialog
         fullScreen
         open={Boolean(checklistSelected)}
         onClose={() => {
           setChecklistSelected(null);
-          
+
           dispatch(setRefresh(!refresh));
         }}
       >
         <DialogTitle>
-          <Typography component='a' variant="h6" color="primary.main" href={`/patrimonios/${checklistSelected?.patrimonio?.id_patrimonio}`}>
+          <Typography
+            component="a"
+            variant="h6"
+            color="primary.main"
+            href={`/patrimonios/${checklistSelected?.patrimonio?.id_patrimonio}`}
+          >
             {checklistSelected?.id_checklist_movimentacao} -{" "}
             {checklistSelected?.patrimonio_nome}
           </Typography>
@@ -281,7 +304,7 @@ const ChecklistTable = () => {
             color="error"
             onClick={() => {
               setChecklistSelected(null);
-              
+
               dispatch(setRefresh(!refresh));
             }}
             aria-label="close"

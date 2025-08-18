@@ -37,7 +37,7 @@ interface PatrimonyFilters {
 }
 
 interface PatrimonyTableState {
-  rows: any[];
+  rows: Movimentation[];
   page: number;
   pageSize: number;
   totalRows: number;

@@ -45,15 +45,6 @@ const fields: FieldConfig[] = [
     value: requisition.DESCRIPTION ?? "",
   },
   {
-    label: "Observação",
-    field: "OBSERVACAO",
-    type: "text",
-    disabled: false,
-    required: false,
-    defaultValue: "",
-    value: requisition.OBSERVACAO ?? "",
-  },
-  {
     label: "Projeto",
     field: "ID_PROJETO",
     type: "autocomplete",
@@ -110,7 +101,6 @@ const fields: FieldConfig[] = [
               TIPO : 10,
               ID_RESPONSAVEL : requisition.ID_RESPONSAVEL,
               id_status_requisicao: 1,
-              OBSERVACAO : requisition.OBSERVACAO,
             });
             dispatch(setRows([...rows, newRequisition]));
             dispatch(clearRequisition());

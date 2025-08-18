@@ -1,5 +1,6 @@
 import { ReducedUser } from "../User";
 import { PaymentCondition } from "./PaymentCondition";
+import { QuoteItem } from "./QuoteItem";
 import { TaxClassification } from "./TaxClassification";
 
 export interface Quote {
@@ -20,4 +21,5 @@ export interface Quote {
     pessoa_criado_por? : ReducedUser;
     condicao_pagamento? : PaymentCondition;
     classificacao_fiscal? : TaxClassification;
+    items? : QuoteItem[];
 }

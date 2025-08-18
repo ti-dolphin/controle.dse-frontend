@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useState } from "react";
+import React, { ChangeEvent, useCallback, useEffect, useState } from "react";
 import { GridColDef } from "@mui/x-data-grid";
 import { formatCurrency, getDateFromISOstring } from "../../utils";
 import { useDispatch, useSelector } from "react-redux";
@@ -7,6 +7,7 @@ import DeleteIcon from "@mui/icons-material/Delete";
 import { Box, Checkbox, IconButton, Tooltip, Typography } from "@mui/material";
 import EditIcon from "@mui/icons-material/Edit";
 import {
+  setCurrentQuoteIdSelected,
   setItemBeingReplaced,
   setReplacingItemProduct,
 } from "../../redux/slices/requisicoes/requisitionItemSlice";
@@ -46,6 +47,15 @@ export const useRequisitionItemColumns = (
   const { updatingRecentProductsQuantity } = useSelector(
     (state: RootState) => state.requisitionItem
   );
+
+  const handleSelectQuoteId = (quoteId: number, e: ChangeEvent<HTMLInputElement>) => {
+    const selected = e.target.checked;
+    if (selected) {
+      dispatch(setCurrentQuoteIdSelected(quoteId));
+      return;
+    }
+    dispatch(setCurrentQuoteIdSelected(null));
+  };
 
   const concludeFillingOC = async () => {
     if (!ocValue) {
@@ -348,10 +358,13 @@ export const useRequisitionItemColumns = (
               Number(item.id_cotacao) === Number(params.field)
           );
           const hasquoteItem = quoteItem && !quoteItem.indisponivel;
-          const parciallyQuoted = hasquoteItem ? Number(quoteItem.quantidade_cotada) < Number(quoteItem.quantidade_solicitada) :false;
+          const parciallyQuoted = hasquoteItem
+            ? Number(quoteItem.quantidade_cotada) <
+              Number(quoteItem.quantidade_solicitada)
+            : false;
 
           return (
-            <Box sx={{display: 'flex', alignItems: 'center'}}>
+            <Box sx={{ display: "flex", alignItems: "center" }}>
               {hasquoteItem && formatCurrency(Number(quoteItem?.subtotal) || 0)}
               {hasquoteItem && (
                 <Checkbox
@@ -375,15 +388,35 @@ export const useRequisitionItemColumns = (
                 />
               )}
               {quoteItem?.indisponivel > 0 && (
-                <Tooltip title={`Indisponível no fornecedor: ${col.headerName}`}>
+                <Tooltip
+                  title={`Indisponível no fornecedor: ${col.headerName}`}
+                >
                   <ErrorIcon color="error" />
                 </Tooltip>
               )}
               {parciallyQuoted && (
-                <Tooltip title={`Quantidade cotada: ${quoteItem?.quantidade_cotada}`}>
+                <Tooltip
+                  title={`Quantidade cotada: ${quoteItem?.quantidade_cotada}`}
+                >
                   <ErrorIcon color="secondary" />
                 </Tooltip>
               )}
+            </Box>
+          );
+        },
+        sortable: false,
+        renderHeader: (params: any) => {
+          
+          return (
+            <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+              <Typography fontSize="0.7rem" fontWeight="bold" color="primary">
+                {params.colDef.headerName}
+              </Typography>
+              <Checkbox
+                onChange={(e) => handleSelectQuoteId(Number(params.field), e)}
+                icon={<RadioButtonUncheckedIcon />}
+                checkedIcon={<CheckCircleIcon />}
+              ></Checkbox>
             </Box>
           );
         },

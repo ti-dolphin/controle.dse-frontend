@@ -1,4 +1,5 @@
 import { Product } from "../Product";
+import { QuoteItem } from "./QuoteItem";
 
 export interface RequisitionItem {
     id_item_requisicao: number;
@@ -10,6 +11,7 @@ export interface RequisitionItem {
     oc: string | null;
     data_entrega: string | null;
     id_item_cotacao?: number;
+    items_cotacao ? : Partial<QuoteItem[]>;
     produto?: Product
     produto_descricao?: string;
     produto_codigo?: string;

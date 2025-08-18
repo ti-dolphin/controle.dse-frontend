@@ -23,8 +23,6 @@ export interface Requisition {
 
   custo_total : number;
 
-  OBSERVACAO: string | null;
-
   tipo_requisicao?: RequisitionType;
   projeto?: Project;
   gerente?: ReducedUser;

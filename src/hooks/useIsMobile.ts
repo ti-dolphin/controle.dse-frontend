@@ -2,7 +2,6 @@
 import { useState, useEffect } from "react";
 
 export const  useIsMobile = (breakpoint: number = 768) =>  {
-    console.log("useIsMobile");
   const [isMobile, setIsMobile] = useState<boolean>(
     typeof window !== "undefined" ? window.innerWidth < breakpoint : false
   );
@@ -10,7 +9,6 @@ export const  useIsMobile = (breakpoint: number = 768) =>  {
   useEffect(() => {
     console.log("useEffect that adds the event listener");
     const handleResize = () => {
-        console.log("window.innerWidth", window.innerWidth);
       setIsMobile(window.innerWidth < breakpoint);
     };
 

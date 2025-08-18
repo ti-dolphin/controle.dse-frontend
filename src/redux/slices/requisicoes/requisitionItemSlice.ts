@@ -1,4 +1,5 @@
 import { createSlice, PayloadAction } from "@reduxjs/toolkit";
+import { Quote } from "../../../models/requisicoes/Quote";
 
 interface RequisitionItemState {
   addingProducts: boolean;
@@ -8,20 +9,24 @@ interface RequisitionItemState {
   replacingItemProduct: boolean;
   itemBeingReplaced: number | null;
   productSelected: number | null;
-  newItems : number[],
-  refresh : boolean
+  newItems: number[];
+  refresh: boolean;
+  currentQuoteIdSelected: number | null;
+  selectedQuote: Partial<Quote> | null;
 }
 
 const initialState: RequisitionItemState = {
   addingProducts: false,
   updatingRecentProductsQuantity: false,
   recentProductsAdded: [],
-  productsAdded : [],
-  replacingItemProduct : false,
+  productsAdded: [],
+  replacingItemProduct: false,
   itemBeingReplaced: null,
   productSelected: null,
-  refresh : false,
-  newItems : []
+  newItems: [],
+  refresh: false,
+  currentQuoteIdSelected: null,
+  selectedQuote : null,
 };
 
 const requisitionItemSlice = createSlice({
@@ -69,6 +74,12 @@ const requisitionItemSlice = createSlice({
     clearNewItems(state) {
       state.newItems = [];
     },
+    setCurrentQuoteIdSelected(state, action: PayloadAction<number | null>) {
+      state.currentQuoteIdSelected = action.payload;
+    },
+    setSelectedQuote(state, action: PayloadAction<Partial<Quote> | null>) {
+      state.selectedQuote = action.payload;
+    },
   },
 });
 
@@ -84,7 +95,10 @@ export const {
   setReplacingItemProduct,
   setItemBeingReplaced,
   setProductSelected,
-  setRefresh
+  setRefresh,
+  setCurrentQuoteIdSelected,
+  setSelectedQuote,
 } = requisitionItemSlice.actions;
 
 export default requisitionItemSlice.reducer;
+
