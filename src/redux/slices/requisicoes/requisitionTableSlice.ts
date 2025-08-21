@@ -32,46 +32,6 @@ export interface RequisitionFilters {
   responsavel_projeto: string;
   // data_criacao: string;
 }
-// export const buildPrismaFilters = (filters: RequisitionFilters) => {
-//   return Object.entries(filters)
-//     .filter(([field, value]) => {
-//       if (field === "data_criacao") {
-//         if (!value) return false;
-//         const date = new Date(value);
-//         if (isNaN(date.getTime())) return false;
-//         if (date.getFullYear() < 1900) return false;
-//       }
-//       return value !== "";
-//     }) //filtra todos os valores e valida a data
-    
-//     .flatMap(([field, value]) => {
-//         //Monta o intervalo
-//       if (field === "data_criacao") {
-//         const date = new Date(value + "T00:00:00-03:00"); //cria data no fuso horário correto
-//         const start = new Date(date.setHours(0, 0, 0, 0));
-//         const end = new Date(start);
-//         end.setDate(end.getDate() + 1);
-
-//         return [
-//           { data_criacao: { gte: start.toISOString() } },
-//           { data_criacao: { lt: end.toISOString() } },
-//         ];
-//       }
-//       const path = filterFieldMap[field]; //data_criacao.equals
-//       if (!path) return [];
-//       let finalValue = value;
-//       return [
-//         path
-//           .split(".")
-//           .reverse()
-//           .reduce((acc, key, idx) => {
-//             if (idx === 0) return { [key]: finalValue };
-//             return { [key]: acc };
-//           }, {}),
-//       ];
-//     });
-// };
-
 interface RequisitionTableState {
   rows: Requisition[];
   loading: boolean;
@@ -81,6 +41,7 @@ interface RequisitionTableState {
   selectedKanban: RequisitionKanban | null;
   searchTerm: string;
   filters: RequisitionFilters;
+  requisitionBeingDeletedId: number | null; // New state to track deletion
 }
 
 const initialState: RequisitionTableState = {
@@ -91,7 +52,6 @@ const initialState: RequisitionTableState = {
   kanbans: [],
   selectedKanban: null,
   searchTerm: "",
-
   filters: {
     ID_REQUISICAO: null,
     DESCRIPTION: "",
@@ -106,6 +66,7 @@ const initialState: RequisitionTableState = {
     responsavel_projeto: "",
     // data_criacao: "",
   },
+  requisitionBeingDeletedId: null, // Initialize with null
 };
 
 const requisitionTableSlice = createSlice({
@@ -127,6 +88,9 @@ const requisitionTableSlice = createSlice({
     setKanbans(state, action: PayloadAction<RequisitionKanban[]>) {
       state.kanbans = action.payload;
     },
+    removeRow(state, action: PayloadAction<number>) {
+      state.rows = state.rows.filter((row) => row.ID_REQUISICAO !== action.payload);
+    },
     setSelectedKanban(state, action: PayloadAction<RequisitionKanban | null>) {
       state.selectedKanban = action.payload;
     },
@@ -136,7 +100,9 @@ const requisitionTableSlice = createSlice({
     setFilters(state, action: PayloadAction<RequisitionFilters>) {
       state.filters = action.payload;
     },
-
+    setRequisitionBeingDeletedId(state, action: PayloadAction<number | null>) {
+      state.requisitionBeingDeletedId = action.payload; // New reducer to set the deletion ID
+    },
     clearfilters(state) {
       state.filters = {
         ID_REQUISICAO: null,
@@ -152,7 +118,7 @@ const requisitionTableSlice = createSlice({
         responsavel_projeto: "",
         // data_criacao: "",
       };
-    }, 
+    },
     clearRows(state) {
       state.rows = [];
       state.loading = false;
@@ -172,5 +138,7 @@ export const {
   setSearchTerm,
   clearfilters,
   setFilters,
+  setRequisitionBeingDeletedId, // Export the new action
+  removeRow,
 } = requisitionTableSlice.actions;
 export default requisitionTableSlice.reducer;

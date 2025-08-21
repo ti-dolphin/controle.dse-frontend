@@ -9,6 +9,8 @@ import {
   setSearchTerm,
   setFilters,
   clearfilters,
+  setRequisitionBeingDeletedId,
+  removeRow,
 } from "../../../redux/slices/requisicoes/requisitionTableSlice";
 import { setFeedback } from "../../../redux/slices/feedBackSlice";
 import RequisitionService from "../../../services/requisicoes/RequisitionService";
@@ -33,6 +35,7 @@ import BaseTableColumnFilters from "../../../components/shared/BaseTableColumnFi
 import RequisitionFormModal from "../../../components/requisicoes/RequisitionFormModal";
 import { useNavigate } from "react-router-dom";
 import UpperNavigation from "../../../components/shared/UpperNavigation";
+import BaseDeleteDialog from "../../../components/shared/BaseDeleteDialog";
 
 const RequisitionListPage = () => {
   useRequisitionKanban();
@@ -40,7 +43,7 @@ const RequisitionListPage = () => {
   const dispatch = useDispatch();
   const theme = useTheme();
   const user = useSelector((state: RootState) => state.user.user);
-  const rows = useSelector((state: RootState) => state.requisitionTable.rows);
+  const {rows} = useSelector((state: RootState) => state.requisitionTable);
   const navigate = useNavigate();
   
   const {
@@ -50,6 +53,7 @@ const RequisitionListPage = () => {
     selectedRow,
     kanbans,
     selectedKanban,
+    requisitionBeingDeletedId
   } = useSelector((state: RootState) => state.requisitionTable);
 
   const changeSelectedRow = (row: any) => {
@@ -79,10 +83,32 @@ const RequisitionListPage = () => {
   const handleChangeSearchTerm = React.useCallback(
     (event: React.ChangeEvent<HTMLInputElement>) => {
       const value = event.target.value;
-      dispatch(setSearchTerm(value.toLowerCase()));
+    dispatch(setSearchTerm(value.toLowerCase()));
     },
     [dispatch]
   );
+
+  const handleDeleteRequisition = async () => {
+    if (!requisitionBeingDeletedId) return;
+    try {
+      await RequisitionService.delete(requisitionBeingDeletedId);
+      dispatch(setRequisitionBeingDeletedId(null));
+      dispatch(removeRow(requisitionBeingDeletedId));
+      dispatch(
+        setFeedback({
+          message: "Requisição deletada com sucesso",
+          type: "success",
+        })
+      )
+    } catch (e) {
+      dispatch(
+        setFeedback({
+          message: "Houve um erro ao deletar a requisição",
+          type: "error",
+        })
+      );
+    }
+  };
 
 
   const handleBack = () => {
@@ -242,6 +268,11 @@ const RequisitionListPage = () => {
         row={selectedRow}
         ref={gridRef}
       />
+
+      <BaseDeleteDialog 
+        open={requisitionBeingDeletedId !== null}
+        onConfirm={handleDeleteRequisition } 
+        onCancel={() => dispatch(setRequisitionBeingDeletedId(null))}    />
     </Box>
   );
 };

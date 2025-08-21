@@ -1,199 +1,247 @@
+import { useCallback, useEffect, useState } from "react";
+import { useDispatch, useSelector } from "react-redux";
+import { useParams } from "react-router-dom";
+import { RootState } from "../../redux/store";
 import {
+  Avatar,
+  Box,
   List,
   ListItem,
+  ListItemIcon,
   ListItemText,
-  Divider,
+  TextField,
   IconButton,
-  Box,
   Dialog,
   DialogTitle,
   DialogContent,
-  TextField,
   DialogActions,
   Button,
-  Tooltip,
-  Typography,
-  Stack,
 } from "@mui/material";
-import { useCallback, useEffect, useState } from "react";
-import { useParams } from "react-router-dom";
-import { OpportunityCommentService } from "../../services/oportunidades/OpportunityCommentService";
-import { OpportunityComment } from "../../models/oportunidades/OpportunityComment";
-import DeleteIcon from "@mui/icons-material/Delete";
-import { useDispatch, useSelector } from "react-redux";
 import { setFeedback } from "../../redux/slices/feedBackSlice";
+import { getDateStringFromISOstring } from "../../utils";
+import { OpportunityCommentService } from "../../services/oportunidades/OpportunityCommentService";
+import EditIcon from "@mui/icons-material/Edit";
+import DeleteIcon from "@mui/icons-material/Delete";
 import BaseDeleteDialog from "../shared/BaseDeleteDialog";
-import AddIcon from "@mui/icons-material/Add";
-import { RootState } from "../../redux/store";
-import { formatDateToISOstring, getDateStringFromISOstring } from "../../utils";
+
+interface OpportunityComment {
+  CODCOMENTARIO: number;
+  CODOS: number;
+  RECCREATEDON: string;
+  DESCRICAO: string;
+  RECCREATEDBY: string;
+}
 
 const OpportunityCommentList = () => {
   const dispatch = useDispatch();
-  const { CODOS } = useParams();
-  const user  = useSelector((state: RootState) => state.user.user);
+  const { CODOS } = useParams<{ CODOS: string }>();
+  const user = useSelector((state: RootState) => state.user.user);
   const [comments, setComments] = useState<OpportunityComment[]>([]);
-  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
-  const [commentBeingDeleted, setCommentBeingDeleted] =
+  const [newComment, setNewComment] = useState("");
+  const [editingComment, setEditingComment] =
     useState<OpportunityComment | null>(null);
-  // const [commentBeingEdited, setCommentBeingEdited] = useState<OpportunityComment | null>(null);
-  const [newComment, setNewComment] = useState<string>("");
-  const [creating, setCreating] = useState<boolean>(false);
-  const handleOpenDeleteDialog = (comment: OpportunityComment) => {
-    setCommentBeingDeleted(comment);
-    setDeleteDialogOpen(true);
-  };
+  const [editDialogOpen, setEditDialogOpen] = useState(false);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [commentToDelete, setCommentToDelete] = useState<number | null>(null);
 
-  // const saveComment = async (updatedComment: Partial<OpportunityComment>) => {
-  //   if (!updatedComment.CODCOMENTARIO) return;
-  //   try {
-  //     const comment = await OpportunityCommentService.update(
-  //       updatedComment.CODCOMENTARIO,
-  //       updatedComment
-  //     );
-  //     setComments(
-  //       comments.map((c) =>
-  //         c.CODCOMENTARIO === comment.CODCOMENTARIO ? comment : c
-  //       )
-  //     );
-  //     setCommentBeingEdited(comment);
-  //   } catch (e) {}
-  // };
-
-
-  const handleCreateComment = async () => {
-    if (!CODOS) return;
-    const commnent = await OpportunityCommentService.create({
-      DESCRICAO: newComment,
-      CODOS: Number(CODOS),
-      RECCREATEDBY: user?.NOME || "",
-      CODAPONT: 0,
-      RECCREATEDON: formatDateToISOstring(new Date()),
-    });
-    setComments([...comments, commnent]);
-    setCreating(false);
-    setNewComment("");
-  };
-
-  const handleDeleteComment = async () => {
-    if (commentBeingDeleted) {
-      await OpportunityCommentService.delete(commentBeingDeleted.CODCOMENTARIO);
-      setComments(
-        comments.filter(
-          (comment) =>
-            comment.CODCOMENTARIO !== commentBeingDeleted.CODCOMENTARIO
-        )
-      );
-      setDeleteDialogOpen(false);
-      setCommentBeingDeleted(null);
+  const fetchData = useCallback(async () => {
+    try {
+      const data = await OpportunityCommentService.getMany(Number(CODOS));
+      setComments(data);
+    } catch {
       dispatch(
-        setFeedback({
-          message: "Comentário da oportunidade excluído!",
-          type: "success",
-        })
+        setFeedback({ type: "error", message: "Falha ao carregar comentários" })
+      );
+    }
+  }, [dispatch, CODOS]);
+
+  useEffect(() => {
+    fetchData();
+  }, [fetchData]);
+
+  const addComment = (comment: OpportunityComment) =>
+    setComments((prev) => [comment, ...prev]);
+
+  const removeComment = (id: number) =>
+    setComments((prev) => prev.filter((c) => c.CODCOMENTARIO !== id));
+
+  const replaceComment = (comment: OpportunityComment) =>
+    setComments((prev) =>
+      prev.map((c) => (c.CODCOMENTARIO === comment.CODCOMENTARIO ? comment : c))
+    );
+
+  const permToEditOrDelete = (comment: OpportunityComment) =>
+    user?.NOME === comment.RECCREATEDBY || user?.PERM_ADMINISTRADOR;
+
+  const handleAddComment = async () => {
+    if (!newComment.trim()) return;
+    try {
+      const createdComment = await OpportunityCommentService.create({
+        CODOS: Number(CODOS),
+        DESCRICAO: newComment,
+        RECCREATEDBY: user?.NOME || "",
+        RECCREATEDON: new Date().toISOString(),
+      });
+      addComment(createdComment);
+      setNewComment("");
+    } catch {
+      dispatch(
+        setFeedback({ type: "error", message: "Erro ao adicionar comentário" })
       );
     }
   };
 
-  const fetchCommnts = useCallback(async () => {
-    if (!CODOS) return;
-    const comments = await OpportunityCommentService.getMany(Number(CODOS));
-    setComments(comments);
-  }, [CODOS]);
+  const handleEditComment = async () => {
+    if (!editingComment || !editingComment.DESCRICAO.trim()) return;
+    try {
+      const updated = await OpportunityCommentService.update(
+        editingComment.CODCOMENTARIO,
+        { DESCRICAO: editingComment.DESCRICAO }
+      );
+      replaceComment(updated);
+      setEditDialogOpen(false);
+      setEditingComment(null);
+    } catch {
+      dispatch(
+        setFeedback({ type: "error", message: "Erro ao atualizar comentário" })
+      );
+    }
+  };
 
-  useEffect(() => {
-    fetchCommnts();
-  }, [fetchCommnts]);
+  const handleDeleteComment = async () => {
+    if (!commentToDelete) return;
+    try {
+      await OpportunityCommentService.delete(commentToDelete);
+      removeComment(commentToDelete);
+      setDeleteDialogOpen(false);
+      setCommentToDelete(null);
+    } catch {
+      dispatch(
+        setFeedback({ type: "error", message: "Erro ao excluir comentário" })
+      );
+    }
+  };
 
   return (
-    <Box
-      sx={{
-        display: "flex",
-        flexDirection: "column",
-        gap: 2,
-        justifyContent: "start",
-      }}
-    >
-      <Stack direction="row" alignItems="center" gap={1}>
-        <Typography variant="h6" color="primary.main" fontWeight="bold">
-          Comentários
-        </Typography>
-        <Tooltip title="Adicionar Comentário">
-          <IconButton
-            sx={{
-              backgroundColor: "primary.main",
-              color: "white",
-              height: 30,
-              width: 30,
-              "&:hover": {
-                backgroundColor: "primary.dark",
-              },
-            }}
-            onClick={() => setCreating(true)}
-          >
-            <AddIcon />
-          </IconButton>
-        </Tooltip>
-      </Stack>
-      <List>
-        <Divider />
+    <Box sx={{width: '100%'}}>
+      <TextField
+        fullWidth
+        placeholder="Adicionar comentário..."
+        value={newComment}
+        onChange={(e) => setNewComment(e.target.value)}
+        variant="outlined"
+        size="small"
+        multiline
+        maxRows={3}
+        onKeyDown={(e) => {
+          if (e.key === "Enter" && !e.shiftKey) {
+            e.preventDefault();
+            handleAddComment();
+          }
+        }}
+        sx={{
+          mb: 1,
+          "& .MuiInputBase-root": { fontSize: 13, py: 0.5 },
+        }}
+      />
+      <List dense sx={{ py: 0 }}>
         {comments.map((comment) => (
-          <ListItem key={comment.CODCOMENTARIO}>
-            <Stack direction="column" width="100%" gap={1}>
-              <ListItemText
-                primary={comment.CODCOMENTARIO}
-                secondary={comment.DESCRICAO}
-              />
-              <Typography variant="caption">
-                Criado por {comment.RECCREATEDBY} em{" "}
-                {getDateStringFromISOstring(comment.RECCREATEDON)}
-              </Typography>
-            </Stack>
-            <IconButton
-              onClick={() => handleOpenDeleteDialog(comment)}
-              color="error"
-            >
-              <DeleteIcon />
-            </IconButton>
+          <ListItem
+            key={comment.CODCOMENTARIO}
+            disableGutters
+            sx={{ py: 0.5, display: "flex", gap: 1.8 }}
+            secondaryAction={
+              permToEditOrDelete(comment) && (
+                <Box sx={{display: 'flex', gap: 1}}>
+                  <IconButton
+                    size="small"
+                    onClick={() => {
+                      setEditingComment(comment);
+                      setEditDialogOpen(true);
+                    }}
+                  >
+                    <EditIcon fontSize="small" />
+                  </IconButton>
+                  <IconButton
+                    size="small"
+                    color="error"
+                    onClick={() => {
+                      setCommentToDelete(comment.CODCOMENTARIO);
+                      setDeleteDialogOpen(true);
+                    }}
+                  >
+                    <DeleteIcon fontSize="small" />
+                  </IconButton>
+                </Box>
+              )
+            }
+          >
+            <ListItemIcon sx={{ minWidth: 36 }}>
+              <Avatar sx={{ width: 28, height: 28, fontSize: 12 }}>
+                {comment.RECCREATEDBY?.[0] || "?"}
+              </Avatar>
+            </ListItemIcon>
+            <ListItemText
+              primaryTypographyProps={{
+                fontSize: 12,
+                fontWeight: 600,
+                lineHeight: 1.2,
+              }}
+              secondaryTypographyProps={{ fontSize: 12, lineHeight: 1.2 }}
+              primary={`${comment.RECCREATEDBY} • ${getDateStringFromISOstring(
+                comment.RECCREATEDON
+              )}`}
+              secondary={comment.DESCRICAO}
+            />
           </ListItem>
         ))}
       </List>
-      <BaseDeleteDialog
-        open={deleteDialogOpen}
-        onConfirm={handleDeleteComment}
-        onCancel={() => {
-          setDeleteDialogOpen(false);
-          setCommentBeingDeleted(null);
-        }}
-      />
-      <Dialog open={creating} onClose={() => setCreating(false)}>
-        <DialogTitle>
-          <Typography variant="h6" fontWeight="bold" color="primary.main">
-            Novo Comentário
-          </Typography>
+
+      {/* Edit Dialog */}
+      <Dialog
+        open={editDialogOpen}
+        onClose={() => setEditDialogOpen(false)}
+        maxWidth="sm"
+        fullWidth
+      >
+        <DialogTitle sx={{ fontSize: 16, py: 1 }}>
+          Editar comentário
         </DialogTitle>
-        <DialogContent sx={{minWidth: 300}}>
+        <DialogContent sx={{ py: 1 }}>
           <TextField
-            label="Comentário"
-            multiline
             fullWidth
-            value={newComment}
-            sx={{ mt: 2 }}
-            onChange={(e) => setNewComment(e.target.value)}
+            value={editingComment?.DESCRICAO || ""}
+            onChange={(e) =>
+              setEditingComment((prev) =>
+                prev ? { ...prev, DESCRICAO: e.target.value } : null
+              )
+            }
+            variant="outlined"
+            size="small"
+            multiline
+            maxRows={3}
           />
         </DialogContent>
-        <DialogActions>
+        <DialogActions sx={{ py: 1 }}>
           <Button
-            variant="contained"
+            size="small"
             color="error"
-            onClick={() => setCreating(false)}
+            onClick={() => setEditDialogOpen(false)}
           >
             Cancelar
           </Button>
-          <Button variant="contained" onClick={handleCreateComment}>
+          <Button size="small" color="success" onClick={handleEditComment}>
             Salvar
           </Button>
         </DialogActions>
       </Dialog>
+
+      {/* Delete Dialog */}
+      <BaseDeleteDialog
+        open={deleteDialogOpen}
+        onCancel={() => setDeleteDialogOpen(false)}
+        onConfirm={handleDeleteComment}
+      />
     </Box>
   );
 };

@@ -1,4 +1,3 @@
-
 import {
   Grid,
   Paper,
@@ -34,7 +33,9 @@ const OpportunityDetailedForm = () => {
   const [opportunity, setOpportunity] = useState<Partial<Opportunity>>({});
   const [formData, setFormData] = useState<any>({});
   const { fieldsMap } = useOppDetailedFields(user, opportunity);
-  const [deletingOpp, setDeletingOpp] = useState<Partial<Opportunity> | null>(null);
+  const [deletingOpp, setDeletingOpp] = useState<Partial<Opportunity> | null>(
+    null
+  );
 
   const { CODOS } = useParams();
 
@@ -43,7 +44,12 @@ const OpportunityDetailedForm = () => {
     try {
       const opp = await OpportunityService.update(Number(CODOS), formData);
       setOpportunity(opp);
-      dispatch(setFeedback({ message: "Oportunidade salva com sucesso", type: "success" }));
+      dispatch(
+        setFeedback({
+          message: "Oportunidade salva com sucesso",
+          type: "success",
+        })
+      );
     } catch (error) {
       setFeedback({ message: "Erro ao salvar oportunidade", type: "error" });
     }
@@ -56,7 +62,7 @@ const OpportunityDetailedForm = () => {
   ) => {
     const updatedOpp = { ...opportunity, [field.field]: value };
     const fields = fieldsMap.get(fieldMapKey)?.map((f) => f.field);
-    let payload = {...formData};
+    let payload = { ...formData };
     if (fieldMapKey === "datas") {
       fields?.forEach((f) => {
         payload = {
@@ -74,7 +80,7 @@ const OpportunityDetailedForm = () => {
     fields?.forEach((f) => {
       payload = { ...payload, [f]: updatedOpp[f as keyof Opportunity] };
     });
-    
+
     setFormData(payload);
     setOpportunity(updatedOpp);
     // debouncedSave(payload);
@@ -88,7 +94,7 @@ const OpportunityDetailedForm = () => {
     if (!option) return;
     const updatedOpp = { ...opportunity, [field]: option.id };
     const fields = fieldsMap.get(fieldMapKey)?.map((f) => f.field);
-    let payload = {...formData};
+    let payload = { ...formData };
     fields?.forEach((f) => {
       payload = { ...payload, [f]: updatedOpp[f as keyof Opportunity] };
     });
@@ -97,27 +103,26 @@ const OpportunityDetailedForm = () => {
     // debouncedSave(payload);
   };
 
-  const handleDelete = async  ( ) => { 
+  const handleDelete = async () => {
     if (!deletingOpp?.CODOS) return;
-    try{  
-       await OpportunityService.delete(deletingOpp.CODOS);
-       navigate("/oportunidades");
-    }catch(e){ 
+    try {
+      await OpportunityService.delete(deletingOpp.CODOS);
+      navigate("/oportunidades");
+    } catch (e) {
       setDeletingOpp(null);
-      dispatch(setFeedback({ 
-        message: 'Erro ao deletar oportunidade',
-        type: 'error'
-      }));
+      dispatch(
+        setFeedback({
+          message: "Erro ao deletar oportunidade",
+          type: "error",
+        })
+      );
     }
-   
   };
-
 
   useEffect(() => {
     const fetchOpportunity = async () => {
       if (!CODOS) return;
       try {
-     
         const opportunity = await OpportunityService.getById(Number(CODOS));
         setOpportunity(opportunity);
       } catch (e) {
@@ -134,100 +139,100 @@ const OpportunityDetailedForm = () => {
 
   return (
     <Grid container spacing={1}>
-      
       <Grid item xs={12} md={4}>
-          <Paper elevation={2} sx={{ p: 1, borderRadius: 1, height: "100%" }}>
-            <Typography
-              variant="subtitle1"
-              color="primary.main"
-              fontWeight="bold"
-              sx={{ mb: 1 }}
-            >
-              Cadastro
-            </Typography>
-            <Grid container gap={2}>
-              {fieldsMap?.get("cadastro")?.map((field) => {
-                if (field.type === "autocomplete" && field.options) {
-                  return (
-                    <Grid item xs={12} key={field.field}>
-                      <Autocomplete
-                        options={field.options}
-                        getOptionLabel={(option) => option?.name || ""}
-                        getOptionKey={(option) => option?.id || ""}
-                        aria-required={field.required}
-                        slotProps={{
-                          popper: { sx: { fontSize: 13 } },
-                          paper: { sx: { fontSize: 13 } },
-                        }}
-                        fullWidth
-                        key={field.field}
-                        aria-label={field.label}
-                        value={field.options.find(
-                          (option) =>
-                            option.id ===
-                            opportunity[field.field as keyof Opportunity]
-                        )}
-                        onChange={(_e, value) =>
-                          handleAutocompleteChange(
-                            field.field,
-                            value,
-                            "cadastro"
-                          )
-                        }
-                        renderInput={(
-                          params: AutocompleteRenderInputParams
-                        ) => (
-                          <TextField
-                            {...params}
-                            InputLabelProps={{
-                              shrink: true,
-                              sx: {
-                                fontSize: 14,
-                                color: "text.secondary",
-                                fontWeight: "bold",
-                              },
-                            }}
-                            label={field.label}
-                            variant="outlined"
-                            fullWidth
-                            required={field.required}
-                            size="small"
-                          />
-                        )}
-                      />
-                    </Grid>
-                  );
-                }
+        <Paper elevation={2} sx={{ p: 1, borderRadius: 1, height: "100%" }}>
+          <Typography
+            variant="subtitle1"
+            color="primary.main"
+            fontWeight="bold"
+            sx={{ mb: 1 }}
+          >
+            Cadastro
+          </Typography>
+          <Grid container gap={2}>
+            {fieldsMap?.get("cadastro")?.map((field) => {
+              if (field.type === "autocomplete" && field.options) {
                 return (
                   <Grid item xs={12} key={field.field}>
-                    <TextField
-                      required={field.required}
-                      fullWidth
-                      onChange={(e) =>
-                        handleTextFieldChange(field, e.target.value, "cadastro")
-                      }
-                      name={field.field}
-                      InputLabelProps={{
-                        shrink: true,
-                        sx: {
-                          fontSize: 14,
-                          color: "text.secondary",
-                          fontWeight: "bold",
-                        },
+                    <Autocomplete
+                      options={field.options}
+                      getOptionLabel={(option) => option?.name || ""}
+                      getOptionKey={(option) => option?.id || ""}
+                      aria-required={field.required}
+                      slotProps={{
+                        popper: { sx: { fontSize: 13 } },
+                        paper: { sx: { fontSize: 13, borderRadius: 0 } },
                       }}
+                      fullWidth
                       key={field.field}
-                      label={field.label}
-                      variant="outlined"
-                      type={field.type}
-                      disabled={field.disabled}
-                      value={opportunity[field.field as keyof Opportunity]}
-                      size="small"
+                      aria-label={field.label}
+                      value={field.options.find(
+                        (option) =>
+                          option.id ===
+                          opportunity[field.field as keyof Opportunity]
+                      )}
+                      onChange={(_e, value) =>
+                        handleAutocompleteChange(field.field, value, "cadastro")
+                      }
+                      renderInput={(params: AutocompleteRenderInputParams) => (
+                        <TextField
+                          {...params}
+                          InputLabelProps={{
+                            shrink: true,
+                            sx: {
+                              fontSize: 14,
+                              color: "text.secondary",
+                              fontWeight: "bold",
+                            },
+                          }}
+                          InputProps={{
+                            ...params.InputProps,
+                            sx: { borderRadius: 0 },
+                          }}
+                          label={field.label}
+                          variant="outlined"
+                          fullWidth
+                          required={field.required}
+                          size="small"
+                        />
+                      )}
                     />
                   </Grid>
                 );
-              })}
-            </Grid>
-          </Paper>
+              }
+              return (
+                <Grid item xs={12} key={field.field}>
+                  <TextField
+                    required={field.required}
+                    fullWidth
+                    onChange={(e) =>
+                      handleTextFieldChange(field, e.target.value, "cadastro")
+                    }
+                    name={field.field}
+                    InputLabelProps={{
+                      shrink: true,
+                      sx: {
+                        fontSize: 14,
+                        color: "text.secondary",
+                        fontWeight: "bold",
+                      },
+                    }}
+                    InputProps={{
+                      sx: { borderRadius: 0 },
+                    }}
+                    key={field.field}
+                    label={field.label}
+                    variant="outlined"
+                    type={field.type}
+                    disabled={field.disabled}
+                    value={opportunity[field.field as keyof Opportunity]}
+                    size="small"
+                  />
+                </Grid>
+              );
+            })}
+          </Grid>
+        </Paper>
       </Grid>
 
       <Grid item xs={12} md={4}>
@@ -285,6 +290,9 @@ const OpportunityDetailedForm = () => {
                     disabled={field.disabled}
                     value={value}
                     size="small"
+                    InputProps={{
+                      sx: { borderRadius: 0 },
+                    }}
                   />
                 </Grid>
               );
@@ -315,7 +323,7 @@ const OpportunityDetailedForm = () => {
                       aria-required={field.required}
                       slotProps={{
                         popper: { sx: { fontSize: 13 } },
-                        paper: { sx: { fontSize: 13 } },
+                        paper: { sx: { fontSize: 13, borderRadius: 0 } },
                       }}
                       fullWidth
                       key={field.field}
@@ -338,6 +346,10 @@ const OpportunityDetailedForm = () => {
                               color: "text.secondary",
                               fontWeight: "bold",
                             },
+                          }}
+                          InputProps={{
+                            ...params.InputProps,
+                            sx: { borderRadius: 0 },
                           }}
                           label={field.label}
                           variant="outlined"
@@ -373,6 +385,9 @@ const OpportunityDetailedForm = () => {
                     disabled={field.disabled}
                     value={opportunity[field.field as keyof Opportunity]}
                     size="small"
+                    InputProps={{
+                      sx: { borderRadius: 0 },
+                    }}
                   />
                 </Grid>
               );

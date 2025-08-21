@@ -2,6 +2,9 @@ import {
   Box,
   Grid,
   Paper,
+  Stack,
+  TextField,
+  Typography,
   useTheme,
 } from "@mui/material";
 import OpportunityDetailedForm from "../../components/oportunidades/OpportunityDetailedForm";
@@ -10,15 +13,41 @@ import OpportunityAttachmentList from "../../components/oportunidades/Opportunit
 import UpperNavigation from "../../components/shared/UpperNavigation";
 import { useNavigate, useParams } from "react-router-dom";
 import OpportunityFollowerList from "../../components/oportunidades/OpportunityFollowerList";
+import { useEffect, useState } from "react";
+import OpportunityService from "../../services/oportunidades/OpportunityService";
+import { useDispatch } from "react-redux";
+import { setFeedback } from "../../redux/slices/feedBackSlice";
+import { Opportunity } from "../../models/oportunidades/Opportunity";
 
 const OpportunityDetailPage = () => {
   const theme = useTheme();
   const navigate = useNavigate();
-
+  const dispatch = useDispatch();
   const { CODOS } = useParams();
+
+  const [opportunity, setOpportunity] = useState<Opportunity | undefined>(undefined);
   const handleBack = () => {
     navigate("/oportunidades");
   };
+
+  useEffect(() => {
+      const fetchOpportunity = async () => {
+        if (!CODOS) return;
+        try {
+          const opportunity = await OpportunityService.getById(Number(CODOS));
+          setOpportunity(opportunity);
+        } catch (e) {
+          dispatch(
+            setFeedback({
+              message: "Erro ao buscar oportunidade",
+              type: "error",
+            })
+          );
+        }
+      };
+      fetchOpportunity();
+    }, [CODOS, dispatch]);
+
   return (
     <Box
       sx={{
@@ -27,7 +56,17 @@ const OpportunityDetailPage = () => {
         minHeight: "100vh",
       }}
     >
-      <UpperNavigation handleBack={handleBack} />
+      <UpperNavigation handleBack={handleBack}>
+        <Stack direction="row" alignItems="center">
+          <Typography
+            variant="subtitle1"
+            color="primary.main"
+            fontWeight="bold"
+          >
+            {`${opportunity?.cliente.NOMEFANTASIA} - ${opportunity?.projeto.ID}.${opportunity?.adicional.ID} `}
+          </Typography>
+        </Stack>
+      </UpperNavigation>
       <Grid container direction="row" gap={1} wrap="wrap">
         {/* Seção de Campos de Cadastro */}
         <OpportunityDetailedForm />
@@ -40,9 +79,36 @@ const OpportunityDetailPage = () => {
         >
           {/* Seção de Comentários */}
           <Grid item xs={12} md={4}>
-            <Paper elevation={3} sx={{ p: 2, borderRadius: 1, height: '100%' }}>
+            <Paper
+              elevation={3}
+              sx={{
+                p: 2,
+                borderRadius: 1,
+                height: "100%",
+                display: "flex",
+                flexDirection: "column",
+                alignItems: "start",
+                gap: 1,
+                justifyContent: "flex-start",
+              }}
+            >
+              <Typography
+                variant="subtitle1"
+                color="primary.main"
+                fontWeight="bold"
+                sx={{ mb: 1 }}
+              >
+                Escopo
+              </Typography>
+              <TextField
+                label="Observação"
+                multiline
+                fullWidth
+                InputLabelProps={{
+                  shrink: true,
+                }}
+              />
               <OpportunityCommentList />
-
               {/* Lista de comentários */}
             </Paper>
           </Grid>
@@ -59,7 +125,6 @@ const OpportunityDetailPage = () => {
           {/* Seção de Anexos */}
           <Grid item xs={12} md={4}>
             <Paper elevation={3} sx={{ p: 2, borderRadius: 1, height: "100%" }}>
-              {/* Lista de anexos */}
               <Box sx={{ minHeight: 100 }}>
                 <OpportunityAttachmentList />
               </Box>

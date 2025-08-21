@@ -13,6 +13,7 @@ import {
 } from "@mui/material";
 import DeleteIcon from "@mui/icons-material/Delete";
 import CloudUploadIcon from "@mui/icons-material/CloudUpload";
+import LinkIcon from "@mui/icons-material/Link";
 import { RequisitionFile } from "../../models/requisicoes/RequisitionFile";
 import RequisitionFileService from "../../services/requisicoes/RequisitionFileService";
 import StyledLink from "../shared/StyledLink";
@@ -22,6 +23,7 @@ import FirebaseService from "../../services/FireBaseService";
 import { setFeedback } from "../../redux/slices/feedBackSlice";
 import BaseDeleteDialog from "../shared/BaseDeleteDialog";
 import BaseViewFileDialog from "../shared/BaseVIewFileDialog";
+import BaseInputDialog from "../shared/BaseInputDialog";
 
 interface RequisitionAttachmentListProps {
   id_requisicao: number;
@@ -42,6 +44,8 @@ const RequisitionAttachmentList: React.FC<RequisitionAttachmentListProps> = ({
   const [selectedFile, setSelectedFile] = useState<RequisitionFile | null>(
     null
   );
+  const [linkDialogOpen, setLinkDialogOpen] = useState(false);
+  const [linkInput, setLinkInput] = useState("");
 
   const openViewFile = (file: RequisitionFile) => {
     setSelectedFile(file);
@@ -156,6 +160,58 @@ const RequisitionAttachmentList: React.FC<RequisitionAttachmentListProps> = ({
     }
   };
 
+  const openLinkDialog = () => {
+    setLinkDialogOpen(true);
+  };
+
+  const closeLinkDialog = () => {
+    setLinkDialogOpen(false);
+    setLinkInput("");
+  };
+
+  const handleAddLink = async () => {
+    if (!user) return;
+    if (!linkInput.trim()) {
+      dispatch(
+        setFeedback({
+          message: "O link não pode estar vazio.",
+          type: "error",
+        })
+      );
+      return;
+    }
+    const newLink: RequisitionFile = {
+      id: Math.random(),
+      id_requisicao,
+      arquivo: linkInput,
+      nome_arquivo: "",
+      criado_por: user.CODPESSOA,
+      criado_em: new Date().toISOString(),
+    };
+
+    setLoading(true);
+    try {
+      const createdLink = await RequisitionFileService.create(newLink);
+      setAttachments((prev) => [...prev, createdLink]);
+      dispatch(
+        setFeedback({
+          message: "Link adicionado!",
+          type: "success",
+        })
+      );
+      closeLinkDialog();
+    } catch (err: any) {
+      dispatch(
+        setFeedback({
+          message: `Erro ao adicionar link: ${err.message}`,
+          type: "error",
+        })
+      );
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
     <Box>
       {error && (
@@ -177,7 +233,30 @@ const RequisitionAttachmentList: React.FC<RequisitionAttachmentListProps> = ({
               <Stack direction="column" alignItems="start" gap={0.2}>
                 <StyledLink
                   link={file.arquivo}
-                  onClick={() => openViewFile(file)}
+                  onClick={() => {
+                    const fileExtensions = [
+                      ".pdf",
+                      ".jpg",
+                      ".jpeg",
+                      ".png",
+                      ".doc",
+                      ".docx",
+                      ".xls",
+                      ".xlsx",
+                    ];
+                    const isFile = fileExtensions.some((ext) =>
+                      file.arquivo.toLowerCase().includes(ext)
+                    );
+
+                    if (isFile) {
+                      openViewFile(file);
+                    } else if (
+                      file.arquivo.startsWith("http://") ||
+                      file.arquivo.startsWith("https://")
+                    ) {
+                      window.open(file.arquivo, "_blank");
+                    }
+                  }}
                 />
                 {/* <Typography fontSize="12px" color="text.secondary">
                   Por: {file.pessoa_criado_por?.NOME || ""}
@@ -199,17 +278,26 @@ const RequisitionAttachmentList: React.FC<RequisitionAttachmentListProps> = ({
           ))}
         </List>
       )}
-      <Button
-        variant="contained"
-
-        startIcon={<CloudUploadIcon sx={{height: '20px', width: '20px'}}/>}
-        sx={{fontSize: 'small'}}
-        disabled={loading}
-        component="label"
-      >
-        Adicionar Anexo
-        <input type="file" hidden onChange={handleFileChange} accept="*" />
-      </Button>
+      <Stack direction="row" alignItems="center">
+        <Button
+          startIcon={<CloudUploadIcon sx={{ height: "20px" }} />}
+          sx={{ fontSize: "small" }}
+          disabled={loading}
+          component="label"
+        >
+          Adicionar Anexo
+          <input type="file" hidden onChange={handleFileChange} accept="*" />
+        </Button>
+        <Button
+          variant="contained"
+          startIcon={<LinkIcon sx={{ height: "20px", width: "20px" }} />}
+          sx={{ fontSize: "small", ml: 1 }}
+          disabled={loading}
+          onClick={openLinkDialog}
+        >
+          Adicionar Link
+        </Button>
+      </Stack>
       <BaseDeleteDialog
         open={deleteDialogOpen}
         onConfirm={handleDelete}
@@ -218,8 +306,19 @@ const RequisitionAttachmentList: React.FC<RequisitionAttachmentListProps> = ({
       <BaseViewFileDialog
         open={selectedFile !== null}
         onClose={closeViewFile}
-        fileUrl={selectedFile?.arquivo || ''}
+        fileUrl={selectedFile?.arquivo || ""}
         title={selectedFile?.nome_arquivo}
+      />
+      <BaseInputDialog
+        open={linkDialogOpen}
+        onClose={closeLinkDialog}
+        onConfirm={handleAddLink}
+        title="Adicionar Link"
+        inputLabel="URL do Link"
+        inputValue={linkInput}
+        onInputChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+          setLinkInput(e.target.value)
+        }
       />
     </Box>
   );

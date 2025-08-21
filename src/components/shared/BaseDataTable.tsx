@@ -11,8 +11,10 @@ const StyledDataGrid = styled(DataGrid)<{ theme: Theme }>(({ theme }) => ({
   "& .MuiDataGrid-columnHeaders": {
     backgroundColor: "#e7eaf6",
     "& .MuiDataGrid-columnHeader": {
-      backgroundColor: 'white',
-      
+      maxHeight: '30px',
+      "& .MuiDataGrid-columnHeaderDraggableContainer": { 
+        height: '30px'
+      }
     },
     color: theme.palette.primary.main,
     fontSize: "0.9rem",

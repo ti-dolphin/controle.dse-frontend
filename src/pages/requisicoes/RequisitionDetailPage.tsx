@@ -352,7 +352,15 @@ const RequisitionDetailPage = () => {
                 >
                   Cotações
                 </Button>
-                <Box ml="auto">
+                <Box sx={{ display: "flex", flexDirection: "row", gap: 1 }} ml="auto">
+                  <Typography variant="subtitle2" color="primary.main">
+                     Itens:{" "}
+                    {formatCurrency(Number(requisition.custo_total_itens || 0))} |
+                  </Typography>
+                  <Typography variant="subtitle2" color="primary.main">
+                     Fretes:{" "}
+                    {formatCurrency(Number(requisition.custo_total_frete || 0))} |
+                  </Typography>
                   <Typography variant="subtitle2" color="success.main">
                     Custo total:{" "}
                     {formatCurrency(Number(requisition.custo_total || 0))}

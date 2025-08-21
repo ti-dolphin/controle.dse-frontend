@@ -8,9 +8,15 @@ import VisibilityIcon from "@mui/icons-material/Visibility";
 import { MutableRefObject, useMemo } from "react";
 import { RequisitionType } from "../../models/requisicoes/RequisitionType";
 import { GridApiCommunity } from "@mui/x-data-grid/internals";
-
+import DeleteIcon from "@mui/icons-material/Delete";
+import { useDispatch, useSelector } from "react-redux";
+import { RootState } from "../../redux/store";
+import { setRequisitionBeingDeletedId } from "../../redux/slices/requisicoes/requisitionTableSlice";
 
 export function useRequisitionColumns(changeSelectedRow: (row: any) => void, _gridRef: MutableRefObject<GridApiCommunity>) {
+  const dispatch = useDispatch();
+  const user = useSelector((state: RootState) => state.user.user);
+
   const columns: GridColDef[] = useMemo(
     () => [
       {
@@ -120,7 +126,9 @@ export function useRequisitionColumns(changeSelectedRow: (row: any) => void, _gr
         renderCell: (params: GridRenderCellParams) => {
           const { row } = params;
           return (
-            <Box sx={{ zIndex: 30 }}>
+            <Box
+              sx={{ zIndex: 30, display: "flex", alignItems: "center", gap: 1 }}
+            >
               <IconButton
                 onClick={() => {
                   changeSelectedRow(row);
@@ -129,6 +137,11 @@ export function useRequisitionColumns(changeSelectedRow: (row: any) => void, _gr
               >
                 <VisibilityIcon />
               </IconButton>
+              {user?.PERM_ADMINISTRADOR === 1 && (
+                <IconButton  onClick={() => {dispatch(setRequisitionBeingDeletedId(row.ID_REQUISICAO))}}>
+                  <DeleteIcon sx={{ color: "error.main" }} />
+                </IconButton>
+              )}
             </Box>
           );
         },

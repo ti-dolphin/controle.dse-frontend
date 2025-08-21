@@ -365,7 +365,7 @@ export const useRequisitionItemColumns = (
 
           return (
             <Box sx={{ display: "flex", alignItems: "center" }}>
-              {hasquoteItem && formatCurrency(Number(quoteItem?.subtotal) || 0)}
+              {hasquoteItem && formatCurrency(Number(quoteItem?.preco_unitario) || 0)}
               {hasquoteItem && (
                 <Checkbox
                   disabled={blockFields || !editItemFieldsPermitted}

@@ -23,6 +23,8 @@ import {
   setProductsAdded,
   setRefresh,
   setSelectedQuote,
+  setUpdatingChildReqItems,
+  setUpdatingRecentProductsQuantity,
 } from "../../redux/slices/requisicoes/requisitionItemSlice";
 import QuoteService from "../../services/requisicoes/QuoteService";
 import { useNavigate, useParams } from "react-router-dom";
@@ -39,6 +41,7 @@ import {
 } from "../../redux/slices/requisicoes/requisitionSlice";
 import { formatDateStringtoISOstring } from "../../utils";
 import RequisitionService from "../../services/requisicoes/RequisitionService";
+import UpdateChildReqItemsDialog from "./UpdateChildReqItemsDialog";
 
 interface RequisitionItemsTable { 
     tableMaxHeight?: number;
@@ -73,7 +76,7 @@ const RequisitionItemsTable = ({ tableMaxHeight, hideFooter }: RequisitionItemsT
     requisition
   );
 
-  const { newItems, updatingRecentProductsQuantity, refresh, currentQuoteIdSelected, selectedQuote } = useSelector(
+  const { newItems, updatingRecentProductsQuantity, refresh, currentQuoteIdSelected, selectedQuote, updatingChildReqItems } = useSelector(
     (state: RootState) => state.requisitionItem
   );
   const handleDeleteItem = async (id_item_requisicao: number) => {
@@ -175,11 +178,11 @@ const RequisitionItemsTable = ({ tableMaxHeight, hideFooter }: RequisitionItemsT
       }
       quoteItemsSelected.delete(id_item_requisicao);
       setQuoteItemsSelected(new Map(quoteItemsSelected));
-      const { updatedItems, updatedRequisition } =
-        await RequisitionItemService.updateQuoteItemsSelected(
+      const { updatedItems, updatedRequisition } = await RequisitionItemService.updateQuoteItemsSelected(
           Number(id_requisicao),
           Object.fromEntries(quoteItemsSelected)
         );
+        
       setItems(updatedItems);
       dispatch(setRequisition(updatedRequisition));
     },
@@ -427,20 +430,6 @@ const RequisitionItemsTable = ({ tableMaxHeight, hideFooter }: RequisitionItemsT
     });
   };
 
-  const fetchQuoteSelected = async () => {
-    if (!currentQuoteIdSelected) return;
-    try {
-     
-    } catch (e) {
-      dispatch(
-        setFeedback({
-          message: "Erro ao buscar cotação selecionada",
-          type: "error",
-        })
-      );
-    }
-  };
-
   const handleChangeQuoteSelected = useCallback(
   async  () => {
       if (currentQuoteIdSelected) {
@@ -458,22 +447,6 @@ const RequisitionItemsTable = ({ tableMaxHeight, hideFooter }: RequisitionItemsT
     [currentQuoteIdSelected, quoteItems]
   );
 
-  const createParcialReq = async () => {
-    try {
-      setLoading(true);
-      const newRequisition = await RequisitionService.createFromOther(requisition.ID_REQUISICAO, selectionModel as number[]);
-      setLoading(false);
-    } catch (e) {
-      setLoading(false);
-      dispatch(
-        setFeedback({
-          message: "Erro ao criar requisição parcial",
-          type: "error",
-        })
-      );
-    }
-  };
-
   useEffect(() => {
     if (requisition) {
       fetchData();
@@ -490,9 +463,6 @@ const RequisitionItemsTable = ({ tableMaxHeight, hideFooter }: RequisitionItemsT
     handleChangeQuoteSelected();
   }, [handleChangeQuoteSelected]);
 
-  useEffect(() =>  {
-
-  }, [currentQuoteIdSelected])
 
   return (
     <Box>
@@ -510,8 +480,10 @@ const RequisitionItemsTable = ({ tableMaxHeight, hideFooter }: RequisitionItemsT
             )}
           {!addingReqItems &&
             !updatingRecentProductsQuantity &&
-            selectedQuote && (
-              <Button variant="contained" onClick={createParcialReq}>
+             items.length > 1 && (
+              <Button variant="contained" onClick={() => { 
+                dispatch(setUpdatingChildReqItems(true));
+              }}>
                 Criar requisição parcial
               </Button>
             )}
@@ -548,6 +520,16 @@ const RequisitionItemsTable = ({ tableMaxHeight, hideFooter }: RequisitionItemsT
             Adicionar itens
           </Button>
         </Box>
+      )}
+
+      {updatingChildReqItems && (
+        <UpdateChildReqItemsDialog
+          open={updatingChildReqItems}
+          onClose={() => dispatch(setUpdatingChildReqItems(false))}
+          id_requisicao={Number(id_requisicao)}
+          items={items.filter((item) => selectionModel.includes(item.id_item_requisicao))}
+          allItems={items}
+        />
       )}
     </Box>
   );

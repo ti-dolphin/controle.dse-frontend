@@ -103,7 +103,12 @@ const OpportunityFollowerList = ({CODOS, ID_PROJETO}: props) => {
   return (
     <Box>
       <Stack direction={"row"} alignItems={"center"} gap={1}>
-        <Typography variant="h6" color="primary.main" fontWeight="bold">
+        <Typography
+          variant="subtitle1"
+          color="primary.main"
+          fontWeight="bold"
+         
+        >
           Seguidores
         </Typography>
         <Tooltip title="Adicionar Seguidor">
@@ -112,8 +117,8 @@ const OpportunityFollowerList = ({CODOS, ID_PROJETO}: props) => {
             sx={{
               backgroundColor: "primary.main",
               color: "white",
-              height: 30,
-              width: 30,
+              height: 24,
+              width: 24,
               "&:hover": {
                 backgroundColor: "primary.dark",
               },
@@ -185,7 +190,7 @@ const OpportunityFollowerList = ({CODOS, ID_PROJETO}: props) => {
             minWidth: 300,
             display: "flex",
             flexDirection: "column",
-            gap: 2
+            gap: 2,
           }}
         >
           <IconButton

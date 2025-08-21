@@ -10,6 +10,7 @@ import DeleteIcon from '@mui/icons-material/Delete';
 import { setFeedback } from '../../redux/slices/feedBackSlice';
 import BaseDeleteDialog from '../shared/BaseDeleteDialog';
 import { setRefresh } from '../../redux/slices/requisicoes/requisitionItemSlice';
+import { setRefreshRequisition } from '../../redux/slices/requisicoes/requisitionSlice';
 
 const QuoteList = () => {
   const dispatch = useDispatch();
@@ -49,6 +50,8 @@ const QuoteList = () => {
       );
       setDeleteDialogOpen(false);
       setQuoteIdToDelete(0);
+      dispatch(setRefreshRequisition(!refresh));
+      dispatch(setRefresh(!refresh));
     } catch (e) {
       dispatch(
         setFeedback({

@@ -13,8 +13,8 @@ interface RequisitionItemState {
   refresh: boolean;
   currentQuoteIdSelected: number | null;
   selectedQuote: Partial<Quote> | null;
+  updatingChildReqItems: boolean;
 }
-
 const initialState: RequisitionItemState = {
   addingProducts: false,
   updatingRecentProductsQuantity: false,
@@ -26,7 +26,8 @@ const initialState: RequisitionItemState = {
   newItems: [],
   refresh: false,
   currentQuoteIdSelected: null,
-  selectedQuote : null,
+  selectedQuote: null,
+  updatingChildReqItems: false,
 };
 
 const requisitionItemSlice = createSlice({
@@ -80,6 +81,9 @@ const requisitionItemSlice = createSlice({
     setSelectedQuote(state, action: PayloadAction<Partial<Quote> | null>) {
       state.selectedQuote = action.payload;
     },
+    setUpdatingChildReqItems(state, action: PayloadAction<boolean>) {
+      state.updatingChildReqItems = action.payload;
+    },
   },
 });
 
@@ -98,6 +102,7 @@ export const {
   setRefresh,
   setCurrentQuoteIdSelected,
   setSelectedQuote,
+  setUpdatingChildReqItems,
 } = requisitionItemSlice.actions;
 
 export default requisitionItemSlice.reducer;

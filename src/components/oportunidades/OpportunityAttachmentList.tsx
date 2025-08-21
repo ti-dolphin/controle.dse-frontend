@@ -12,53 +12,62 @@ import { RootState } from '../../redux/store';
 import FirebaseService from '../../services/FireBaseService';
 import BaseViewFileDialog from '../shared/BaseVIewFileDialog';
 import StyledLink from '../shared/StyledLink';
+import LinkIcon from "@mui/icons-material/Link";
+import BaseInputDialog from "../shared/BaseInputDialog";
 
 const OpportunityAttachmentList = () => {
   const dispatch = useDispatch();
-  const {CODOS} = useParams();
+  const { CODOS } = useParams();
   const user = useSelector((state: RootState) => state.user.user);
-  
-  const [attachments, setAttachments] = React.useState<OpportunityAttachment[]>([]);
+
+  const [attachments, setAttachments] = React.useState<OpportunityAttachment[]>(
+    []
+  );
   const [loading, setLoading] = React.useState(true);
-  const [attachmentBeingDeleted, setAttachmentBeingDeleted] = React.useState<OpportunityAttachment | null>(null);
-  const [selectedFile, setSelectedFile] = React.useState<Partial<OpportunityAttachment> | null>(null);
+  const [attachmentBeingDeleted, setAttachmentBeingDeleted] =
+    React.useState<OpportunityAttachment | null>(null);
+  const [selectedFile, setSelectedFile] =
+    React.useState<Partial<OpportunityAttachment> | null>(null);
+  const [linkDialogOpen, setLinkDialogOpen] = React.useState(false);
+  const [linkInput, setLinkInput] = React.useState("");
 
+  //handleDelete
 
-  //handleDelete 
-
-   const handleUpload = async (e: ChangeEvent<HTMLInputElement>) => {
-      if (!e.target.files || e.target.files.length === 0) return;
-      if (!user) return;
-      const file = e.target.files[0];
-      setLoading(true);
-      try {
-        const newFile: Partial<OpportunityAttachment> = {
-          codos: Number(CODOS),
-          nome_arquivo: file.name,
-          arquivo: "",
-        };
-        const fileUrl = await FirebaseService.upload(file, newFile.nome_arquivo || '');
-        newFile.arquivo = fileUrl;
-        const createdFile = await OpportunityAttachmentService.create(newFile);
-        setAttachments((prev) => [...prev, createdFile]);
-        dispatch(
-          setFeedback({
-            message: "Anexo adicionado!",
-            type: "success",
-          })
-        );
-      } catch (err: any) {
-        dispatch(
-          setFeedback({
-            message: `Houve um erro ao adicionar o anexo: ${err.message}`,
-            type: "error",
-          })
-        );
-      } finally {
-        setLoading(false);
-      }
-    };
- 
+  const handleUpload = async (e: ChangeEvent<HTMLInputElement>) => {
+    if (!e.target.files || e.target.files.length === 0) return;
+    if (!user) return;
+    const file = e.target.files[0];
+    setLoading(true);
+    try {
+      const newFile: Partial<OpportunityAttachment> = {
+        codos: Number(CODOS),
+        nome_arquivo: file.name,
+        arquivo: "",
+      };
+      const fileUrl = await FirebaseService.upload(
+        file,
+        newFile.nome_arquivo || ""
+      );
+      newFile.arquivo = fileUrl;
+      const createdFile = await OpportunityAttachmentService.create(newFile);
+      setAttachments((prev) => [...prev, createdFile]);
+      dispatch(
+        setFeedback({
+          message: "Anexo adicionado!",
+          type: "success",
+        })
+      );
+    } catch (err: any) {
+      dispatch(
+        setFeedback({
+          message: `Houve um erro ao adicionar o anexo: ${err.message}`,
+          type: "error",
+        })
+      );
+    } finally {
+      setLoading(false);
+    }
+  };
 
   //fetchData
   const fetchData = React.useCallback(async () => {
@@ -110,10 +119,58 @@ const OpportunityAttachmentList = () => {
     }
   }, [attachmentBeingDeleted, dispatch, fetchData]);
 
+  const openLinkDialog = () => {
+    setLinkDialogOpen(true);
+  };
+
+  const closeLinkDialog = () => {
+    setLinkDialogOpen(false);
+    setLinkInput("");
+  };
+
+  const handleAddLink = async () => {
+    if (!user) return;
+    if (!linkInput.trim()) {
+      dispatch(
+        setFeedback({
+          message: "O link não pode estar vazio.",
+          type: "error",
+        })
+      );
+      return;
+    }
+    const newLink: Partial<OpportunityAttachment> = {
+      codos: Number(CODOS),
+      arquivo: linkInput,
+      nome_arquivo: linkInput,
+    };
+
+    setLoading(true);
+    try {
+      const createdLink = await OpportunityAttachmentService.create(newLink);
+      setAttachments((prev) => [...prev, createdLink]);
+      dispatch(
+        setFeedback({
+          message: "Link adicionado!",
+          type: "success",
+        })
+      );
+      closeLinkDialog();
+    } catch (err: any) {
+      dispatch(
+        setFeedback({
+          message: `Erro ao adicionar link: ${err.message}`,
+          type: "error",
+        })
+      );
+    } finally {
+      setLoading(false);
+    }
+  };
+
   React.useEffect(() => {
     fetchData();
   }, [fetchData]);
-
 
   return (
     <Box
@@ -126,10 +183,10 @@ const OpportunityAttachmentList = () => {
       }}
     >
       <Typography
-        variant="h6"
-        gutterBottom
+        variant="subtitle1"
         color="primary.main"
         fontWeight="bold"
+        sx={{ mb: 1 }}
       >
         Anexos
       </Typography>
@@ -144,7 +201,30 @@ const OpportunityAttachmentList = () => {
               <Stack direction="row" alignItems="center" gap={1}>
                 <StyledLink
                   link={attachment.arquivo}
-                  onClick={() => setSelectedFile(attachment)}
+                  onClick={() => {
+                    const fileExtensions = [
+                      ".pdf",
+                      ".jpg",
+                      ".jpeg",
+                      ".png",
+                      ".doc",
+                      ".docx",
+                      ".xls",
+                      ".xlsx",
+                    ];
+                    const isFile = fileExtensions.some((ext) =>
+                      attachment.arquivo.toLowerCase().includes(ext)
+                    );
+
+                    if (isFile) {
+                      setSelectedFile(attachment);
+                    } else if (
+                      attachment.arquivo.startsWith("http://") ||
+                      attachment.arquivo.startsWith("https://")
+                    ) {
+                      window.open(attachment.arquivo, "_blank");
+                    }
+                  }}
                 />
               </Stack>
 
@@ -167,15 +247,25 @@ const OpportunityAttachmentList = () => {
         </Box>
       )}
 
-      <Button
-        variant="contained"
-        component="label"
-        startIcon={<CloudUploadIcon />}
-        disabled={loading}
-      >
-        Adicionar Anexo
-        <input type="file" hidden onChange={handleUpload} accept="*" />
-      </Button>
+      <Stack direction="row" alignItems="center" gap={1}>
+        <Button
+          variant="contained"
+          component="label"
+          startIcon={<CloudUploadIcon />}
+          disabled={loading}
+        >
+          Adicionar Anexo
+          <input type="file" hidden onChange={handleUpload} accept="*" />
+        </Button>
+        <Button
+          variant="contained"
+          startIcon={<LinkIcon />}
+          disabled={loading}
+          onClick={openLinkDialog}
+        >
+          Adicionar Link
+        </Button>
+      </Stack>
       <BaseDeleteDialog
         open={Boolean(attachmentBeingDeleted)}
         onConfirm={handleDelete}
@@ -187,8 +277,19 @@ const OpportunityAttachmentList = () => {
         fileUrl={selectedFile?.arquivo || ""}
         title={selectedFile?.nome_arquivo}
       />
+      <BaseInputDialog
+        open={linkDialogOpen}
+        onClose={closeLinkDialog}
+        onConfirm={handleAddLink}
+        title="Adicionar Link"
+        inputLabel="URL do Link"
+        inputValue={linkInput}
+        onInputChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+          setLinkInput(e.target.value)
+        }
+      />
     </Box>
   );
-}
+};
 
 export default OpportunityAttachmentList

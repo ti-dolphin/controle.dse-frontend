@@ -23,10 +23,10 @@ export default class RequisitionService {
     return response.data;
   }
 
-  static async createFromOther(id_requisicao: number, itemIds : number[]){ 
+  static async createFromOther(id_requisicao: number, items: any) {
     const response = await api.post(`${API_ENDPOINT}/parcial/create`, { 
       id_requisicao,
-      itemIds
+      items
     });
     return response.data;
   };
