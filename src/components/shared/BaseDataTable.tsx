@@ -11,13 +11,12 @@ const StyledDataGrid = styled(DataGrid)<{ theme: Theme }>(({ theme }) => ({
   "& .MuiDataGrid-columnHeaders": {
     backgroundColor: "#e7eaf6",
     "& .MuiDataGrid-columnHeader": {
-      maxHeight: '30px',
-      "& .MuiDataGrid-columnHeaderDraggableContainer": { 
-        height: '30px'
-      }
+      backgroundColor: 'white',
+      maxHeight: '36px',
+      border: '1px solid #F0F0F0',
     },
     color: theme.palette.primary.main,
-    fontSize: "0.9rem",
+    fontSize: "12px",
     fontWeight: "bold",
     borderTopLeftRadius: 0,
     borderTopRightRadius: 0,
@@ -32,7 +31,7 @@ const StyledDataGrid = styled(DataGrid)<{ theme: Theme }>(({ theme }) => ({
     },
   },
   "& .MuiDataGrid-cell": {
-    fontSize: "12px",
+    fontSize: "11px",
     fontWeight: "500",
     color: theme.palette.text.primary,
     borderBottom: "1px solid #F0F0F0",

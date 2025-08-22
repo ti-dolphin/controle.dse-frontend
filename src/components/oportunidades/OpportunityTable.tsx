@@ -109,14 +109,14 @@ const { filters, handleChangeFilters, buildPrismaFilters, clearFilters } = useOp
           </BaseTableToolBar>
         </Box>
         <Box ref={columnFiltersRef}>
-          <BaseTableColumnFilters
+          {/* <BaseTableColumnFilters
             columns={columns}
             filters={filters}
             handleChangeFilters={handleChangeFilters}
             debouncedSetTriggerFetch={function (): void {
               throw new Error("Function not implemented.");
             }}
-          />
+          /> */}
         </Box>
       </Paper>
       <Paper

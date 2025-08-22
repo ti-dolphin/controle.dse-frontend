@@ -134,10 +134,10 @@ export const useRequisitionItemColumns = (
       field: "produto_descricao",
       headerName: "Descrição",
       type: "string",
-      flex: 1,
+      flex: 1.5,
       renderCell: (params: any) => (
         <Box sx={{ display: "flex", alignItems: "center", height: "100%" }}>
-          <Typography fontSize="small" fontWeight="bold">
+          <Typography fontSize="12px" fontWeight="bold">
             {params.value}
           </Typography>
         </Box>
@@ -183,7 +183,7 @@ export const useRequisitionItemColumns = (
             alignItems: "center",
           }}
         >
-          <Typography fontSize="0.9rem" fontWeight="bold" color="primary">
+          <Typography fontSize="12px" fontWeight="bold" color="primary">
             Data entrega
           </Typography>
           {editItemFieldsPermitted && (
@@ -234,7 +234,7 @@ export const useRequisitionItemColumns = (
             alignItems: "center",
           }}
         >
-          <Typography fontSize="0.9rem" fontWeight="bold" color="primary">
+          <Typography fontSize="12px" fontWeight="bold" color="primary">
             OC
           </Typography>
           {editItemFieldsPermitted && (

@@ -51,7 +51,7 @@ function BaseTableColumnFiltersComponent({
         display: "flex",
         flexDirection: "column",
         gap: 1,
-        padding: 1,
+        padding: 0,
       }}
     >
       {handleCleanFilters && (
@@ -68,24 +68,86 @@ function BaseTableColumnFiltersComponent({
           </Button>
         </Box>
       )}
-      <Stack direction="row" gap={0.5}>
+      <Stack direction="row" gap={0.2}>
         {columns.map((col) => {
           if (col.field === "actions") {
             return <Box sx={{ flex: col.flex || 1 }} key={col.field}></Box>;
           }
+
+          if (col.type === "date") {
+            return (
+              <Box
+                key={col.field}
+                sx={{
+                  display: "flex",
+                  flexDirection: "column",
+                  flex: col.flex || 1,
+                  minWidth: 0,
+                  gap: 0.5,
+                }}
+              >
+                <input
+                  type="text"
+                  value={localFilters[`${col.field}_from`] || ""}
+                  placeholder="De"
+                  onChange={(e) => {
+                    setLocalFilters((prev: any) => ({
+                      ...prev,
+                      [`${col.field}_from`]: e.target.value,
+                    }));
+                    debouncedSync(`${col.field}_from`, e.target.value);
+                  }}
+                  style={{
+                    minWidth: 0,
+                    width: "100%",
+                    borderRadius: "0",
+                    height: 25,
+                    padding: 4,
+                    border: "1px solid lightgray",
+                    outline: "none",
+                    fontSize: "small",
+                  }}
+                />
+                <input
+                  type="text"
+                  value={localFilters[`${col.field}_to`] || ""}
+                  placeholder="Até"
+                  onChange={(e) => {
+                    setLocalFilters((prev: any) => ({
+                      ...prev,
+                      [`${col.field}_to`]: e.target.value,
+                    }));
+                    debouncedSync(`${col.field}_to`, e.target.value);
+                  }}
+                  style={{
+                    minWidth: 0,
+                    width: "100%",
+                    borderRadius: "0",
+                    height: 25,
+                    padding: 4,
+                    border: "1px solid lightgray",
+                    outline: "none",
+                    fontSize: "small",
+                  }}
+                />
+              </Box>
+            );
+          }
+
           return (
             <Box
               key={col.field}
               component="form"
               sx={{
                 display: "flex",
-                flex: col.flex || 1,
-                minWidth: 0,
+                flex: col.flex || 0,
+                
+                height: 25,
                 alignItems: "center",
                 border: "2px solid",
                 borderColor: "lightgray",
                 borderRadius: 0,
-                padding: 0.2,
+                padding: 0,
               }}
             >
               <input
@@ -93,12 +155,14 @@ function BaseTableColumnFiltersComponent({
                 value={localFilters[col.field] || ""}
                 placeholder={col.headerName || "Pesquisar..."}
                 onKeyDown={(e: React.KeyboardEvent<HTMLInputElement>) => {
-                   if(e.key === "Enter") {
+                  if (e.key === "Enter") {
                     e.preventDefault();
-                    debouncedSync(col.field, (e.target as HTMLInputElement).value);
-                   }
-                }
-                }
+                    debouncedSync(
+                      col.field,
+                      (e.target as HTMLInputElement).value
+                    );
+                  }
+                }}
                 onChange={(e) => {
                   setLocalFilters((prev: any) => ({
                     ...prev,
@@ -110,8 +174,8 @@ function BaseTableColumnFiltersComponent({
                   minWidth: 0,
                   width: "100%",
                   borderRadius: "0",
-                  height: 30,
-                  padding: 6,
+                  height: 20,
+                  padding: 4,
                   border: "none",
                   outline: "none",
                   fontSize: "small",

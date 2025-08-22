@@ -13,11 +13,11 @@ export const useQuoteItemColumns = (
     {
       field: "produto_descricao",
       headerName: "Descrição do Produto",
-      flex: 1.5,
+      flex: 3.5,
       editable: false,
       renderCell: (params: any) => (
         <Box sx={{ display: "flex", alignItems: "center", height: "100%" }}>
-          <Typography fontSize="small" fontWeight="bold" color="black">
+          <Typography fontSize="12px" fontWeight="bold" color="black">
             {params.value}
           </Typography>
         </Box>
@@ -26,11 +26,11 @@ export const useQuoteItemColumns = (
     {
       field: "produto_unidade",
       headerName: "Unidade",
-      flex: 0.4,
+      flex: 0.5,
       editable: false,
       renderCell: (params: any) => (
         <Box sx={{ display: "flex", alignItems: "center", height: "100%" }}>
-          <Typography fontSize="small" fontWeight="bold" color="black">
+          <Typography fontSize="12px" fontWeight="bold" color="black">
             {params.value}
           </Typography>
         </Box>
