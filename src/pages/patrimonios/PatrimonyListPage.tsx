@@ -56,7 +56,8 @@ const PatrimonyListPage = () => {
   const {notifications} = useChecklistNotifications(); 
   const { columns } = usePatMovementationColumns();
   const gridRef = useGridApiRef();
-
+  const gridContainerRef = React.useRef<HTMLDivElement>(null)
+  ;
   const handleBack = () => {
     navigate("/");
   };
@@ -74,20 +75,6 @@ const PatrimonyListPage = () => {
     [dispatch, filter]
   );
 
-  const handleChangeFilters = React.useCallback(
-    (
-      e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>,
-      field: string
-    ) => {
-      let value: any = e.target.value;
-      if (value && !isNaN(Number(value)) && value.trim() !== "") {
-        value = Number(value);
-      }
-
-      dispatch(setFilters({ ...filters, [field]: value }));
-    },
-    [dispatch, filters]
-  );
 
   const deletePatrimony = async () => {
     if (!patrimonyBeingDeleted) return;
@@ -161,7 +148,7 @@ const PatrimonyListPage = () => {
       <UpperNavigation handleBack={handleBack} />
       <Box
         sx={{
-          height: "94%",
+          height: "calc(100% - 40px)",
           width: "100%",
           display: "flex",
           flexDirection: "column",
@@ -172,7 +159,11 @@ const PatrimonyListPage = () => {
         >
           <Stack direction="row" alignItems="center" gap={1}>
             {!isMobile && (
-              <Button variant="contained" onClick={handleCleanFilter}>
+              <Button
+                variant="contained"
+                sx={{ borderRadius: 0, height: 30, fontSize: "12px" }}
+                onClick={handleCleanFilter}
+              >
                 Limpar filtros
               </Button>
             )}
@@ -191,38 +182,28 @@ const PatrimonyListPage = () => {
             </IconButton>
           </Stack>
         </BaseTableToolBar>
-
-        {isMobile && (
-          <FixedSizeGrid
-            columnCount={1}
-            columnWidth={280}
-            rowCount={rows.length}
-            rowHeight={310}
-            height={600}
-            width={300}
-          >
-            {({ columnIndex, rowIndex, style }) => {
-              const row = rows[rowIndex];
-              return (
-                <PatrimonyCard
-                  styles={style}
-                  key={row.id_movimentacao}
-                  patrimonyMov={row}
-                />
-              );
-            }}
-          </FixedSizeGrid>
-        )}
-
-        {!isMobile && (
-          <BaseTableColumnFilters
-            columns={columns}
-            filters={filters}
-            handleChangeFilters={handleChangeFilters}
-            debouncedSetTriggerFetch={debouncedSetTriggerFetch}
-          />
-        )}
-        {!isMobile && (
+        {isMobile ?  (
+            <Box
+                      ref={gridContainerRef}
+                      sx={{ flexGrow: 1, display: "flex", alignItems: "center" }}
+                    >
+           <FixedSizeGrid
+                        style={{ margin: "auto" }}
+                        columnWidth={280}
+                        rowHeight={310}
+                        columnCount={1}
+                        rowCount={rows.length}
+                        width={280}
+                        height={gridContainerRef.current?.offsetHeight || 400}
+                      >
+                        {({ columnIndex, rowIndex, style }) => {
+                          return (
+                           <PatrimonyCard  styles={style} patrimonyMov={rows[rowIndex]}/>
+                          );
+                        }}
+                      </FixedSizeGrid>
+                   </Box>
+        ) : ( 
           <BaseDataTable
             apiRef={gridRef}
             onCellClick={navigateToPatrimonyDetail}
@@ -235,7 +216,9 @@ const PatrimonyListPage = () => {
             getRowId={(row: any) => row.id_movimentacao}
             theme={theme}
           />
-        )}
+        )
+      }
+        
       </Box>
 
       <Dialog open={creating}>

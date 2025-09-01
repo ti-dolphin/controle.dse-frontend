@@ -28,12 +28,13 @@ const BaseTableToolBar = ({
       sx={{
         width: "100%",
         display: "flex",
-        flexWrap: 'wrap',
-        gap: 1,
         justifyContent: "start",
         alignItems: "center",
+        flexWrap: "wrap",
+        gap: 1,
         padding: 1,
         backgroundColor: "white",
+        height: 46,
         borderRadius: "0",
         border: "1px solid lightgray",
       }}

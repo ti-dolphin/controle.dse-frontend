@@ -1,8 +1,9 @@
-import { useCallback } from "react";
-import { formatDateStringtoISOstring } from "../../utils";
+import { useCallback, useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { RootState } from "../../redux/store";
 import { clearfilters, setFilters } from "../../redux/slices/oportunidades/opportunityTableSlice";
+import { GridColDef } from "@mui/x-data-grid";
+import { useOpportunityColumns } from "./useOpportunityColumns";
 
 // Interface para os filtros de oportunidade
 export interface OpportunityFilters {
@@ -13,72 +14,24 @@ export interface OpportunityFilters {
   projeto: string;
   status: string;
   responsavel: string;
-  DATASOLICITACAO: string | null;
-  DATAINICIO: string | null;
-  DATAENTREGA: string | null;
+  DATASOLICITACAO_FROM: string | null;
+  DATASOLICITACAO_TO: string | null;
+  DATAINICIO_FROM: string | null;
+  DATAINICIO_TO: string | null;
+  DATAINTERACAO_FROM: string | null;
+  DATAINTERACAO_TO: string | null;
+  DATAENTREGA_FROM: string | null;
+  DATAENTREGA_TO: string | null;
   VALOR_TOTAL: number | null;
   adicional: number | null;
 }
 
-// Mapeamento dos campos de filtro para caminhos do Prisma
-export const filterFieldMap: Record<string, string> = {
-  CODOS: "CODOS.equals",
-  NOME: "NOME.contains",
-  ID_PROJETO: "ID_PROJETO.equals",
-  DATASOLICITACAO: "DATASOLICITACAO.equals",
-  DATAINICIO: "DATAINICIO.equals",
-  DATAENTREGA: "DATAENTREGA.equals",
-  VALOR_TOTAL: "VALOR_TOTAL.gt",
-  cliente: "cliente.NOMEFANTASIA.contains",
-  projeto: "projeto.DESCRICAO.contains",
-  responsavel: "pessoa.NOME.contains",
-  status: "status.NOME.contains",
-  adicional: "adicionais.NUMERO.equals",
-};
-
-// Função para construir filtros compatíveis com Prisma
- const buildPrismaFilters = (filters: OpportunityFilters) => {
-  return Object.entries(filters)
-    .filter(([field, value]) => {
-      if (
-        field === "DATASOLICITACAO" ||
-        field === "DATAINICIO" ||
-        field === "DATAENTREGA"
-      ) {
-        if (!value) return false;
-        const date = new Date(value);
-        if (isNaN(date.getTime())) return false;
-        if (date.getFullYear() < 1900) return false;
-      }
-      return value !== "" && value !== null;
-    })
-    .flatMap(([field, value]) => {
-      if (field === "DATASOLICITACAO" || field === "DATAINICIO" || field === "DATAENTREGA") {
-        return [
-          { [field]: { gte: formatDateStringtoISOstring(value) } },
-          { [field]: { lte: formatDateStringtoISOstring(value) } },
-        ];
-      }
-      const path = filterFieldMap[field];
-      if (!path) return [];
-      const finalValue = value;
-        return [
-          path
-            .split(".")
-            .reverse()
-            .reduce((acc, key, idx) => {
-              if (idx === 0) return { [key]: finalValue };
-              return { [key]: acc };
-            }, {}),
-        ];
-    });
-};
 
 // Hook para gerenciar filtros de oportunidades
 export const useOpportunityFilters = () => {
   const dispatch = useDispatch();
   const filters = useSelector((state : RootState) => state.opportunityTable.filters);
-
+  const [activeFilters, setActiveFilters] = useState<GridColDef[]>([]);
   const handleChangeFilters = useCallback(
     (
       e: React.ChangeEvent<HTMLInputElement>,
@@ -90,10 +43,69 @@ export const useOpportunityFilters = () => {
     },
     [filters, dispatch]
   );
-
+  const columns: GridColDef[] = [
+    { field: "CODOS", headerName: "C ODO", width: 100 },
+    { field: "ID_PROJETO", headerName: "Projeto", width: 150 },
+    { field: "NOME", headerName: "Nome", width: 200 },
+    { field: "cliente", headerName: "Cliente", width: 150 },
+    { field: "projeto", headerName: "Projeto", width: 150 },
+    { field: "status", headerName: "Status", width: 150 },
+    { field: "responsavel", headerName: "Respons vel", width: 150 },
+    {
+      field: "DATASOLICITACAO_FROM",
+      headerName: "Data de Solicita o (de)",
+      width: 150,
+    },
+    {
+      field: "DATASOLICITACAO_TO",
+      headerName: "Data de Solicita o (at )",
+      width: 150,
+    },
+    {
+      field: "DATAINICIO_FROM",
+      headerName: "Data de In cio (de)",
+      width: 150,
+    },
+    {
+      field: "DATAINICIO_TO",
+      headerName: "Data de In cio (at )",
+      width: 150,
+    },
+    {
+      field: "DATAINTERACAO_FROM",
+      headerName: "Data de Interacao (de)",
+      width: 150,
+    },
+    {
+      field: "DATAINTERACAO_TO",
+      headerName: "Data de Interacao (at )",
+      width: 150,
+    },
+    {
+      field: "DATAENTREGA_FROM",
+      headerName: "Data de Entrega (de)",
+      width: 150,
+    },
+    {
+      field: "DATAENTREGA_TO",
+      headerName: "Data de Entrega (at )",
+      width: 150,
+    },
+    { field: "VALOR_TOTAL", headerName: "Valor Total", width: 150 },
+    { field: "adicional", headerName: "Adicional", width: 150 },
+  ];
   const clearFilters = useCallback(() => {
       dispatch(clearfilters());
   }, [filters]);
 
-  return { filters, handleChangeFilters, clearFilters, buildPrismaFilters };
+    useEffect(() => {
+      const newActiveFilters = columns.filter(
+        (c) =>
+          filters[c.field as keyof OpportunityFilters] !== "" &&
+          filters[c.field as keyof OpportunityFilters] !== null
+      );
+      setActiveFilters(newActiveFilters);
+    }, [ filters]);
+
+  return { filters, handleChangeFilters, clearFilters, activeFilters };
 };

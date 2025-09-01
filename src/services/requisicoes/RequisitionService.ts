@@ -46,6 +46,11 @@ export default class RequisitionService {
     return response.data;
   }
 
+  static async updateStatus(id_requisicao: number, data: any) {
+    const response = await api.put(`${API_ENDPOINT}/${id_requisicao}/status`, data);
+    return response.data;
+  }
+
   static async delete(id_requisicao: number) {
     const response = await api.delete(`${API_ENDPOINT}/${id_requisicao}`);
     return response.data;

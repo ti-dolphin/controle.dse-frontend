@@ -12,22 +12,35 @@ import DeleteIcon from "@mui/icons-material/Delete";
 import { useDispatch, useSelector } from "react-redux";
 import { RootState } from "../../redux/store";
 import { setRequisitionBeingDeletedId } from "../../redux/slices/requisicoes/requisitionTableSlice";
+import { TextHeader } from "../../components/TextHeader";
 
-export function useRequisitionColumns(changeSelectedRow: (row: any) => void, _gridRef: MutableRefObject<GridApiCommunity>) {
+export function useRequisitionColumns(
+  handleChangeFilters : (event: React.ChangeEvent<HTMLInputElement>, field: string) => void,
+  changeSelectedRow: (row: any) => void,
+  _gridRef: MutableRefObject<GridApiCommunity>,
+) {
   const dispatch = useDispatch();
   const user = useSelector((state: RootState) => state.user.user);
-
+  const { filters } = useSelector((state: RootState) => state.requisitionTable);
   const columns: GridColDef[] = useMemo(
     () => [
       {
         field: "ID_REQUISICAO",
         headerName: "ID",
-        flex: 0.2,
+        flex: 0.6,
+        renderHeader: () => (
+          <TextHeader
+            label={"ID"}
+            field={"ID_REQUISICAO"}
+            filters={filters}
+            handleChangeFilters={handleChangeFilters}
+          ></TextHeader>
+        ),
       },
       {
         field: "DESCRIPTION",
         headerName: "Descrição",
-        flex: 1.5,
+        flex: 2,
         renderCell: (params: GridRenderCellParams) => {
           return (
             <Box
@@ -48,14 +61,30 @@ export function useRequisitionColumns(changeSelectedRow: (row: any) => void, _gr
             </Box>
           );
         },
+        renderHeader: () => (
+          <TextHeader
+            label={"Descrição"}
+            field={"DESCRIPTION"}
+            filters={filters}
+            handleChangeFilters={handleChangeFilters}
+          ></TextHeader>
+        ),
       },
       {
         field: "projeto",
         headerName: "Projeto",
-        flex: 0.5,
+        flex: 1,
         valueGetter: (project: Project) => {
           return project.DESCRICAO;
         },
+        renderHeader: () => (
+          <TextHeader
+            label={"Projeto"}
+            field={"projeto"}
+            filters={filters}
+            handleChangeFilters={handleChangeFilters}
+          ></TextHeader>
+        ),
       },
       {
         field: "responsavel",
@@ -64,6 +93,14 @@ export function useRequisitionColumns(changeSelectedRow: (row: any) => void, _gr
         valueGetter: (user: ReducedUser) => {
           return user.NOME;
         },
+        renderHeader: () => (
+          <TextHeader
+            label={"Requisitante"}
+            field={"responsavel"}
+            filters={filters}
+            handleChangeFilters={handleChangeFilters}
+          ></TextHeader>
+        ),
       },
       {
         field: "gerente",
@@ -72,6 +109,14 @@ export function useRequisitionColumns(changeSelectedRow: (row: any) => void, _gr
         valueGetter: (user: ReducedUser) => {
           return user.NOME;
         },
+        renderHeader: () => (
+          <TextHeader
+            label={"Gerente"}
+            field={"gerente"}
+            filters={filters}
+            handleChangeFilters={handleChangeFilters}
+          ></TextHeader>
+        ),
       },
       {
         field: "responsavel_projeto",
@@ -80,14 +125,30 @@ export function useRequisitionColumns(changeSelectedRow: (row: any) => void, _gr
         valueGetter: (user: ReducedUser) => {
           return user.NOME;
         },
+        renderHeader: () => (
+          <TextHeader
+            label={"Responsável Projeto"}
+            field={"responsavel_projeto"}
+            filters={filters}
+            handleChangeFilters={handleChangeFilters}
+          ></TextHeader>
+        ),
       },
       {
         field: "status",
         headerName: "Status",
-        flex: 0.5,
+        flex: 1,
         valueGetter: (status: RequisitionStatus) => {
           return status ? status.nome : "";
         },
+        renderHeader: () => (
+          <TextHeader
+            label={"Status"}
+            field={"status"}
+            filters={filters}
+            handleChangeFilters={handleChangeFilters}
+          ></TextHeader>
+        ),
       },
       // {
       //   field: "data_criacao",
@@ -138,7 +199,11 @@ export function useRequisitionColumns(changeSelectedRow: (row: any) => void, _gr
                 <VisibilityIcon />
               </IconButton>
               {user?.PERM_ADMINISTRADOR === 1 && (
-                <IconButton  onClick={() => {dispatch(setRequisitionBeingDeletedId(row.ID_REQUISICAO))}}>
+                <IconButton
+                  onClick={() => {
+                    dispatch(setRequisitionBeingDeletedId(row.ID_REQUISICAO));
+                  }}
+                >
                   <DeleteIcon sx={{ color: "error.main" }} />
                 </IconButton>
               )}
@@ -182,14 +247,14 @@ export function useRequisitionColumns(changeSelectedRow: (row: any) => void, _gr
           return getDateFromISOstring(value);
         },
       },
-      { 
-        field: 'data_criacao',
-        headerName: 'Data de Criação',
+      {
+        field: "data_criacao",
+        headerName: "Data de Criação",
         flex: 1,
-        type: 'date',
+        type: "date",
         valueGetter: (value) => {
           return getDateFromISOstring(value);
-        }
+        },
       },
       {
         field: "tipo_requisicao",

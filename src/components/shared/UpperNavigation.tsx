@@ -11,7 +11,10 @@ const UpperNavigation: React.FC<UpperNavigationProps> = ({ handleBack, children 
   return (
     <Box
       sx={{
-        maxHeight: 40,
+        maxHeight: { 
+          md: 40,
+          xs: 100
+        },
         width: "100%",
         display: "flex",
         alignItems: "center",

@@ -26,16 +26,42 @@ const OpportunityDetailPage = () => {
   const { CODOS } = useParams();
 
   const [opportunity, setOpportunity] = useState<Opportunity | undefined>(undefined);
+  const [observation, setObservation] = useState<string>("");
+
   const handleBack = () => {
     navigate("/oportunidades");
   };
+  
+  const saveObservation = async () => {
+    if (!opportunity) return;
+    try {
+      opportunity.observacoes = observation;
+      const updatedOpportunity : Opportunity = await OpportunityService.update(Number(CODOS), {
+        observacoes: observation
+      });
+      setOpportunity(updatedOpportunity);
+      dispatch(
+        setFeedback({
+          message: "Observação salva com sucesso",
+          type: "success",
+      }));
+    } catch (e) {
+      dispatch(
+        setFeedback({
+          message: "Erro ao salvar observa o",
+          type: "error",
+        })
+      );
+  };
+}
 
   useEffect(() => {
       const fetchOpportunity = async () => {
         if (!CODOS) return;
         try {
-          const opportunity = await OpportunityService.getById(Number(CODOS));
+          const opportunity : Opportunity = await OpportunityService.getById(Number(CODOS));
           setOpportunity(opportunity);
+          setObservation(opportunity.observacoes);
         } catch (e) {
           dispatch(
             setFeedback({
@@ -102,6 +128,9 @@ const OpportunityDetailPage = () => {
               </Typography>
               <TextField
                 label="Observação"
+                onChange={(e: React.ChangeEvent<HTMLInputElement>) => setObservation(e.target.value) }
+                onBlur={saveObservation}
+                value={observation}
                 multiline
                 fullWidth
                 InputLabelProps={{

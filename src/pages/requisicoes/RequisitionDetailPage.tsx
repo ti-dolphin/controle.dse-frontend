@@ -45,7 +45,6 @@ const RequisitionDetailPage = () => {
   const {id_requisicao} = useParams();
   const { recentProductsAdded, replacingItemProduct, itemBeingReplaced, productSelected, refresh } = useSelector((state: RootState) => state.requisitionItem);
   const {requisition, refreshRequisition} = useSelector((state: RootState) => state.requisition);
-
   const [quoteListOpen, setQuoteListOpen] = useState<boolean>(false);
   const [fullScreenItems, setFullScreenItems] = useState<boolean>(false);
   const fullScreenItemsTableContainer = useRef<HTMLDivElement>(null);
@@ -191,7 +190,12 @@ const RequisitionDetailPage = () => {
     >
       <UpperNavigation handleBack={handleBack}>
         <Typography
-          sx={{ fontSize: "1rem" }}
+          sx={{  
+            fontSize: {
+              xs: "0.8rem",
+              sm: "1.2rem",
+            },
+          }}
           fontWeight={600}
           color="primary.main"
         >

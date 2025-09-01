@@ -17,7 +17,7 @@ const BaseToolBar: React.FC<BaseToolBarProps> = ({ children, transparent }) => {
                 alignItems: 'center',
                 justifyContent: 'flex-start',
                 backgroundColor: transparent ? 'transparent' : theme.palette.primary.main,
-                padding: 0.8,
+                padding: 1,
                 gap: 2,
                 width: '100%',
             }}

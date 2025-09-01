@@ -6,8 +6,9 @@ import { PatrimonyType } from "../../models/patrimonios/PatrimonyType";
 import { Box, IconButton, Typography } from "@mui/material";
 import { useDispatch, useSelector } from "react-redux";
 import DeleteIcon from "@mui/icons-material/Delete";
-import { setPatrimonyBeingDeleted } from "../../redux/slices/patrimonios/PatrimonyTableSlice";
+import { setFilters, setPatrimonyBeingDeleted } from "../../redux/slices/patrimonios/PatrimonyTableSlice";
 import { RootState } from "../../redux/store";
+import React from "react";
 
 
 export const usePatMovementationColumns = ()=> {
@@ -15,10 +16,25 @@ export const usePatMovementationColumns = ()=> {
   const user = useSelector((state: RootState) => state.user.user);
 
   const permissionToDelete = Number(user?.PERM_ADMINISTRADOR) === 1;
-
+  const {filters} = useSelector((state: RootState) => state.patrionyTable);
   const handleDeleteClick =(row: Partial<Patrimony> ) => { 
     dispatch(setPatrimonyBeingDeleted(row))
   };
+
+  const handleChangeFilters = React.useCallback(
+      (
+        e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>,
+        field: string
+      ) => {
+        let value: any = e.target.value;
+        if (value && !isNaN(Number(value)) && value.trim() !== "") {
+          value = Number(value);
+        }
+  
+        dispatch(setFilters({ ...filters, [field]: value }));
+      },
+      [dispatch, filters]
+    );
 
   const columns: GridColDef[] = [
     {

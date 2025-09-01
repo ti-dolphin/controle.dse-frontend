@@ -23,6 +23,8 @@ import { setFeedback } from "../../redux/slices/feedBackSlice";
 import { useRequisitionStatusPermissions } from "../../hooks/requisicoes/RequisitionStatusPermissionHook";
 import { RequisitionStatus } from "../../models/requisicoes/RequisitionStatus";
 import RequisitionItemService from "../../services/requisicoes/RequisitionItemService";
+import { gridColumnLookupSelector } from "@mui/x-data-grid";
+import { setRefresh } from "../../redux/slices/requisicoes/requisitionItemSlice";
 
 interface RequisitionStatusStepperProps {
   id_requisicao: number;
@@ -78,15 +80,13 @@ const RequisitionStatusStepper = ({
   const dispatch = useDispatch();
   const { requisition } = useSelector((state: RootState) => state.requisition);
   const { permissionToChangeStatus, permissionToCancel, permissionToActivate } = useRequisitionStatusPermissions(user, requisition);
-
   const currentStatusIndex = requisition.status?.etapa ?? 0;
-  const { statusList } = useRequisitionStatus(); 
-
-
+  const { statusList } = useRequisitionStatus(id_requisicao); 
+  const {refresh} = useSelector((state: RootState) => state.requisitionItem);
   const validationRules = async (newStatus: RequisitionStatus ) =>  {
       if(newStatus.nome === 'Validação') {
         const items = await RequisitionItemService.getMany({id_requisicao});
-        const noItems = items.length === 0;
+        const noItems = items.length === 0; 
         if(noItems) {
           throw new Error('Requisição sem itens');
         } 
@@ -104,15 +104,14 @@ const RequisitionStatusStepper = ({
         }));
         return;
     }
-
     try {
       const currentStep = requisition.status?.etapa ?? 0;
-      const nextStep =
-        type === "acao_posterior"
+      const nextStep = type === "acao_posterior"
           ? currentStep + 1
           : type === "acao_anterior"
           ? currentStep - 1
           : currentStep;
+        
       const newStatus = statusList.find((status) => status.etapa === nextStep); //FINDS THE CORRESPONDING  NEW STATUS
       if(newStatus){ 
         await validationRules(newStatus);
@@ -127,14 +126,17 @@ const RequisitionStatusStepper = ({
         return;
       }
 
-      const updatedRequisition = await RequisitionService.update( //SEND IT TO THE BACKEND!
+      const updatedRequisition = await RequisitionService.updateStatus( //SEND IT TO THE BACKEND!
         Number(id_requisicao),
         {
           id_status_requisicao: newStatus.id_status_requisicao,
           alterado_por: user?.CODPESSOA,
         }
       );
+      console.log("novos status: ", updatedRequisition.status.etapa);
       dispatch(setRequisition(updatedRequisition));
+      dispatch(setRefresh(!refresh));
+
       dispatch(
         setFeedback({
           type: "success", //DISPLAYS SUCCESS MESSAGE ON SCREEN
@@ -207,12 +209,24 @@ const RequisitionStatusStepper = ({
           activeStep={currentStatusIndex}
           connector={<CustomConnector />}
           sx={{
-            minWidth: 600,
-            p: 0,
-            m: 0,
+            // minWidth: 600,
+            // p: 0,
+            // m: 0,
+            // "& .MuiStepLabel-label": {
+            //   mt: 0.5, // reduz espaço entre ícone e texto
+            //   fontSize: 12,
+            //   fontWeight: 500,
+            // },
+            padding: { 
+              xs: 2,
+              sm: 0
+            },
+            minWidth: { xs: "100%", sm: 600 }, // ocupa toda largura em mobile
+            flexWrap: "nowrap",
+            overflowX: "auto",
             "& .MuiStepLabel-label": {
-              mt: 0.5, // reduz espaço entre ícone e texto
-              fontSize: 12,
+              mt: 0.5,
+              fontSize: { xs: 10, sm: 12 }, // menor fonte no mobile
               fontWeight: 500,
             },
           }}
@@ -221,7 +235,7 @@ const RequisitionStatusStepper = ({
             <Step key={status.id_status_requisicao}>
               <StepLabel StepIconComponent={CustomStepIcon}>
                 <Typography
-                  fontSize={12}
+                  fontSize={{ xs: 10, sm: 12 }}
                   fontWeight={idx === currentStatusIndex ? 600 : 400}
                   color={
                     idx === currentStatusIndex
@@ -237,12 +251,12 @@ const RequisitionStatusStepper = ({
           ))}
         </Stepper>
       )}
-      <Stack direction="row" justifyContent="center" spacing={1} >
+      <Stack direction="row" justifyContent="center" spacing={1}>
         <Button
           size="small"
           variant="contained"
           onClick={() => handleChangeStatus("acao_anterior")}
-          sx={{ minHeight: 28, px: 1 }}
+          sx={{ minHeight: 28, px: { xs: 0.5, sm: 1 } }}
         >
           <ArrowCircleLeftIcon fontSize="small" />
           <Typography fontSize={12}>
@@ -253,7 +267,7 @@ const RequisitionStatusStepper = ({
           size="small"
           variant="contained"
           onClick={() => handleChangeStatus("acao_posterior")}
-          sx={{ minHeight: 28, px: 1 }}
+          sx={{ minHeight: 28, px: { xs: 0.5, sm: 1 } }}
         >
           <Typography fontSize={12}>
             {requisition.status?.acao_posterior}

@@ -14,12 +14,7 @@ import {
 } from "../../../redux/slices/requisicoes/requisitionTableSlice";
 import { setFeedback } from "../../../redux/slices/feedBackSlice";
 import RequisitionService from "../../../services/requisicoes/RequisitionService";
-import {
-  Box,
-  Button,
-  SelectChangeEvent,
-  useTheme,
-} from "@mui/material";
+import { Box, Button, SelectChangeEvent, useTheme } from "@mui/material";
 import { useRequisitionColumns } from "../../../hooks/requisicoes/RequisitionTableColumnsHook";
 import BaseDataTable from "../../../components/shared/BaseDataTable";
 import BaseDetailModal from "../../../components/shared/BaseDetailModal";
@@ -28,175 +23,171 @@ import { RequisitionKanban } from "../../../models/requisicoes/RequisitionKanban
 import { useRequisitionKanban } from "../../../hooks/requisicoes/RequisitionKanbanHook";
 import BaseToolBar from "../../../components/shared/BaseToolBar";
 import BaseDropdown from "../../../components/shared/BaseDropdown";
-import { ReducedUser } from "../../../models/User";
 import BaseTableToolBar from "../../../components/shared/BaseTableToolBar";
 import { debounce } from "lodash";
-import BaseTableColumnFilters from "../../../components/shared/BaseTableColumnFilters";
 import RequisitionFormModal from "../../../components/requisicoes/RequisitionFormModal";
 import { useNavigate } from "react-router-dom";
 import UpperNavigation from "../../../components/shared/UpperNavigation";
 import BaseDeleteDialog from "../../../components/shared/BaseDeleteDialog";
+import { useIsMobile } from "../../../hooks/useIsMobile";
+import { FixedSizeGrid } from "react-window";
+import DataCard from "../../../components/shared/DataCard";
+import RequisitionCard from "../../../components/requisicoes/RequisitionCard";
+import { ReducedUser } from "../../../models/User";
 
 const RequisitionListPage = () => {
-  useRequisitionKanban();
-  const [triggerFetch, setTriggerFetch] = useState(0);
-  const dispatch = useDispatch();
-  const theme = useTheme();
-  const user = useSelector((state: RootState) => state.user.user);
-  const {rows} = useSelector((state: RootState) => state.requisitionTable);
-  const navigate = useNavigate();
-  
-  const {
-    searchTerm,
-    filters,
-    loading,
-    selectedRow,
-    kanbans,
-    selectedKanban,
-    requisitionBeingDeletedId
-  } = useSelector((state: RootState) => state.requisitionTable);
+    useRequisitionKanban();
+    const [triggerFetch, setTriggerFetch] = useState(0);
+    const dispatch = useDispatch();
+    const theme = useTheme();
+    const user = useSelector((state: RootState) => state.user.user);
+    const { rows } = useSelector((state: RootState) => state.requisitionTable);
+    const navigate = useNavigate();
+    const gridContainerRef = React.useRef<HTMLDivElement>(null);
+    const {
+      searchTerm,
+      filters,
+      loading,
+      selectedRow,
+      kanbans,
+      selectedKanban,
+      requisitionBeingDeletedId,
+    } = useSelector((state: RootState) => state.requisitionTable);
 
-  const changeSelectedRow = (row: any) => {
-    dispatch(setSelectedRow(row));
-  };
-  const gridRef = useGridApiRef();
+    const {isMobile } = useIsMobile();
 
-  const { columns, secondaryColumns } = useRequisitionColumns(
-    changeSelectedRow,
-    gridRef
-  ); //RETURNS MAIN COLUMNS ARRAY AND SECONDARY COLUMNS
+    const changeSelectedRow = (row: any) => {
+      dispatch(setSelectedRow(row));
+    };
+    const gridRef = useGridApiRef();
 
-  const handleChangeKanban = React.useCallback(
-    (event: SelectChangeEvent<unknown>) => {
-      const selectedKanban = kanbans.find(
-        (kanban: RequisitionKanban) =>
-          kanban.id_kanban_requisicao === Number(event.target.value)
-      );
-      if (selectedKanban) {
-        dispatch(setSelectedKanban(selectedKanban));
-        return;
+    const handleChangeFilters = React.useCallback(
+      (
+        e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>,
+        field: string
+      ) => {
+        let value: any = e.target.value;
+        // Try to convert to number if it's a numeric value
+        if (!isNaN(Number(value)) && value.trim() !== "") {
+          value = Number(value);
+        }
+        dispatch(setFilters({ ...filters, [field]: value }));
+      },
+      [dispatch, filters]
+    );
+
+    const { columns, secondaryColumns } = useRequisitionColumns(
+      handleChangeFilters,
+      changeSelectedRow,
+      gridRef
+    ); //RETURNS MAIN COLUMNS ARRAY AND SECONDARY COLUMNS
+
+    const handleChangeKanban = React.useCallback(
+      (event: SelectChangeEvent<unknown>) => {
+        const selectedKanban = kanbans.find(
+          (kanban: RequisitionKanban) =>
+            kanban.id_kanban_requisicao === Number(event.target.value)
+        );
+        if (selectedKanban) {
+          dispatch(setSelectedKanban(selectedKanban));
+          return;
+        }
+      },
+      [kanbans, dispatch]
+    );
+
+    const handleChangeSearchTerm = React.useCallback(
+      (event: React.ChangeEvent<HTMLInputElement>) => {
+        const value = event.target.value;
+        dispatch(setSearchTerm(value.toLowerCase()));
+      },
+      [dispatch]
+    );
+
+    const handleDeleteRequisition = async () => {
+      if (!requisitionBeingDeletedId) return;
+      try {
+        await RequisitionService.delete(requisitionBeingDeletedId);
+        dispatch(setRequisitionBeingDeletedId(null));
+        dispatch(removeRow(requisitionBeingDeletedId));
+        dispatch(
+          setFeedback({
+            message: "Requisição deletada com sucesso",
+            type: "success",
+          })
+        );
+      } catch (e) {
+        dispatch(
+          setFeedback({
+            message: "Houve um erro ao deletar a requisição",
+            type: "error",
+          })
+        );
       }
-    },
-    [kanbans, dispatch]
-  );
+    };
 
-  const handleChangeSearchTerm = React.useCallback(
-    (event: React.ChangeEvent<HTMLInputElement>) => {
-      const value = event.target.value;
-    dispatch(setSearchTerm(value.toLowerCase()));
-    },
-    [dispatch]
-  );
+    const handleBack = () => {
+      navigate("/");
+    };
 
-  const handleDeleteRequisition = async () => {
-    if (!requisitionBeingDeletedId) return;
-    try {
-      await RequisitionService.delete(requisitionBeingDeletedId);
-      dispatch(setRequisitionBeingDeletedId(null));
-      dispatch(removeRow(requisitionBeingDeletedId));
-      dispatch(
-        setFeedback({
-          message: "Requisição deletada com sucesso",
-          type: "success",
-        })
-      )
-    } catch (e) {
-      dispatch(
-        setFeedback({
-          message: "Houve um erro ao deletar a requisição",
-          type: "error",
-        })
-      );
-    }
-  };
+    const navigateToRequisitionDetails = (params: any) => {
+      console.log("params: ", params)
+      if (params.field === "actions") return;
+      const { id } = params;
+      navigate(`/requisicoes/${id}`);
+    };
 
 
-  const handleBack = () => {
-    navigate("/");
-  }
 
-  const navigateToRequisitionDetails = ( params : any) =>  {
-    if(params.field=== 'actions') return;
-    const {id} = params;
-    navigate(`/requisicoes/${id}`);
-  }
+    const handleCleanFilter = () => [dispatch(clearfilters())];
 
-  const handleChangeFilters = React.useCallback(
-    (
-      e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>,
-      field: string
-    ) => {
-      let value: any = e.target.value;
-      // Try to convert to number if it's a numeric value
-      if (!isNaN(Number(value)) && value.trim() !== "") {
-        value = Number(value);
+    const debouncedHandleChangeSearchTerm = useMemo(() => {
+      return debounce(handleChangeSearchTerm, 500);
+    }, [handleChangeSearchTerm]);
+
+    const debouncedSetTriggerFetch = useMemo(() => {
+      return debounce(() => setTriggerFetch((prev) => prev + 1), 800);
+    }, []);
+
+    const fetchData = React.useCallback(async () => {
+      dispatch(setLoading(true));
+      try {
+        const data = await RequisitionService.getMany(user as ReducedUser, {
+          id_kanban_requisicao: selectedKanban?.id_kanban_requisicao,
+          searchTerm,
+          filters,
+        });
+        dispatch(setRows(data));
+        dispatch(setLoading(false));
+      } catch (e: any) {
+        dispatch(setLoading(false));
+        dispatch(
+          setFeedback({
+            message: "Houve um erro ao buscar requisições",
+            type: "error",
+          })
+        );
       }
-      dispatch(setFilters({ ...filters, [field]: value }));
-    },
-    [dispatch, filters]
-  );
+    }, [dispatch, user, selectedKanban, searchTerm, filters, triggerFetch]);
 
-  const handleCleanFilter = () => [dispatch(clearfilters())];
-
-  const debouncedHandleChangeSearchTerm = useMemo(() => {
-    return debounce(handleChangeSearchTerm, 500);
-  }, [handleChangeSearchTerm]);
-
-  const debouncedSetTriggerFetch = useMemo(() => {
-    return debounce(() => setTriggerFetch((prev) => prev + 1), 800);
-  }, []);
-
-  const fetchData = React.useCallback(async () => {
-    dispatch(setLoading(true));
-    try {
-      const data = await RequisitionService.getMany(user as ReducedUser, {
-        id_kanban_requisicao: selectedKanban?.id_kanban_requisicao,
-        searchTerm,
-        filters,
-      });
-      dispatch(setRows(data));
-      dispatch(setLoading(false));
-    } catch (e: any) {
-      dispatch(setLoading(false));
-      dispatch(
-        setFeedback({
-          message: "Houve um erro ao buscar requisições",
-          type: "error",
-        })
-      );
-    }
-  }, [dispatch, user, selectedKanban, searchTerm, filters, triggerFetch]);
-
-  useEffect(() => {
-    if (selectedKanban && user) {
-      fetchData();
-    }
-  }, [selectedKanban, searchTerm, filters, fetchData, user]);
-
+    useEffect(() => {
+      if (selectedKanban && user) {
+        fetchData();
+      }
+    }, [selectedKanban, searchTerm, filters, fetchData, user]);
   return (
-    <Box
-      sx={{
-        height: "100vh",
-        width: "100%",
-        display: "flex",
-        flexDirection: "column",
-        alignItems: "start",
-        justifyContent: "center",
-        padding: 0.5,
-      }}
-    >
+    <Box sx={{ height: "100vh", width: "100%" }}>
       <UpperNavigation handleBack={handleBack} />
       <Box
         sx={{
-          height: "95%",
-          width: "100%",
+          height: "calc(100% - 40px)",
           display: "flex",
           flexDirection: "column",
         }}
       >
         <BaseToolBar transparent={false}>
           <Box sx={{ display: "flex", gap: 2, boxShadow: "none" }}>
-            {window.innerWidth < 768 && (
+            {isMobile ? (
               <BaseDropdown
                 label="Kanban"
                 options={kanbans.map((kanban: RequisitionKanban) => ({
@@ -206,9 +197,8 @@ const RequisitionListPage = () => {
                 value={selectedKanban?.id_kanban_requisicao || ""}
                 onChange={handleChangeKanban}
                 backgroundColor={""}
-              ></BaseDropdown>
-            )}
-            {window.innerWidth > 768 &&
+              />
+            ) : (
               kanbans.map((kanban: RequisitionKanban) => (
                 <Button
                   key={kanban.id_kanban_requisicao}
@@ -222,57 +212,83 @@ const RequisitionListPage = () => {
                     color: "white",
                     textTransform: "capitalize",
                     borderRadius: 0,
+                    height: 26,
                   }}
                 >
                   {kanban.nome}
                 </Button>
-              ))}
+              ))
+            )}
           </Box>
           <RequisitionFormModal />
         </BaseToolBar>
-
         <BaseTableToolBar
           handleChangeSearchTerm={debouncedHandleChangeSearchTerm}
         >
-          <Button variant="contained" onClick={handleCleanFilter}>
-            Limpar filtros
-          </Button>
+          {!isMobile && (
+            <Button
+              sx={{ height: 30, borderRadius: 0 }}
+              variant="contained"
+              onClick={handleCleanFilter}
+            >
+              Limpar filtros
+            </Button>
+          )}
         </BaseTableToolBar>
-
-        <BaseTableColumnFilters
-          columns={columns}
-          filters={filters}
-          handleChangeFilters={handleChangeFilters}
-          debouncedSetTriggerFetch={debouncedSetTriggerFetch}
-        />
-        <BaseDataTable
-          apiRef={gridRef}
-          rows={rows}
-          disableColumnMenu
-          disableColumnFilter
-          rowHeight={40}
-          columns={columns}
-          loading={loading}
-          // onRowClick={(params) => navigateToRequisitionDetails(params)}
-          onCellClick={(params) => navigateToRequisitionDetails(params)}
-          getRowId={(row: any) => row.ID_REQUISICAO}
-          theme={theme}
-        />
+        {isMobile ? (
+          <Box
+            ref={gridContainerRef}
+            sx={{ flexGrow: 1, display: "flex", alignItems: "center" }}
+          >
+            <FixedSizeGrid
+              style={{ margin: "auto" }}
+              columnWidth={280}
+              rowHeight={310}
+              columnCount={1}
+              rowCount={rows.length}
+              width={280}
+              height={gridContainerRef.current?.offsetHeight || 400}
+            >
+              {({ columnIndex, rowIndex, style }) => {
+                const itemIndex = rowIndex;
+                const requisition = rows[itemIndex];
+                if (!requisition) return null;
+                return (
+                 <RequisitionCard req={requisition} style={style} onClickDetails={( ) => navigate(`/requisicoes/${requisition.ID_REQUISICAO}`)}/>
+                );
+              }}
+            </FixedSizeGrid>
+          </Box>
+        ) : (
+          <BaseDataTable
+            apiRef={gridRef}
+            rows={rows}
+            disableColumnMenu
+            disableColumnFilter
+            rowHeight={40}
+            columns={columns}
+            loading={loading}
+            onCellClick={(params) =>
+              params.field !== "actions" &&
+              navigateToRequisitionDetails(params)
+            }
+            getRowId={(row: any) => row.ID_REQUISICAO}
+            theme={theme}
+          />
+        )}
       </Box>
-
-      {/* DISPLAYS SECONDARY DATA */}
       <BaseDetailModal
         open={selectedRow !== null}
         onClose={() => dispatch(setSelectedRow(null))}
-        columns={secondaryColumns}
+        columns={columns}
         row={selectedRow}
         ref={gridRef}
       />
-
-      <BaseDeleteDialog 
+      <BaseDeleteDialog
         open={requisitionBeingDeletedId !== null}
-        onConfirm={handleDeleteRequisition } 
-        onCancel={() => dispatch(setRequisitionBeingDeletedId(null))}    />
+        onConfirm={handleDeleteRequisition}
+        onCancel={() => dispatch(setRequisitionBeingDeletedId(null))}
+      />
     </Box>
   );
 };

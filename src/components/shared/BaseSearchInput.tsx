@@ -28,7 +28,7 @@ const BaseSearchInput = ({ onChange, showIcon, label, placeholder, styles} : Bas
         ...styles
       }}
     >
-      {showIcon && <SearchIcon />}
+      {showIcon && <SearchIcon sx={{height: 24, width: 24}} />}
       <input
         type="text"
         placeholder={placeholder || "Pesquisar..."}
@@ -42,7 +42,7 @@ const BaseSearchInput = ({ onChange, showIcon, label, placeholder, styles} : Bas
           fontSize: "1rem",
           outline: "none",
           width: "200px",
-          
+          height: 26
         }}
       />
     </Box>

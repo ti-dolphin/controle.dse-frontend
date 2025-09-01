@@ -16,8 +16,10 @@ export interface RequisitionStatus {
 const API_ENDPOINT = '/status_requisicao';
 const API_PERMISSION_ENDPOINT = "permissao_status";
 class RequisitionStatusService {
-  async getMany(): Promise<RequisitionStatus[]> {
-    const response = await api.get<RequisitionStatus[]>(API_ENDPOINT);
+  async getMany(id_requisicao: number): Promise<RequisitionStatus[]> {
+    const response = await api.get<RequisitionStatus[]>(API_ENDPOINT, {
+      params: { id_requisicao },
+    });
     return response.data;
   }
 

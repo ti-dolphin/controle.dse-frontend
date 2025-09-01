@@ -62,7 +62,7 @@ function BaseTableColumnFiltersComponent({
             variant="contained"
             onClick={handleCleanFilters}
             color="primary"
-            sx={{ borderRadius: 0 }}
+            sx={{ borderRadius: 0,  }}
           >
             Limpar filtros
           </Button>
@@ -93,31 +93,9 @@ function BaseTableColumnFiltersComponent({
                   onChange={(e) => {
                     setLocalFilters((prev: any) => ({
                       ...prev,
-                      [`${col.field}_from`]: e.target.value,
+                      [`${col.field}`]: e.target.value,
                     }));
-                    debouncedSync(`${col.field}_from`, e.target.value);
-                  }}
-                  style={{
-                    minWidth: 0,
-                    width: "100%",
-                    borderRadius: "0",
-                    height: 25,
-                    padding: 4,
-                    border: "1px solid lightgray",
-                    outline: "none",
-                    fontSize: "small",
-                  }}
-                />
-                <input
-                  type="text"
-                  value={localFilters[`${col.field}_to`] || ""}
-                  placeholder="Até"
-                  onChange={(e) => {
-                    setLocalFilters((prev: any) => ({
-                      ...prev,
-                      [`${col.field}_to`]: e.target.value,
-                    }));
-                    debouncedSync(`${col.field}_to`, e.target.value);
+                    debouncedSync(`${col.field}`, e.target.value);
                   }}
                   style={{
                     minWidth: 0,

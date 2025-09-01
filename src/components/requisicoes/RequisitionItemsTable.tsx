@@ -42,6 +42,7 @@ import {
 import { formatDateStringtoISOstring } from "../../utils";
 import RequisitionService from "../../services/requisicoes/RequisitionService";
 import UpdateChildReqItemsDialog from "./UpdateChildReqItemsDialog";
+import { useIsMobile } from "../../hooks/useIsMobile";
 
 interface RequisitionItemsTable { 
     tableMaxHeight?: number;
@@ -52,7 +53,7 @@ const RequisitionItemsTable = ({ tableMaxHeight, hideFooter }: RequisitionItemsT
   const navigate = useNavigate();
   const theme = useTheme();
   const { id_requisicao } = useParams();
-
+  const {isMobile} = useIsMobile();
   const { requisition, refreshRequisition } = useSelector(
     (state: RootState) => state.requisition
   );

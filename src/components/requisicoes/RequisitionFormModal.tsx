@@ -38,6 +38,8 @@ const RequisitionFormModal: React.FC = () => {
         sx={{
           bgcolor: "secondary.main",
           color: "white",
+          height: 24,
+          width: 24,
           borderRadius: "50%",
           "&:hover": {
             bgcolor: "secondary.main",
