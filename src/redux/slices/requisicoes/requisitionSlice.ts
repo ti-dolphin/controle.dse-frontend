@@ -16,6 +16,7 @@ const initialState: RequisitionFormState = {
     DESCRIPTION: "",
     ID_PROJETO: 0,
     ID_RESPONSAVEL: 0,
+    id_requisicao_original: 0,
     TIPO: 0,
     data_alteracao: "",
     data_criacao: "",
