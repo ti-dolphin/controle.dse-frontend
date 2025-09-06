@@ -2,6 +2,7 @@ import {
   GridCellModes,
   GridCellModesModel,
   GridCellParams,
+  GridCloseIcon,
   GridRowModel,
   GridRowSelectionModel,
   useGridApiRef,
@@ -9,7 +10,7 @@ import {
 import React, { useCallback, useEffect, useState } from "react";
 import { useRequisitionItemColumns } from "../../hooks/requisicoes/RequisitionItemColumnsHook";
 import { RequisitionItem } from "../../models/requisicoes/RequisitionItem";
-import { Box, Button, useTheme } from "@mui/material";
+import { Box, Button, Dialog, DialogContent, DialogTitle, IconButton, useTheme } from "@mui/material";
 import { useDispatch, useSelector } from "react-redux";
 import { RootState } from "../../redux/store";
 import RequisitionItemService from "../../services/requisicoes/RequisitionItemService";
@@ -25,6 +26,7 @@ import {
   setSelectedQuote,
   setUpdatingChildReqItems,
   setUpdatingRecentProductsQuantity,
+  setViewingItemAttachment,
 } from "../../redux/slices/requisicoes/requisitionItemSlice";
 import QuoteService from "../../services/requisicoes/QuoteService";
 import { useNavigate, useParams } from "react-router-dom";
@@ -43,6 +45,9 @@ import { formatDateStringtoISOstring } from "../../utils";
 import RequisitionService from "../../services/requisicoes/RequisitionService";
 import UpdateChildReqItemsDialog from "./UpdateChildReqItemsDialog";
 import { useIsMobile } from "../../hooks/useIsMobile";
+import { FixedSizeGrid } from "react-window";
+import RequisitionItemCard from "./RequisitionItemCard";
+import RequisitionItemAttachmentList from "./RequisitionItemAttachmentList";
 
 interface RequisitionItemsTable { 
     tableMaxHeight?: number;
@@ -77,7 +82,7 @@ const RequisitionItemsTable = ({ tableMaxHeight, hideFooter }: RequisitionItemsT
     requisition
   );
 
-  const { newItems, updatingRecentProductsQuantity, refresh, currentQuoteIdSelected, selectedQuote, updatingChildReqItems } = useSelector(
+  const { newItems, updatingRecentProductsQuantity, refresh, currentQuoteIdSelected, selectedQuote, updatingChildReqItems, viewingItemAttachment } = useSelector(
     (state: RootState) => state.requisitionItem
   );
   const handleDeleteItem = async (id_item_requisicao: number) => {
@@ -156,6 +161,8 @@ const RequisitionItemsTable = ({ tableMaxHeight, hideFooter }: RequisitionItemsT
   const [quoteItemsSelected, setQuoteItemsSelected] = useState<Map<number, number>>(new Map());
   const [loading, setLoading] = useState(false);
   const [blockFields, setBlockFields] = useState(false);
+  const [quoteListOpen, setQuoteListOpen] = useState<boolean>(false);
+  
   //map de <id_item_requisicao, id_item_cotacao>
   //SELECIONA ITEMS DA COTAÇÃO
   const handleChangeQuoteItemsSelected = useCallback(
@@ -204,6 +211,15 @@ const RequisitionItemsTable = ({ tableMaxHeight, hideFooter }: RequisitionItemsT
     selectionModel as number[],
     blockFields
   );
+
+  const mobileColumns = ( ) =>  {
+    const mobile = ['produto_descricao', 'quantidade'];
+    const filtered = columns.filter((column) => mobile.includes(column.field));
+    filtered.forEach((column) => { 
+      column.minWidth = 160;
+    });
+    return filtered;
+  }
   //CLIQUE NA CÈLULA
   const handleCellClick = (params: GridCellParams, event: React.MouseEvent) => {
     if (isDinamicField && isDinamicField(params.field)) {
@@ -481,10 +497,13 @@ const RequisitionItemsTable = ({ tableMaxHeight, hideFooter }: RequisitionItemsT
             )}
           {!addingReqItems &&
             !updatingRecentProductsQuantity &&
-             items.length > 1 && (
-              <Button variant="contained" onClick={() => { 
-                dispatch(setUpdatingChildReqItems(true));
-              }}>
+            items.length > 0 && (
+              <Button
+                variant="contained"
+                onClick={() => {
+                  dispatch(setUpdatingChildReqItems(true));
+                }}
+              >
                 Criar requisição parcial
               </Button>
             )}
@@ -494,27 +513,65 @@ const RequisitionItemsTable = ({ tableMaxHeight, hideFooter }: RequisitionItemsT
         ref={toolbarRef}
         handleChangeSearchTerm={debouncedHandleChangeSearchTerm}
       />
-      <Box sx={{ height: tableMaxHeight ? tableMaxHeight : "auto" }}>
-        <BaseDataTable
-          apiRef={gridApiRef}
-          density="compact"
-          getRowId={(row: any) => row.id_item_requisicao}
-          loading={loading}
-          theme={theme}
-          disableColumnMenu
-          rows={items}
-          checkboxSelection
-          onRowSelectionModelChange={handleChangeSelection}
-          rowSelectionModel={selectionModel}
-          disableRowSelectionOnClick
-          columns={columns}
-          cellModesModel={cellModesModel}
-          onCellModesModelChange={handleCellModesModelChange}
-          onCellClick={handleCellClick}
-          processRowUpdate={processRowUpdate}
-          hideFooter={hideFooter}
-        />
-      </Box>
+      {false ? (
+        <Box
+          sx={{
+            width: "100%",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            mt: 2,
+          }}
+        >
+          <FixedSizeGrid
+            columnCount={1}
+            columnWidth={300}
+            height={tableMaxHeight || 600}
+            rowCount={items.length}
+            rowHeight={200}
+            width={300}
+          >
+            {({ columnIndex, rowIndex, style }) => {
+              const item = items[rowIndex];
+              return (
+                <RequisitionItemCard
+                  key={item.id_item_requisicao}
+                  item={item}
+                  style={style}
+                />
+              );
+            }}
+          </FixedSizeGrid>
+        </Box>
+      ) : (
+        <Box
+          sx={{
+            height: tableMaxHeight ? tableMaxHeight : "auto",
+            overFlow: "scroll",
+          }}
+        >
+          <BaseDataTable
+            apiRef={gridApiRef}
+            density="compact"
+            getRowId={(row: any) => row.id_item_requisicao}
+            loading={loading}
+            theme={theme}
+            disableColumnMenu
+            rowHeight={60}
+            rows={items}
+            checkboxSelection
+            onRowSelectionModelChange={handleChangeSelection}
+            rowSelectionModel={selectionModel}
+            disableRowSelectionOnClick
+            columns={isMobile ? mobileColumns() : columns}
+            cellModesModel={cellModesModel}
+            onCellModesModelChange={handleCellModesModelChange}
+            onCellClick={handleCellClick}
+            processRowUpdate={processRowUpdate}
+            hideFooter={hideFooter}
+          />
+        </Box>
+      )}
       {addingReqItems && (
         <Box sx={{ display: "flex", justifyContent: "flex-end", p: 2 }}>
           <Button variant="contained" onClick={handleAddItemsToRequisition}>
@@ -528,10 +585,39 @@ const RequisitionItemsTable = ({ tableMaxHeight, hideFooter }: RequisitionItemsT
           open={updatingChildReqItems}
           onClose={() => dispatch(setUpdatingChildReqItems(false))}
           id_requisicao={Number(id_requisicao)}
-          items={items.filter((item) => selectionModel.includes(item.id_item_requisicao))}
+          items={items.filter((item) =>
+            selectionModel.includes(item.id_item_requisicao)
+          )}
           allItems={items}
         />
       )}
+
+      <Dialog
+        open={viewingItemAttachment !== null}
+        onClose={() => dispatch(setViewingItemAttachment(null))}
+        fullWidth
+
+        maxWidth="md"
+      >
+        <IconButton
+          onClick={() => dispatch(setViewingItemAttachment(null))}
+          sx={{
+            color: "error.main",
+            height: 30,
+            width: 30,
+            position: "absolute",
+            top: 4,
+            right: 4,
+            boxShadow: 3,
+          }}
+        >
+          <GridCloseIcon />
+        </IconButton>
+        <DialogTitle>Lista de Anexos</DialogTitle>
+        <DialogContent>
+          <RequisitionItemAttachmentList />
+        </DialogContent>
+      </Dialog>
     </Box>
   );
 };

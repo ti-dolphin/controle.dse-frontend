@@ -3,11 +3,12 @@ import { Box, TextField } from "@mui/material";
 import { debounce } from "lodash";
 import { OpportunityFilters } from "../hooks/oportunidades/useOpportunityFilters";
 import { RequisitionFilters } from "../redux/slices/requisicoes/requisitionTableSlice";
+import { PatrimonyFilters } from "../redux/slices/patrimonios/PatrimonyTableSlice";
 
 interface TextHeaderProps {
   label: string;
   field: string;
-  filters: OpportunityFilters | RequisitionFilters; 
+  filters: OpportunityFilters | RequisitionFilters | PatrimonyFilters; 
   handleChangeFilters: (
     event: React.ChangeEvent<HTMLInputElement>,
     field: string

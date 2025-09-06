@@ -10,6 +10,7 @@ import opportunityTableReducer from './slices/oportunidades/opportunityTableSlic
 import opportunityReducer from './slices/oportunidades/opportunitySlice';
 import patrimonyTableReducer from './slices/patrimonios/PatrimonyTableSlice';
 import checklistTableReducer from './slices/patrimonios/ChecklistTableSlice';
+import productSliceReducer from './slices/productSlice';
 
 export const store = configureStore({
   reducer: {
@@ -20,10 +21,11 @@ export const store = configureStore({
     requisitionItem: requisitionItemReducer,
     quote: quoteReducer,
     quoteItem: quoteItemReducer,
-    opportunityTable : opportunityTableReducer,
+    opportunityTable: opportunityTableReducer,
     opportunity: opportunityReducer,
-    patrionyTable : patrimonyTableReducer,
-    checklistTable : checklistTableReducer
+    patrionyTable: patrimonyTableReducer,
+    checklistTable: checklistTableReducer,
+    productSlice: productSliceReducer,
   },
 });
 

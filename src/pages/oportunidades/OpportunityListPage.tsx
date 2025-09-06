@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useState } from "react";
-import { Box, Button, useTheme } from "@mui/material";
+import { Box, Button, Checkbox, useTheme } from "@mui/material";
 import UpperNavigation from "../../components/shared/UpperNavigation";
 import BaseTableToolBar from "../../components/shared/BaseTableToolBar";
 import BaseDataTable from "../../components/shared/BaseDataTable";
@@ -17,6 +17,9 @@ import { setCreating } from "../../redux/slices/oportunidades/opportunitySlice";
 import { OpportunityTableFooter } from "../../components/oportunidades/OpportunityTableFooter";
 import { FixedSizeGrid } from "react-window";
 import OpportunityCard from "../../components/oportunidades/OpportunityCard";
+import { GridCheckCircleIcon } from "@mui/x-data-grid";
+import CheckCircleIcon from '@mui/icons-material/CheckCircle';
+import RadioButtonUncheckedIcon from '@mui/icons-material/RadioButtonUnchecked';
 
 const OpportunityListPage = () => {
  const dispatch = useDispatch();
@@ -104,7 +107,7 @@ const gridContainerRef = React.useRef<HTMLDivElement>(null);
       <UpperNavigation handleBack={() => navigate("/")} />
       <Box
         sx={{
-          height: "calc(100% - 40px)",
+          height: "calc(100% - 50px)",
           display: "flex",
           flexDirection: "column",
         }}
@@ -120,6 +123,12 @@ const gridContainerRef = React.useRef<HTMLDivElement>(null);
               Limpar filtros
             </Button>
           )}
+          <Checkbox
+            checkedIcon={<CheckCircleIcon />}
+            icon={<RadioButtonUncheckedIcon />}
+            checked={finalizados}
+            onChange={(e) => setFinalizados(e.target.checked)}
+          />
         </BaseTableToolBar>
         {isMobile ? (
           <Box

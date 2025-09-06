@@ -14,6 +14,7 @@ interface RequisitionItemState {
   currentQuoteIdSelected: number | null;
   selectedQuote: Partial<Quote> | null;
   updatingChildReqItems: boolean;
+  viewingItemAttachment: number | null;
 }
 const initialState: RequisitionItemState = {
   addingProducts: false,
@@ -28,6 +29,7 @@ const initialState: RequisitionItemState = {
   currentQuoteIdSelected: null,
   selectedQuote: null,
   updatingChildReqItems: false,
+  viewingItemAttachment: null,
 };
 
 const requisitionItemSlice = createSlice({
@@ -84,6 +86,9 @@ const requisitionItemSlice = createSlice({
     setUpdatingChildReqItems(state, action: PayloadAction<boolean>) {
       state.updatingChildReqItems = action.payload;
     },
+    setViewingItemAttachment(state, action: PayloadAction<number | null>) {
+      state.viewingItemAttachment = action.payload;
+    },
   },
 });
 
@@ -103,6 +108,7 @@ export const {
   setCurrentQuoteIdSelected,
   setSelectedQuote,
   setUpdatingChildReqItems,
+  setViewingItemAttachment,
 } = requisitionItemSlice.actions;
 
 export default requisitionItemSlice.reducer;

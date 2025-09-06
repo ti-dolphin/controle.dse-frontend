@@ -190,7 +190,7 @@ const RequisitionDetailPage = () => {
     >
       <UpperNavigation handleBack={handleBack}>
         <Typography
-          sx={{  
+          sx={{
             fontSize: {
               xs: "0.8rem",
               sm: "1.2rem",
@@ -327,18 +327,14 @@ const RequisitionDetailPage = () => {
             },
           }}
         >
-          <Paper sx={{ p: 1 }}>
-            <Stack direction="row" gap={2}>
+          <Paper sx={{ p: 1, position:"relative" }}>
+            <Stack direction="column" alignItems={"start"}   gap={1}>
               {/* Tela cheia */}
-              <IconButton onClick={() => setFullScreenItems(true)}>
+              <IconButton sx={{position:"absolute", right:"10px", top:"10px"}} onClick={() => setFullScreenItems(true)}>
                 <FullscreenIcon />
               </IconButton>
               {/* Adicionar itens */}
-              <Stack
-                direction={{ xs: "column", sm: "row" }}
-                spacing={1}
-                alignItems="center"
-              >
+              <Stack direction="row" spacing={1}  alignItems="center">
                 {shouldShowAddItemsButton() && (
                   <Button
                     onClick={() => dispatch(setAddingProducts(true))}
@@ -356,21 +352,24 @@ const RequisitionDetailPage = () => {
                 >
                   Cotações
                 </Button>
-                <Box sx={{ display: "flex", flexDirection: "row", gap: 1 }} ml="auto">
-                  <Typography variant="subtitle2" color="primary.main">
-                     Itens:{" "}
-                    {formatCurrency(Number(requisition.custo_total_itens || 0))} |
-                  </Typography>
-                  <Typography variant="subtitle2" color="primary.main">
-                     Fretes:{" "}
-                    {formatCurrency(Number(requisition.custo_total_frete || 0))} |
-                  </Typography>
-                  <Typography variant="subtitle2" color="success.main">
-                    Custo total:{" "}
-                    {formatCurrency(Number(requisition.custo_total || 0))}
-                  </Typography>
-                </Box>
               </Stack>
+
+              <Box
+                sx={{ display: "flex", flexDirection: "row", gap: 1 }}
+              >
+                <Typography variant="subtitle2" color="primary.main">
+                  Itens:{" "}
+                  {formatCurrency(Number(requisition.custo_total_itens || 0))} 
+                </Typography>
+                <Typography variant="subtitle2" color="primary.main">
+                  Fretes:{" "}
+                  {formatCurrency(Number(requisition.custo_total_frete || 0))} 
+                </Typography>
+                <Typography variant="subtitle2" color="success.main">
+                  Custo total:{" "}
+                  {formatCurrency(Number(requisition.custo_total || 0))}
+                </Typography>
+              </Box>
             </Stack>
 
             <Divider sx={{ mb: 1 }} />

@@ -20,6 +20,7 @@ import RequisitionItemsTable from "./RequisitionItemsTable";
 import CloseIcon from '@mui/icons-material/Close';
 import { setAddingReqItems, setQuoteItems, setSingleQuoteItem } from "../../redux/slices/requisicoes/quoteItemSlice";
 import { useParams } from "react-router-dom";
+import { useIsMobile } from "../../hooks/useIsMobile";
 
 
 interface QuoteItemsTableProps {
@@ -45,6 +46,8 @@ const QuoteItemsTable = ({
   const [loading, setLoading] = useState(false);
   const [blockFields, setBlockFields] = useState(false);
   const isSupplierRoute = accessType === "supplier" ? true : false;
+  const {isMobile} = useIsMobile();
+  
 
   const handleUpdateUnavailable = async (
     e: ChangeEvent<HTMLInputElement>,
@@ -104,6 +107,22 @@ const QuoteItemsTable = ({
   };
 
   const { columns } = useQuoteItemColumns(handleUpdateUnavailable, blockFields);
+
+  const mobileColumns = ( ) =>  {
+    const arr = [
+      {
+        label: "Produto",
+        field: 'produto_descricao',
+        width: 160
+      },
+      { label: 'ICMS%', field: "ICMS", width: 100 },
+      { label: 'IPI%', field: "IPI", width: 80 },
+      { label: 'ST%', field: "ST", width: 80 },
+      { label: 'Preco Unitario', field: "preco_unitario", width: 200 },
+      { label:'subtotal', field: "subtotal", width: 100 },
+    ];
+    return arr;
+  }
 
   const { permissionToEditItems, permissionToAddItems } =
     useQuoteItemPermissions(user, isSupplierRoute);
@@ -335,7 +354,7 @@ const QuoteItemsTable = ({
           loading={loading}
           theme={theme}
           rows={quoteItems}
-          columns={columns}
+          columns={isMobile ? mobileColumns() : columns}
           cellModesModel={cellModesModel}
           onCellModesModelChange={handleCellModesModelChange}
           onCellClick={handleCellClick}

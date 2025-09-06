@@ -4,12 +4,13 @@ import { formatCurrency, getDateFromISOstring } from "../../utils";
 import { useDispatch, useSelector } from "react-redux";
 import { RootState } from "../../redux/store";
 import DeleteIcon from "@mui/icons-material/Delete";
-import { Box, Checkbox, IconButton, Tooltip, Typography } from "@mui/material";
+import { Badge, BadgeProps, Box, Checkbox, IconButton, styled, Tooltip, Typography } from "@mui/material";
 import EditIcon from "@mui/icons-material/Edit";
 import {
   setCurrentQuoteIdSelected,
   setItemBeingReplaced,
   setReplacingItemProduct,
+  setViewingItemAttachment,
 } from "../../redux/slices/requisicoes/requisitionItemSlice";
 import ArticleOutlinedIcon from "@mui/icons-material/ArticleOutlined";
 import { setFeedback } from "../../redux/slices/feedBackSlice";
@@ -21,6 +22,9 @@ import RadioButtonUncheckedIcon from "@mui/icons-material/RadioButtonUnchecked";
 import CheckCircleIcon from "@mui/icons-material/CheckCircle";
 import ErrorIcon from "@mui/icons-material/Error";
 import ContentCopyIcon from "@mui/icons-material/ContentCopy";
+
+import FileIcon from '@mui/icons-material/FilePresent';
+
 export const useRequisitionItemColumns = (
   addingReqItems: boolean,
   editItemFieldsPermitted: boolean,
@@ -47,6 +51,14 @@ export const useRequisitionItemColumns = (
   const { updatingRecentProductsQuantity } = useSelector(
     (state: RootState) => state.requisitionItem
   );
+
+  const StyledBadge = styled(Badge)<BadgeProps>(({ theme }) => ({
+    "& .MuiBadge-badge": {
+      right: -3,
+      top: 13,
+      padding: "0 4px",
+    },
+  }));
 
   const handleSelectQuoteId = (quoteId: number, e: ChangeEvent<HTMLInputElement>) => {
     const selected = e.target.checked;
@@ -122,19 +134,19 @@ export const useRequisitionItemColumns = (
       field: "id_item_requisicao",
       headerName: "ID",
       type: "number",
-      flex: 0.2,
+      width: 50,
     },
     {
       field: "produto_codigo",
-      headerName: "Código Produto",
+      headerName: "Cód. Produto",
       type: "string",
-      flex: 0.5,
+      width: 100,
     },
     {
       field: "produto_descricao",
       headerName: "Descrição",
       type: "string",
-      flex: 1.5,
+      minWidth: 250,
       renderCell: (params: any) => (
         <Box sx={{ display: "flex", alignItems: "center", height: "100%" }}>
           <Typography fontSize="12px" fontWeight="bold">
@@ -145,10 +157,10 @@ export const useRequisitionItemColumns = (
     },
     {
       field: "quantidade",
-      headerName: "Quantidade",
+      headerName: "QTD",
       type: "number",
       editable: true,
-      flex: 0.5,
+      width: 50,
       renderCell: (params: any) => (
         <Box
           sx={{
@@ -170,7 +182,7 @@ export const useRequisitionItemColumns = (
       width: 150,
       type: "date",
       editable: true,
-      flex: 0.75,
+      minWidth: 100,
       valueGetter: (data_entrega: string) =>
         data_entrega ? getDateFromISOstring(data_entrega) : null,
       renderHeader: () => (
@@ -190,9 +202,9 @@ export const useRequisitionItemColumns = (
             <Tooltip title="Preencher">
               <IconButton
                 onClick={openShippingDateDialog}
-                sx={{ height: 24, width: 24 }}
+                sx={{ height: 20, width: 20 }}
               >
-                <ArticleOutlinedIcon />
+                <ArticleOutlinedIcon sx={{ fontSize: 12 }} />
               </IconButton>
             </Tooltip>
           )}
@@ -214,8 +226,9 @@ export const useRequisitionItemColumns = (
     {
       field: "produto_unidade",
       headerName: "Unidade",
-      flex: 0.4,
       type: "string",
+      sortable: false,
+      minWidth: 70,
     },
     {
       field: "oc",
@@ -223,7 +236,7 @@ export const useRequisitionItemColumns = (
       editable: true,
       type: "string",
       valueGetter: (oc: string) => oc || "",
-      flex: 0.45,
+      minWidth: 100,
       renderHeader: () => (
         <Box
           sx={{
@@ -239,8 +252,8 @@ export const useRequisitionItemColumns = (
           </Typography>
           {editItemFieldsPermitted && (
             <Tooltip title="Preencher">
-              <IconButton onClick={openOCDialog} sx={{ height: 24, width: 24 }}>
-                <ArticleOutlinedIcon />
+              <IconButton onClick={openOCDialog} sx={{ height: 20, width: 20 }}>
+                <ArticleOutlinedIcon sx={{fontSize: 12}}/>
               </IconButton>
             </Tooltip>
           )}
@@ -267,6 +280,7 @@ export const useRequisitionItemColumns = (
       type: "string",
       editable: true,
       valueGetter: (observacao: string) => observacao || "N/A",
+      minWidth: 100,
       renderCell: (params) => (
         <Box
           sx={{
@@ -284,22 +298,32 @@ export const useRequisitionItemColumns = (
               onClick={() => navigator.clipboard.writeText(params.value)}
               sx={{ padding: 0 }}
             >
-              <ContentCopyIcon fontSize="small" />
+              <ContentCopyIcon sx={{fontSize: 14}} />
             </IconButton>
           </Tooltip>
         </Box>
       ),
-      flex: 0.6,
     },
     {
       field: "actions",
       headerName: "Ações",
       type: "actions",
-      flex: 0.5,
+      minWidth: 110,
       renderCell: (row) => {
         const { id } = row;
+        function setItemBeingViewed(arg0: number): any {
+          throw new Error("Function not implemented.");
+        }
+
         return (
-          <Box sx={{ display: "flex", justifyContent: "center", gap: 1 }}>
+          <Box
+            sx={{
+              display: "flex",
+              justifyContent: "center",
+              alignItems: "center",
+              gap: 0.4,
+            }}
+          >
             {editItemFieldsPermitted && (
               <Tooltip title="Excluir item">
                 <IconButton
@@ -307,7 +331,7 @@ export const useRequisitionItemColumns = (
                   onClick={() => handleDeleteItem(Number(id))}
                   color="error"
                 >
-                  <DeleteIcon />
+                  <DeleteIcon sx={{ fontSize: 14 }} />
                 </IconButton>
               </Tooltip>
             )}
@@ -320,10 +344,29 @@ export const useRequisitionItemColumns = (
                   }}
                   sx={{ color: "primary.main" }}
                 >
-                  <EditIcon />
+                  <EditIcon sx={{ fontSize: 14 }} />
                 </IconButton>
               </Tooltip>
             )}
+            <IconButton
+              onClick={() => {
+                console.log("click");
+                dispatch(setViewingItemAttachment(Number(id)));
+              }}
+              sx={{ height: 24, width: 24 }}
+            >
+              {row.row.anexos.length > 0 ? (
+                <StyledBadge
+                  variant="standard"
+                  badgeContent={row.row.anexos.length}
+                  color="primary"
+                >
+                  <FileIcon sx={{ fontSize: 14 }}/>
+                </StyledBadge>
+              ) : (
+                <FileIcon sx={{ fontSize: 14 }}/>
+              )}
+            </IconButton>
           </Box>
         );
       },
@@ -365,7 +408,8 @@ export const useRequisitionItemColumns = (
 
           return (
             <Box sx={{ display: "flex", alignItems: "center" }}>
-              {hasquoteItem && formatCurrency(Number(quoteItem?.preco_unitario) || 0)}
+              {hasquoteItem &&
+                formatCurrency(Number(quoteItem?.preco_unitario) || 0)}
               {hasquoteItem && (
                 <Checkbox
                   disabled={blockFields || !editItemFieldsPermitted}
@@ -382,8 +426,8 @@ export const useRequisitionItemColumns = (
                       ? true
                       : false
                   }
-                  icon={<RadioButtonUncheckedIcon />}
-                  checkedIcon={<CheckCircleIcon />}
+                  icon={<RadioButtonUncheckedIcon sx={{ fontSize: 14 }} />}
+                  checkedIcon={<CheckCircleIcon sx={{ fontSize: 14 }} />}
                   sx={{ color: "primary.main" }}
                 />
               )}
@@ -391,31 +435,42 @@ export const useRequisitionItemColumns = (
                 <Tooltip
                   title={`Indisponível no fornecedor: ${col.headerName}`}
                 >
-                  <ErrorIcon color="error" />
+                  <ErrorIcon color="error" sx={{ fontSize: 14 }} />
                 </Tooltip>
               )}
               {parciallyQuoted && (
                 <Tooltip
                   title={`Quantidade cotada: ${quoteItem?.quantidade_cotada}`}
                 >
-                  <ErrorIcon color="secondary" />
+                  <ErrorIcon color="secondary" sx={{ fontSize: 14 }} />
                 </Tooltip>
               )}
             </Box>
           );
         },
+        minWidth: 130,
         sortable: false,
         renderHeader: (params: any) => {
-          
           return (
             <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-              <Typography fontSize="0.7rem" fontWeight="bold" color="primary">
+              <Typography
+                noWrap
+                sx={{
+                  overflow: "hidden",
+                  textOverflow: "ellipsis",
+                  whiteSpace: "nowrap",
+                  maxWidth: " 70px",
+                }}
+                fontSize="0.7rem"
+                fontWeight="bold"
+                color="primary"
+              >
                 {params.colDef.headerName}
               </Typography>
               <Checkbox
                 onChange={(e) => handleSelectQuoteId(Number(params.field), e)}
-                icon={<RadioButtonUncheckedIcon />}
-                checkedIcon={<CheckCircleIcon />}
+                icon={<RadioButtonUncheckedIcon sx={{ fontSize: 14 }} />}
+                checkedIcon={<CheckCircleIcon sx={{ fontSize: 14 }} />}
               ></Checkbox>
             </Box>
           );

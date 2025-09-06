@@ -18,7 +18,7 @@ const filterFieldMap: Record<string, string> = {
   gerente: "projetos.pessoa.NOME.contains",
 };
 
-interface PatrimonyFilters {
+export interface PatrimonyFilters {
   id_patrimonio: string;
   nome: string;
   valor_compra: string;

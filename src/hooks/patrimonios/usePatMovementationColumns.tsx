@@ -9,6 +9,7 @@ import DeleteIcon from "@mui/icons-material/Delete";
 import { setFilters, setPatrimonyBeingDeleted } from "../../redux/slices/patrimonios/PatrimonyTableSlice";
 import { RootState } from "../../redux/store";
 import React from "react";
+import { TextHeader } from "../../components/TextHeader";
 
 
 export const usePatMovementationColumns = ()=> {
@@ -41,7 +42,7 @@ export const usePatMovementationColumns = ()=> {
       field: "id_patrimonio",
       headerName: "ID",
       type: "number",
-      flex: 0.2,
+      flex: 0.5,
       renderCell: (params: any) => (
         <Box
           sx={{
@@ -55,6 +56,14 @@ export const usePatMovementationColumns = ()=> {
             {params.value}
           </Typography>
         </Box>
+      ),
+      renderHeader: () => (
+        <TextHeader
+          label={"ID"}
+          field={"id_patrimonio"}
+          filters={filters}
+          handleChangeFilters={handleChangeFilters}
+        />
       ),
     },
     {
@@ -75,6 +84,14 @@ export const usePatMovementationColumns = ()=> {
           </Typography>
         </Box>
       ),
+      renderHeader: () => (
+        <TextHeader
+          label={"Nº Série"}
+          field={"patrimonio_nserie"}
+          filters={filters}
+          handleChangeFilters={handleChangeFilters}
+        />
+      ),
     },
     {
       field: "patrimonio_nome",
@@ -94,18 +111,41 @@ export const usePatMovementationColumns = ()=> {
           </Typography>
         </Box>
       ),
+      renderHeader: () => (
+        <TextHeader
+          label={"Patrimônio"}
+          field={"patrimonio_nome"}
+          filters={filters}
+          handleChangeFilters={handleChangeFilters}
+        />
+      ),
     },
-
     {
       field: "patrimonio_descricao",
       headerName: "Descrição",
       flex: 1.4,
+      renderHeader: () => (
+        <TextHeader
+          label={"Descrição"}
+          field={"patrimonio_descricao"}
+          filters={filters}
+          handleChangeFilters={handleChangeFilters}
+        />
+      ),
     },
     {
       field: "patrimonio_tipo",
       headerName: "Tipo",
       flex: 0.3,
       valueGetter: (type: PatrimonyType) => type.nome_tipo || "N/A",
+      renderHeader: () => (
+        <TextHeader
+          label={"Tipo"}
+          field={"patrimonio_tipo"}
+          filters={filters}
+          handleChangeFilters={handleChangeFilters}
+        />
+      ),
     },
     {
       field: "patrimonio_valor_compra",
@@ -114,12 +154,28 @@ export const usePatMovementationColumns = ()=> {
       valueFormatter: (value: any) =>
         value ? `R$ ${Number(value).toFixed(2)}` : `R$ 0.00`,
       flex: 0.5,
+      renderHeader: () => (
+        <TextHeader
+          label={"Valor compra"}
+          field={"patrimonio_valor_compra"}
+          filters={filters}
+          handleChangeFilters={handleChangeFilters}
+        />
+      ),
     },
     {
       field: "projeto",
       headerName: "Projeto",
       valueGetter: (projeto: Project) => projeto.DESCRICAO || "N/A",
       flex: 1,
+      renderHeader: () => (
+        <TextHeader
+          label={"Projeto"}
+          field={"projeto"}
+          filters={filters}
+          handleChangeFilters={handleChangeFilters}
+        />
+      ),
     },
     {
       field: "responsavel",
@@ -127,6 +183,14 @@ export const usePatMovementationColumns = ()=> {
       width: 200,
       valueGetter: (user: ReducedUser) => user.NOME || "N/A",
       flex: 1,
+      renderHeader: () => (
+        <TextHeader
+          label={"Responsável"}
+          field={"responsavel"}
+          filters={filters}
+          handleChangeFilters={handleChangeFilters}
+        />
+      ),
     },
     {
       field: "gerente",
@@ -134,22 +198,32 @@ export const usePatMovementationColumns = ()=> {
       width: 200,
       valueGetter: (user: ReducedUser) => user.NOME || "N/A",
       flex: 1,
+      renderHeader: () => (
+        <TextHeader
+          label={"Gerente"}
+          field={"gerente"}
+          filters={filters}
+          handleChangeFilters={handleChangeFilters}
+        />
+      ),
     },
-    { 
-      field: 'actions',
-      headerName: 'Ações',
-      type: 'actions',
-      renderCell: (params : GridRenderCellParams ) => { 
+    {
+      field: "actions",
+      headerName: "Ações",
+      type: "actions",
+      renderCell: (params: GridRenderCellParams) => {
         return (
           <Box sx={{ display: "flex", alignItems: "center", height: "100%" }}>
             <IconButton disabled={!permissionToDelete}>
-              <DeleteIcon color={permissionToDelete ? "error" : "disabled"} onClick={() => handleDeleteClick(params.row)} />
+              <DeleteIcon
+                color={permissionToDelete ? "error" : "disabled"}
+                onClick={() => handleDeleteClick(params.row)}
+              />
             </IconButton>
           </Box>
         );
       }
-    }
-    
+    },
   ];
 
   return { columns };

@@ -212,7 +212,7 @@ export function useRequisitionColumns(
         },
       },
     ],
-    []
+    [filters]
   );
 
   const secondaryColumns: GridColDef[] = useMemo(

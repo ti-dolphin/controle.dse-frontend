@@ -103,7 +103,7 @@ const QuoteForm = ({ onSubmit }: QuoteFormProps) => {
     >
       <Grid container spacing={2}>
         {fields.map((field) => (
-          <Grid item xs={6} key={field.name}>
+          <Grid item xs={12} sm={6} key={field.name}>
             {field.autoComplete && field.options.length > 0 ? (
               <Autocomplete
                 options={field.options}
@@ -156,17 +156,6 @@ const QuoteForm = ({ onSubmit }: QuoteFormProps) => {
           </Grid>
         ))}
       </Grid>
-      {/* <Grid item xs={6}>
-        <TextField
-          label="Observação"
-          name="observacao"
-          multiline
-          rows={4}
-          fullWidth
-          margin="normal"
-          disabled={disabled.observacao}
-        />
-      </Grid> */}
       <Button type="submit" variant="contained" color="primary" fullWidth>
         Salvar
       </Button>

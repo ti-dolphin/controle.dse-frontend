@@ -25,6 +25,8 @@ import { RequisitionStatus } from "../../models/requisicoes/RequisitionStatus";
 import RequisitionItemService from "../../services/requisicoes/RequisitionItemService";
 import { gridColumnLookupSelector } from "@mui/x-data-grid";
 import { setRefresh } from "../../redux/slices/requisicoes/requisitionItemSlice";
+import QuoteService from "../../services/requisicoes/QuoteService";
+import { useNavigate } from "react-router-dom";
 
 interface RequisitionStatusStepperProps {
   id_requisicao: number;
@@ -78,6 +80,7 @@ const RequisitionStatusStepper = ({
 }: RequisitionStatusStepperProps) => {
   const user = useSelector((state: RootState) => state.user.user);
   const dispatch = useDispatch();
+  const navigate = useNavigate();
   const { requisition } = useSelector((state: RootState) => state.requisition);
   const { permissionToChangeStatus, permissionToCancel, permissionToActivate } = useRequisitionStatusPermissions(user, requisition);
   const currentStatusIndex = requisition.status?.etapa ?? 0;
@@ -90,6 +93,13 @@ const RequisitionStatusStepper = ({
         if(noItems) {
           throw new Error('Requisição sem itens');
         } 
+      }
+      if(newStatus.nome === 'Aprovação Gerente'){ 
+        const quotes = await QuoteService.getMany({id_requisicao});
+        const noQuotes = quotes.length === 0;
+        if(noQuotes) {
+          throw new Error('Requisição sem cotações');
+        }
       }
       return;
   } 
@@ -133,7 +143,11 @@ const RequisitionStatusStepper = ({
           alterado_por: user?.CODPESSOA,
         }
       );
-      console.log("novos status: ", updatedRequisition.status.etapa);
+       dispatch(setRequisition(updatedRequisition));
+       dispatch(setRefresh(!refresh));
+      if(!permissionToChangeStatus){ 
+        navigate("/requisicoes");
+      }
       dispatch(setRequisition(updatedRequisition));
       dispatch(setRefresh(!refresh));
 

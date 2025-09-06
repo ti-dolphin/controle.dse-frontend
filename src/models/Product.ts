@@ -4,4 +4,6 @@ export interface Product {
     descricao: string;
     unidade: string;
     quantidade_estoque: number;
+    quantidade_reservada: number;
+    quantidade_disponivel: number;
 }

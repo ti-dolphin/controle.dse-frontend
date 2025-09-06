@@ -14,7 +14,7 @@ import {
 } from "../../../redux/slices/requisicoes/requisitionTableSlice";
 import { setFeedback } from "../../../redux/slices/feedBackSlice";
 import RequisitionService from "../../../services/requisicoes/RequisitionService";
-import { Box, Button, SelectChangeEvent, useTheme } from "@mui/material";
+import { Box, Button, Dialog, DialogContent, DialogTitle, IconButton, SelectChangeEvent, useTheme } from "@mui/material";
 import { useRequisitionColumns } from "../../../hooks/requisicoes/RequisitionTableColumnsHook";
 import BaseDataTable from "../../../components/shared/BaseDataTable";
 import BaseDetailModal from "../../../components/shared/BaseDetailModal";
@@ -34,6 +34,10 @@ import { FixedSizeGrid } from "react-window";
 import DataCard from "../../../components/shared/DataCard";
 import RequisitionCard from "../../../components/requisicoes/RequisitionCard";
 import { ReducedUser } from "../../../models/User";
+import Inventory2Icon from "@mui/icons-material/Inventory2";
+import { setViewingProducts } from "../../../redux/slices/productSlice";
+import ProductsTable from "../../../components/requisicoes/ProductsTable";
+import CloseIcon from "@mui/icons-material/Close";
 
 const RequisitionListPage = () => {
     useRequisitionKanban();
@@ -55,7 +59,7 @@ const RequisitionListPage = () => {
     } = useSelector((state: RootState) => state.requisitionTable);
 
     const {isMobile } = useIsMobile();
-
+    const {viewingProducts} = useSelector((state: RootState) => state.productSlice);
     const changeSelectedRow = (row: any) => {
       dispatch(setSelectedRow(row));
     };
@@ -139,15 +143,13 @@ const RequisitionListPage = () => {
 
 
 
-    const handleCleanFilter = () => [dispatch(clearfilters())];
+    const handleCleanFilter = () => { 
+      dispatch(clearfilters());
+    };
 
     const debouncedHandleChangeSearchTerm = useMemo(() => {
       return debounce(handleChangeSearchTerm, 500);
     }, [handleChangeSearchTerm]);
-
-    const debouncedSetTriggerFetch = useMemo(() => {
-      return debounce(() => setTriggerFetch((prev) => prev + 1), 800);
-    }, []);
 
     const fetchData = React.useCallback(async () => {
       dispatch(setLoading(true));
@@ -221,6 +223,21 @@ const RequisitionListPage = () => {
             )}
           </Box>
           <RequisitionFormModal />
+
+          <Button
+            sx={{
+              color: "white",
+              textTransform: "capitalize",
+              borderRadius: 0,
+              height: 26,
+              position: "absolute",
+              right: 10,
+            }}
+            startIcon={<Inventory2Icon />}
+            onClick={() => dispatch(setViewingProducts(true))}
+          >
+            Produtos
+          </Button>
         </BaseToolBar>
         <BaseTableToolBar
           handleChangeSearchTerm={debouncedHandleChangeSearchTerm}
@@ -254,7 +271,13 @@ const RequisitionListPage = () => {
                 const requisition = rows[itemIndex];
                 if (!requisition) return null;
                 return (
-                 <RequisitionCard req={requisition} style={style} onClickDetails={( ) => navigate(`/requisicoes/${requisition.ID_REQUISICAO}`)}/>
+                  <RequisitionCard
+                    req={requisition}
+                    style={style}
+                    onClickDetails={() =>
+                      navigate(`/requisicoes/${requisition.ID_REQUISICAO}`)
+                    }
+                  />
                 );
               }}
             </FixedSizeGrid>
@@ -269,8 +292,7 @@ const RequisitionListPage = () => {
             columns={columns}
             loading={loading}
             onCellClick={(params) =>
-              params.field !== "actions" &&
-              navigateToRequisitionDetails(params)
+              params.field !== "actions" && navigateToRequisitionDetails(params)
             }
             getRowId={(row: any) => row.ID_REQUISICAO}
             theme={theme}
@@ -289,6 +311,25 @@ const RequisitionListPage = () => {
         onConfirm={handleDeleteRequisition}
         onCancel={() => dispatch(setRequisitionBeingDeletedId(null))}
       />
+
+      <Dialog
+        open={viewingProducts}
+        onClose={() => dispatch(setViewingProducts(false))}
+        fullScreen
+      >
+        <IconButton
+          onClick={() => dispatch(setViewingProducts(false))}
+          sx={{ position: "absolute", top: 0, right: 0, color: "red" }}
+        >
+          <CloseIcon />
+        </IconButton>
+        <DialogTitle>Produtos</DialogTitle>
+        <DialogContent sx={{display: "flex"}}>
+          <Box sx={{flexGrow: 1}}>
+            <ProductsTable />
+          </Box>
+        </DialogContent>
+      </Dialog>
     </Box>
   );
 };

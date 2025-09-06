@@ -2,12 +2,13 @@ import {
   GridCellModes,
   GridCellModesModel,
   GridCellParams,
+  GridCloseIcon,
   GridRowModel,
   GridRowSelectionModel,
 } from "@mui/x-data-grid";
 import React, { useCallback, useEffect, useState } from "react";
 import { Product } from "../../models/Product";
-import { Box, useTheme } from "@mui/material";
+import { Box, Button, Dialog, DialogActions, DialogContent, DialogTitle, IconButton, Stack, TextField, Typography, useTheme } from "@mui/material";
 import { useDispatch, useSelector } from "react-redux";
 import { RootState } from "../../redux/store";
 import BaseDataTable from "../shared/BaseDataTable";
@@ -17,8 +18,15 @@ import { setFeedback } from "../../redux/slices/feedBackSlice";
 import { useProductPermissions } from "../../hooks/productPermissionsHook";
 import { ProductService } from "../../services/ProductService";
 import { setProductSelected, setRecentAddedProducts } from "../../redux/slices/requisicoes/requisitionItemSlice";
+import EditIcon from "@mui/icons-material/Edit";
+import { useIsMobile } from "../../hooks/useIsMobile";
 import { useProductColumns } from "../../hooks/productColumnsHook";
-
+import ProductAttachmentList from "../ProductAttachmentList";
+import { setViewingProductAttachment } from "../../redux/slices/productSlice";
+import { FixedSizeGrid } from "react-window";
+import AttachFileIcon from '@mui/icons-material/AttachFile';
+import { green, red } from "@mui/material/colors";
+import ProductCard from "./ProductCard";
 const ProductsTable = () => {
 
   const dispatch = useDispatch();
@@ -26,17 +34,22 @@ const ProductsTable = () => {
   const user = useSelector((state: RootState) => state.user.user);
   const { addingProducts, recentProductsAdded, productsAdded, replacingItemProduct} = useSelector((state: RootState) => state.requisitionItem);
   const { editProductFieldsPermitted } = useProductPermissions(user);
+  const {viewingProductAttachment  } = useSelector((state: RootState) => state.productSlice);
   const [searchTerm, setSearchTerm] = useState("");
   const [products, setProducts] = useState<Product[]>([]);
   const [cellModesModel, setCellModesModel]  = React.useState<GridCellModesModel>({});
   const [loading, setLoading] = useState(false);
   const [rowSelectionModel, setRowSelectionModel] = React.useState<GridRowSelectionModel>([]);
-
+  const { isMobile } = useIsMobile();
   const { columns } = useProductColumns();
+  const [productBeingEdited, setProductBeingEdited] = useState<Product | null>(null);
+  const [quantity, setQuantity] = useState<number>(0);
+  const gridContainerRef = React.useRef<HTMLDivElement>(null);
 
   const handleCellClick = React.useCallback(
     (params: GridCellParams, event: React.MouseEvent) => {
       if (params.field === "__check__") return;
+      if(params.field === 'anexos') return;
       if (!params.isEditable) {
         dispatch(
           setFeedback({
@@ -157,9 +170,32 @@ const ProductsTable = () => {
     const value = e.target.value;
     setSearchTerm(value.toLowerCase());
   };
-
   const getRowSelectionModelForContext =( ) => { 
     return addingProducts ? recentProductsAdded : rowSelectionModel;
+  };
+  //método para dar update na quantidade em estoque no mobile
+  const saveProductQuantity = async (newQuantity: number) => {
+    if (!productBeingEdited) return;
+    try {
+      const updatedProduct = await ProductService.update(
+        productBeingEdited.ID,
+        { quantidade_estoque: newQuantity }
+      );
+      setProducts((prevProducts) =>
+        prevProducts.map((product) =>
+          product.ID === updatedProduct.ID ? updatedProduct : product
+        )
+      );
+      setProductBeingEdited(null);
+      setQuantity(0);
+    } catch (e) {
+      dispatch(
+        setFeedback({
+          message: "Erro ao atualizar produto",
+          type: "error",
+        })
+      );
+    }
   };
   //faz debounce na mudançda da busca
   const debouncedHandleChangeSearchTerm = debounce(changeSearchTerm, 500);
@@ -188,41 +224,103 @@ const ProductsTable = () => {
 
 
   return (
-    <Box>
+    <Box sx={{ display: "flex", flexDirection: "column", height: "100%" }}>
       <BaseTableToolBar
         handleChangeSearchTerm={debouncedHandleChangeSearchTerm}
       />
-      <BaseDataTable
-        density="compact"
-        rowSelection
-        rowSelectionModel={getRowSelectionModelForContext()}
-        disableRowSelectionOnClick
-        disableColumnMenu
-        sx={{
-          '& .MuiDataGrid-columnHeaders': {
-            '& .MuiCheckbox-root': { 
-              display: 'none'
-            }
-        }
-        }}
-        disableColumnFilter
-        disableMultipleRowSelection={replacingItemProduct}
-        onRowSelectionModelChange={handleChangeSelection}
-        checkboxSelection
-        getRowId={(row: any) => row.ID}
-        loading={loading}
-        theme={theme}
-        rows={products}
-        columns={columns}
-        cellModesModel={cellModesModel}
-        initialState={{
-          pagination: { paginationModel: { pageSize: 20 } },
-        }}
-        pageSizeOptions={[20]}
-        onCellModesModelChange={handleCellModesModelChange}
-        onCellClick={handleCellClick}
-        processRowUpdate={processRowUpdate}
-      />
+      {isMobile ? (
+        <Box
+          ref={gridContainerRef}
+          sx={{
+            flexGrow: 1,
+            width: "100%",
+            display: "flex",
+            flexDirection: "column",
+            alignItems: "center",
+            border: "1px solid"
+          }}
+        >
+          <FixedSizeGrid
+            rowCount={products.length}
+            columnCount={1}
+            columnWidth={280}
+            height={gridContainerRef.current?.clientHeight || 0}
+            rowHeight={290}
+            width={300}
+          >
+            {({ columnIndex, rowIndex, style }) => {
+              const row = products[rowIndex];
+              return (
+                <ProductCard
+                  key={row.ID}
+                  row={row}
+                  setProductBeingEdited={setProductBeingEdited}
+                  productBeingEdited={productBeingEdited}
+                  saveProductQuantity={saveProductQuantity}
+                />
+              );
+            }}
+          </FixedSizeGrid>
+        </Box>
+      ) : (
+        <BaseDataTable
+          density="compact"
+          rowSelection
+          rowSelectionModel={getRowSelectionModelForContext()}
+          disableRowSelectionOnClick
+          disableColumnMenu
+          sx={{
+            "& .MuiDataGrid-columnHeaders": {
+              "& .MuiCheckbox-root": {
+                display: "none",
+              },
+            },
+          }}
+          disableColumnFilter
+          disableMultipleRowSelection={replacingItemProduct}
+          onRowSelectionModelChange={handleChangeSelection}
+          checkboxSelection={addingProducts || replacingItemProduct}
+          getRowId={(row: any) => row.ID}
+          loading={loading}
+          theme={theme}
+          rows={products}
+          columns={columns}
+          cellModesModel={cellModesModel}
+          initialState={{
+            pagination: { paginationModel: { pageSize: 20 } },
+          }}
+          pageSizeOptions={[20]}
+          onCellModesModelChange={handleCellModesModelChange}
+          onCellClick={handleCellClick}
+          processRowUpdate={processRowUpdate}
+        />
+      )}
+
+      <Dialog
+        open={viewingProductAttachment !== null}
+        onClose={() => dispatch(setViewingProductAttachment(null))}
+        fullWidth
+        maxWidth="md"
+      >
+        <IconButton
+          onClick={() => dispatch(setViewingProductAttachment(null))}
+          sx={{
+            color: "error.main",
+            height: 30,
+            width: 30,
+            position: "absolute",
+            top: 4,
+            right: 4,
+            boxShadow: 3,
+          }}
+        >
+          <GridCloseIcon />
+        </IconButton>
+        <DialogTitle>Lista de Anexos</DialogTitle>
+        <DialogContent>
+          <ProductAttachmentList />
+        </DialogContent>
+      </Dialog>
     </Box>
   );
 };
