@@ -52,6 +52,7 @@ export const useOpportunityColumns = () => {
         },
         renderCell: (params: any) => {
           const iconMap: any = {
+            fechada: <CheckCircleIcon color="info" />,
             expirada: <ErrorIcon color="error" />,
             expirando: <InfoIcon color="warning" />,
             ativa: <CheckCircleIcon color="success" />,
@@ -104,6 +105,25 @@ export const useOpportunityColumns = () => {
             handleChangeFilters={handleChangeFilters}
           />
         ),
+        renderCell: (params: any) => { 
+          const statusColorMap = { 
+            Ganho: "success.main",
+            Perdido: "error.main",
+          }
+          return (
+            <Box sx={{ display: "flex", alignItems: "center", height: "100%" }}>
+              <Typography
+                fontSize="12px"
+                sx={{
+                  fontWeight: "bold",
+                  color: statusColorMap[params.value as keyof typeof statusColorMap],
+                }}
+              >
+                {params.value}
+              </Typography>
+            </Box>
+          );
+        },
       },
       {
         field: "NOME",

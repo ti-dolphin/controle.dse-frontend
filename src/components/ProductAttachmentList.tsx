@@ -10,8 +10,11 @@ import DeleteIcon from '@mui/icons-material/Delete';
 import CloudUploadIcon from '@mui/icons-material/CloudUpload';
 import LinkIcon from '@mui/icons-material/Link';
 import FirebaseService from '../services/FireBaseService';
-import { useSelector } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 import { RootState } from '../redux/store';
+import { setFeedback } from '../redux/slices/feedBackSlice';
+import { setProducts } from '../redux/slices/productSlice';
+import { Product } from '../models/Product';
 
 
 
@@ -27,7 +30,8 @@ const ProductAttachmentList = () => {
   const [selectedFile, setSelectedFile] = useState<ProductAttachment | null>(null);
   const [linkDialogOpen, setLinkDialogOpen] = useState(false);
   const [linkInput, setLinkInput] = useState<string>('');
-  const { viewingProductAttachment} = useSelector((state: RootState) => state.productSlice);
+  const { viewingProductAttachment, products} = useSelector((state: RootState) => state.productSlice);
+  const dispatch = useDispatch();
   const openViewFile = (file: ProductAttachment) => {
     setSelectedFile(file);
   };
@@ -51,6 +55,7 @@ const ProductAttachmentList = () => {
       newFile.arquivo = fileUrl;
       const createdFile = await ProductAttachmentService.create(newFile);
       setAttachments((prev) => [...prev, createdFile]);
+      addAttachment(createdFile);
       newFile.arquivo = fileUrl;
       fetchAttachments();
     } catch (err: any) {
@@ -92,13 +97,49 @@ const ProductAttachmentList = () => {
     }
   };
 
+  const addAttachment = (file: ProductAttachment) => {
+    const product = products.find((product : Product) => product.ID === viewingProductAttachment);
+    if(!product) return;
+    dispatch(setProducts(products.map((product : Product) => product.ID === viewingProductAttachment ? {...product, anexos: [...product.anexos || [], file]} : product)))
+  }
+
+  const removeAttachment = (id_anexo_produto: number, id_produto: number ) =>  {
+      const productToAttachments = new Map();
+      attachments.forEach((attachment) => {
+        if (!productToAttachments.has(attachment.id_produto)) {
+          productToAttachments.set(attachment.id_produto, []);
+        }
+        productToAttachments.get(attachment.id_produto)?.push(attachment);
+      });
+      const updatedAttachmetns = productToAttachments.get(id_produto)?.filter((attachment : ProductAttachment) => attachment.id_anexo_produto !== id_anexo_produto);
+      dispatch(setProducts(products.map((product : Product) => product.ID === id_produto ? {...product, anexos: updatedAttachmetns} : product)))
+
+  };
+
   const handleDelete = async () => {
     if (deletingFile) {
-      await FirebaseService.delete(deletingFile.arquivo);
-      await ProductAttachmentService.delete(deletingFile.id_anexo_produto);
-      setAttachments(attachments.filter((file) => file.id_anexo_produto !== deletingFile.id_anexo_produto));
-      setDeletingFile(null);
-      setDeleteDialogOpen(false);
+      try {
+        try{ 
+           await FirebaseService.delete(deletingFile.arquivo);
+        }catch(e: any){
+          console.log("erro ao deletar do firebase", e);
+        }
+        await ProductAttachmentService.delete(deletingFile.id_anexo_produto);
+        setAttachments(
+          attachments.filter(
+            (file) => file.id_anexo_produto !== deletingFile.id_anexo_produto
+          )
+        );
+        removeAttachment(deletingFile.id_anexo_produto, deletingFile.id_produto);
+        setDeletingFile(null);
+        setDeleteDialogOpen(false);
+      } catch (e: any) {
+        dispatch(
+          setFeedback({
+            message: "Erro ao deletar anexo.",
+            type: "error",
+        }));
+      }
     }
   };
 

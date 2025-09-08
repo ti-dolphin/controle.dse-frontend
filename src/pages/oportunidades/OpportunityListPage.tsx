@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useState } from "react";
-import { Box, Button, Checkbox, useTheme } from "@mui/material";
+import { Box, Button, Checkbox, Stack, Typography, useTheme } from "@mui/material";
 import UpperNavigation from "../../components/shared/UpperNavigation";
 import BaseTableToolBar from "../../components/shared/BaseTableToolBar";
 import BaseDataTable from "../../components/shared/BaseDataTable";
@@ -123,12 +123,17 @@ const gridContainerRef = React.useRef<HTMLDivElement>(null);
               Limpar filtros
             </Button>
           )}
-          <Checkbox
-            checkedIcon={<CheckCircleIcon />}
-            icon={<RadioButtonUncheckedIcon />}
-            checked={finalizados}
-            onChange={(e) => setFinalizados(e.target.checked)}
-          />
+          <Stack direction={"row"} alignItems={"center"} sx={{padding: 0, gap: 1}}>
+            <Checkbox sx={{padding: 0}}
+              checkedIcon={<CheckCircleIcon />}
+              icon={<RadioButtonUncheckedIcon />}
+              checked={finalizados}
+              onChange={(e) => setFinalizados(e.target.checked)}
+            />
+            <Typography fontSize={"12px"} variant="body2" sx={{padding: 0}}>
+              Finalizados
+            </Typography>
+          </Stack>
         </BaseTableToolBar>
         {isMobile ? (
           <Box

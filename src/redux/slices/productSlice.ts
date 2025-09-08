@@ -2,6 +2,7 @@ import { createSlice, PayloadAction } from "@reduxjs/toolkit";
 import { Product } from "../../models/Product";
 
 const initialState = {
+  products: [] as Product[],
   viewingProducts : false,
   viewingProductAttachment: null as number | null,
 };
@@ -10,6 +11,9 @@ const productSlice = createSlice({
   name: "product",
   initialState,
   reducers: {
+    setProducts(state, action: PayloadAction<Product[]>) {
+      state.products = action.payload
+    },
     setViewingProducts(state, action: PayloadAction<boolean>) {
       state.viewingProducts = action.payload
     },
@@ -19,7 +23,7 @@ const productSlice = createSlice({
   },
 });
 
-export const { setViewingProducts, setViewingProductAttachment } = productSlice.actions;
+export const { setProducts, setViewingProducts, setViewingProductAttachment } = productSlice.actions;
 export default productSlice.reducer;
 
 export type ProductState = typeof initialState;

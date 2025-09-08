@@ -103,10 +103,7 @@ const gridContainerRef = React.useRef<HTMLDivElement>(null);
   return (
     <Box sx={{ height: "100%" }}>
       <Paper elevation={2}>
-        <Box
-          sx={{ display: "flex", alignItems: "center", padding: 0 }}
-          ref={toolbarRef}
-        >
+       
           <BaseTableToolBar handleChangeSearchTerm={handleChangeSearchTerm}>
             <IconButton
               onClick={openFormModal}
@@ -147,7 +144,7 @@ const gridContainerRef = React.useRef<HTMLDivElement>(null);
             </Stack>
             <OpportunityFormModal />
           </BaseTableToolBar>
-        </Box>
+   
       </Paper>
       <Paper
         elevation={2}

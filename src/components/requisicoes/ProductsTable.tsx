@@ -22,7 +22,7 @@ import EditIcon from "@mui/icons-material/Edit";
 import { useIsMobile } from "../../hooks/useIsMobile";
 import { useProductColumns } from "../../hooks/productColumnsHook";
 import ProductAttachmentList from "../ProductAttachmentList";
-import { setViewingProductAttachment } from "../../redux/slices/productSlice";
+import { setProducts, setViewingProductAttachment } from "../../redux/slices/productSlice";
 import { FixedSizeGrid } from "react-window";
 import AttachFileIcon from '@mui/icons-material/AttachFile';
 import { green, red } from "@mui/material/colors";
@@ -34,9 +34,9 @@ const ProductsTable = () => {
   const user = useSelector((state: RootState) => state.user.user);
   const { addingProducts, recentProductsAdded, productsAdded, replacingItemProduct} = useSelector((state: RootState) => state.requisitionItem);
   const { editProductFieldsPermitted } = useProductPermissions(user);
-  const {viewingProductAttachment  } = useSelector((state: RootState) => state.productSlice);
+  const {viewingProductAttachment, products  } = useSelector((state: RootState) => state.productSlice);
   const [searchTerm, setSearchTerm] = useState("");
-  const [products, setProducts] = useState<Product[]>([]);
+
   const [cellModesModel, setCellModesModel]  = React.useState<GridCellModesModel>({});
   const [loading, setLoading] = useState(false);
   const [rowSelectionModel, setRowSelectionModel] = React.useState<GridRowSelectionModel>([]);
@@ -146,11 +146,7 @@ const ProductsTable = () => {
       };
       try {
         const updatedProduct = await ProductService.update(newRow.ID, payload);
-        setProducts((prevProducts) =>
-          prevProducts.map((product) =>
-            product.ID === updatedProduct.ID ? updatedProduct : product
-          )
-        );
+        setProducts(products.map((product) => product.ID === updatedProduct.ID ? updatedProduct : product ));
         return updatedProduct;
       } catch (error) {
         setLoading(false);
@@ -181,11 +177,7 @@ const ProductsTable = () => {
         productBeingEdited.ID,
         { quantidade_estoque: newQuantity }
       );
-      setProducts((prevProducts) =>
-        prevProducts.map((product) =>
-          product.ID === updatedProduct.ID ? updatedProduct : product
-        )
-      );
+       dispatch(setProducts(products.map((product : Product) => product.ID === updatedProduct.ID ? updatedProduct : product)))
       setProductBeingEdited(null);
       setQuantity(0);
     } catch (e) {
@@ -205,7 +197,7 @@ const ProductsTable = () => {
     setLoading(true);
     try {
       const data = await ProductService.getMany({ searchTerm });
-      setProducts(data);
+      dispatch(setProducts(data))
       setLoading(false);
     } catch (e) {
       setLoading(false);
