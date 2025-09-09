@@ -229,7 +229,6 @@ const ProductsTable = () => {
             display: "flex",
             flexDirection: "column",
             alignItems: "center",
-            border: "1px solid"
           }}
         >
           <FixedSizeGrid

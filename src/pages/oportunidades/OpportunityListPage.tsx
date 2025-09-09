@@ -138,7 +138,7 @@ const gridContainerRef = React.useRef<HTMLDivElement>(null);
         {isMobile ? (
           <Box
             ref={gridContainerRef}
-            sx={{ flexGrow: 1, display: "flex", alignItems: "center" }}
+            sx={{ flexGrow: 1, display: "flex", alignItems: "center", mt: 2 }}
           >
             <FixedSizeGrid
               style={{ margin: "auto" }}
