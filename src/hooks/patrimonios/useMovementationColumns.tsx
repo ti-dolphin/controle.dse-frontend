@@ -8,7 +8,6 @@ import { ReducedUser } from '../../models/User';
 
 
 const useMovementationColumns = (deletingMov : number | null, setDeletingMov : React.Dispatch<React.SetStateAction<number | null>>, permissionToDelete : boolean) => {
-  console.log("deletingMov", deletingMov);
   const columns: GridColDef[] = [
     {
       field: "id_movimentacao",

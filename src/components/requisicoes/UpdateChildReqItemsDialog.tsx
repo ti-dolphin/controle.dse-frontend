@@ -121,7 +121,6 @@ const UpdateChildReqItemsDialog = ({
   };
 
   const processRowUpdate = (newRow: GridRowModel, oldRow: GridRowModel) => {
-    console.log("processRowUpdate");
     setRows((prevRows) =>
       prevRows.map((row) =>
         row.id_item_requisicao === newRow.id_item_requisicao ? newRow : row

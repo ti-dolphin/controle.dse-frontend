@@ -350,7 +350,6 @@ export const useRequisitionItemColumns = (
             )}
             <IconButton
               onClick={() => {
-                console.log("click");
                 dispatch(setViewingItemAttachment(Number(id)));
               }}
               sx={{ height: 24, width: 24 }}

@@ -84,11 +84,13 @@ const ProductAttachmentList = () => {
   };
 
   const fetchAttachments = async () => {
-    if(!viewingProductAttachment) return;
+    if (!viewingProductAttachment) return;
     setLoading(true);
     try {
-      const attachments = await ProductAttachmentService.getByProduct(viewingProductAttachment);
-      console.log("attachments", attachments);
+      const attachments = await ProductAttachmentService.getByProduct(
+        viewingProductAttachment
+      );
+
       setAttachments(attachments);
     } catch (error: any) {
       setError("Erro ao buscar anexos.");
@@ -98,39 +100,62 @@ const ProductAttachmentList = () => {
   };
 
   const addAttachment = (file: ProductAttachment) => {
-    const product = products.find((product : Product) => product.ID === viewingProductAttachment);
-    if(!product) return;
-    dispatch(setProducts(products.map((product : Product) => product.ID === viewingProductAttachment ? {...product, anexos: [...product.anexos || [], file]} : product)))
-  }
+    const product = products.find(
+      (product: Product) => product.ID === viewingProductAttachment
+    );
+    if (!product) return;
+    dispatch(
+      setProducts(
+        products.map((product: Product) =>
+          product.ID === viewingProductAttachment
+            ? { ...product, anexos: [...(product.anexos || []), file] }
+            : product
+        )
+      )
+    );
+  };
 
-  const removeAttachment = (id_anexo_produto: number, id_produto: number ) =>  {
-      const productToAttachments = new Map();
-      attachments.forEach((attachment) => {
-        if (!productToAttachments.has(attachment.id_produto)) {
-          productToAttachments.set(attachment.id_produto, []);
-        }
-        productToAttachments.get(attachment.id_produto)?.push(attachment);
-      });
-      const updatedAttachmetns = productToAttachments.get(id_produto)?.filter((attachment : ProductAttachment) => attachment.id_anexo_produto !== id_anexo_produto);
-      dispatch(setProducts(products.map((product : Product) => product.ID === id_produto ? {...product, anexos: updatedAttachmetns} : product)))
-
+  const removeAttachment = (id_anexo_produto: number, id_produto: number) => {
+    const productToAttachments = new Map();
+    attachments.forEach((attachment) => {
+      if (!productToAttachments.has(attachment.id_produto)) {
+        productToAttachments.set(attachment.id_produto, []);
+      }
+      productToAttachments.get(attachment.id_produto)?.push(attachment);
+    });
+    const updatedAttachmetns = productToAttachments
+      .get(id_produto)
+      ?.filter(
+        (attachment: ProductAttachment) =>
+          attachment.id_anexo_produto !== id_anexo_produto
+      );
+    dispatch(
+      setProducts(
+        products.map((product: Product) =>
+          product.ID === id_produto
+            ? { ...product, anexos: updatedAttachmetns }
+            : product
+        )
+      )
+    );
   };
 
   const handleDelete = async () => {
     if (deletingFile) {
       try {
-        try{ 
-           await FirebaseService.delete(deletingFile.arquivo);
-        }catch(e: any){
-          console.log("erro ao deletar do firebase", e);
-        }
+        try {
+          await FirebaseService.delete(deletingFile.arquivo);
+        } catch (e: any) {}
         await ProductAttachmentService.delete(deletingFile.id_anexo_produto);
         setAttachments(
           attachments.filter(
             (file) => file.id_anexo_produto !== deletingFile.id_anexo_produto
           )
         );
-        removeAttachment(deletingFile.id_anexo_produto, deletingFile.id_produto);
+        removeAttachment(
+          deletingFile.id_anexo_produto,
+          deletingFile.id_produto
+        );
         setDeletingFile(null);
         setDeleteDialogOpen(false);
       } catch (e: any) {
@@ -138,7 +163,8 @@ const ProductAttachmentList = () => {
           setFeedback({
             message: "Erro ao deletar anexo.",
             type: "error",
-        }));
+          })
+        );
       }
     }
   };

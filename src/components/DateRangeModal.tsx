@@ -45,22 +45,29 @@ export const DateRangeModal: React.FC<DateRangeModalProps> = ({
 
   useEffect(() =>  {
     if (open) {
-        console.log("field: ", field);
       if (
-       activeFilters.some((f) => f.field === field + "_FROM") ||
-       activeFilters.some((f) => f.field === field + "_TO")
+        activeFilters.some((f) => f.field === field + "_FROM") ||
+        activeFilters.some((f) => f.field === field + "_TO")
       ) {
         console.log(
           "setando valores: ",
-          filters[field + "_FROM" as keyof OpportunityFilters],
-          filters[field + "_TO" as keyof OpportunityFilters]
+          filters[(field + "_FROM") as keyof OpportunityFilters],
+          filters[(field + "_TO") as keyof OpportunityFilters]
         );
-        setInicio(getDateStringFromISOstring(filters[field + "_FROM" as keyof OpportunityFilters] as string));
-        setFim(getDateStringFromISOstring(filters[field + "_TO" as keyof OpportunityFilters] as string));
+        setInicio(
+          getDateStringFromISOstring(
+            filters[(field + "_FROM") as keyof OpportunityFilters] as string
+          )
+        );
+        setFim(
+          getDateStringFromISOstring(
+            filters[(field + "_TO") as keyof OpportunityFilters] as string
+          )
+        );
         return;
       }
-        setInicio("");
-        setFim("");
+      setInicio("");
+      setFim("");
     }
   }, [open])
 

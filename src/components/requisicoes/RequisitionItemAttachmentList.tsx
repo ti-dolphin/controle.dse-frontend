@@ -16,18 +16,24 @@ import { setRefresh } from '../../redux/slices/requisicoes/requisitionItemSlice'
 
 
 const RequisitionItemAttachmentList = () => {
-  console.log("RequisitionItemAttachmentList");
+ 
 
   const dispatch = useDispatch();
-  const [attachments, setAttachments] = useState<RequisitionItemAttachment[]>([]);
+  const [attachments, setAttachments] = useState<RequisitionItemAttachment[]>(
+    []
+  );
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
-  const [deletingFile, setDeletingFile] = useState<RequisitionItemAttachment | null>(null);
-  const [selectedFile, setSelectedFile] = useState<RequisitionItemAttachment | null>(null);
+  const [deletingFile, setDeletingFile] =
+    useState<RequisitionItemAttachment | null>(null);
+  const [selectedFile, setSelectedFile] =
+    useState<RequisitionItemAttachment | null>(null);
   const [linkDialogOpen, setLinkDialogOpen] = useState(false);
-  const [linkInput, setLinkInput] = useState<string>('');
-  const { viewingItemAttachment, refresh } = useSelector((state: RootState) => state.requisitionItem);
+  const [linkInput, setLinkInput] = useState<string>("");
+  const { viewingItemAttachment, refresh } = useSelector(
+    (state: RootState) => state.requisitionItem
+  );
 
   const openViewFile = (file: RequisitionItemAttachment) => {
     setSelectedFile(file);
@@ -42,15 +48,17 @@ const RequisitionItemAttachmentList = () => {
     if (!viewingItemAttachment) return;
     const file = e.target.files[0];
     const newFile: Partial<RequisitionItemAttachment> = {
-      arquivo: '',
+      arquivo: "",
       id_item_requisicao: viewingItemAttachment,
       nome_arquivo: file.name,
     };
     setLoading(true);
     try {
-      const fileUrl = await FirebaseService.upload(file, file.name || '');
+      const fileUrl = await FirebaseService.upload(file, file.name || "");
       newFile.arquivo = fileUrl;
-      const createdFile = await RequisitionItemAttachmentService.create(newFile);
+      const createdFile = await RequisitionItemAttachmentService.create(
+        newFile
+      );
       setAttachments((prev) => [...prev, createdFile]);
       newFile.arquivo = fileUrl;
       fetchAttachments();
@@ -84,8 +92,11 @@ const RequisitionItemAttachmentList = () => {
     if (!viewingItemAttachment) return;
     setLoading(true);
     try {
-      const attachments = await RequisitionItemAttachmentService.getByRequisitionItem(viewingItemAttachment);
-      console.log("attachments", attachments);
+      const attachments =
+        await RequisitionItemAttachmentService.getByRequisitionItem(
+          viewingItemAttachment
+        );
+
       setAttachments(attachments);
     } catch (error: any) {
       setError("Erro ao buscar anexos.");
@@ -96,13 +107,13 @@ const RequisitionItemAttachmentList = () => {
 
   const handleDelete = async () => {
     if (deletingFile) {
-      try{ 
-          await FirebaseService.delete(deletingFile.arquivo);
-      }catch(e: any){
-        console.log("erro ao deletar do firebase", e);
-      }
       try {
-        await RequisitionItemAttachmentService.delete(deletingFile.id_anexo_item_requisicao);
+        await FirebaseService.delete(deletingFile.arquivo);
+      } catch (e: any) {}
+      try {
+        await RequisitionItemAttachmentService.delete(
+          deletingFile.id_anexo_item_requisicao
+        );
         setAttachments(
           attachments.filter(
             (file) =>

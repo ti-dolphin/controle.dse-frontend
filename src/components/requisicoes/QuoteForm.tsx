@@ -48,7 +48,6 @@ const QuoteForm = ({ onSubmit }: QuoteFormProps) => {
   const handleChangeOptionField = (field: keyof Quote, optionId: number) => {
     if (quote) {
       dispatch(setQuote({ ...quote, [field]: optionId }));
-      console.log("quote: ", { ...quote, [field]: Number(optionId) });
     }
   };
 

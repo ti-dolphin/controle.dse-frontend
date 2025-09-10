@@ -164,7 +164,7 @@ const ChecklistTable = () => {
         id_patrimonio: Number(id_patrimonio),
       };
       const data = await CheckListService.getMany(params);
-      console.log("chekclists: ", data);
+
       dispatch(setRows(data));
       setLoading(false);
     } catch (e) {

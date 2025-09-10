@@ -42,9 +42,7 @@ const OpportunityForm = () => {
     }
 
     const handleChangeAutocomplete = (name: string, optionId: number | string) => {
-      console.log("handleChangeAutocomplete");
-
-      dispatch(setOpportunity({...opportunity, [name]: optionId}));
+      dispatch(setOpportunity({ ...opportunity, [name]: optionId }));
     }
 
     const handleSubmit = async (e : React.FormEvent) => {

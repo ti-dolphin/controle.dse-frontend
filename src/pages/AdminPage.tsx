@@ -98,7 +98,7 @@ const AdminPage = () => {
     setLoadingItems(true);
     try {
       const data = await CheckListService.verifyChecklistEmails();
-      console.log("data", data);
+
       setchecklistEmailsInfo(data);
     } catch (e) {
       dispatch(

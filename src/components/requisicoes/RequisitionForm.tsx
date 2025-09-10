@@ -84,9 +84,7 @@ const fields: FieldConfig[] = [
     dispatch(updateRequisitionField({ field, value: e.target.value }));
   };
 
-  const handleChangeOptionField = (field : keyof Requisition, id: number) => { 
-    console.log("field: ", field);
-    console.log("id: ", id);
+  const handleChangeOptionField = (field : keyof Requisition, id: number) => {
     dispatch(updateRequisitionField({ field, value: id }));
   }
 
