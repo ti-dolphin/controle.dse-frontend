@@ -160,7 +160,7 @@ export const useRequisitionItemColumns = (
       headerName: "QTD",
       type: "number",
       editable: true,
-      width: 80,
+      width: 100,
       renderCell: (params: any) => (
         <Box
           sx={{
