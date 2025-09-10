@@ -88,7 +88,7 @@ const PatrimonyMovementationTable = () => {
           </Typography>
           {permissionToCreateNew && (
             <BaseAddButton
-              handleOpen={() => setCreating(true)}
+              onClick={() => setCreating(true)}
               text="Adicionar movimentação"
             />
           )}

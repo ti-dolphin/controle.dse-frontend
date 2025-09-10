@@ -211,6 +211,7 @@ const PatrimonyForm = () => {
         label="Projeto"
         options={projectOptions}
         value={formData.projeto}
+        optionHeight={60}
         onChange={(optionIdSelected) =>
           setFormData({ ...formData, projeto: Number(optionIdSelected) })
         }

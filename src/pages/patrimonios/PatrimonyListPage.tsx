@@ -167,7 +167,7 @@ const PatrimonyListPage = () => {
                 Limpar filtros
               </Button>
             )}
-            <BaseAddButton handleOpen={() => setCreating(true)} />
+            <BaseAddButton onClick={() => setCreating(true)} />
             <IconButton
               onClick={() => navigate("/patrimonios/checklists")}
               sx={{

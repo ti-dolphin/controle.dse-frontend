@@ -174,6 +174,7 @@ const fields: FieldConfig[] = [
               options={config.options || []}
               label={config.label}
               value={config.value}
+              optionHeight={60}
               onChange={(id) =>
                 handleChangeOptionField(config.field as keyof Requisition, Number(id))
               }
