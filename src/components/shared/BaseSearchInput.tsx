@@ -17,24 +17,28 @@ const BaseSearchInput = ({ onChange, showIcon, label, placeholder, styles} : Bas
   return (
     <Box
       component="form"
-      sx={{
-        display: "flex",
-        alignItems: "center",
-        border: "2px solid",
-        borderColor: "lightgray",
-        borderRadius: 0,
-        paddingX: 2,
-        backgroundColor: "white",
-        ...styles
-      }}
+      className={`px-3 py-1 rounded-md border text-xs outline-none transition 
+          focus:ring-1 border-gray-400 focus:ring-blue-800
+          bg-gray-50`}
+      // sx={{
+      //   display: "flex",
+      //   alignItems: "center",
+      //   border: "2px solid",
+      //   borderColor: "lightgray",
+      //   borderRadius: 0,
+      //   paddingX: 2,
+      //   backgroundColor: "white",
+      //   ...styles
+      // }}
     >
-      {showIcon && <SearchIcon sx={{height: 24, width: 24}} />}
+      {showIcon && <SearchIcon sx={{ height: 24, width: 24 }} />}
       <input
         type="text"
         placeholder={placeholder || "Pesquisar..."}
         aria-label={label && label}
         onChange={onChange}
         onKeyDown={(e) => e.key === "Enter" && e.preventDefault()}
+        className="bg-gray-50"
         style={{
           padding: "8px 12px",
           borderRadius: "4px",
@@ -42,7 +46,7 @@ const BaseSearchInput = ({ onChange, showIcon, label, placeholder, styles} : Bas
           fontSize: "1rem",
           outline: "none",
           width: "200px",
-          height: 26
+          height: 26,
         }}
       />
     </Box>
