@@ -81,6 +81,7 @@ export const useOpportunityMandatoryFields = (
           : "",
         options: clientOptions,
       },
+
       {
         label: "Data de Solicitação",
         field: "DATASOLICITACAO",

@@ -3,10 +3,10 @@ import AddIcon from "@mui/icons-material/Add";
 
 
 export const BaseAddButton = (props: {
-  handleOpen: () => void;
+  onClick?: () => void;
   text?: string;
 }) => {
-  const { handleOpen, text } = props;
+  const { onClick, text } = props;
   return (
     <IconButton
       sx={{
@@ -24,7 +24,7 @@ export const BaseAddButton = (props: {
           transition: "all 0.2s ease-in-out",
         },
       }}
-      onClick={handleOpen}
+      onClick={onClick}
       aria-label={text ? text : "Adicionar"}
     >
       <AddIcon sx={{ width: 24, height: 24 }} />

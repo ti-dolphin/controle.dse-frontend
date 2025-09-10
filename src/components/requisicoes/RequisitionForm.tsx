@@ -19,6 +19,8 @@ import RequisitionService from "../../services/requisicoes/RequisitionService";
 import { setFeedback } from "../../redux/slices/feedBackSlice";
 import { setRows } from "../../redux/slices/requisicoes/requisitionTableSlice";
 import { setAddingProducts } from "../../redux/slices/requisicoes/requisitionItemSlice";
+import ElegantInput from "../shared/ui/Input";
+import OptionsField from "../shared/ui/OptionsField";
 
 
 
@@ -51,8 +53,7 @@ const fields: FieldConfig[] = [
     disabled: false,
     defaultValue: "",
     options: projectOptions,
-    value:
-      projectOptions.find((opt) => opt.id === requisition.ID_PROJETO) || null,
+    value: projectOptions.find((opt) => opt.id === requisition.ID_PROJETO)?.id || null,
   },
   {
     label: "Tipo",
@@ -61,7 +62,7 @@ const fields: FieldConfig[] = [
     disabled: true,
     defaultValue: "",
     options: reqTypeOptions,
-    value: reqTypeOptions.find((opt) => opt.id === requisition.TIPO) || null,
+    value: 10,
   },
   {
     label: "Responsável",
@@ -70,10 +71,10 @@ const fields: FieldConfig[] = [
     disabled: true,
     defaultValue: user?.NOME || "",
     options: [userOption],
-    value: userOption,
+    value: userOption.id,
   },
 ];
-  
+
  //setando usuário como responsável default
 
   
@@ -83,8 +84,10 @@ const fields: FieldConfig[] = [
     dispatch(updateRequisitionField({ field, value: e.target.value }));
   };
 
-  const handleChangeOptionField = (field : keyof Requisition, option :  Option) => { 
-    dispatch(updateRequisitionField({ field, value: option.id }));
+  const handleChangeOptionField = (field : keyof Requisition, id: number) => { 
+    console.log("field: ", field);
+    console.log("id: ", id);
+    dispatch(updateRequisitionField({ field, value: id }));
   }
 
 
@@ -169,52 +172,24 @@ const fields: FieldConfig[] = [
       {fields.map((config) => {
         if (config.type === "autocomplete") {
           return (
-            <Autocomplete
-              key={config.field}
+            <OptionsField
               options={config.options || []}
-              getOptionLabel={(option) => option.name}
-              getOptionKey={(option) => option.id}
+              label={config.label}
               value={config.value}
-              aria-required
-              defaultValue={config.defaultValue}
-              slotProps={{
-                popper: {
-                  sx: { fontSize: 14 },
-                },
-                paper: {
-                  sx: { fontSize: 14 },
-                },
-              }}
-              isOptionEqualToValue={(option, value) => option.id === value.id}
-              onChange={(_, option) =>
-                handleChangeOptionField(
-                  config.field as keyof Requisition,
-                  option as Option
-                )
+              onChange={(id) =>
+                handleChangeOptionField(config.field as keyof Requisition, Number(id))
               }
-              disabled={isReadOnly || config.disabled}
-              renderInput={(params: AutocompleteRenderInputParams) => (
-                <TextField
-                  {...params}
-                  label={config.label}
-                  variant="outlined"
-                  fullWidth
-                  required
-                />
-              )}
+            disabled={isReadOnly || config.disabled}
             />
           );
         }
         return (
-          <TextField
-            key={config.field}
-            label={config.label}
-            required={config.required}
-            value={requisition[config.field as keyof Requisition] ?? ""}
-            onChange={handleChange(config.field as keyof Requisition)}
-            variant="outlined"
-            fullWidth
-            disabled={isReadOnly || config.disabled}
+          <ElegantInput 
+          label={config.label}
+          required={config.required}
+          value={String(requisition[config.field as keyof Requisition] )?? ""}
+          onChange={handleChange(config.field as keyof Requisition)}
+          disabled={isReadOnly || config.disabled}
           />
         );
       })}

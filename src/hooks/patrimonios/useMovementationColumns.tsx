@@ -13,6 +13,7 @@ const useMovementationColumns = (deletingMov : number | null, setDeletingMov : R
     {
       field: "id_movimentacao",
       headerName: "ID",
+      minWidth: 100,
       flex: 0.4,
       renderCell: (params: any) => (
         <Box
@@ -32,6 +33,7 @@ const useMovementationColumns = (deletingMov : number | null, setDeletingMov : R
     {
       field: "responsavel",
       headerName: "Responsável",
+      minWidth: 200,
       flex: 0.6,
       valueGetter: (responsavel: ReducedUser) =>
         responsavel ? responsavel.NOME : "",
@@ -39,6 +41,7 @@ const useMovementationColumns = (deletingMov : number | null, setDeletingMov : R
     {
       field: "projeto",
       headerName: "Projeto",
+      minWidth: 300,
       flex: 1.5,
       valueGetter: (projeto: Project) => (projeto ? projeto.DESCRICAO : ""),
     },
@@ -47,6 +50,7 @@ const useMovementationColumns = (deletingMov : number | null, setDeletingMov : R
       headerName: "Data",
       flex: 0.6,
       type: "date",
+      minWidth: 100,
       valueGetter: (date: string) => (date ? getDateFromISOstring(date) : ""),
       // valueFormatter: (value: any) =>
       //   value ? getDateStringFromISOstring(value) : "",

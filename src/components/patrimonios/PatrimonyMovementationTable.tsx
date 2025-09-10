@@ -13,6 +13,7 @@ import BaseDeleteDialog from '../shared/BaseDeleteDialog';
 import { BaseAddButton } from '../shared/BaseAddButton';
 import { Option } from '../../types';
 import { useMovementationPermissions } from '../../hooks/patrimonios/useMovementationPermissions';
+import OptionsField from '../shared/ui/OptionsField';
 
 
 const PatrimonyMovementationTable = () => {
@@ -106,7 +107,6 @@ const PatrimonyMovementationTable = () => {
       </Box>
 
       <Dialog open={creating} onClose={() => setCreating(false)}>
-        <DialogTitle></DialogTitle>
         <DialogContent
           sx={{
             display: "flex",
@@ -151,62 +151,25 @@ function MovimentationForm(props: {
 }) {
   const { formData, setFormData, onCancel, onConfirm, projectOptions, userOptions } = props
 
-
-
   return (
     <Stack
-      spacing={2}
+      spacing={1}
       alignItems="center"
-      sx={{ width: '100%'}}
+      sx={{ width: '100%', minHeight:300}}
     >
       <Typography variant="h6" color="primary.main">
         Nova moviementação
       </Typography>
-      <Autocomplete
-        options={projectOptions}
-        getOptionLabel={(option) => option.name}
-        getOptionKey={(option) => option.id}
-        value={projectOptions.find(
-          (option) => option.id === formData.id_projeto
-        )}
-        slotProps={{
-          paper: {
-            style: {
-              fontSize: "small",
-            },
-          },
-        }}
-        onChange={(_event, newValue) => {
-          setFormData({ ...formData, id_projeto: newValue ? newValue.id : 0 });
-        }}
-        fullWidth
-        renderInput={(params) => <TextField {...params} label="Projeto" />}
+      <OptionsField 
+       label='Projeto'
+       options={projectOptions}
+       onChange={(id_projeto) => setFormData({...formData, id_projeto: Number(id_projeto)})}
       />
-
-      <Autocomplete
-        options={userOptions}
-        getOptionLabel={(option) => option.name}
-        getOptionKey={(option) => option.id}
-        value={userOptions.find(
-          (option) => option.id === formData.id_responsavel
-        )}
-        onChange={(_event, newValue) => {
-          setFormData({
-            ...formData,
-            id_responsavel: newValue ? newValue.id : 0,
-          });
-        }}
-        slotProps={{
-          paper: {
-            style: {
-              fontSize: "small",
-            },
-          },
-        }}
-        fullWidth
-        renderInput={(params) => <TextField {...params} label="Responsável" />}
+      <OptionsField 
+       label='Responsável'
+       options={userOptions}
+       onChange={(id_responsavel) => setFormData({...formData, id_responsavel: Number(id_responsavel)})}
       />
-
       <Stack direction="row" spacing={2}>
         <Button variant="contained" color="error" onClick={onCancel}>
           Cancelar

@@ -52,12 +52,11 @@ const OpportunityFormModal: React.FC = () => {
         <Typography
           variant="h6"
           fontWeight={600}
-          textTransform="uppercase"
           color={"primary.main"}
         >
           Nova Proposta
         </Typography>
-        <Box sx={{mt: 4, width: '100%'}}>
+        <Box sx={{ width: '100%'}}>
           <OpportunityForm />
         </Box>
       </Box>

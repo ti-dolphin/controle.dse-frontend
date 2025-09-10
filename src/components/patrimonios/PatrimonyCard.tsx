@@ -32,8 +32,7 @@ const PatrimonyCard = ({ patrimonyMov, styles }: Props) => {
           boxShadow: 2,
           borderRadius: 2,
           overflow: "hidden",
-          maxHeight: 300,
-          minHeight: 300,
+          maxHeight: 270,
           fontSize: "0.8rem",
          
         }}
@@ -53,7 +52,7 @@ const PatrimonyCard = ({ patrimonyMov, styles }: Props) => {
             gutterBottom
             sx={{ fontSize: "0.95rem", fontWeight: 600 }}
           >
-            {patrimonyMov.patrimonio_nome}
+            {truncate(patrimonyMov.patrimonio_nome, 25)}
           </Typography>
           <Typography
             variant="body2"
@@ -61,7 +60,7 @@ const PatrimonyCard = ({ patrimonyMov, styles }: Props) => {
             gutterBottom
             sx={{ fontSize: "0.8rem" }}
           >
-            <strong>Número de Série:</strong> {patrimonyMov.patrimonio_nserie}
+            <strong>Número de Série:</strong> {truncate(patrimonyMov.patrimonio_nserie, 25)}
           </Typography>
           <Typography
             variant="body2"

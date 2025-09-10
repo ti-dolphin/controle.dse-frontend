@@ -124,7 +124,7 @@ const QuoteDetailPage = () => {
           >
             <QuoteForm onSubmit={handleSubmitQuote} />
             {accesType !== "supplier" && (
-              <Button onClick={hanldeCreateSupplierAccess}>
+              <Button size="small" onClick={hanldeCreateSupplierAccess}>
                 Link de fornecedor
               </Button>
             )}

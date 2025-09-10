@@ -62,6 +62,7 @@ const OpportunityAttachmentList = () => {
         setFeedback({
           message: `Houve um erro ao adicionar o anexo: ${err.message}`,
           type: "error",
+
         })
       );
     } finally {
@@ -251,6 +252,7 @@ const OpportunityAttachmentList = () => {
         <Button
           variant="contained"
           component="label"
+          size="small"
           startIcon={<CloudUploadIcon />}
           disabled={loading}
         >
@@ -259,6 +261,7 @@ const OpportunityAttachmentList = () => {
         </Button>
         <Button
           variant="contained"
+          size="small"
           startIcon={<LinkIcon />}
           disabled={loading}
           onClick={openLinkDialog}

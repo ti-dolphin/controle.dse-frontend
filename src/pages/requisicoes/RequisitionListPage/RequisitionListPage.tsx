@@ -255,15 +255,21 @@ const RequisitionListPage = () => {
         {isMobile ? (
           <Box
             ref={gridContainerRef}
-            sx={{ flexGrow: 1, display: "flex", alignItems: "center" }}
+            sx={{
+              flexGrow: 1,
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              padding: 1,
+            }}
           >
             <FixedSizeGrid
               style={{ margin: "auto" }}
-              columnWidth={280}
-              rowHeight={310}
+              columnWidth={gridContainerRef.current?.offsetWidth || 300}
+              rowHeight={260}
               columnCount={1}
               rowCount={rows.length}
-              width={280}
+              width={gridContainerRef.current?.offsetWidth || 300}
               height={gridContainerRef.current?.offsetHeight || 400}
             >
               {({ columnIndex, rowIndex, style }) => {
@@ -324,8 +330,8 @@ const RequisitionListPage = () => {
           <CloseIcon />
         </IconButton>
         <DialogTitle>Produtos</DialogTitle>
-        <DialogContent sx={{display: "flex"}}>
-          <Box sx={{flexGrow: 1}}>
+        <DialogContent sx={{ display: "flex" }}>
+          <Box sx={{ flexGrow: 1 }}>
             <ProductsTable />
           </Box>
         </DialogContent>

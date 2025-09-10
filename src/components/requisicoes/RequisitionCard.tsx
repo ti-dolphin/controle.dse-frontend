@@ -17,8 +17,8 @@ const RequisitionCard = ({ req, style, onClickDetails }: props) => {
         boxShadow: 2,
         borderRadius: 2,
         overflow: "hidden",
-        minHeight: 200,
-        maxHeight: 300,
+        height: '250px',
+        border :'1px solid lightgray',
         fontSize: "0.8rem",
       }}
     >

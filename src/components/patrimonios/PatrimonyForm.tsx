@@ -10,6 +10,8 @@ import { useNavigate, useParams } from "react-router-dom";
 import { usePatrimonyTypeOptions } from "../../hooks/patrimonios/usePatrimonyTypeOptions";
 import { Patrimony } from "../../models/patrimonios/Patrimony";
 import { usePatrimonyFormPermissions } from "../../hooks/patrimonios/usePatrimonyFormPermissions";
+import ElegantInput from "../shared/ui/Input";
+import OptionsField from "../shared/ui/OptionsField";
 
 interface FormData {
   nome: string;
@@ -148,14 +150,13 @@ const PatrimonyForm = () => {
       sx={{
         display: "flex",
         flexDirection: "column",
-        gap: 2,
-        padding: 2,
+        gap: 0.5,
+        padding: 1,
         alignItems: "center",
       }}
     >
-      <TextField
+      <ElegantInput
         label="Nome"
-        variant="outlined"
         fullWidth
         required
         value={formData.nome}
@@ -163,10 +164,8 @@ const PatrimonyForm = () => {
         onFocus={handleFocus}
         disabled={!permissionToEdit}
       />
-      <TextField
+      <ElegantInput
         label="Descrição"
-        variant="outlined"
-        multiline
         fullWidth
         required
         value={formData.descricao}
@@ -176,18 +175,16 @@ const PatrimonyForm = () => {
         onFocus={handleFocus}
         disabled={!permissionToEdit}
       />
-      <TextField
+      <ElegantInput
         label="Nº de série"
-        variant="outlined"
         fullWidth
         value={formData.nserie}
         onChange={(e) => setFormData({ ...formData, nserie: e.target.value })}
         onFocus={handleFocus}
         disabled={!permissionToEdit}
       />
-      <TextField
-        label="Valor de compra"
-        variant="outlined"
+      <ElegantInput
+        label={"Valor de compra"}
         type="number"
         fullWidth
         value={formData.valor_compra}
@@ -200,103 +197,31 @@ const PatrimonyForm = () => {
 
       {/* autoComplete */}
 
-      <Autocomplete
-        id="tipo"
-        fullWidth
+      <OptionsField
+        label={"Tipo"}
         options={patirmonyTypeOptions}
-        getOptionKey={(option) => option.id}
-        getOptionLabel={(option) => option.name}
-        aria-required
-        renderInput={(params) => (
-          <TextField
-            {...params}
-            fullWidth
-            label="Tipo"
-            onFocus={handleFocus}
-            disabled={!permissionToEdit}
-          />
-        )}
-        slotProps={{
-          paper: {
-            style: {
-              width: 250,
-              fontSize: 12,
-            },
-          },
-        }}
-        value={
-          patirmonyTypeOptions.find(
-            (option) => option.id === formData.tipo
-          ) || { id: 0, name: "" }
+        value={formData.tipo}
+        onChange={(optionIdSelected) =>
+          setFormData({ ...formData, tipo: Number(optionIdSelected) })
         }
-        onChange={(_e, newValue) =>
-          setFormData({ ...formData, tipo: Number(newValue?.id) })
-        }
-        disabled={!permissionToEdit}
       />
       {mode === "create" && (
         <>
-          <Autocomplete
-            id="responsavel"
-            aria-required
-            options={userOptions}
-            getOptionKey={(option) => option.id}
-            getOptionLabel={(option) => option.name}
-            fullWidth
-            slotProps={{
-              paper: {
-                style: {
-                  fontSize: 12,
-                },
-              },
-            }}
-            renderInput={(params) => (
-              <TextField
-                {...params}
-                label="Responsável"
-                onFocus={handleFocus}
-                disabled={!permissionToEdit}
-              />
-            )}
-            value={userOptions.find(
-              (option) => option.id === formData.responsavel
-            )}
-            onChange={(_e, newValue) =>
-              setFormData({ ...formData, responsavel: Number(newValue?.id) })
-            }
-            disabled={!permissionToEdit}
-          />
-
-          <Autocomplete
-            id="projeto"
-            fullWidth
-            aria-required
-            getOptionKey={(option) => option.id}
-            getOptionLabel={(option) => option.name}
-            options={projectOptions}
-            slotProps={{
-              paper: {
-                style: {
-                  fontSize: 12,
-                },
-              },
-            }}
-            renderInput={(params) => (
-              <TextField
-                {...params}
-                label="Projeto"
-                onFocus={handleFocus}
-                disabled={!permissionToEdit}
-              />
-            )}
-            value={projectOptions.find(
-              (option) => option.id === formData.projeto
-            )}
-            onChange={(_e, newValue) =>
-              setFormData({ ...formData, projeto: Number(newValue?.id) })
-            }
-            disabled={!permissionToEdit}
-          />
+        <OptionsField 
+        label="Projeto"
+        options={projectOptions}
+        value={formData.projeto}
+        onChange={(optionIdSelected) =>
+          setFormData({ ...formData, projeto: Number(optionIdSelected) })
+        }
+        />
+        <OptionsField 
+        label="Responsável"
+        options={userOptions}
+        value={formData.responsavel}
+        onChange={(optionIdSelected) =>
+          setFormData({ ...formData, responsavel: Number(optionIdSelected) }) }
+        />
         </>
       )}
 

@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useState } from "react";
-import { Box, Button, Checkbox, Stack, Typography, useTheme } from "@mui/material";
+import { Box, Button, Checkbox, IconButton, Stack, Typography, useTheme } from "@mui/material";
 import UpperNavigation from "../../components/shared/UpperNavigation";
 import BaseTableToolBar from "../../components/shared/BaseTableToolBar";
 import BaseDataTable from "../../components/shared/BaseDataTable";
@@ -20,6 +20,8 @@ import OpportunityCard from "../../components/oportunidades/OpportunityCard";
 import { GridCheckCircleIcon } from "@mui/x-data-grid";
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import RadioButtonUncheckedIcon from '@mui/icons-material/RadioButtonUnchecked';
+import OpportunityFormModal from "../../components/oportunidades/OpportunityFormModal";
+import { BaseAddButton } from "../../components/shared/BaseAddButton";
 
 const OpportunityListPage = () => {
  const dispatch = useDispatch();
@@ -123,14 +125,23 @@ const gridContainerRef = React.useRef<HTMLDivElement>(null);
               Limpar filtros
             </Button>
           )}
-          <Stack direction={"row"} alignItems={"center"} sx={{padding: 0, gap: 1}}>
-            <Checkbox sx={{padding: 0}}
+          <BaseAddButton 
+          onClick={openFormModal}
+          />
+          <OpportunityFormModal />
+          <Stack
+            direction={"row"}
+            alignItems={"center"}
+            sx={{ padding: 0, gap: 1 }}
+          >
+            <Checkbox
+              sx={{ padding: 0 }}
               checkedIcon={<CheckCircleIcon />}
               icon={<RadioButtonUncheckedIcon />}
               checked={finalizados}
               onChange={(e) => setFinalizados(e.target.checked)}
             />
-            <Typography fontSize={"12px"} variant="body2" sx={{padding: 0}}>
+            <Typography fontSize={"12px"} variant="body2" sx={{ padding: 0 }}>
               Finalizados
             </Typography>
           </Stack>
@@ -142,11 +153,11 @@ const gridContainerRef = React.useRef<HTMLDivElement>(null);
           >
             <FixedSizeGrid
               style={{ margin: "auto" }}
-              columnWidth={280}
+              columnWidth={gridContainerRef.current?.offsetWidth || 300}
               rowHeight={310}
               columnCount={1}
               rowCount={rows.length}
-              width={280}
+              width={gridContainerRef.current?.offsetWidth || 300}
               height={gridContainerRef.current?.offsetHeight || 400}
             >
               {({ columnIndex, rowIndex, style }) => {

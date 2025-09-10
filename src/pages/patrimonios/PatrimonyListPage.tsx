@@ -182,28 +182,28 @@ const PatrimonyListPage = () => {
             </IconButton>
           </Stack>
         </BaseTableToolBar>
-        {isMobile ?  (
-            <Box
-                      ref={gridContainerRef}
-                      sx={{ flexGrow: 1, display: "flex", alignItems: "center" }}
-                    >
-           <FixedSizeGrid
-                        style={{ margin: "auto" }}
-                        columnWidth={280}
-                        rowHeight={310}
-                        columnCount={1}
-                        rowCount={rows.length}
-                        width={280}
-                        height={gridContainerRef.current?.offsetHeight || 400}
-                      >
-                        {({ columnIndex, rowIndex, style }) => {
-                          return (
-                           <PatrimonyCard  styles={style} patrimonyMov={rows[rowIndex]}/>
-                          );
-                        }}
-                      </FixedSizeGrid>
-                   </Box>
-        ) : ( 
+        {isMobile ? (
+          <Box
+            ref={gridContainerRef}
+            sx={{ flexGrow: 1, display: "flex", alignItems: "center" }}
+          >
+            <FixedSizeGrid
+              style={{ margin: "auto" }}
+              columnWidth={gridContainerRef.current?.offsetWidth || 300}
+              rowHeight={280}
+              columnCount={1}
+              rowCount={rows.length}
+              width={gridContainerRef.current?.offsetWidth || 300}
+              height={gridContainerRef.current?.offsetHeight || 400}
+            >
+              {({ columnIndex, rowIndex, style }) => {
+                return (
+                  <PatrimonyCard styles={style} patrimonyMov={rows[rowIndex]} />
+                );
+              }}
+            </FixedSizeGrid>
+          </Box>
+        ) : (
           <BaseDataTable
             apiRef={gridRef}
             onCellClick={navigateToPatrimonyDetail}
@@ -216,9 +216,7 @@ const PatrimonyListPage = () => {
             getRowId={(row: any) => row.id_movimentacao}
             theme={theme}
           />
-        )
-      }
-        
+        )}
       </Box>
 
       <Dialog open={creating}>

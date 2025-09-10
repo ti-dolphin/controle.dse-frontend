@@ -23,11 +23,10 @@ const PatrimonyDetailPage = () => {
         {/* Área 1: Detalhes do Patrimônio */}
         <Grid item xs={12} md={4}>
           <Paper elevation={3} sx={{ p: 1 }}>
-            <Typography variant="h6" color="primary.main" gutterBottom>
+            <Typography variant="h6" color="primary.main">
               Patrimônio
             </Typography>
             <PatrimonyForm />
-            <Box></Box>
           </Paper>
         </Grid>
 

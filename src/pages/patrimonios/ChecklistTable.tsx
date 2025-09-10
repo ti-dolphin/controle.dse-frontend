@@ -5,7 +5,7 @@ import { RootState } from "../../redux/store";
 import { Checklist } from "../../models/patrimonios/Checklist";
 import { CheckListService } from "../../services/patrimonios/ChecklistService";
 import { setFeedback } from "../../redux/slices/feedBackSlice";
-import { GridColDef } from "@mui/x-data-grid";
+import { GridColDef, GridRowParams } from "@mui/x-data-grid";
 import BaseDataTable from "../../components/shared/BaseDataTable";
 import { Box, Button, Dialog, DialogContent, DialogTitle, IconButton, Stack, Typography, useTheme } from "@mui/material";
 import {
@@ -49,18 +49,21 @@ const ChecklistTable = () => {
       field: "id_checklist_movimentacao",
       headerName: "ID",
       type: "number",
+      minWidth: 100,
       flex: 0.2,
     },
     {
       field: "patrimonio_nome",
       headerName: "Patrimônio",
       type: "string",
+      minWidth: 200,
       flex: 1,
     },
     {
       field: "responsavel_nome",
       headerName: "Responsável",
       type: "string",
+      minWidth: 200,
       flex: 1,
     },
     {
@@ -92,6 +95,7 @@ const ChecklistTable = () => {
       flex: 0.4,
       type: "date",
       valueGetter: (date: string) => (date ? getDateFromISOstring(date) : ""),
+      minWidth: 150
     },
     {
       field: "data_aprovado",
@@ -99,6 +103,7 @@ const ChecklistTable = () => {
       flex: 0.4,
       type: "date",
       valueGetter: (date: string) => (date ? getDateFromISOstring(date) : ""),
+      minWidth: 150
     },
   ];
 
@@ -159,7 +164,7 @@ const ChecklistTable = () => {
         id_patrimonio: Number(id_patrimonio),
       };
       const data = await CheckListService.getMany(params);
-
+      console.log("chekclists: ", data);
       dispatch(setRows(data));
       setLoading(false);
     } catch (e) {
@@ -217,7 +222,14 @@ const ChecklistTable = () => {
   }, [fetchChecklistsByPatrimony, fetchChecklistsByUser]);
 
   return (
-    <Box sx={{ display: "flex", flexDirection: "column", alignItems:"center", height: "100%" }}>
+    <Box
+      sx={{
+        display: "flex",
+        flexDirection: "column",
+        width: '100%',
+        height: "100%",
+      }}
+    >
       <BaseTableToolBar handleChangeSearchTerm={debouncedHanleChangeSearchTerm}>
         {from === "checklists" && (
           <Stack direction={"row"} spacing={2}>
@@ -240,17 +252,12 @@ const ChecklistTable = () => {
           </Stack>
         )}
       </BaseTableToolBar>
-      {!isMobile && (
-        <BaseTableColumnFilters
-          columns={columns}
-          filters={filters}
-          handleChangeFilters={handleChangeFilters}
-          debouncedSetTriggerFetch={function (): void {
-            throw new Error("Function not implemented.");
-          }}
-        />
-      )}
-
+      <BaseDataTable
+        rows={rows}
+        getRowId={(row) => row.id_checklist_movimentacao}
+        columns={columns}
+        loading={loading}
+        onRowClick={(params: GridRowParams) => openChecklistView(params.row)} theme={theme}      />
       {isMobile && (
         <FixedSizeGrid
           columnCount={1}

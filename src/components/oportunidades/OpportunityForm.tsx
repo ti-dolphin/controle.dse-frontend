@@ -10,19 +10,20 @@ import OpportunityService from '../../services/oportunidades/OpportunityService'
 import { useNavigate } from 'react-router-dom';
 import { Opportunity } from '../../models/oportunidades/Opportunity';
 import { setFeedback } from '../../redux/slices/feedBackSlice';
-import { setOpportunity } from '../../redux/slices/oportunidades/opportunitySlice';
+import { setCreating, setOpportunity } from '../../redux/slices/oportunidades/opportunitySlice';
 import { useClientOptions } from '../../hooks/oportunidades/useClientOptions';
 import { useComercialResponsableOptions } from '../../hooks/oportunidades/useComercialResponsableOptions';
 import { useOpportunityMandatoryFields } from '../../hooks/oportunidades/useOpportunityMandatoryFields';
 import { formatDateStringtoISOstring } from '../../utils';
+import OptionsField from '../shared/ui/OptionsField';
+import ElegantInput from '../shared/ui/Input';
 
 
 const OpportunityForm = () => {
     const dispatch = useDispatch();
     const navigate = useNavigate();
     const opportunity = useSelector((state: RootState) => state.opportunity.opportunity);
-    
-    
+  
     const [isAdicional, setIsAdicional] = useState(false);
     const { projectOptions } = useProjectOptions();
     const {oppStatusOptions} = useOppStatusOptions();
@@ -40,8 +41,10 @@ const OpportunityForm = () => {
       dispatch(setOpportunity({ ...opportunity, [name]: value }));
     }
 
-    const handleChangeAutocomplete = (name: string, option: any) => {
-      dispatch(setOpportunity({...opportunity, [name]: option.id}));
+    const handleChangeAutocomplete = (name: string, optionId: number | string) => {
+      console.log("handleChangeAutocomplete");
+
+      dispatch(setOpportunity({...opportunity, [name]: optionId}));
     }
 
     const handleSubmit = async (e : React.FormEvent) => {
@@ -60,15 +63,13 @@ const OpportunityForm = () => {
             ? formatDateStringtoISOstring(opportunity.DATAINICIO)
             : null,
           FK_CODCLIENTE: opportunity?.FK_CODCLIENTE,
+          FK_CODCOLIGADAL: opportunity?.FK_CODCOLIGADA,
           RESPONSAVEL: opportunity?.RESPONSAVEL,
         };
         try {
-          const createOpp: Opportunity = await OpportunityService.create(
-            payload,
-            { 
-              isAdicional
-            }
-          );
+          const createOpp: Opportunity = await OpportunityService.create(payload, { isAdicional });
+          dispatch(setOpportunity(null));
+          dispatch(setCreating(false));
           navigate(`/oportunidades/${createOpp.CODOS}`);
         } catch (error) {
           dispatch(setFeedback({ message: 'Erro ao criar oportunidade', type: 'error' }));
@@ -97,7 +98,7 @@ const OpportunityForm = () => {
             container
            
             sx={{
-              gap: 2,
+              gap: 1,
               maxHeight: 300,
               dislplay: 'flex',
               flexDirection: 'column',
@@ -109,50 +110,36 @@ const OpportunityForm = () => {
                 if (!field.options) return null;
                 if (field.field === "ID_PROJETO" && !isAdicional) return null;
                 return (
-                  <Grid item xs={12} sm={6} key={index} >
-                    <Autocomplete
+                  <Grid item xs={12} sm={8} key={index}>
+                    <OptionsField
+                      required={field.required}
+                      label={field.label}
                       options={field.options}
-                      getOptionLabel={(option) => option?.name || ""}
-                      getOptionKey={(option) => option.id}
-                      aria-required={field.required}
-                      slotProps={{
-                        popper: { sx: { fontSize: 12 } },
-                        paper: { sx: { fontSize: 12 } },
-                      }}
-                      fullWidth
-                      key={field.field}
-                      aria-label={field.label}
-                      value={field.value}
-                      onChange={(_e, value) =>
-                        handleChangeAutocomplete(field.field, value)
+                      optionHeight={field.field === 'FK_CODCLIENTE' ? 60 : 30}
+                      value={
+                        opportunity
+                          ? String(
+                              opportunity[field.field as keyof Opportunity]
+                            )
+                          : ""
                       }
-                      renderInput={(params: AutocompleteRenderInputParams) => (
-                        <TextField
-                          {...params}
-                          label={field.label}
-                          variant="outlined"
-                          fullWidth
-                          required={field.required}
-                        />
-                      )}
+                      onChange={(optionId) =>  {
+                        handleChangeAutocomplete(field.field, optionId)}
+                      }
                     />
                   </Grid>
                 );
               }
               return (
                 <Grid item xs={12} sm={6} key={index}>
-                  <TextField
-                    required={field.required}
-                    fullWidth
-                    name={field.field}
-                    InputLabelProps={{ shrink: true }}
-                    key={field.field}
-                    label={field.label}
-                    variant="outlined"
-                    type={field.type}
-                    onChange={handleChangeTextField}
-                    disabled={field.disabled}
-                    value={field.value}
+                  <ElegantInput 
+                  value={field.value}
+                  onChange={handleChangeTextField}
+                  name={field.field}
+                  label={field.label}
+                  type={field.type}
+                  required={field.required}
+                  disabled={field.disabled}
                   />
                 </Grid>
               );

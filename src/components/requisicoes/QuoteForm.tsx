@@ -13,6 +13,8 @@ import { Option } from "../../types";
 import { useQuoteFields } from "../../hooks/requisicoes/QuoteFieldsHook";
 import { useQuoteFieldPermissions } from "../../hooks/requisicoes/QuoteFiledPermissionsHook";
 import { setFeedback } from "../../redux/slices/feedBackSlice";
+import OptionsField from "../shared/ui/OptionsField";
+import ElegantInput from "../shared/ui/Input";
 interface QuoteFormProps {
   onSubmit: (e: React.FormEvent<HTMLFormElement>, data: any) => void;
 }
@@ -43,9 +45,10 @@ const QuoteForm = ({ onSubmit }: QuoteFormProps) => {
     shipmentTypeOptions
   );
 
-  const handleChangeOptionField = (field: keyof Quote, option: Option) => {
+  const handleChangeOptionField = (field: keyof Quote, optionId: number) => {
     if (quote) {
-      dispatch(setQuote({ ...quote, [field]: option.id }));
+      dispatch(setQuote({ ...quote, [field]: optionId }));
+      console.log("quote: ", { ...quote, [field]: Number(optionId) });
     }
   };
 
@@ -99,64 +102,39 @@ const QuoteForm = ({ onSubmit }: QuoteFormProps) => {
       noValidate
       autoComplete="off"
       onSubmit={(e) => onSubmit(e, quote)}
-      sx={{ display: "flex", flexDirection: "column", gap: 2 }}
+      sx={{ display: "flex", flexDirection: "column", gap: 1 }}
     >
-      <Grid container spacing={2}>
+      <Grid container spacing={1}>
         {fields.map((field) => (
           <Grid item xs={12} sm={6} key={field.name}>
             {field.autoComplete && field.options.length > 0 ? (
-              <Autocomplete
+              <OptionsField
+                label={field.label}
                 options={field.options}
-                value={
-                  field.options.find(
-                    (option) => option.id === quote?.[field.name as keyof Quote]
-                  ) || { id: "", name: "" }
-                }
-                disabled={field.disabled}
-                getOptionLabel={(option) => option.name}
-                getOptionKey={(option) => option.id}
-                renderInput={(params) => (
-                  <TextField
-                    onFocus={handleFocus}
-                    {...params}
-                    label={field.label}
-                    InputLabelProps={{
-                      shrink: true,
-                    }}
-                    disabled={
-                      disabledFields[field.name as keyof typeof disabledFields]
-                    }
-                  />
-                )}
-                fullWidth
-                onChange={(_, option) =>
+                value={quote ? String(quote[field.name as keyof Quote]) : ""}
+                onChange={(optionId) => {
                   handleChangeOptionField(
                     field.name as keyof Quote,
-                    option as Option
-                  )
-                }
+                    Number(optionId)
+                  );
+                }}
+                disabled={field.disabled}
               />
             ) : (
-              <TextField
-                onFocus={handleFocus}
+              <ElegantInput
                 label={field.label}
-                name={field.name}
-                type={field.type}
-                value={quote?.[field.name as keyof Quote] || ""}
-                fullWidth
-                InputLabelProps={{
-                  shrink: true,
-                }}
+                value={quote ? String(quote[field.name as keyof Quote]) : ""}
                 onChange={(e) =>
                   handleChangeTextField(e, field.name as keyof Quote)
                 }
                 disabled={field.disabled}
+                onFocus={handleFocus}
               />
             )}
           </Grid>
         ))}
       </Grid>
-      <Button type="submit" variant="contained" color="primary" fullWidth>
+      <Button type="submit" size="small" variant="contained" color="primary" fullWidth>
         Salvar
       </Button>
     </Box>
