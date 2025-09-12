@@ -25,34 +25,28 @@ import DeleteIcon from "@mui/icons-material/Delete";
 import BaseDeleteDialog from "../shared/BaseDeleteDialog";
 import { Requisition } from "../../models/requisicoes/Requisition";
 import { ReducedUser } from "../../models/User";
+import { addComment, removeComment, replaceComment, setComments } from "../../redux/slices/requisicoes/requisitionCommentSlice";
+import { RequisitionComment } from "../../models/requisicoes/RequisitionComment";
 
-interface RequisitionComment {
-  id_comentario_requisicao: number;
-  id_requisicao: number;
-  data_criacao: string;
-  data_alteracao: string;
-  descricao: string;
-  criado_por: number;
-  requisicao?: Partial<Requisition>;
-  pessoa_criado_por?: ReducedUser;
-}
 
 const RequisitionCommentList = () => {
   const dispatch = useDispatch();
   const { id_requisicao } = useParams<{ id_requisicao: string }>();
   const user = useSelector((state: RootState) => state.user.user);
-  const [comments, setComments] = useState<RequisitionComment[]>([]);
   const [newComment, setNewComment] = useState("");
-  const [editingComment, setEditingComment] =
-    useState<RequisitionComment | null>(null);
+  const [editingComment, setEditingComment] = useState<RequisitionComment | null>(null);
   const [editDialogOpen, setEditDialogOpen] = useState(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [commentToDelete, setCommentToDelete] = useState<number | null>(null);
 
+  const {comments} = useSelector((state: RootState) => state.requisitionComment);
+
   const fetchData = useCallback(async () => {
     try {
       const data = await RequisitionCommentService.getMany({ id_requisicao });
-      setComments(data);
+      //log data
+      console.log('data', data);
+      dispatch(setComments(data));
     } catch {
       dispatch(
         setFeedback({ type: "error", message: "Falha ao carregar comentários" })
@@ -64,26 +58,11 @@ const RequisitionCommentList = () => {
     fetchData();
   }, [fetchData]);
 
-  const addComment = (comment: RequisitionComment) =>
-    setComments((prev) => [comment, ...prev, ]);
 
-  const removeComment = (id: number) =>
-    setComments((prev) =>
-      prev.filter((c) => c.id_comentario_requisicao !== id)
-    );
-
-  const replaceComment = (comment: RequisitionComment) =>
-    setComments((prev) =>
-      prev.map((c) =>
-        c.id_comentario_requisicao === comment.id_comentario_requisicao
-          ? comment
-          : c
-      )
-    );
-
-  const permToEditOrDelete = (comment: RequisitionComment) =>
-    user?.CODPESSOA === comment.pessoa_criado_por?.CODPESSOA ||
-    user?.PERM_ADMINISTRADOR;
+  const permToEditOrDelete = (comment: RequisitionComment) =>{ 
+    return  user?.CODPESSOA === comment.pessoa_criado_por?.CODPESSOA || user?.PERM_ADMINISTRADOR;
+  }
+  
 
   const handleAddComment = async () => {
     if (!newComment.trim()) return;
@@ -93,7 +72,7 @@ const RequisitionCommentList = () => {
         descricao: newComment,
         criado_por: user?.CODPESSOA || 0,
       });
-      addComment(createdComment);
+      dispatch(addComment(createdComment));
       setNewComment("");
     } catch {
       dispatch(
@@ -109,7 +88,7 @@ const RequisitionCommentList = () => {
         editingComment.id_comentario_requisicao,
         { descricao: editingComment.descricao }
       );
-      replaceComment(updated);
+      dispatch(replaceComment(updated));
       setEditDialogOpen(false);
       setEditingComment(null);
     } catch {
@@ -123,7 +102,7 @@ const RequisitionCommentList = () => {
     if (!commentToDelete) return;
     try {
       await RequisitionCommentService.delete(commentToDelete);
-      removeComment(commentToDelete);
+      dispatch(removeComment(commentToDelete));
       setDeleteDialogOpen(false);
       setCommentToDelete(null);
     } catch {

@@ -27,6 +27,7 @@ export interface Requisition {
   projeto?: Project;
   gerente?: ReducedUser;
   responsavel?: ReducedUser;
+  responsavel_projeto?: ReducedUser;
   status?: RequisitionStatus;
   criado_por?: ReducedUser;
   alterado_por?: ReducedUser;

@@ -176,6 +176,13 @@ export const useRequisitionItemColumns = (
         </Box>
       ),
     },
+    { 
+      field: 'produto_quantidade_disponivel',
+      headerName: 'estoque',
+      type: 'number',
+      width: 100,
+      editable: false
+    },
     {
       field: "data_entrega",
       headerName: "Data de entrega",
@@ -373,10 +380,10 @@ export const useRequisitionItemColumns = (
   ];
 
   // Definindo filteredColumns para sempre executar hooks depois
-  let filteredColumns = columns;
+  let filteredColumns = columns.filter((col) => col.field !== "produto_quantidade_disponivel");
 
   if (updatingRecentProductsQuantity) {
-    const selectedColumns = ["produto_descricao", "quantidade"];
+    const selectedColumns = ["produto_descricao", "quantidade", "produto_quantidade_disponivel"];
     filteredColumns = columns.filter((col) =>
       selectedColumns.includes(col.field)
     );
@@ -385,6 +392,8 @@ export const useRequisitionItemColumns = (
       ["produto_descricao"].includes(col.field)
     );
   }
+
+
 
   const fetchDinamicColumns = useCallback(async () => {
     try {

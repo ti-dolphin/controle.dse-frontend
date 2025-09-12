@@ -51,7 +51,7 @@ const RequisitionTimeline = () => {
   // Função para formatar a data
 
   return (
-    <Box sx={{ maxWidth: 600, maxHeight: 120, overflow: 'auto', mx: "auto", my: 2 }}>
+    <Box sx={{ maxWidth: 600, maxHeight: 150, overflow: 'auto', mx: "auto", my: 2 }}>
       <List sx={{ display: "flex", flexDirection: "column", gap: 1 }}>
         {alterations.length > 0 ? (
           alterations.map(
@@ -63,7 +63,7 @@ const RequisitionTimeline = () => {
                     alignItems: "center",
                     position: "relative",
                     pl: 6,
-                    height: 30,
+                    height: 40,
                   }}
                 >
                   {/* Ponto da timeline */}

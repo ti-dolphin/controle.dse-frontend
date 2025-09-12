@@ -11,4 +11,6 @@ export interface RequisitionComment {
 
   criado_por?: ReducedUser;
   requisicao?: Requisition;
+  pessoa_criado_por?: ReducedUser;
+  
 }

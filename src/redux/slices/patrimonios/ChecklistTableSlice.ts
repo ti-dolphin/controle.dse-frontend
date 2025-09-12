@@ -49,6 +49,10 @@ const checklistTableSlice = createSlice({
         state.rows[index] = action.payload;
       }
     },
+    addChecklist: (state, action: PayloadAction<Partial<Checklist>>) => {
+      state.rows.push(action.payload);
+      state.refresh = false;
+    },
     setFilters: (state, action: PayloadAction<ChecklistFilters>) => {
       state.filters = action.payload;
       state.refresh = true;
@@ -67,6 +71,14 @@ const checklistTableSlice = createSlice({
   },
 });
 
-export const { setRows, updateSingleRow, cleanFilters, setFilters, setSearchTerm, setRefresh } = checklistTableSlice.actions;
+export const {
+  setRows,
+  updateSingleRow,
+  addChecklist,
+  cleanFilters,
+  setFilters,
+  setSearchTerm,
+  setRefresh,
+} = checklistTableSlice.actions;
 export default checklistTableSlice.reducer;
 

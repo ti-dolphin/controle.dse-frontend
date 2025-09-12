@@ -15,6 +15,10 @@ import {
   Typography,
   Stack,
   Button,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
 } from "@mui/material";
 import CheckIcon from "@mui/icons-material/Check";
 import RequisitionService from "../../services/requisicoes/RequisitionService";
@@ -27,6 +31,10 @@ import { gridColumnLookupSelector } from "@mui/x-data-grid";
 import { setRefresh } from "../../redux/slices/requisicoes/requisitionItemSlice";
 import QuoteService from "../../services/requisicoes/QuoteService";
 import { useNavigate } from "react-router-dom";
+import { useState } from "react";
+import ElegantInput from "../shared/ui/Input";
+import RequisitionCommentService from "../../services/requisicoes/RequisitionCommentService";
+import { addComment } from "../../redux/slices/requisicoes/requisitionCommentSlice";
 
 interface RequisitionStatusStepperProps {
   id_requisicao: number;
@@ -86,6 +94,10 @@ const RequisitionStatusStepper = ({
   const currentStatusIndex = requisition.status?.etapa ?? 0;
   const { statusList } = useRequisitionStatus(id_requisicao); 
   const {refresh} = useSelector((state: RootState) => state.requisitionItem);
+  const [fillingComment, setFillingComment] = useState<boolean>(false);
+  const [comment, setComment] = useState<string>('');
+
+
   const validationRules = async (newStatus: RequisitionStatus ) =>  {
       if(newStatus.nome === 'Validação') {
         const items = await RequisitionItemService.getMany({id_requisicao});
@@ -114,6 +126,10 @@ const RequisitionStatusStepper = ({
         }));
         return;
     }
+    if (type === "acao_anterior" && permissionToChangeStatus) {
+      setFillingComment(true);
+      return;
+    }
     try {
       const currentStep = requisition.status?.etapa ?? 0;
       const nextStep = type === "acao_posterior"
@@ -135,7 +151,6 @@ const RequisitionStatusStepper = ({
         );
         return;
       }
-
       const updatedRequisition = await RequisitionService.updateStatus( //SEND IT TO THE BACKEND!
         Number(id_requisicao),
         {
@@ -147,6 +162,7 @@ const RequisitionStatusStepper = ({
        dispatch(setRefresh(!refresh));
       if(!permissionToChangeStatus){ 
         navigate("/requisicoes");
+        return;
       }
       dispatch(setRequisition(updatedRequisition));
       dispatch(setRefresh(!refresh));
@@ -162,6 +178,58 @@ const RequisitionStatusStepper = ({
         setFeedback({
           type: "error",
           message: `Erro ao atualizar status: ${e.message}`,
+        })
+      );
+    }
+  };
+
+  const concludeRetreatRequisition = async () => {
+    setFillingComment(false);
+    setComment("");
+    const createdComment = await RequisitionCommentService.create({
+      id_requisicao: Number(id_requisicao),
+      descricao: comment,
+      criado_por: user?.CODPESSOA || 0,
+    });
+    if (createdComment) {
+      dispatch(addComment(createdComment));
+      const type = "acao_anterior";
+      const currentStep = requisition.status?.etapa ?? 0;
+      const nextStep = currentStep - 1;
+      const newStatus = statusList.find((status) => status.etapa === nextStep); //FINDS THE CORRESPONDING  NEW STATUS
+      if (newStatus) {
+        await validationRules(newStatus);
+      }
+      if (!newStatus) {
+        dispatch(
+          setFeedback({
+            type: "error",
+            message: "Não foi possível alterar o status.",
+          })
+        );
+        return;
+      }
+      const updatedRequisition = await RequisitionService.updateStatus(
+        //SEND IT TO THE BACKEND!
+        Number(id_requisicao),
+        {
+          id_status_requisicao: newStatus.id_status_requisicao,
+          alterado_por: user?.CODPESSOA,
+        }
+      );
+      dispatch(setRequisition(updatedRequisition));
+      dispatch(setRefresh(!refresh));
+      if (!permissionToChangeStatus) {
+        navigate("/requisicoes");
+        return;
+      }
+      dispatch(setRequisition(updatedRequisition));
+      dispatch(setRefresh(!refresh));
+
+      dispatch(
+        setFeedback({
+          type: "success", //DISPLAYS SUCCESS MESSAGE ON SCREEN
+          message: "Status atualizado com sucesso!",
         })
       );
     }
@@ -231,9 +299,9 @@ const RequisitionStatusStepper = ({
             //   fontSize: 12,
             //   fontWeight: 500,
             // },
-            padding: { 
+            padding: {
               xs: 2,
-              sm: 0
+              sm: 0,
             },
             minWidth: { xs: "100%", sm: 600 }, // ocupa toda largura em mobile
             flexWrap: "nowrap",
@@ -311,6 +379,36 @@ const RequisitionStatusStepper = ({
           </Button>
         )}
       </Stack>
+      <Dialog open={fillingComment}>
+        <DialogTitle>
+          Justifique o retorno da requisição para etapa anterior
+        </DialogTitle>
+        <DialogContent>
+          <ElegantInput
+            label="Justificação"
+            value={comment}
+            onChange={(e) => setComment(e.target.value)}
+          />
+        </DialogContent>
+        <DialogActions>
+          <Button
+            variant="contained"
+            size="small"
+            color="error"
+            onClick={() => setFillingComment(false)}
+          >
+            Cancelar
+          </Button>
+          <Button
+            variant="contained"
+            size="small"
+             color="success"
+            onClick={() => concludeRetreatRequisition()}
+          >
+            Confirmar
+          </Button>
+        </DialogActions>
+      </Dialog>
     </Box>
   );
 };

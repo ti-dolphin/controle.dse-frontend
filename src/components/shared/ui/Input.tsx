@@ -33,6 +33,7 @@ const ElegantInput: React.FC<ElegantInputProps> = ({
       </label>
       <input
         {...props}
+        multiple
         className={`px-3 py-2 rounded-md border text-xs outline-none transition 
           ${error ? "border-red-500" : "border-gray-300"}
           focus:ring-1 focus:ring-blue-800

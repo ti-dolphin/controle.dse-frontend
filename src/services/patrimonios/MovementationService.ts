@@ -1,4 +1,5 @@
 import api from "../../api";
+import { Checklist } from "../../models/patrimonios/Checklist";
 import { Movimentation } from "../../models/patrimonios/Movementation";
 
 
@@ -6,7 +7,7 @@ import { Movimentation } from "../../models/patrimonios/Movementation";
 const API_ENDPOINT = "/movimentacao_patrimonio";
 class MovementationService {
   static async create(data: any) {
-    const response = await api.post<Movimentation>(API_ENDPOINT, data);
+    const response = await api.post<{mov: Movimentation, checklist: Partial<Checklist>}>(API_ENDPOINT, data);
     return response.data;
   }
 

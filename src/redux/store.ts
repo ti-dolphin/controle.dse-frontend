@@ -11,7 +11,7 @@ import opportunityReducer from './slices/oportunidades/opportunitySlice';
 import patrimonyTableReducer from './slices/patrimonios/PatrimonyTableSlice';
 import checklistTableReducer from './slices/patrimonios/ChecklistTableSlice';
 import productSliceReducer from './slices/productSlice';
-
+import requisitionCommentReducer from './slices/requisicoes/requisitionCommentSlice';
 export const store = configureStore({
   reducer: {
     user: userReducer,
@@ -26,6 +26,7 @@ export const store = configureStore({
     patrionyTable: patrimonyTableReducer,
     checklistTable: checklistTableReducer,
     productSlice: productSliceReducer,
+    requisitionComment: requisitionCommentReducer,
   },
 });
 

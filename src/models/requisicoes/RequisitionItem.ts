@@ -20,4 +20,5 @@ export interface RequisitionItem {
     produto_codigo?: string;
     produto_unidade?: string;
     produto_quantidade_estoque?: number;
+    produto_quantidade_disponivel?: number;
 }

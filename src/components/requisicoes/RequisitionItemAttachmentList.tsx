@@ -159,7 +159,7 @@ const RequisitionItemAttachmentList = () => {
       {loading ? (
         <CircularProgress />
       ) : (
-        <List sx={{ maxHeight: 120, overflow: "auto" }}>
+        <List sx={{ maxHeight: 300, overflow: "auto" }}>
           {attachments.length === 0 && (
             <Typography variant="body2" color="text.secondary">
               Nenhum anexo encontrado.

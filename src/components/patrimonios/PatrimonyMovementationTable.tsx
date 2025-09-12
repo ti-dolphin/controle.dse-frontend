@@ -1,5 +1,5 @@
 import React, { useEffect } from 'react'
-import { useDispatch } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 import { useParams } from 'react-router-dom';
 import { setFeedback } from '../../redux/slices/feedBackSlice';
 import MovementationService from '../../services/patrimonios/MovementationService';
@@ -14,6 +14,9 @@ import { BaseAddButton } from '../shared/BaseAddButton';
 import { Option } from '../../types';
 import { useMovementationPermissions } from '../../hooks/patrimonios/useMovementationPermissions';
 import OptionsField from '../shared/ui/OptionsField';
+import { addChecklist } from '../../redux/slices/patrimonios/ChecklistTableSlice';
+import { CheckListService } from '../../services/patrimonios/ChecklistService';
+import { RootState } from '../../redux/store';
 
 
 const PatrimonyMovementationTable = () => {
@@ -21,6 +24,8 @@ const PatrimonyMovementationTable = () => {
       const theme = useTheme();
       const {id_patrimonio} = useParams();
       const [rows, setRows] = React.useState<Partial<Movimentation>[]>([]);
+      const checklistRows = useSelector((state: RootState) => state.checklistTable.rows);
+
       const {projectOptions} = useProjectOptions();
       const {userOptions} = useUserOptions();
       const [creating , setCreating] = React.useState(false);
@@ -51,12 +56,22 @@ const PatrimonyMovementationTable = () => {
         }
       }
 
+      const patrimonyHasPendingChecklist = ( ) => { 
+        console.log("checklistRows", checklistRows);
+        return checklistRows.some((checklist) => !checklist.realizado || !checklist.aprovado);
+      }
+
       const createMov = async ( ) => {
         try {
-          const newMov = await MovementationService.create({...formData});
+          if(patrimonyHasPendingChecklist()) { 
+            dispatch(setFeedback({ message: 'Patrimônio possui checklist pendente', type: 'error' }));
+            return;
+          }
+          const {mov, checklist} = await MovementationService.create({...formData});
           dispatch(setFeedback({ message: 'Movimentação criada com sucesso', type: 'success' }));
           setCreating(false);
-          setRows([newMov, ...rows]);
+          setRows([mov, ...rows]);
+          dispatch(addChecklist(checklist));
         } catch (error) {
           dispatch(setFeedback({ message: 'Erro ao criar movimentação', type: 'error' }));
         }
@@ -150,7 +165,7 @@ function MovimentationForm(props: {
   userOptions: Option[]
 }) {
   const { formData, setFormData, onCancel, onConfirm, projectOptions, userOptions } = props
-
+   
   return (
     <Stack
       spacing={1}
@@ -162,13 +177,22 @@ function MovimentationForm(props: {
       </Typography>
       <OptionsField 
        label='Projeto'
+       value={formData.id_projeto}
        options={projectOptions}
-       onChange={(id_projeto) => setFormData({...formData, id_projeto: Number(id_projeto)})}
+       optionHeight={60}
+       onChange={(id_projeto) => { 
+        console.log("id_projeto: ",  id_projeto);
+        setFormData({ ...formData, id_projeto: id_projeto});
+       }}
       />
       <OptionsField 
        label='Responsável'
        options={userOptions}
-       onChange={(id_responsavel) => setFormData({...formData, id_responsavel: Number(id_responsavel)})}
+       value={formData.id_responsavel}
+       onChange={(id_responsavel) => { 
+        console.log("id_responsavel: ", id_responsavel);
+        setFormData({ ...formData, id_responsavel: id_responsavel });
+       }}
       />
       <Stack direction="row" spacing={2}>
         <Button variant="contained" color="error" onClick={onCancel}>
