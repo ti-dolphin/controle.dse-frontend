@@ -18,6 +18,11 @@ export default class RequisitionService {
     return response.data;
   }
 
+  static async attend(id_requisicao: number, CODPESSOA: number, items: any) {
+    const response = await api.post(`${API_ENDPOINT}/${id_requisicao}/atender`, { CODPESSOA, items });
+    return response.data;
+  }
+
   static async create(data: any) {
     const response = await api.post(API_ENDPOINT, data);
     return response.data;

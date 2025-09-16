@@ -13,7 +13,7 @@ export interface RequisitionItem {
     data_entrega: string | null;
     id_item_cotacao?: number;
     items_cotacao ? : Partial<QuoteItem[]>;
-
+    quantidade_atendida?: number;
     anexos? : RequisitionItemAttachment[];
     produto?: Product
     produto_descricao?: string;

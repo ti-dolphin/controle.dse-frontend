@@ -1,8 +1,10 @@
 import { createSlice, PayloadAction } from "@reduxjs/toolkit";
 import { Quote } from "../../../models/requisicoes/Quote";
+import { RequisitionItem } from "../../../models/requisicoes/RequisitionItem";
 
 interface RequisitionItemState {
   addingProducts: boolean;
+  items: RequisitionItem[];
   updatingRecentProductsQuantity: boolean;
   recentProductsAdded: number[];
   productsAdded: number[];
@@ -15,9 +17,12 @@ interface RequisitionItemState {
   selectedQuote: Partial<Quote> | null;
   updatingChildReqItems: boolean;
   viewingItemAttachment: number | null;
+
+
 }
 const initialState: RequisitionItemState = {
   addingProducts: false,
+  items: [],
   updatingRecentProductsQuantity: false,
   recentProductsAdded: [],
   productsAdded: [],
@@ -53,6 +58,17 @@ const requisitionItemSlice = createSlice({
       state.replacingItemProduct = action.payload;
     },
 
+    setItems(state, action: PayloadAction<RequisitionItem[]>) {
+      state.items = action.payload;
+    },
+
+    replaceItem(state, action: PayloadAction<{id_item_requisicao: number, updatedItem: RequisitionItem}>) {
+      const index = state.items.findIndex(item => item.id_item_requisicao === action.payload.id_item_requisicao);
+      if (index !== -1) {
+        state.items[index] = action.payload.updatedItem;
+      }
+    },
+
     setProductSelected(state, action: PayloadAction<number | null>) {
       state.productSelected = action.payload;
     },
@@ -69,6 +85,11 @@ const requisitionItemSlice = createSlice({
     removeRecentProduct(state, action: PayloadAction<number>) {
       state.recentProductsAdded = state.recentProductsAdded.filter(
         (id) => id !== action.payload
+      );
+    },
+    removeItem(state, action: PayloadAction<number>) {
+      state.items = state.items.filter(
+        (item) => item.id_item_requisicao !== action.payload
       );
     },
     clearRecentProducts(state) {
@@ -88,7 +109,7 @@ const requisitionItemSlice = createSlice({
     },
     setViewingItemAttachment(state, action: PayloadAction<number | null>) {
       state.viewingItemAttachment = action.payload;
-    },
+    }
   },
 });
 
@@ -109,7 +130,12 @@ export const {
   setSelectedQuote,
   setUpdatingChildReqItems,
   setViewingItemAttachment,
+  replaceItem,
+  setItems,
+  removeItem,
 } = requisitionItemSlice.actions;
 
 export default requisitionItemSlice.reducer;
+
+
 

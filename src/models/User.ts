@@ -42,6 +42,7 @@ export interface User {
   PERM_COMERCIAL: number | null;
   PERM_DIRETOR: number | null;
   PERM_EDITAR_PRODUTOS: number | null;
+  PERM_ESTOQUE: number | null;
 }
 
 export interface ReducedUser {

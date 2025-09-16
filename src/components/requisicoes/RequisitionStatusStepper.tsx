@@ -22,7 +22,7 @@ import {
 } from "@mui/material";
 import CheckIcon from "@mui/icons-material/Check";
 import RequisitionService from "../../services/requisicoes/RequisitionService";
-import { setRequisition } from "../../redux/slices/requisicoes/requisitionSlice";
+import { setRefreshRequisition, setRequisition } from "../../redux/slices/requisicoes/requisitionSlice";
 import { setFeedback } from "../../redux/slices/feedBackSlice";
 import { useRequisitionStatusPermissions } from "../../hooks/requisicoes/RequisitionStatusPermissionHook";
 import { RequisitionStatus } from "../../models/requisicoes/RequisitionStatus";
@@ -31,10 +31,12 @@ import { gridColumnLookupSelector } from "@mui/x-data-grid";
 import { setRefresh } from "../../redux/slices/requisicoes/requisitionItemSlice";
 import QuoteService from "../../services/requisicoes/QuoteService";
 import { useNavigate } from "react-router-dom";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import ElegantInput from "../shared/ui/Input";
 import RequisitionCommentService from "../../services/requisicoes/RequisitionCommentService";
 import { addComment } from "../../redux/slices/requisicoes/requisitionCommentSlice";
+import { startAttendingItems, stopAttendingItems } from "../../redux/slices/requisicoes/attenItemsSlice";
+import RequisitionItemsTable from "./RequisitionItemsTable";
 
 interface RequisitionStatusStepperProps {
   id_requisicao: number;
@@ -89,14 +91,16 @@ const RequisitionStatusStepper = ({
   const user = useSelector((state: RootState) => state.user.user);
   const dispatch = useDispatch();
   const navigate = useNavigate();
-  const { requisition } = useSelector((state: RootState) => state.requisition);
+  const { requisition, refreshRequisition } = useSelector((state: RootState) => state.requisition);
+  const attendingItems = useSelector((state: RootState) => state.attendingItemsSlice.attendingItems);
+  const {items } = useSelector((state: RootState) => state.requisitionItem);
   const { permissionToChangeStatus, permissionToCancel, permissionToActivate } = useRequisitionStatusPermissions(user, requisition);
   const currentStatusIndex = requisition.status?.etapa ?? 0;
   const { statusList } = useRequisitionStatus(id_requisicao); 
   const {refresh} = useSelector((state: RootState) => state.requisitionItem);
   const [fillingComment, setFillingComment] = useState<boolean>(false);
   const [comment, setComment] = useState<string>('');
-
+   const [focusedElement, setFocusedElement] = useState<EventTarget | null>(null);
 
   const validationRules = async (newStatus: RequisitionStatus ) =>  {
       if(newStatus.nome === 'Validação') {
@@ -130,6 +134,7 @@ const RequisitionStatusStepper = ({
       setFillingComment(true);
       return;
     }
+
     try {
       const currentStep = requisition.status?.etapa ?? 0;
       const nextStep = type === "acao_posterior"
@@ -139,6 +144,11 @@ const RequisitionStatusStepper = ({
           : currentStep;
         
       const newStatus = statusList.find((status) => status.etapa === nextStep); //FINDS THE CORRESPONDING  NEW STATUS
+
+      if(newStatus?.nome === 'Em separação'){ 
+        dispatch(startAttendingItems());
+        return;
+      }
       if(newStatus){ 
         await validationRules(newStatus);
       }
@@ -160,6 +170,7 @@ const RequisitionStatusStepper = ({
       );
        dispatch(setRequisition(updatedRequisition));
        dispatch(setRefresh(!refresh));
+       dispatch(setRefreshRequisition(!refreshRequisition));
       if(!permissionToChangeStatus){ 
         navigate("/requisicoes");
         return;
@@ -182,6 +193,32 @@ const RequisitionStatusStepper = ({
       );
     }
   };
+
+  const handleAttendItems = async () => {
+      try {
+      let comprasItems = await RequisitionItemService.getMany({ id_requisicao });
+      comprasItems = comprasItems.filter((item) => !item.produto_quantidade_disponivel);
+      const {estoque, compras} = await RequisitionService.attend(Number(id_requisicao), user?.CODPESSOA || 0, [...items, ...comprasItems]);
+      console.log({ estoque, compras });
+      if(!estoque){ 
+        navigate(`/requisicoes`);
+        return;
+      }
+      dispatch(stopAttendingItems());
+      dispatch(setRefreshRequisition(!refreshRequisition));
+      dispatch(setRefresh(!refresh));
+      return;
+    } catch (e: any) {
+      dispatch(
+        setFeedback({
+          type: "error",
+          message: `Erro ao atualizar status: ${e.message}`,
+        })
+      );
+    }
+
+  };
+
 
   const concludeRetreatRequisition = async () => {
     setFillingComment(false);
@@ -255,6 +292,7 @@ const RequisitionStatusStepper = ({
     }
   }
 
+
   const handleActivate = async ( ) =>  {
     try {
       const updatedRequisition = await RequisitionService.activate(Number(id_requisicao));
@@ -274,6 +312,36 @@ const RequisitionStatusStepper = ({
       );
     }
   }
+
+// Adiciona listeners globais para monitorar eventos de foco e blur
+useEffect(() => {
+  const handleGlobalFocus = (event : FocusEvent) => {
+    if (event.target) {
+      const element = event.target as HTMLElement; // Cast the target to HTMLElement
+      if (element.classList.contains("MuiInputBase-input")){ 
+        console.log("element", element);
+         setFocusedElement(event.target);
+      }
+    }
+  };
+
+  const handleGlobalBlur = () => {
+    console.log("blur")
+    setFocusedElement(null);
+  };
+
+  // Adiciona listeners para focusin e focusout (melhor que focus/blur para capturar eventos em todos os elementos)
+  window.addEventListener("focusin", handleGlobalFocus);
+  window.addEventListener("focusout", handleGlobalBlur);
+
+  // Limpeza dos listeners ao desmontar o componente
+  return () => {
+    window.removeEventListener("focusin", handleGlobalFocus);
+    window.removeEventListener("focusout", handleGlobalBlur);
+  };
+}, []);
+
+  
 
   return (
     <Box
@@ -402,10 +470,45 @@ const RequisitionStatusStepper = ({
           <Button
             variant="contained"
             size="small"
-             color="success"
+            color="success"
             onClick={() => concludeRetreatRequisition()}
           >
             Confirmar
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      <Dialog
+        fullScreen
+        fullWidth
+        maxWidth="lg"
+        open={attendingItems}
+        onClose={() => dispatch(stopAttendingItems())}
+      >
+        <DialogTitle>Atender aos items solicitados</DialogTitle>
+        <DialogContent>
+          <RequisitionItemsTable hideFooter={false} />
+        </DialogContent>
+        <DialogActions>
+          <Button
+            variant="contained"
+            color="error"
+            onClick={() => dispatch(stopAttendingItems())}
+          >
+            cancelar
+          </Button>
+          <Button
+            variant="contained"
+            sx={{
+              bgcolor: focusedElement === null ? "success.main" : "lightgray",
+              "&:hover": {
+                bgcolor: "success.dark",
+              },
+            }}
+            disabled={focusedElement !== null}
+            onClick={() => handleAttendItems()}
+          >
+            confirmar
           </Button>
         </DialogActions>
       </Dialog>

@@ -1,16 +1,17 @@
 import { useState, useEffect } from 'react';
 import { RequisitionStatus } from '../../models/requisicoes/RequisitionStatus';
 import RequisitionStatusService from '../../services/requisicoes/RequisitionStatusService';
-import { useDispatch } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 import { setFeedback } from '../../redux/slices/feedBackSlice';
 import { useCallback } from 'react';
+import { RootState } from '../../redux/store';
 
 
 export const useRequisitionStatus = (id_requisicao: number) => {
   const dispatch = useDispatch();
   const [statusList, setStatusList] = useState<RequisitionStatus[]>([]);
   const [canceledStatus, setCanceledStatus] = useState<RequisitionStatus>();
-
+  const {refreshRequisition } = useSelector((state: RootState) => state.requisition);
   const fetchData = useCallback(async () => {
     //FUNCTION THE FETCHES THE DATA
     try {
@@ -28,7 +29,7 @@ export const useRequisitionStatus = (id_requisicao: number) => {
         })
       );
     }
-  }, [dispatch]);
+  }, [dispatch, refreshRequisition]);
 
   useEffect(() => {
     fetchData();

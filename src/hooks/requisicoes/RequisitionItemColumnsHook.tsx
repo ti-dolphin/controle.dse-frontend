@@ -52,6 +52,8 @@ export const useRequisitionItemColumns = (
     (state: RootState) => state.requisitionItem
   );
 
+  const attendingItems = useSelector((state: RootState) => state.attendingItemsSlice.attendingItems);
+
   const StyledBadge = styled(Badge)<BadgeProps>(({ theme }) => ({
     "& .MuiBadge-badge": {
       right: -3,
@@ -156,11 +158,18 @@ export const useRequisitionItemColumns = (
       ),
     },
     {
-      field: "quantidade",
-      headerName: "QTD",
+      field: "quantidade_atendida",
+      headerName: "Atender",
       type: "number",
-      editable: true,
       width: 100,
+      editable: true,
+    },
+    {
+      field: "quantidade",
+      headerName: attendingItems ? "Quantidade solicitada" : "QTD",
+      type: "number",
+      editable: attendingItems ? false : true,
+      width: attendingItems ? 200 : 100,
       renderCell: (params: any) => (
         <Box
           sx={{
@@ -176,12 +185,12 @@ export const useRequisitionItemColumns = (
         </Box>
       ),
     },
-    { 
-      field: 'produto_quantidade_disponivel',
-      headerName: 'estoque',
-      type: 'number',
+    {
+      field: "produto_quantidade_disponivel",
+      headerName: "Estoque",
+      type: "number",
       width: 100,
-      editable: false
+      editable: false,
     },
     {
       field: "data_entrega",
@@ -260,7 +269,7 @@ export const useRequisitionItemColumns = (
           {editItemFieldsPermitted && (
             <Tooltip title="Preencher">
               <IconButton onClick={openOCDialog} sx={{ height: 20, width: 20 }}>
-                <ArticleOutlinedIcon sx={{fontSize: 12}}/>
+                <ArticleOutlinedIcon sx={{ fontSize: 12 }} />
               </IconButton>
             </Tooltip>
           )}
@@ -305,7 +314,7 @@ export const useRequisitionItemColumns = (
               onClick={() => navigator.clipboard.writeText(params.value)}
               sx={{ padding: 0 }}
             >
-              <ContentCopyIcon sx={{fontSize: 14}} />
+              <ContentCopyIcon sx={{ fontSize: 14 }} />
             </IconButton>
           </Tooltip>
         </Box>
@@ -367,10 +376,10 @@ export const useRequisitionItemColumns = (
                   badgeContent={row.row.anexos.length}
                   color="primary"
                 >
-                  <FileIcon sx={{ fontSize: 14 }}/>
+                  <FileIcon sx={{ fontSize: 14 }} />
                 </StyledBadge>
               ) : (
-                <FileIcon sx={{ fontSize: 14 }}/>
+                <FileIcon sx={{ fontSize: 14 }} />
               )}
             </IconButton>
           </Box>
@@ -380,16 +389,23 @@ export const useRequisitionItemColumns = (
   ];
 
   // Definindo filteredColumns para sempre executar hooks depois
-  let filteredColumns = columns.filter((col) => col.field !== "produto_quantidade_disponivel");
+  const nonDefaultColumns = ["produto_quantidade_disponivel", "quantidade_atendida"];
+  let filteredColumns = columns.filter((col) => !nonDefaultColumns.includes(col.field));
 
   if (updatingRecentProductsQuantity) {
     const selectedColumns = ["produto_descricao", "quantidade", "produto_quantidade_disponivel"];
     filteredColumns = columns.filter((col) =>
       selectedColumns.includes(col.field)
     );
-  } else if (addingReqItems) {
+  } 
+   if (addingReqItems) {
     filteredColumns = columns.filter((col) =>
       ["produto_descricao"].includes(col.field)
+    );
+  }
+  if(attendingItems){ 
+    filteredColumns = columns.filter((col) =>
+      ["produto_descricao", "quantidade_atendida", "quantidade", "produto_quantidade_disponivel"].includes(col.field)
     );
   }
 

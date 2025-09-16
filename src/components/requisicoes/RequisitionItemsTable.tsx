@@ -20,7 +20,10 @@ import { debounce } from "lodash";
 import { setFeedback } from "../../redux/slices/feedBackSlice";
 import { useRequisitionItemPermissions } from "../../hooks/requisicoes/RequisitionItemPermissionsHook";
 import {
+  removeItem,
+  replaceItem,
   setCurrentQuoteIdSelected,
+  setItems,
   setProductsAdded,
   setRefresh,
   setSelectedQuote,
@@ -59,9 +62,8 @@ const RequisitionItemsTable = ({ tableMaxHeight, hideFooter }: RequisitionItemsT
   const theme = useTheme();
   const { id_requisicao } = useParams();
   const {isMobile} = useIsMobile();
-  const { requisition, refreshRequisition } = useSelector(
-    (state: RootState) => state.requisition
-  );
+  const { requisition, refreshRequisition } = useSelector((state: RootState) => state.requisition );
+  const attendingItems = useSelector((state: RootState) => state.attendingItemsSlice.attendingItems);
 
   const gridApiRef = useGridApiRef();
   const quote = useSelector((state: RootState) => state.quote.quote);
@@ -82,9 +84,17 @@ const RequisitionItemsTable = ({ tableMaxHeight, hideFooter }: RequisitionItemsT
     requisition
   );
 
-  const { newItems, updatingRecentProductsQuantity, refresh, currentQuoteIdSelected, selectedQuote, updatingChildReqItems, viewingItemAttachment } = useSelector(
-    (state: RootState) => state.requisitionItem
-  );
+  const {
+    items,
+    newItems,
+    updatingRecentProductsQuantity,
+    refresh,
+    currentQuoteIdSelected,
+    selectedQuote,
+    updatingChildReqItems,
+    viewingItemAttachment,
+  } = useSelector((state: RootState) => state.requisitionItem);
+
   const handleDeleteItem = async (id_item_requisicao: number) => {
     setBlockFields(true);
     try {
@@ -92,10 +102,10 @@ const RequisitionItemsTable = ({ tableMaxHeight, hideFooter }: RequisitionItemsT
       const updatedItems = items.filter(
         (item) => item.id_item_requisicao !== id_item_requisicao
       );
-      setItems(updatedItems);
+       dispatch(removeItem(id_item_requisicao));
       await RequisitionItemService.delete(id_item_requisicao);
       dispatch(setRefreshRequisition(!refreshRequisition));
-      dispatch(setProductsAdded(updatedItems.map((item) => item.id_produto)));
+      dispatch(setProductsAdded(updatedItems.map((item : RequisitionItem) => item.id_produto)));
       setBlockFields(false);
       return;
     } catch (e: any) {
@@ -155,7 +165,7 @@ const RequisitionItemsTable = ({ tableMaxHeight, hideFooter }: RequisitionItemsT
     }
   };
   const [searchTerm, setSearchTerm] = useState("");
-  const [items, setItems] = useState<RequisitionItem[]>([]);
+  
   const [cellModesModel, setCellModesModel] = React.useState<GridCellModesModel>({});
   const [selectionModel, setSelectionModel] = React.useState<GridRowSelectionModel>([]);
   const [quoteItemsSelected, setQuoteItemsSelected] = useState<Map<number, number>>(new Map());
@@ -175,12 +185,8 @@ const RequisitionItemsTable = ({ tableMaxHeight, hideFooter }: RequisitionItemsT
         setQuoteItemsSelected(
           new Map(quoteItemsSelected.set(id_item_requisicao, id_item_cotacao))
         );
-        const { updatedItems, updatedRequisition } =
-          await RequisitionItemService.updateQuoteItemsSelected(
-            Number(id_requisicao),
-            Object.fromEntries(quoteItemsSelected)
-          );
-        setItems(updatedItems);
+        const { updatedItems, updatedRequisition } = await RequisitionItemService.updateQuoteItemsSelected(Number(id_requisicao),Object.fromEntries(quoteItemsSelected));
+        dispatch(setItems(updatedItems));
         dispatch(setRequisition(updatedRequisition));
         return;
       }
@@ -191,7 +197,7 @@ const RequisitionItemsTable = ({ tableMaxHeight, hideFooter }: RequisitionItemsT
           Object.fromEntries(quoteItemsSelected)
         );
         
-      setItems(updatedItems);
+      dispatch(setItems(updatedItems));
       dispatch(setRequisition(updatedRequisition));
     },
     [quoteItemsSelected, requisition, setItems]
@@ -293,31 +299,88 @@ const RequisitionItemsTable = ({ tableMaxHeight, hideFooter }: RequisitionItemsT
   //ATUALIZA LINHA NO BACKEND
   const processRowUpdate = React.useCallback(
     async (newRow: GridRowModel, oldRow: GridRowModel) => {
-      const payload = {
-        id_item_requisicao: newRow.id_item_requisicao,
-        quantidade: newRow.quantidade,
-        data_entrega: newRow.data_entrega,
-        oc: newRow.oc,
-        observacao: newRow.observacao,
-      };
-      try {
-        const updatedItem = await RequisitionItemService.update(
-          newRow.id_item_requisicao,
-          payload
-        );
-        return updatedItem;
-      } catch (e: any) {
+      console.log("newRow", newRow);
+      if(!attendingItems){
+        const payload = {
+          id_item_requisicao: newRow.id_item_requisicao,
+          quantidade: newRow.quantidade,
+          data_entrega: newRow.data_entrega,
+          oc: newRow.oc,
+          observacao: newRow.observacao,
+        };
+        if(payload.quantidade < 0){ 
+          dispatch(
+            setFeedback({
+              message: `Quantidade atendida não pode ser negativa`,
+              type: "error",
+            })
+          );
+          return oldRow;
+        }
+        return await performUpdateOnDatabase(newRow, oldRow, payload);
+      }
+      if(newRow.quantidade_atendida < 0){
         dispatch(
           setFeedback({
-            message: `Erro ao atualizar item da requisição: ${e.message}`,
+            message: `Quantidade atendida não pode ser negativa`,
             type: "error",
           })
         );
         return oldRow;
       }
+
+      if (newRow.produto_quantidade_disponivel < newRow.quantidade_atendida) {
+        dispatch(
+          setFeedback({
+            message: `Quantidade atendida não pode ser maior do que a disponível em estoque`,
+            type: "error",
+          })
+        );
+        return oldRow;
+      }
+      if(newRow.quantidade_atendida > newRow.quantidade){
+        dispatch(
+          setFeedback({
+            message: `Quantidade atendida não deve ser maior que quantidade solicitada`,
+            type: "error",
+          })
+        );
+        return oldRow;
+      }
+      dispatch(replaceItem({id_item_requisicao: newRow.id_item_requisicao, updatedItem: newRow as RequisitionItem}))
+      return newRow;
     },
     [items, dispatch]
   );
+
+
+  const performUpdateOnDatabase = async (
+    newRow: GridRowModel,
+    oldRow: GridRowModel,
+    payload: any ) => {
+    try {
+      const updatedItem = await RequisitionItemService.update(
+        newRow.id_item_requisicao,
+        payload
+      );
+      dispatch(
+        replaceItem({
+          id_item_requisicao: newRow.id_item_requisicao,
+          updatedItem,
+        })
+      );
+      return updatedItem;
+ 
+    } catch (e: any) {
+      dispatch(
+        setFeedback({
+          message: `Erro ao atualizar item da requisição: ${e.message}`,
+          type: "error",
+        })
+      );
+      return oldRow;
+    }
+  };
   //CRIA A COTAÇÃO A PARTIR DOS ITENS SELECIONADOS
   const createQuoteFromSelectedItems = async () => {
     //create quote from items and then redirect to quote page
@@ -422,7 +485,16 @@ const RequisitionItemsTable = ({ tableMaxHeight, hideFooter }: RequisitionItemsT
             };
 
       const data = await RequisitionItemService.getMany(params);
-      setItems(data);
+      dispatch(setItems(data));
+      if(attendingItems){ 
+        dispatch(setItems(data.map((item) => { 
+          return {
+            ...item,
+            quantidade_atendida: item.quantidade
+          }
+        }).filter((item) => item.produto_quantidade_disponivel)
+      ));
+      }
       defineSelectedQuoteItemsMap(data);
       dispatch(setProductsAdded(data.map((item) => item.id_produto)));
       setLoading(false);
