@@ -14,6 +14,7 @@ import BaseViewFileDialog from '../shared/BaseVIewFileDialog';
 import StyledLink from '../shared/StyledLink';
 import LinkIcon from "@mui/icons-material/Link";
 import BaseInputDialog from "../shared/BaseInputDialog";
+import { getDateStringFromISOstring } from '../../utils';
 
 const OpportunityAttachmentList = () => {
   const dispatch = useDispatch();
@@ -192,52 +193,58 @@ const OpportunityAttachmentList = () => {
         Anexos
       </Typography>
       {!loading && (
-        <List>
+        <List sx={{width: '100%'}}>
           {attachments.map((attachment) => (
             <ListItem
               divider
-              sx={{ maxHeight: 40 }}
+              sx={{ maxHeight: 60 }}
               key={attachment.id_anexo_os}
             >
-              <Stack direction="row" alignItems="center" gap={1}>
-                <StyledLink
-                  link={attachment.arquivo}
-                  onClick={() => {
-                    const fileExtensions = [
-                      ".pdf",
-                      ".jpg",
-                      ".jpeg",
-                      ".png",
-                      ".doc",
-                      ".docx",
-                      ".xls",
-                      ".xlsx",
-                    ];
-                    const isFile = fileExtensions.some((ext) =>
-                      attachment.arquivo.toLowerCase().includes(ext)
-                    );
+              <Stack>
+                <Stack direction="row" alignItems="center" gap={1}>
+                  <StyledLink
+                    link={attachment.arquivo}
+                    onClick={() => {
+                      const fileExtensions = [
+                        ".pdf",
+                        ".jpg",
+                        ".jpeg",
+                        ".png",
+                        ".doc",
+                        ".docx",
+                        ".xls",
+                        ".xlsx",
+                      ];
+                      const isFile = fileExtensions.some((ext) =>
+                        attachment.arquivo.toLowerCase().includes(ext)
+                      );
 
-                    if (isFile) {
-                      setSelectedFile(attachment);
-                    } else if (
-                      attachment.arquivo.startsWith("http://") ||
-                      attachment.arquivo.startsWith("https://")
-                    ) {
-                      window.open(attachment.arquivo, "_blank");
-                    }
-                  }}
-                />
+                      if (isFile) {
+                        setSelectedFile(attachment);
+                      } else if (
+                        attachment.arquivo.startsWith("http://") ||
+                        attachment.arquivo.startsWith("https://")
+                      ) {
+                        window.open(attachment.arquivo, "_blank");
+                      }
+                    }}
+                  />
+                </Stack>
+
+                <ListItemSecondaryAction>
+                  <IconButton
+                    edge="end"
+                    color="error"
+                    onClick={() => setAttachmentBeingDeleted(attachment)}
+                  >
+                    <DeleteIcon />
+                  </IconButton>
+                </ListItemSecondaryAction>
+
+                <Typography sx={{ color: "text.secondary", fontSize: 12 }}>
+                    {attachment.criado_por?.NOME} - {getDateStringFromISOstring(attachment.criado_em)}
+                </Typography>
               </Stack>
-
-              <ListItemSecondaryAction>
-                <IconButton
-                  edge="end"
-                  color="error"
-                  onClick={() => setAttachmentBeingDeleted(attachment)}
-                >
-                  <DeleteIcon />
-                </IconButton>
-              </ListItemSecondaryAction>
             </ListItem>
           ))}
         </List>

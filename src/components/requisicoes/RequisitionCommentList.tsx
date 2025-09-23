@@ -32,6 +32,7 @@ import { RequisitionComment } from "../../models/requisicoes/RequisitionComment"
 const RequisitionCommentList = () => {
   const dispatch = useDispatch();
   const { id_requisicao } = useParams<{ id_requisicao: string }>();
+  const  refreshRequisition  = useSelector((state: RootState) => state.requisition.refreshRequisition);
   const user = useSelector((state: RootState) => state.user.user);
   const [newComment, setNewComment] = useState("");
   const [editingComment, setEditingComment] = useState<RequisitionComment | null>(null);
@@ -52,7 +53,7 @@ const RequisitionCommentList = () => {
         setFeedback({ type: "error", message: "Falha ao carregar comentários" })
       );
     }
-  }, [dispatch, id_requisicao]);
+  }, [dispatch, id_requisicao, refreshRequisition]);
 
   useEffect(() => {
     fetchData();
@@ -143,7 +144,7 @@ const RequisitionCommentList = () => {
             secondaryAction={
               permToEditOrDelete(comment) && (
                 <>
-                  <IconButton
+                  {/* <IconButton
                     size="small"
                     onClick={() => {
                       setEditingComment(comment);
@@ -151,7 +152,7 @@ const RequisitionCommentList = () => {
                     }}
                   >
                     <EditIcon fontSize="small" />
-                  </IconButton>
+                  </IconButton> */}
                   <IconButton
                     size="small"
                     color="error"

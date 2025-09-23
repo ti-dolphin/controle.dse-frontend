@@ -190,6 +190,11 @@ const RequisitionItemsTable = ({ tableMaxHeight, hideFooter }: RequisitionItemsT
         dispatch(setRequisition(updatedRequisition));
         return;
       }
+      if(requisition.status?.nome.toLowerCase() !== 'em cotação') { 
+        dispatch(setFeedback({ message: 'Apenas itens em cotação podem ser removidos', type: 'error' }));
+        return;
+      };
+
       quoteItemsSelected.delete(id_item_requisicao);
       setQuoteItemsSelected(new Map(quoteItemsSelected));
       const { updatedItems, updatedRequisition } = await RequisitionItemService.updateQuoteItemsSelected(
@@ -218,6 +223,14 @@ const RequisitionItemsTable = ({ tableMaxHeight, hideFooter }: RequisitionItemsT
     blockFields
   );
 
+  const exceptionForBuyer = (field : string ) => { 
+    if(!requisition.status) return;
+    if(field !== 'oc' && field !== 'data_entrega') return false;
+    const ocStatus = requisition.status?.nome.toLowerCase() === 'gerar oc';
+    const buyer = Number(user?.PERM_COMPRADOR) == 1;
+    return ocStatus && buyer
+  }
+
   const mobileColumns = ( ) =>  {
     const mobile = ['produto_descricao', 'quantidade'];
     const filtered = columns.filter((column) => mobile.includes(column.field));
@@ -243,8 +256,47 @@ const RequisitionItemsTable = ({ tableMaxHeight, hideFooter }: RequisitionItemsT
       );
       return;
     }
-
     if (!editItemFieldsPermitted) {
+      console.log("edição não permitida")
+      //excessão para editar apenas o número da OC
+      if(exceptionForBuyer(params.field)){ 
+         if (
+           (event.target as any).nodeType === 1 &&
+           !event.currentTarget.contains(event.target as Element)
+         ) {
+           return;
+         }
+         setCellModesModel((prevModel) => {
+           return {
+             // Revert the mode of the other cells from other rows
+             ...Object.keys(prevModel).reduce(
+               (acc, id) => ({
+                 ...acc,
+                 [id]: Object.keys(prevModel[id]).reduce(
+                   (acc2, field) => ({
+                     ...acc2,
+                     [field]: { mode: GridCellModes.View },
+                   }),
+                   {}
+                 ),
+               }),
+               {}
+             ),
+             [params.id]: {
+               // Revert the mode of other cells in the same row
+               ...Object.keys(prevModel[params.id] || {}).reduce(
+                 (acc, field) => ({
+                   ...acc,
+                   [field]: { mode: GridCellModes.View },
+                 }),
+                 {}
+               ),
+               [params.field]: { mode: GridCellModes.Edit },
+             },
+           };
+         });
+        return;
+      }
       dispatch(
         setFeedback({
           message: `Você não tem permissão para editar este campo`,
@@ -311,7 +363,7 @@ const RequisitionItemsTable = ({ tableMaxHeight, hideFooter }: RequisitionItemsT
         if(payload.quantidade < 0){ 
           dispatch(
             setFeedback({
-              message: `Quantidade atendida não pode ser negativa`,
+              message: `Quantidade solicitada não pode ser negativa`,
               type: "error",
             })
           );
@@ -319,6 +371,9 @@ const RequisitionItemsTable = ({ tableMaxHeight, hideFooter }: RequisitionItemsT
         }
         return await performUpdateOnDatabase(newRow, oldRow, payload);
       }
+     
+     
+      //estpa atendendo com estoque
       if(newRow.quantidade_atendida < 0){
         dispatch(
           setFeedback({

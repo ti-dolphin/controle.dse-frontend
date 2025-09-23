@@ -20,6 +20,7 @@ import UpperNavigation from "../../components/shared/UpperNavigation";
 const QuoteDetailPage = () => {
   const dispatch = useDispatch();
   const { id_cotacao } = useParams<{ id_cotacao: string }>();
+  const {quote} = useSelector((state : RootState) => state.quote);
   const [searchParams] = useSearchParams();
   const token = searchParams.get("token");
   const navigate = useNavigate();
@@ -107,7 +108,13 @@ const QuoteDetailPage = () => {
         backgroundColor: "background",
       }}
     >
-     { accesType !== "supplier" && <UpperNavigation handleBack={handleBack} /> }
+      {accesType !== "supplier" && (
+        <UpperNavigation handleBack={handleBack}>
+          <Typography variant="h6" fontSize={"1rem"} color={"primary.main"}>{ 
+            `Requisição ${requisition.ID_REQUISICAO} | ${requisition.DESCRIPTION} | ${requisition.projeto?.DESCRICAO} - Cotação ${quote?.id_cotacao}`
+            }</Typography>
+        </UpperNavigation>
+      )}
       {/* Header Section - Will display quotation title and metadata (e.g., ID, date) */}
 
       <Grid container spacing={2} sx={{ justifyContent: "center" }}>
@@ -177,7 +184,7 @@ const QuoteDetailPage = () => {
             </Button>
           </Stack>
         </DialogTitle>
-        <QuoteItemsTable hideFooter={false} tableMaxHeight={600}/>
+        <QuoteItemsTable hideFooter={false} tableMaxHeight={600} />
       </Dialog>
     </Box>
   );

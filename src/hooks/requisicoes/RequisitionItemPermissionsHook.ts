@@ -11,7 +11,10 @@ export const useRequisitionItemPermissions = (user : User | null, requisition : 
     useEffect(() => {
       const adm = Number(user?.PERM_ADMINISTRADOR) == 1; 
       const responsable = Number(user?.CODPESSOA) == Number(requisition.ID_RESPONSAVEL) && requisition.status?.nome === "Em edição";  
-      const buyer = Number(user?.PERM_COMPRADOR) == 1 && requisition.status?.nome === "Em edição"; 
+
+      const editionEnabledForStatus = ['requisitado', 'em cotação' ];
+      const buyer = Number(user?.PERM_COMPRADOR) == 1 && editionEnabledForStatus.includes(requisition.status?.nome  ? requisition.status?.nome.toLowerCase() : ''); 
+      console.log("buyer", buyer);
       setEditItemFieldsPermitted(adm || responsable || buyer);
       setChangeProductItemPermitted(adm || responsable || buyer);
       setCreateQuotePermitted((adm || buyer) && requisition.status?.nome === "Em cotação");

@@ -166,6 +166,11 @@ const RequisitionDetailPage = () => {
     );
   }
 
+  const shouldShowQuoteListButton = ( ) => { 
+     const statusList = ['em cotação', 'aprovação Gerente', 'aprovação Diretoria', 'gerar oc', 'oc gerada'];
+     return statusList.includes((requisition.status?.nome ?? "").toLowerCase());
+  }
+
   useEffect(() => {
     if (id_requisicao) {
       fetchData();
@@ -327,14 +332,17 @@ const RequisitionDetailPage = () => {
             },
           }}
         >
-          <Paper sx={{ p: 1, position:"relative" }}>
-            <Stack direction="column" alignItems={"start"}   gap={1}>
+          <Paper sx={{ p: 1, position: "relative" }}>
+            <Stack direction="column" alignItems={"start"} gap={1}>
               {/* Tela cheia */}
-              <IconButton sx={{position:"absolute", right:"10px", top:"10px"}} onClick={() => setFullScreenItems(true)}>
+              <IconButton
+                sx={{ position: "absolute", right: "10px", top: "10px" }}
+                onClick={() => setFullScreenItems(true)}
+              >
                 <FullscreenIcon />
               </IconButton>
               {/* Adicionar itens */}
-              <Stack direction="row" spacing={1}  alignItems="center">
+              <Stack direction="row" spacing={1} alignItems="center">
                 {shouldShowAddItemsButton() && (
                   <Button
                     onClick={() => dispatch(setAddingProducts(true))}
@@ -345,25 +353,26 @@ const RequisitionDetailPage = () => {
                     Adicionar Itens
                   </Button>
                 )}
-                <Button
-                  onClick={() => setQuoteListOpen(true)}
-                  variant="contained"
-                  size="small"
-                >
-                  Cotações
-                </Button>
+                {
+                  shouldShowQuoteListButton() &&
+                  <Button
+                    onClick={() => setQuoteListOpen(true)}
+                    variant="contained"
+                    size="small"
+                  >
+                    Cotações
+                  </Button>
+                }
               </Stack>
 
-              <Box
-                sx={{ display: "flex", flexDirection: "row", gap: 1 }}
-              >
+              <Box sx={{ display: "flex", flexDirection: "row", gap: 1 }}>
                 <Typography variant="subtitle2" color="primary.main">
                   Itens:{" "}
-                  {formatCurrency(Number(requisition.custo_total_itens || 0))} 
+                  {formatCurrency(Number(requisition.custo_total_itens || 0))}
                 </Typography>
                 <Typography variant="subtitle2" color="primary.main">
                   Fretes:{" "}
-                  {formatCurrency(Number(requisition.custo_total_frete || 0))} 
+                  {formatCurrency(Number(requisition.custo_total_frete || 0))}
                 </Typography>
                 <Typography variant="subtitle2" color="success.main">
                   Custo total:{" "}

@@ -266,6 +266,37 @@ const QuoteItemsTable = ({
 
   const processRowUpdate = useCallback(
     async (newRow: GridRowModel, oldRow: GridRowModel) => {
+
+      if(newRow.preco_unitario < 0){
+        dispatch(
+          setFeedback({
+            message: `Preco unitario nao pode ser menor que zero`,
+            type: "error",
+          })
+        );
+        return oldRow;
+      }
+
+      if(newRow.quantidade_cotada < 0){
+        dispatch(
+          setFeedback({
+            message: `Quantidade cotada nao pode ser menor que zero`,
+            type: "error",
+          })
+        );
+        return oldRow;
+      }
+
+      if(newRow.quantidade_cotada > newRow.quantidade_solicitada){
+        dispatch(
+          setFeedback({
+            message: `Quantidade cotada nao pode ser maior que quantidade solicitada`,
+            type: "error",
+          })
+        );
+        return oldRow;
+      }
+
       const payload = {
         quantidade_cotada: newRow.quantidade_cotada,
         ICMS: Number(newRow.ICMS),

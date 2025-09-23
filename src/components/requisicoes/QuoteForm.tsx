@@ -110,7 +110,7 @@ const QuoteForm = ({ onSubmit }: QuoteFormProps) => {
               <OptionsField
                 label={field.label}
                 options={field.options}
-                value={quote ? String(quote[field.name as keyof Quote]) : ""}
+                value={quote ? String(quote[field.name as keyof Quote] ) : ""}
                 onChange={(optionId) => {
                   handleChangeOptionField(
                     field.name as keyof Quote,
@@ -122,7 +122,7 @@ const QuoteForm = ({ onSubmit }: QuoteFormProps) => {
             ) : (
               <ElegantInput
                 label={field.label}
-                value={quote ? String(quote[field.name as keyof Quote]) : ""}
+                value={quote ? String(quote[field.name as keyof Quote] ?quote[field.name as keyof Quote] : ""  ) : ""}
                 onChange={(e) =>
                   handleChangeTextField(e, field.name as keyof Quote)
                 }

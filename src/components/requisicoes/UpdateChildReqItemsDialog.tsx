@@ -121,6 +121,14 @@ const UpdateChildReqItemsDialog = ({
   };
 
   const processRowUpdate = (newRow: GridRowModel, oldRow: GridRowModel) => {
+    if(newRow.quantidade > oldRow.quantidade){
+      dispatch(setFeedback({ message: "Quantidade nao pode ser maior que original", type: "error" }));
+      return oldRow;
+    }
+    if(newRow.quantidade < 0){
+      dispatch(setFeedback({ message: "Quantidade nao pode ser menor que zero", type: "error" }));
+      return oldRow;
+    }
     setRows((prevRows) =>
       prevRows.map((row) =>
         row.id_item_requisicao === newRow.id_item_requisicao ? newRow : row

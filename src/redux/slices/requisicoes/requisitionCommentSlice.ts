@@ -21,7 +21,7 @@ const requisitionCommentSlice = createSlice({
       state.comments = action.payload;
     },
     addComment(state, action: PayloadAction<RequisitionComment>) {
-      state.comments.push(action.payload);
+      state.comments = [action.payload, ...state.comments];
     },
 
     toggleRefreshReqComments(state) {

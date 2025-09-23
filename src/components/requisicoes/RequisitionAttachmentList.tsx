@@ -24,6 +24,7 @@ import { setFeedback } from "../../redux/slices/feedBackSlice";
 import BaseDeleteDialog from "../shared/BaseDeleteDialog";
 import BaseViewFileDialog from "../shared/BaseVIewFileDialog";
 import BaseInputDialog from "../shared/BaseInputDialog";
+import { getDateStringFromISOstring } from "../../utils";
 
 interface RequisitionAttachmentListProps {
   id_requisicao: number;
@@ -222,14 +223,14 @@ const RequisitionAttachmentList: React.FC<RequisitionAttachmentListProps> = ({
       {loading ? (
         <CircularProgress />
       ) : (
-        <List sx={{ maxHeight: 120, overflow: "auto" }}>
+        <List sx={{ maxHeight: 180, overflow: "auto" }}>
           {attachments.length === 0 && (
             <Typography variant="body2" color="text.secondary">
               Nenhum anexo encontrado.
             </Typography>
           )}
           {attachments.map((file) => (
-            <ListItem key={file.id} divider sx={{ height: 30 }}>
+            <ListItem key={file.id} divider sx={{ height: 60 }}>
               <Stack direction="column" alignItems="start" gap={0.2}>
                 <StyledLink
                   link={file.arquivo}
@@ -258,9 +259,9 @@ const RequisitionAttachmentList: React.FC<RequisitionAttachmentListProps> = ({
                     }
                   }}
                 />
-                {/* <Typography fontSize="12px" color="text.secondary">
-                  Por: {file.pessoa_criado_por?.NOME || ""}
-                </Typography> */}
+                <Typography fontSize="12px" color="text.secondary">
+                  Por: {file.pessoa_criado_por?.NOME || ""} - {getDateStringFromISOstring(file.criado_em)}
+                </Typography>
               </Stack>
 
               <ListItemSecondaryAction>

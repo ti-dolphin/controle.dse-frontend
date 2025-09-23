@@ -13,6 +13,7 @@ import CloudUploadIcon from "@mui/icons-material/CloudUpload";
 import LinkIcon from "@mui/icons-material/Link";
 import DeleteIcon from "@mui/icons-material/Delete";
 import { setRefresh } from '../../redux/slices/requisicoes/requisitionItemSlice';
+import useReqItemAttachmentPermissions from '../../hooks/requisicoes/useReqItemAttachmentPermissions';
 
 
 const RequisitionItemAttachmentList = () => {
@@ -34,6 +35,10 @@ const RequisitionItemAttachmentList = () => {
   const { viewingItemAttachment, refresh } = useSelector(
     (state: RootState) => state.requisitionItem
   );
+  const { permissionToAdd } = useReqItemAttachmentPermissions();
+
+
+
 
   const openViewFile = (file: RequisitionItemAttachment) => {
     setSelectedFile(file);
@@ -166,9 +171,17 @@ const RequisitionItemAttachmentList = () => {
             </Typography>
           )}
           {attachments.map((file) => (
-            <ListItem key={file.id_anexo_item_requisicao} divider sx={{ height: 100 }}>
+            <ListItem
+              key={file.id_anexo_item_requisicao}
+              divider
+              sx={{ height: 100 }}
+            >
               <Stack direction="column" alignItems="start" gap={0.2}>
-                <Box component={"img"} sx={{ height: 50, width: 50, borderRadius: 2, boxShadow: 1 }} src={file.arquivo} />
+                <Box
+                  component={"img"}
+                  sx={{ height: 50, width: 50, borderRadius: 2, boxShadow: 1 }}
+                  src={file.arquivo}
+                />
                 <StyledLink
                   link={file.arquivo}
                   onClick={() => {
@@ -214,26 +227,32 @@ const RequisitionItemAttachmentList = () => {
           ))}
         </List>
       )}
-      <Stack direction={{ xs: "column", sm: "row" }} alignItems={{ xs: "start", sm: "center" }} sx={{ gap: 0.5 }}>
-        <Button
-          startIcon={<CloudUploadIcon sx={{ height: "20px" }} />}
-          sx={{ fontSize: "small" }}
-          disabled={loading}
-          component="label"
+      {permissionToAdd && (
+        <Stack
+          direction={{ xs: "column", sm: "row" }}
+          alignItems={{ xs: "start", sm: "center" }}
+          sx={{ gap: 0.5 }}
         >
-          Adicionar Anexo
-          <input type="file" hidden onChange={handleFileChange} accept="*" />
-        </Button>
-        <Button
-          variant="contained"
-          startIcon={<LinkIcon sx={{ height: "20px", width: "20px" }} />}
-          sx={{ fontSize: "small" }}
-          disabled={loading}
-          onClick={openLinkDialog}
-        >
-          Adicionar Link
-        </Button>
-      </Stack>
+          <Button
+            startIcon={<CloudUploadIcon sx={{ height: "20px" }} />}
+            sx={{ fontSize: "small" }}
+            disabled={loading}
+            component="label"
+          >
+            Adicionar Anexo
+            <input type="file" hidden onChange={handleFileChange} accept="*" />
+          </Button>
+          <Button
+            variant="contained"
+            startIcon={<LinkIcon sx={{ height: "20px", width: "20px" }} />}
+            sx={{ fontSize: "small" }}
+            disabled={loading}
+            onClick={openLinkDialog}
+          >
+            Adicionar Link
+          </Button>
+        </Stack>
+      )}
       <BaseDeleteDialog
         open={deleteDialogOpen}
         onConfirm={handleDelete}
@@ -243,7 +262,7 @@ const RequisitionItemAttachmentList = () => {
         open={selectedFile !== null}
         onClose={closeViewFile}
         fileUrl={selectedFile?.arquivo || ""}
-        title={'Visualizar anexo'}
+        title={"Visualizar anexo"}
       />
       <BaseInputDialog
         open={linkDialogOpen}
@@ -257,7 +276,7 @@ const RequisitionItemAttachmentList = () => {
         }
       />
     </Box>
-  )
+  );
 }
 
 export default RequisitionItemAttachmentList

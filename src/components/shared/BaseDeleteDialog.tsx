@@ -18,7 +18,7 @@ const BaseDeleteDialog: React.FC<BaseDeleteDialogProps> = ({
   message = "Tem certeza de que deseja excluir este item? Esta ação não pode ser desfeita.",
 }) => {
   return (
-    <Dialog
+    <Dialog 
       open={open}
       onClose={onCancel}
       aria-labelledby="delete-dialog-title"

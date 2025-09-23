@@ -198,7 +198,7 @@ const ProductAttachmentList = () => {
       {loading ? (
         <CircularProgress />
       ) : (
-        <List sx={{ maxHeight: 120, overflow: "auto" }}>
+        <List sx={{ maxHeight: 180, overflow: "auto" }}>
           {attachments.length === 0 && (
             <Typography variant="body2" color="text.secondary">
               Nenhum anexo encontrado.
@@ -235,9 +235,9 @@ const ProductAttachmentList = () => {
                     }
                   }}
                 />
-                {/* <Typography fontSize="12px" color="text.secondary">
-                  Por: {file.pessoa_criado_por?.NOME || ""}
-                </Typography> */}
+                <Typography fontSize="12px" color="text.secondary">
+                  {/* Por: {file.criado?.NOME || ""} */}
+                </Typography>
               </Stack>
               <ListItemSecondaryAction>
                 <Tooltip title="Excluir">

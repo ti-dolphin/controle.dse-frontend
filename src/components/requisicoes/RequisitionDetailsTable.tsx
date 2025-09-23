@@ -76,8 +76,8 @@ const RequisitionDetailsTable = ({
     },
     { label: "Atualizada por", value: requisition.alterado_por?.NOME },
     { label: "Requisitante", value: requisition.responsavel?.NOME },
-    { label: 'Responsável projeto', value: requisition.responsavel_projeto?.NOME },
-    { label: "Gerentem projeto", value: requisition.gerente?.NOME },
+    { label: 'Responsável do projeto', value: requisition.responsavel_projeto?.NOME },
+    { label: "Gerente do projeto", value: requisition.gerente?.NOME },
     { label: "Tipo", value: requisition.tipo_requisicao?.nome_tipo },
   ];
 

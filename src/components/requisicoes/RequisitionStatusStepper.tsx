@@ -37,6 +37,7 @@ import RequisitionCommentService from "../../services/requisicoes/RequisitionCom
 import { addComment } from "../../redux/slices/requisicoes/requisitionCommentSlice";
 import { startAttendingItems, stopAttendingItems } from "../../redux/slices/requisicoes/attenItemsSlice";
 import RequisitionItemsTable from "./RequisitionItemsTable";
+import { set } from "lodash";
 
 interface RequisitionStatusStepperProps {
   id_requisicao: number;
@@ -101,6 +102,7 @@ const RequisitionStatusStepper = ({
   const [fillingComment, setFillingComment] = useState<boolean>(false);
   const [comment, setComment] = useState<string>('');
    const [focusedElement, setFocusedElement] = useState<EventTarget | null>(null);
+  const  [justifyingLessThenThreeQuotes, setJustifyingLessThenThreeQuotes] = useState<boolean>(false);
 
   const validationRules = async (newStatus: RequisitionStatus ) =>  {
       if(newStatus.nome === 'Validação') {
@@ -113,8 +115,16 @@ const RequisitionStatusStepper = ({
       if(newStatus.nome === 'Aprovação Gerente'){ 
         const quotes = await QuoteService.getMany({id_requisicao});
         const noQuotes = quotes.length === 0;
+        const noQuoteItemSelected = items.every((item) => !item.id_item_cotacao);
         if(noQuotes) {
           throw new Error('Requisição sem cotações');
+        }
+        if(noQuoteItemSelected) {
+          throw new Error('Requisição sem itens selecionados da cotação');
+        }
+        if(quotes.length > 0 && quotes.length < 3){ 
+           setJustifyingLessThenThreeQuotes(true);
+           throw new Error('Requisição com menos de 3 cotações');
         }
       }
       return;
@@ -194,17 +204,50 @@ const RequisitionStatusStepper = ({
     }
   };
 
+  const concludeLessThenThreeQuotes = async (e: React.FormEvent) => {
+    e.preventDefault()
+    try {
+      const newComment  = await RequisitionCommentService.create({
+        id_requisicao: Number(id_requisicao),
+        descricao: comment,
+        criado_por: user?.CODPESSOA
+      });
+
+      const updatedRequisition = await RequisitionService.updateStatus(Number(id_requisicao), { 
+        id_status_requisicao: 6,
+        alterado_por: user?.CODPESSOA
+      });
+      dispatch(setRequisition(updatedRequisition));
+      dispatch(setRefresh(!refresh));
+      dispatch(setRefreshRequisition(!refreshRequisition));
+      setJustifyingLessThenThreeQuotes(false);
+       if (!permissionToChangeStatus) {
+         navigate("/requisicoes");
+         return;
+       }
+
+    } catch (e: any) {
+      dispatch(
+        setFeedback({
+          type: "error",
+          message: `Erro ao atualizar status: ${e.message}`,
+        })
+      );
+    }
+  };
+
   const handleAttendItems = async () => {
       try {
       let comprasItems = await RequisitionItemService.getMany({ id_requisicao });
       comprasItems = comprasItems.filter((item) => !item.produto_quantidade_disponivel);
       const {estoque, compras} = await RequisitionService.attend(Number(id_requisicao), user?.CODPESSOA || 0, [...items, ...comprasItems]);
       console.log({ estoque, compras });
+      dispatch(stopAttendingItems());
       if(!estoque){ 
         navigate(`/requisicoes`);
         return;
       }
-      dispatch(stopAttendingItems());
+   
       dispatch(setRefreshRequisition(!refreshRequisition));
       dispatch(setRefresh(!refresh));
       return;
@@ -453,7 +496,7 @@ useEffect(() => {
         </DialogTitle>
         <DialogContent>
           <ElegantInput
-            label="Justificação"
+            label="Justificativa"
             value={comment}
             onChange={(e) => setComment(e.target.value)}
           />
@@ -511,6 +554,46 @@ useEffect(() => {
             confirmar
           </Button>
         </DialogActions>
+      </Dialog>
+
+      {/* Justificar avançar requisição com menos de 3 cotações */}
+
+      <Dialog
+        onClose={() => setJustifyingLessThenThreeQuotes(false)}
+        open={justifyingLessThenThreeQuotes}
+      >
+        <DialogTitle>Justifique o avançar com menos de 3 cotações</DialogTitle>
+        <Box
+          component={"form"}
+          onSubmit={(e: React.FormEvent) => concludeLessThenThreeQuotes(e)}
+        >
+          <DialogContent>
+            <ElegantInput
+              label="Justificativa"
+              required
+              value={comment}
+              onChange={(e) => setComment(e.target.value)}
+            />
+          </DialogContent>
+          <DialogActions>
+            <Button
+              variant="contained"
+              size="small"
+              color="error"
+              onClick={() => setJustifyingLessThenThreeQuotes(false)}
+            >
+              Cancelar
+            </Button>
+            <Button
+              variant="contained"
+              size="small"
+              color="success"
+              type="submit"
+            >
+              Confirmar
+            </Button>
+          </DialogActions>
+        </Box>
       </Dialog>
     </Box>
   );

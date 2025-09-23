@@ -48,6 +48,8 @@ export const useRequisitionItemColumns = (
   const [shippingDate, setShippingDate] = useState<string>("");
   const [dinamicColumns, setDinamicColumns] = useState<GridColDef[]>([]);
 
+  const user = useSelector((state: RootState) => state.user.user);
+
   const { updatingRecentProductsQuantity } = useSelector(
     (state: RootState) => state.requisitionItem
   );
@@ -148,7 +150,7 @@ export const useRequisitionItemColumns = (
       field: "produto_descricao",
       headerName: "Descrição",
       type: "string",
-      minWidth: 250,
+      minWidth: 300,
       renderCell: (params: any) => (
         <Box sx={{ display: "flex", alignItems: "center", height: "100%" }}>
           <Typography fontSize="12px" fontWeight="bold">
@@ -214,7 +216,7 @@ export const useRequisitionItemColumns = (
           <Typography fontSize="12px" fontWeight="bold" color="primary">
             Data entrega
           </Typography>
-          {editItemFieldsPermitted && (
+          {editItemFieldsPermitted || user?.PERM_COMPRADOR && (
             <Tooltip title="Preencher">
               <IconButton
                 onClick={openShippingDateDialog}
@@ -266,7 +268,7 @@ export const useRequisitionItemColumns = (
           <Typography fontSize="12px" fontWeight="bold" color="primary">
             OC
           </Typography>
-          {editItemFieldsPermitted && (
+          {editItemFieldsPermitted || user?.PERM_COMPRADOR && (
             <Tooltip title="Preencher">
               <IconButton onClick={openOCDialog} sx={{ height: 20, width: 20 }}>
                 <ArticleOutlinedIcon sx={{ fontSize: 12 }} />
