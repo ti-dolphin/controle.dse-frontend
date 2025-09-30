@@ -24,6 +24,7 @@ const initialState: RequisitionFormState = {
     custo_total_frete: 0,
     custo_total_itens: 0,
     custo_total: 0,
+    id_escopo_requisicao: 1
   },
   mode: "view", // inicia em visualização
   loading: false,
