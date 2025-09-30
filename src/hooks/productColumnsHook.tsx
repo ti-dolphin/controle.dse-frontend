@@ -146,7 +146,7 @@ export const useProductColumns = ( ) => {
       },
       {
         field: "",
-        headerName: "anexos",
+        headerName: "Anexos",
         flex: 0.2,
         editable: false,
         renderCell: (params: GridRenderCellParams) => {
@@ -221,7 +221,7 @@ export const useProductColumns = ( ) => {
       },
       {
         field: "quantidade_disponivel",
-        headerName: "Disponivel",
+        headerName: "Disponível",
         type: "number",
         flex: 0.15,
         editable: false,

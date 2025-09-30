@@ -23,10 +23,15 @@ export const useRequisitionStatusPermissions = (user: User | null, requisition: 
     const admOrBuyer = user?.PERM_ADMINISTRADOR === 1 || user?.PERM_COMPRADOR === 1;
     const notCancelled = requisition.status?.nome !== "Cancelado";
     const cancelled = requisition.status?.nome === "Cancelado";
+    const stockUser = requisition.id_escopo_requisicao === 1 && user?.PERM_ESTOQUE === 1;
+
+    console.log("user", user);
 
     if(admOrBuyer && cancelled) { 
       setPermissionToActivate(true);
     }
+
+
   
     if (admOrBuyer && notCancelled) {
       setPermissionToCancel(true);
@@ -39,6 +44,9 @@ export const useRequisitionStatusPermissions = (user: User | null, requisition: 
         requisition
         );
         setPermissionToChangeStatus(permissions.permissionToChangeStatus);
+            if (stockUser) {
+              setPermissionToChangeStatus(true);
+            }
       } catch (error: any) {
         dispatch(
         setFeedback({
