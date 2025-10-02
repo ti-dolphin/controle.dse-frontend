@@ -395,23 +395,30 @@ export const useRequisitionItemColumns = (
   let filteredColumns = columns.filter((col) => !nonDefaultColumns.includes(col.field));
 
   if (updatingRecentProductsQuantity) {
-    const selectedColumns = ["produto_descricao", "quantidade", "produto_quantidade_disponivel"];
+    const selectedColumns = [
+      "produto_descricao",
+      "quantidade",
+      "produto_quantidade_disponivel",
+    ];
     filteredColumns = columns.filter((col) =>
       selectedColumns.includes(col.field)
     );
-  } 
-   if (addingReqItems) {
+  }
+  if (addingReqItems) {
     filteredColumns = columns.filter((col) =>
       ["produto_descricao"].includes(col.field)
     );
   }
-  if(attendingItems){ 
+  if (attendingItems) {
     filteredColumns = columns.filter((col) =>
-      ["produto_descricao", "quantidade_atendida", "quantidade", "produto_quantidade_disponivel"].includes(col.field)
+      [
+        "produto_descricao",
+        "quantidade_atendida",
+        "quantidade",
+        "produto_quantidade_disponivel",
+      ].includes(col.field)
     );
   }
-
-
 
   const fetchDinamicColumns = useCallback(async () => {
     try {
