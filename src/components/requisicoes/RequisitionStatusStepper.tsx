@@ -1,6 +1,6 @@
 import { useDispatch, useSelector } from "react-redux";
 import { RootState } from "../../redux/store";
-import { useRequisitionStatus } from "../../hooks/requisicoes/RequisitionStatusHook";
+import { useRequisitionStatus } from "../../hooks/requisicoes/useRequisitionStatus";
 import ArrowCircleLeftIcon from "@mui/icons-material/ArrowCircleLeft";
 import ArrowCircleRightIcon from "@mui/icons-material/ArrowCircleRight";
 
@@ -24,7 +24,7 @@ import CheckIcon from "@mui/icons-material/Check";
 import RequisitionService from "../../services/requisicoes/RequisitionService";
 import { setRefreshRequisition, setRequisition } from "../../redux/slices/requisicoes/requisitionSlice";
 import { setFeedback } from "../../redux/slices/feedBackSlice";
-import { useRequisitionStatusPermissions } from "../../hooks/requisicoes/RequisitionStatusPermissionHook";
+import { useRequisitionStatusPermissions } from "../../hooks/requisicoes/useRequisitionStatusPermissions";
 import { RequisitionStatus } from "../../models/requisicoes/RequisitionStatus";
 import RequisitionItemService from "../../services/requisicoes/RequisitionItemService";
 import { gridColumnLookupSelector } from "@mui/x-data-grid";
@@ -93,7 +93,7 @@ const RequisitionStatusStepper = ({
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const { requisition, refreshRequisition } = useSelector((state: RootState) => state.requisition);
-  const attendingItems = useSelector((state: RootState) => state.attendingItemsSlice.attendingItems);
+  const {attendingItems, notAttendedItems} = useSelector((state: RootState) => state.attendingItemsSlice);
   const {items } = useSelector((state: RootState) => state.requisitionItem);
   const { permissionToChangeStatus, permissionToCancel, permissionToActivate } = useRequisitionStatusPermissions(user, requisition);
   const currentStatusIndex = requisition.status?.etapa ?? 0;
@@ -240,6 +240,8 @@ const RequisitionStatusStepper = ({
       try {
       let comprasItems = await RequisitionItemService.getMany({ id_requisicao });
       comprasItems = comprasItems.filter((item) => !item.produto_quantidade_disponivel);
+      comprasItems = [...comprasItems, ...notAttendedItems];
+      console.log("comprasItems", comprasItems);
       const {estoque, compras} = await RequisitionService.attend(Number(id_requisicao), user?.CODPESSOA || 0, [...items, ...comprasItems]);
       console.log({ estoque, compras });
       dispatch(stopAttendingItems());
@@ -247,7 +249,6 @@ const RequisitionStatusStepper = ({
         navigate(`/requisicoes`);
         return;
       }
-   
       dispatch(setRefreshRequisition(!refreshRequisition));
       dispatch(setRefresh(!refresh));
       return;

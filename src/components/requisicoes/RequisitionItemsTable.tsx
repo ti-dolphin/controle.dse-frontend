@@ -8,7 +8,7 @@ import {
   useGridApiRef,
 } from "@mui/x-data-grid";
 import React, { useCallback, useEffect, useState } from "react";
-import { useRequisitionItemColumns } from "../../hooks/requisicoes/RequisitionItemColumnsHook";
+import { useRequisitionItemColumns } from "../../hooks/requisicoes/useRequisitionItemColumns";
 import { RequisitionItem } from "../../models/requisicoes/RequisitionItem";
 import { Box, Button, Dialog, DialogContent, DialogTitle, IconButton, useTheme } from "@mui/material";
 import { useDispatch, useSelector } from "react-redux";
@@ -18,7 +18,7 @@ import BaseDataTable from "../shared/BaseDataTable";
 import BaseTableToolBar from "../shared/BaseTableToolBar";
 import { debounce } from "lodash";
 import { setFeedback } from "../../redux/slices/feedBackSlice";
-import { useRequisitionItemPermissions } from "../../hooks/requisicoes/RequisitionItemPermissionsHook";
+import { useRequisitionItemPermissions } from "../../hooks/requisicoes/useRequisitionITemPermissions";
 import {
   removeItem,
   replaceItem,
@@ -51,6 +51,7 @@ import { useIsMobile } from "../../hooks/useIsMobile";
 import { FixedSizeGrid } from "react-window";
 import RequisitionItemCard from "./RequisitionItemCard";
 import RequisitionItemAttachmentList from "./RequisitionItemAttachmentList";
+import { setNotAttendedItems } from "../../redux/slices/requisicoes/attenItemsSlice";
 
 interface RequisitionItemsTable { 
     tableMaxHeight?: number;
@@ -591,6 +592,23 @@ const RequisitionItemsTable = ({ tableMaxHeight, hideFooter }: RequisitionItemsT
     [currentQuoteIdSelected, quoteItems]
   );
 
+  const shouldShowCreateParcialReqBtn = ( ) => {
+    return ( !addingReqItems && !updatingRecentProductsQuantity && items.length > 0 && !attendingItems);
+  }
+
+  const shouldShowNotAttendItemsBtn = () => {
+    return attendingItems && selectionModel.length > 0;
+  }
+
+  const handleNotAttendItems = () => {
+    const selectedItems = items.filter((item) => selectionModel.includes(item.id_item_requisicao));
+    const selectedIds = selectedItems.map((item) => item.id_item_requisicao);
+    dispatch(setNotAttendedItems(selectedItems));
+    console.log("settingITems to : ", items.filter((item) => !selectedIds.includes(item.id_item_requisicao)))
+    dispatch(setItems(items.filter((item) => !selectedIds.includes(item.id_item_requisicao))));
+    setSelectionModel([]);
+  }
+
   useEffect(() => {
     if (requisition) {
       fetchData();
@@ -622,18 +640,22 @@ const RequisitionItemsTable = ({ tableMaxHeight, hideFooter }: RequisitionItemsT
                 Criar cotação
               </Button>
             )}
-          {!addingReqItems &&
-            !updatingRecentProductsQuantity &&
-            items.length > 0 && (
-              <Button
-                variant="contained"
-                onClick={() => {
-                  dispatch(setUpdatingChildReqItems(true));
-                }}
-              >
-                Criar requisição parcial
-              </Button>
-            )}
+          {shouldShowCreateParcialReqBtn() && (
+            <Button
+              variant="contained"
+              onClick={() => {
+                dispatch(setUpdatingChildReqItems(true));
+              }}
+            >
+              Criar requisição parcial
+            </Button>
+          )}
+
+          {shouldShowNotAttendItemsBtn() && (
+            <Button variant="contained" onClick={() => handleNotAttendItems()}>
+              Não atender
+            </Button>
+          )}
         </Box>
       )}
       <BaseTableToolBar
@@ -675,6 +697,7 @@ const RequisitionItemsTable = ({ tableMaxHeight, hideFooter }: RequisitionItemsT
           sx={{
             height: tableMaxHeight ? tableMaxHeight : "auto",
             overFlow: "scroll",
+            
           }}
         >
           <BaseDataTable
@@ -723,7 +746,6 @@ const RequisitionItemsTable = ({ tableMaxHeight, hideFooter }: RequisitionItemsT
         open={viewingItemAttachment !== null}
         onClose={() => dispatch(setViewingItemAttachment(null))}
         fullWidth
-
         maxWidth="md"
       >
         <IconButton

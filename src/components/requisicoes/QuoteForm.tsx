@@ -10,8 +10,8 @@ import {
 } from "../../redux/slices/requisicoes/quoteSlice";
 import { Quote } from "../../models/requisicoes/Quote";
 import { Option } from "../../types";
-import { useQuoteFields } from "../../hooks/requisicoes/QuoteFieldsHook";
-import { useQuoteFieldPermissions } from "../../hooks/requisicoes/QuoteFiledPermissionsHook";
+import { useQuoteFields } from "../../hooks/requisicoes/useQuoteFields";
+import { useQuoteFieldPermissions } from "../../hooks/requisicoes/useQuoteFieldPermissions";
 import { setFeedback } from "../../redux/slices/feedBackSlice";
 import OptionsField from "../shared/ui/OptionsField";
 import ElegantInput from "../shared/ui/Input";

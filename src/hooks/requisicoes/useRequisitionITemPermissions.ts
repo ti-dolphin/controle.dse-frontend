@@ -38,7 +38,7 @@ import { User } from "../../models/User";
 import { useSelector } from "react-redux";
 import { RootState } from "../../redux/store";
 
-const editionEnabledStatuses = ["requisitado", "em cotação"];
+const editionEnabledStatuses = ["requisitado", "em cotação", "separar estoque"];
 
 function isAdmin(user: User | null): boolean {
   return Number(user?.PERM_ADMINISTRADOR) === 1;
@@ -59,6 +59,14 @@ function isBuyer(user: User | null, requisition: Requisition): boolean {
   );
 }
 
+function isStockUser (user: User | null, requisition: Requisition): boolean {
+  const status = requisition.status?.nome?.toLowerCase() || "";
+  return (
+    Number(user?.PERM_ESTOQUE) === 1 && 
+    editionEnabledStatuses.includes(status)
+  )
+}
+
 export const useRequisitionItemPermissions = (
   user: User | null,
   requisition: Requisition
@@ -73,8 +81,15 @@ export const useRequisitionItemPermissions = (
     const responsable = isResponsable(user, requisition);
     const buyer = isBuyer(user, requisition);
     const status = requisition.status?.nome?.toLowerCase() || "";
+    const stockUser = isStockUser(user, requisition);
 
-    setEditItemFieldsPermitted(admin || responsable || buyer);
+
+    console.log("status", status);
+    console.log("responsable", responsable);
+    console.log("admin", admin);
+    console.log("buyer", buyer);
+
+    setEditItemFieldsPermitted(admin || responsable || buyer || stockUser);
     setChangeProductItemPermitted(admin || responsable || buyer);
     setCreateQuotePermitted((admin || buyer) && status === "em cotação");
   }, [user, requisition]);

@@ -15,12 +15,12 @@ import {
 import { setFeedback } from "../../../redux/slices/feedBackSlice";
 import RequisitionService from "../../../services/requisicoes/RequisitionService";
 import { Box, Button, Dialog, DialogContent, DialogTitle, IconButton, SelectChangeEvent, useTheme } from "@mui/material";
-import { useRequisitionColumns } from "../../../hooks/requisicoes/RequisitionTableColumnsHook";
+import { useRequisitionColumns } from "../../../hooks/requisicoes/useRequisitionColumns";
 import BaseDataTable from "../../../components/shared/BaseDataTable";
 import BaseDetailModal from "../../../components/shared/BaseDetailModal";
 import { useGridApiRef } from "@mui/x-data-grid";
 import { RequisitionKanban } from "../../../models/requisicoes/RequisitionKanban";
-import { useRequisitionKanban } from "../../../hooks/requisicoes/RequisitionKanbanHook";
+import { useRequisitionKanban } from "../../../hooks/requisicoes/useRequisitionKanban";
 import BaseToolBar from "../../../components/shared/BaseToolBar";
 import BaseDropdown from "../../../components/shared/BaseDropdown";
 import BaseTableToolBar from "../../../components/shared/BaseTableToolBar";

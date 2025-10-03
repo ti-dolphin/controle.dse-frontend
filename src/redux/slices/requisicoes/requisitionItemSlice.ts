@@ -17,8 +17,6 @@ interface RequisitionItemState {
   selectedQuote: Partial<Quote> | null;
   updatingChildReqItems: boolean;
   viewingItemAttachment: number | null;
-
-
 }
 const initialState: RequisitionItemState = {
   addingProducts: false,

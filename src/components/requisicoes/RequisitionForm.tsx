@@ -13,7 +13,7 @@ import { Box, Button, TextField, CircularProgress, Autocomplete, AutocompleteRen
 import { Requisition } from "../../models/requisicoes/Requisition";
 import { useProjectOptions } from "../../hooks/projectOptionsHook";
 import { FieldConfig, Option } from "../../types";
-import { useRequisitionTypeOptions } from "../../hooks/requisicoes/RequisitionTypeOptionsHook";
+import { useRequisitionTypeOptions } from "../../hooks/requisicoes/useRequisitionTypeOptions";
 import { useNavigate } from "react-router-dom";
 import RequisitionService from "../../services/requisicoes/RequisitionService";
 import { setFeedback } from "../../redux/slices/feedBackSlice";

@@ -420,6 +420,7 @@ export const useRequisitionItemColumns = (
     );
   }
 
+
   const fetchDinamicColumns = useCallback(async () => {
     try {
       const rawCols = await RequisitionItemService.getDinamicColumns(
