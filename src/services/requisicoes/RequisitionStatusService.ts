@@ -1,5 +1,6 @@
 import api from "../../api";
-import { RequisitionStatusPermissions } from "../../hooks/requisicoes/RequisitionStatusPermissionHook";
+import { RequisitionStatusPermissions } from "../../hooks/requisicoes/useRequisitionStatusPermissions";
+
 import { Requisition } from "../../models/requisicoes/Requisition";
 import { RequisitionStatusAlteration } from "../../models/requisicoes/RequisitionStatusAlteration";
 import { User } from "../../models/User";
