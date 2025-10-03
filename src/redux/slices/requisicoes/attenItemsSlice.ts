@@ -10,6 +10,7 @@ export interface AttendItemsState {
   error: string | null;
   refresh: boolean;
   notAttendedItems: RequisitionItem[];
+  itemsToAttend: RequisitionItem[]
 }
 
 const initialState: AttendItemsState = {
@@ -19,6 +20,7 @@ const initialState: AttendItemsState = {
     error: null,
     refresh: false,
     notAttendedItems: [],
+    itemsToAttend: []
 }
 
 const attendItemsSlice = createSlice({
@@ -45,6 +47,10 @@ const attendItemsSlice = createSlice({
         quantidade_atendida: 0,
       }));
     },
+
+    setItemsToAttend(state, action: PayloadAction<RequisitionItem[]>){ 
+      state.itemsToAttend = action.payload
+    },
     stopAttendingItems(state) {
       state.attendingItems = false;
     },
@@ -52,5 +58,5 @@ const attendItemsSlice = createSlice({
 });
 
 
-export const { setItems, setRefresh, startAttendingItems, stopAttendingItems, setNotAttendedItems } = attendItemsSlice.actions;
+export const { setItems, setRefresh, startAttendingItems, stopAttendingItems, setNotAttendedItems, setItemsToAttend } = attendItemsSlice.actions;
 export default attendItemsSlice.reducer;

@@ -51,7 +51,7 @@ import { useIsMobile } from "../../hooks/useIsMobile";
 import { FixedSizeGrid } from "react-window";
 import RequisitionItemCard from "./RequisitionItemCard";
 import RequisitionItemAttachmentList from "./RequisitionItemAttachmentList";
-import { setNotAttendedItems } from "../../redux/slices/requisicoes/attenItemsSlice";
+import { setItemsToAttend, setNotAttendedItems } from "../../redux/slices/requisicoes/attenItemsSlice";
 
 interface RequisitionItemsTable { 
     tableMaxHeight?: number;
@@ -544,9 +544,12 @@ const RequisitionItemsTable = ({ tableMaxHeight, hideFooter }: RequisitionItemsT
       dispatch(setItems(data));
       if(attendingItems){ 
         dispatch(setItems(data.map((item) => { 
+          let quantidade_atendida = item.quantidade > (item.produto_quantidade_disponivel || 0)
+              ? item.produto_quantidade_disponivel
+              : item.quantidade;
           return {
             ...item,
-            quantidade_atendida: item.quantidade
+            quantidade_atendida
           }
         }).filter((item) => item.produto_quantidade_disponivel)
       ));
@@ -596,16 +599,20 @@ const RequisitionItemsTable = ({ tableMaxHeight, hideFooter }: RequisitionItemsT
     return ( !addingReqItems && !updatingRecentProductsQuantity && items.length > 0 && !attendingItems);
   }
 
-  const shouldShowNotAttendItemsBtn = () => {
+  const shouldShowAttendItemsBtn = () => {
     return attendingItems && selectionModel.length > 0;
   }
 
-  const handleNotAttendItems = () => {
+  const handleAttendItems = () => {
     const selectedItems = items.filter((item) => selectionModel.includes(item.id_item_requisicao));
     const selectedIds = selectedItems.map((item) => item.id_item_requisicao);
-    dispatch(setNotAttendedItems(selectedItems));
-    console.log("settingITems to : ", items.filter((item) => !selectedIds.includes(item.id_item_requisicao)))
-    dispatch(setItems(items.filter((item) => !selectedIds.includes(item.id_item_requisicao))));
+    dispatch(setItemsToAttend(selectedItems));
+    dispatch(
+      setNotAttendedItems(
+        items.filter((item) => !selectedIds.includes(item.id_item_requisicao))
+      )
+    );
+    dispatch(setItems(items.filter((item) => selectedIds.includes(item.id_item_requisicao))));
     setSelectionModel([]);
   }
 
@@ -651,9 +658,9 @@ const RequisitionItemsTable = ({ tableMaxHeight, hideFooter }: RequisitionItemsT
             </Button>
           )}
 
-          {shouldShowNotAttendItemsBtn() && (
-            <Button variant="contained" onClick={() => handleNotAttendItems()}>
-              Não atender
+          {shouldShowAttendItemsBtn() && (
+            <Button variant="contained" onClick={() => handleAttendItems()}>
+               atender
             </Button>
           )}
         </Box>
