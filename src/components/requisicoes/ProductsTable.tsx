@@ -197,6 +197,7 @@ const ProductsTable = () => {
     setLoading(true);
     try {
       const data = await ProductService.getMany({ searchTerm });
+      console.log("produtos: ", data)
       dispatch(setProducts(data))
       setLoading(false);
     } catch (e) {

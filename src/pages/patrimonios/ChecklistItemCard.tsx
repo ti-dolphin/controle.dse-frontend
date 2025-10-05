@@ -40,6 +40,8 @@ export default function ChecklistItemCard({
       const file = e.target.files[0];
       const fileUrl = await FirebaseService.upload(file, file.name || "");
       const { id_item_checklist_movimentacao } = checklistItem;
+
+      console.log("checklistITem: ", checklistItem);
       const payload: Partial<ChecklistItem> = { arquivo: fileUrl };
       const updatedITem = await ChecklistItemService.update(
         id_item_checklist_movimentacao,
@@ -123,12 +125,13 @@ export default function ChecklistItemCard({
               accept="image/*"
               capture="user"
               style={{ display: "none" }}
-              id="raised-button-file"
-              multiple
+              id={`raised-button-file-${checklistItem.id_item_checklist_movimentacao}`}
               type="file"
               onChange={uploadImage}
             />
-            <label htmlFor="raised-button-file">
+            <label
+              htmlFor={`raised-button-file-${checklistItem.id_item_checklist_movimentacao}`}
+            >
               <Button
                 variant="contained"
                 component="span"

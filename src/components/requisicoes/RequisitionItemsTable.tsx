@@ -541,6 +541,7 @@ const RequisitionItemsTable = ({ tableMaxHeight, hideFooter }: RequisitionItemsT
             };
 
       const data = await RequisitionItemService.getMany(params);
+      console.log("items: ", data);
       dispatch(setItems(data));
       if(attendingItems){ 
         dispatch(setItems(data.map((item) => { 

@@ -173,6 +173,7 @@ const ChecklistView = ({ id_checklist }: ChecklistViewProps) => {
         {items.map((item, index) => (
           <Grid item key={index} xs={1} sm={1} md={1} lg={1}>
             <ChecklistItemCard
+             key={item.id_item_checklist_movimentacao}
               updateSingleItem={updateSingleItem}
               checklist={checklist}
               checklistItem={item as ChecklistItem}

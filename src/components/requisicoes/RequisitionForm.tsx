@@ -99,7 +99,7 @@ const fields: FieldConfig[] = [
               DESCRIPTION : requisition.DESCRIPTION,
               ID_PROJETO : requisition.ID_PROJETO,
               //tipo default
-              TIPO : 10,
+              TIPO : 9,
               ID_RESPONSAVEL : requisition.ID_RESPONSAVEL,
               id_status_requisicao: 1,
             });

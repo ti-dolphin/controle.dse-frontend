@@ -91,7 +91,7 @@ export function useRequisitionColumns(
         headerName: "Requisitante",
         flex: 1,
         valueGetter: (user: ReducedUser) => {
-          return user.NOME;
+          return user.NOME || '';
         },
         renderHeader: () => (
           <TextHeader
@@ -107,7 +107,7 @@ export function useRequisitionColumns(
         headerName: "Gerente",
         flex: 1,
         valueGetter: (user: ReducedUser) => {
-          return user.NOME;
+          return user.NOME || '';
         },
         renderHeader: () => (
           <TextHeader
@@ -123,7 +123,7 @@ export function useRequisitionColumns(
         headerName: "Responsável Projeto",
         flex: 1,
         valueGetter: (user: ReducedUser) => {
-          return user.NOME;
+          return user.NOME || '';
         },
         renderHeader: () => (
           <TextHeader
@@ -222,7 +222,7 @@ export function useRequisitionColumns(
         headerName: "Criado por",
         flex: 1,
         valueGetter: (user: ReducedUser) => {
-          return user.NOME;
+          return user.NOME || '';
         },
       },
       {
@@ -230,7 +230,7 @@ export function useRequisitionColumns(
         headerName: "Alterado por",
         flex: 1,
         valueGetter: (user: ReducedUser) => {
-          return user.NOME;
+          return user.NOME || '';
         },
       },
       {
@@ -269,7 +269,7 @@ export function useRequisitionColumns(
         headerName: "Gerente",
         flex: 1,
         valueGetter: (user: ReducedUser) => {
-          return user.NOME;
+          return user.NOME || '';
         },
       },
     ],

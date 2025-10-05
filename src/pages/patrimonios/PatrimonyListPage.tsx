@@ -121,7 +121,7 @@ const PatrimonyListPage = () => {
         search,
         prismaFilters,
       });
-
+      console.log("patrimonios: ", data)
       dispatch(setRows(data));
       dispatch(setIsLoading(false));
     } catch (e: any) {

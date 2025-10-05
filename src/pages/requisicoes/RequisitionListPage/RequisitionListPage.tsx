@@ -159,6 +159,7 @@ const RequisitionListPage = () => {
           searchTerm,
           filters,
         });
+        console.log("requisitions: ", data)
         dispatch(setRows(data));
         dispatch(setLoading(false));
       } catch (e: any) {
@@ -297,7 +298,7 @@ const RequisitionListPage = () => {
             rowHeight={40}
             columns={columns}
             loading={loading}
-            onCellClick={(params) =>
+            onCellClick={(params: { field: string; }) =>
               params.field !== "actions" && navigateToRequisitionDetails(params)
             }
             getRowId={(row: any) => row.ID_REQUISICAO}
