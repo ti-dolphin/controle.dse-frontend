@@ -167,8 +167,13 @@ const RequisitionDetailPage = () => {
   }
 
   const shouldShowQuoteListButton = ( ) => { 
-     const statusList = ['em cotação', 'aprovação Gerente', 'aprovação Diretoria', 'gerar oc', 'oc gerada'];
-     return statusList.includes((requisition.status?.nome ?? "").toLowerCase());
+    // Se a requisição ainda não foi carregada, não mostra o botão
+    if (!requisition || !requisition.status) {
+      return false;
+    }
+
+     const statusList = ['em cotação', 'aprovação Gerente', 'aprovação Diretoria', 'gerar oc', 'oc gerada', 'concluído'];
+    return statusList.includes((requisition.status.nome ?? "").toLowerCase());
   }
 
   useEffect(() => {
@@ -519,13 +524,15 @@ const RequisitionDetailPage = () => {
                   Adicionar Itens
                 </Button>
               )}
-              <Button
-                onClick={() => setQuoteListOpen(true)}
-                variant="contained"
-                size="small"
-              >
-                Cotações
-              </Button>
+              {shouldShowQuoteListButton() && (
+                <Button
+                  onClick={() => setQuoteListOpen(true)}
+                  variant="contained"
+                  size="small"
+                >
+                  Cotações
+                </Button>
+              )}
               <Box ml="auto">
                 <Typography variant="subtitle2" color="success.main">
                   Custo total:{" "}
