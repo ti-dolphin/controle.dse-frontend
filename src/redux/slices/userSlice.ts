@@ -5,9 +5,11 @@ interface UserState {
   user: User | null;
   token: string | null;
 }
+
+
 const initialState: UserState = {
-  user: window.localStorage.getItem("user") ? JSON.parse(window.localStorage.getItem("user") as string) : null,
-  token: window.localStorage.getItem('token'),
+  user: window.localStorage.getItem("user") && window.localStorage.getItem("user") !== "undefined" ? JSON.parse(window.localStorage.getItem("user") as string) : null,
+  token: window.localStorage.getItem('token') && window.localStorage.getItem('token') !== "undefined" ? window.localStorage.getItem('token') : null,
 };
 
 const userSlice = createSlice({
