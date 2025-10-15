@@ -51,6 +51,7 @@ const fields: FieldConfig[] = [
     field: "ID_PROJETO",
     type: "autocomplete",
     disabled: false,
+    required: true,
     defaultValue: "",
     options: projectOptions,
     value: projectOptions.find((opt) => opt.id === requisition.ID_PROJETO)?.id || null,
@@ -175,6 +176,7 @@ const fields: FieldConfig[] = [
               label={config.label}
               value={config.value}
               optionHeight={60}
+              required={config.required}
               onChange={(id) =>
                 handleChangeOptionField(config.field as keyof Requisition, Number(id))
               }
