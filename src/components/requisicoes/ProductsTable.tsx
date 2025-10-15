@@ -193,12 +193,23 @@ const ProductsTable = () => {
   const debouncedHandleChangeSearchTerm = debounce(changeSearchTerm, 500);
 
   const fetchData = useCallback(async () => {
-
     setLoading(true);
     try {
-      const data = await ProductService.getMany({ searchTerm });
-      console.log("produtos: ", data)
-      dispatch(setProducts(data))
+      const params: any = { searchTerm };
+      
+      
+      const data = await ProductService.getMany(params);
+      
+      const sortedData = [...data].sort((a, b) => {
+        const qtyA = a.quantidade_disponivel || 0;
+        const qtyB = b.quantidade_disponivel || 0;
+        return qtyB - qtyA;
+      });
+      
+      console.log("produtos: ", sortedData);
+      
+      dispatch(setProducts(sortedData))
+      console.log(sortedData, 'oioioi ')
       setLoading(false);
     } catch (e) {
       setLoading(false);
