@@ -15,6 +15,7 @@ isSupplierRoute :boolean,
       label: "Fornecedor",
       autoComplete: false,
       disabled: isSupplierRoute,
+      required: true,
       options: [],
     },
     {
