@@ -95,7 +95,7 @@ const RequisitionStatusStepper = ({
   const { requisition, refreshRequisition } = useSelector((state: RootState) => state.requisition);
   const {attendingItems, notAttendedItems} = useSelector((state: RootState) => state.attendingItemsSlice);
   const {items } = useSelector((state: RootState) => state.requisitionItem);
-  const { permissionToChangeStatus, permissionToCancel, permissionToActivate } = useRequisitionStatusPermissions(user, requisition);
+  const { permissionToChangeStatus, permissionToCancel, permissionToActivate, permissionToRevertStatus } = useRequisitionStatusPermissions(user, requisition);
   const currentStatusIndex = requisition.status?.etapa ?? 0;
   const { statusList } = useRequisitionStatus(id_requisicao); 
   const {refresh} = useSelector((state: RootState) => state.requisitionItem);
@@ -133,14 +133,22 @@ const RequisitionStatusStepper = ({
   const handleChangeStatus = async (
     type: "acao_anterior" | "acao_posterior"
   ) => {
-    if(!permissionToChangeStatus){ 
-        dispatch(setFeedback({ 
-            type: 'error', 
-            message: 'Você não tem permissão para alterar o status.' 
-        }));
-        return;
+    // Verifica permissão específica baseada no tipo de ação
+    const hasPermission = type === "acao_anterior" 
+      ? permissionToRevertStatus  // Para reverter, usa permissão de reversão
+      : permissionToChangeStatus; // Para avançar, usa permissão normal
+
+    if (!hasPermission) {
+      dispatch(setFeedback({ 
+        type: 'error', 
+        message: type === "acao_anterior"
+          ? 'Você não tem permissão para reverter ao status anterior.'
+          : 'Você não tem permissão para alterar o status.' 
+      }));
+      return;
     }
-    if (type === "acao_anterior" && permissionToChangeStatus) {
+
+    if (type === "acao_anterior") {
       setFillingComment(true);
       return;
     }
@@ -181,7 +189,7 @@ const RequisitionStatusStepper = ({
        dispatch(setRequisition(updatedRequisition));
        dispatch(setRefresh(!refresh));
        dispatch(setRefreshRequisition(!refreshRequisition));
-      if(!permissionToChangeStatus){ 
+      if(!hasPermission){ 
         navigate("/requisicoes");
         return;
       }
@@ -300,7 +308,7 @@ const RequisitionStatusStepper = ({
       );
       dispatch(setRequisition(updatedRequisition));
       dispatch(setRefresh(!refresh));
-      if (!permissionToChangeStatus) {
+      if (!permissionToRevertStatus) {
         navigate("/requisicoes");
         return;
       }

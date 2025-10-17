@@ -209,7 +209,6 @@ const ProductsTable = () => {
       console.log("produtos: ", sortedData);
       
       dispatch(setProducts(sortedData))
-      console.log(sortedData, 'oioioi ')
       setLoading(false);
     } catch (e) {
       setLoading(false);
