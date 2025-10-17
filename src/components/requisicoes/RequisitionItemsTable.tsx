@@ -597,7 +597,12 @@ const RequisitionItemsTable = ({ tableMaxHeight, hideFooter }: RequisitionItemsT
   );
 
   const shouldShowCreateParcialReqBtn = ( ) => {
-    return ( !addingReqItems && !updatingRecentProductsQuantity && items.length > 0 && !attendingItems);
+    const allowedStatus = ['em cotação', 'requisitado'];
+    return ( !addingReqItems && 
+      !updatingRecentProductsQuantity 
+      && items.length > 0
+      && !attendingItems
+      && allowedStatus.includes(requisition.status?.nome?.toLowerCase() || ''));
   }
 
   const shouldShowAttendItemsBtn = () => {

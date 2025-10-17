@@ -1,5 +1,5 @@
-import React, { useCallback, useEffect } from "react";
-import { Box, Button, Dialog, DialogTitle, Grid, IconButton, Paper, Stack, Typography } from "@mui/material";
+import React, { useCallback, useEffect, useState } from "react";
+import { Box, Button, Dialog, DialogTitle, DialogContent, DialogActions, Grid, IconButton, Paper, Stack, Typography } from "@mui/material";
 import { useNavigate, useParams, useSearchParams } from "react-router-dom";
 import QuoteService from "../../services/requisicoes/QuoteService";
 import QuoteForm from "../../components/requisicoes/QuoteForm";
@@ -16,6 +16,7 @@ import { UserService } from "../../services/UserService";
 import { RootState } from "../../redux/store";
 import FullscreenIcon from "@mui/icons-material/Fullscreen";
 import UpperNavigation from "../../components/shared/UpperNavigation";
+import { QuoteFileService } from "../../services/requisicoes/QuoteFileService";
 
 const QuoteDetailPage = () => {
   const dispatch = useDispatch();
@@ -29,6 +30,18 @@ const QuoteDetailPage = () => {
  const accesType = useSelector((state : RootState) => state.quote.accessType);
  const requisition = useSelector((state : RootState) => state.requisition.requisition);
  const [fullScreenItems, setFullScreenItems] = React.useState(false);
+  const [showAttachmentDialog, setShowAttachmentDialog] = useState<boolean>(false);
+
+  const checkIfQuoteHasAttachments = async (): Promise<boolean> => {
+    try {
+      const attachments = await QuoteFileService.getMany({ id_cotacao: Number(id_cotacao) }, token || undefined);
+      return attachments.length > 0;
+    } catch (error) {
+      console.error('Erro ao verificar anexos da cotação:', error);
+      return false;
+    }
+  };
+
   const handleSubmitQuote  = async (e : React.FormEvent<HTMLFormElement>, data : Quote) =>  { 
       e.preventDefault();
       try{ 
@@ -51,9 +64,28 @@ const QuoteDetailPage = () => {
       }
   }
 
-  const handleBack = () => {
-    navigate(-1);
+  const handleBack = async () => {
+    try {
+      const hasAttachments = await checkIfQuoteHasAttachments();
+      if (!hasAttachments) {
+        setShowAttachmentDialog(true);
+        return;
+      }
+      navigate(-1);
+    } catch (error) {
+      console.error('Erro ao verificar anexos:', error);
+      navigate(-1);
+    }
   }
+
+  const confirmNavigation = () => {
+    setShowAttachmentDialog(false);
+    navigate(-1);
+  };
+
+  const cancelNavigation = () => {
+    setShowAttachmentDialog(false);
+  };
 
   const hanldeCreateSupplierAccess = async ( ) => { 
       try{ 
@@ -185,6 +217,39 @@ const QuoteDetailPage = () => {
           </Stack>
         </DialogTitle>
         <QuoteItemsTable hideFooter={false} tableMaxHeight={600} />
+      </Dialog>
+
+      {/* Dialog de confirmação para voltar sem anexos */}
+      <Dialog
+        open={showAttachmentDialog}
+        onClose={cancelNavigation}
+      >
+        <DialogTitle>
+          Confirmação de navegação
+        </DialogTitle>
+        <DialogContent>
+          <Typography>
+            Você tem certeza que deseja voltar sem criar nenhum anexo na cotação?
+          </Typography>
+        </DialogContent>
+        <DialogActions>
+          <Button
+            variant="contained"
+            size="small"
+            color="error"
+            onClick={cancelNavigation}
+          >
+            Cancelar
+          </Button>
+          <Button
+            variant="contained"
+            size="small"
+            color="success"
+            onClick={confirmNavigation}
+          >
+            Confirmar
+          </Button>
+        </DialogActions>
       </Dialog>
     </Box>
   );

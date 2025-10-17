@@ -38,6 +38,8 @@ import { addComment } from "../../redux/slices/requisicoes/requisitionCommentSli
 import { startAttendingItems, stopAttendingItems } from "../../redux/slices/requisicoes/attenItemsSlice";
 import RequisitionItemsTable from "./RequisitionItemsTable";
 import { set } from "lodash";
+import { RequisitionItemAttachmentService } from "../../services/requisicoes/RequisitionItemAttachmentService";
+import { RequisitionFileService } from "../../services/requisicoes/RequisitionFileService";
 
 interface RequisitionStatusStepperProps {
   id_requisicao: number;
@@ -103,14 +105,51 @@ const RequisitionStatusStepper = ({
   const [comment, setComment] = useState<string>('');
    const [focusedElement, setFocusedElement] = useState<EventTarget | null>(null);
   const  [justifyingLessThenThreeQuotes, setJustifyingLessThenThreeQuotes] = useState<boolean>(false);
+  const [showValidationDialog, setShowValidationDialog] = useState<boolean>(false);
+  const [pendingStatusChange, setPendingStatusChange] = useState<"acao_anterior" | "acao_posterior" | null>(null);
+
+  const checkIfItemsHaveAttachments = async (): Promise<boolean> => {
+    try {
+      // Verifica anexos da requisição
+      const requisitionAttachments = await RequisitionFileService.getMany({ id_requisicao });
+      if (requisitionAttachments.length > 0) {
+        return true;
+      }
+
+      // Verifica anexos dos itens da requisição
+      const items = await RequisitionItemService.getMany({ id_requisicao });
+      let hasItemAttachments = false;
+
+      for (const item of items) {
+        const attachments = await RequisitionItemAttachmentService.getByRequisitionItem(item.id_item_requisicao);
+        if (attachments.length > 0) {
+          hasItemAttachments = true;
+          break;
+        }
+      }
+
+      return hasItemAttachments;
+    } catch (error) {
+      console.error('Erro ao verificar anexos:', error);
+      return false;
+    }
+  };
 
   const validationRules = async (newStatus: RequisitionStatus ) =>  {
-      if(newStatus.nome === 'Validação') {
-        const items = await RequisitionItemService.getMany({id_requisicao});
-        const noItems = items.length === 0; 
+    if(!requisition.status) return;
+   const advancingStatus = newStatus.etapa > requisition.status?.etapa || 0;
+
+    if(newStatus.nome === 'Validação' && advancingStatus) {
+      const items = await RequisitionItemService.getMany({id_requisicao});
+      const noItems = items.length === 0; 
         if(noItems) {
           throw new Error('Requisição sem itens');
-        } 
+        }
+
+        const hasAttachments = await checkIfItemsHaveAttachments();
+        if (!hasAttachments) {
+          throw new Error('SHOW_VALIDATION_DIALOG');
+        }
       }
       if(newStatus.nome === 'Aprovação Gerente'){ 
         const quotes = await QuoteService.getMany({id_requisicao});
@@ -131,7 +170,8 @@ const RequisitionStatusStepper = ({
   } 
 
   const handleChangeStatus = async (
-    type: "acao_anterior" | "acao_posterior"
+    type: "acao_anterior" | "acao_posterior",
+    confirmValidation?: boolean
   ) => {
     if(!permissionToChangeStatus){ 
         dispatch(setFeedback({ 
@@ -160,7 +200,19 @@ const RequisitionStatusStepper = ({
         return;
       }
       if(newStatus){ 
-        await validationRules(newStatus);
+        try {
+          if(!confirmValidation){
+            //se não tiver recebido a confirmação, valida as regras, se tiver recebido a confirmação, prossegue com a alteração de status, pois o usuario confirmou a validação
+            await validationRules(newStatus);
+          }
+        } catch (error: any) {
+          if (error.message === 'SHOW_VALIDATION_DIALOG') {
+            setPendingStatusChange(type);
+            setShowValidationDialog(true);
+            return;
+          }
+          throw error;
+        }
       }
       if (!newStatus) {
         dispatch(
@@ -356,6 +408,21 @@ const RequisitionStatusStepper = ({
       );
     }
   }
+
+  const confirmValidationStatusChange = async () => {
+    console.log("confirmValidationStatusChange");
+    setShowValidationDialog(false);
+    if (pendingStatusChange) {
+      console.log("pendingStatusChange", pendingStatusChange);
+      await handleChangeStatus(pendingStatusChange, true);
+    }
+    setPendingStatusChange(null);
+  };
+
+  const cancelValidationStatusChange = () => {
+    setShowValidationDialog(false);
+    setPendingStatusChange(null);
+  };
 
 // Adiciona listeners globais para monitorar eventos de foco e blur
 useEffect(() => {
@@ -595,6 +662,39 @@ useEffect(() => {
             </Button>
           </DialogActions>
         </Box>
+      </Dialog>
+
+      {/* Dialog de confirmação para status Validação sem anexos */}
+      <Dialog
+        open={showValidationDialog}
+        onClose={cancelValidationStatusChange}
+      >
+        <DialogTitle>
+          Confirmação de mudança de status
+        </DialogTitle>
+        <DialogContent>
+          <Typography>
+            Você tem certeza que deseja prosseguir para o status "Validação" sem criar nenhum anexo?
+          </Typography>
+        </DialogContent>
+        <DialogActions>
+          <Button
+            variant="contained"
+            size="small"
+            color="error"
+            onClick={cancelValidationStatusChange}
+          >
+            Cancelar
+          </Button>
+          <Button
+            variant="contained"
+            size="small"
+            color="success"
+            onClick={confirmValidationStatusChange}
+          >
+            Confirmar
+          </Button>
+        </DialogActions>
       </Dialog>
     </Box>
   );
