@@ -114,9 +114,9 @@ const RequisitionDetailPage = () => {
     }
   }
 
-  const concludeReplaceItemProduct = async ( ) =>   {
+  const concludeReplaceItemProduct = async () =>   {
     if(!itemBeingReplaced || !productSelected) return;
-    try{ 
+    try { 
       await RequisitionItemService.update(itemBeingReplaced, {id_produto: productSelected});
       dispatch(setFeedback({
         message: 'Produto substituído com sucesso',
@@ -126,7 +126,7 @@ const RequisitionDetailPage = () => {
       dispatch(setReplacingItemProduct(false));
       dispatch(setItemBeingReplaced(null))
       dispatch(setProductSelected(null))
-    }catch(e) {
+    } catch(e) {
       dispatch(setFeedback({
         message: 'Erro ao substituir produto',
         type: 'error'
@@ -134,7 +134,7 @@ const RequisitionDetailPage = () => {
     }
   }
 
-  const concludeAddProducts  = async (  ) =>  {
+  const concludeAddProducts  = async () =>  {
     await createItemsFromProducts();
     dispatch(setUpdatingRecentProductsQuantity(true));
     dispatch(setAddingProducts(false));

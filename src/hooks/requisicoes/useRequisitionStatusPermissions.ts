@@ -7,19 +7,21 @@ import { setFeedback } from "../../redux/slices/feedBackSlice";
 
 export interface RequisitionStatusPermissions{ 
     permissionToChangeStatus: boolean;
+    permissionToRevertStatus: boolean;
 }
-
 
 export const useRequisitionStatusPermissions = (user: User | null, requisition: Requisition ) => { 
     const dispatch = useDispatch();
     const [permissionToChangeStatus, setPermissionToChangeStatus] = useState<boolean>(false);
     const [permissionToCancel, setPermissionToCancel] = useState<boolean>(false);
     const [permissionToActivate, setPermissionToActivate] = useState<boolean>(false);
+    const [permissionToRevertStatus, setPermissionToRevertStatus] = useState<boolean>(false);
 
     const fetchPermission = useCallback(async () => { 
     setPermissionToCancel(false);
     setPermissionToActivate(false);
     setPermissionToChangeStatus(false);
+    setPermissionToRevertStatus(false);
     const admOrBuyer = user?.PERM_ADMINISTRADOR === 1 || user?.PERM_COMPRADOR === 1;
     const notCancelled = requisition.status?.nome !== "Cancelado";
     const cancelled = requisition.status?.nome === "Cancelado";
@@ -31,8 +33,6 @@ export const useRequisitionStatusPermissions = (user: User | null, requisition: 
       setPermissionToActivate(true);
     }
 
-
-  
     if (admOrBuyer && notCancelled) {
       setPermissionToCancel(true);
     }
@@ -44,6 +44,7 @@ export const useRequisitionStatusPermissions = (user: User | null, requisition: 
         requisition
         );
         setPermissionToChangeStatus(permissions.permissionToChangeStatus);
+        setPermissionToRevertStatus(permissions.permissionToRevertStatus);
             if (stockUser) {
               setPermissionToChangeStatus(true);
             }
@@ -67,6 +68,7 @@ export const useRequisitionStatusPermissions = (user: User | null, requisition: 
       permissionToChangeStatus,
       permissionToCancel,
       permissionToActivate,
+      permissionToRevertStatus,
     };
 
 };
