@@ -188,7 +188,7 @@ export const useRequisitionItemColumns = (
       ),
     },
     {
-      field: "produto_quantidade_disponivel",
+      field: "quantidade_disponivel",
       headerName: "Estoque",
       type: "number",
       width: 100,
@@ -391,7 +391,7 @@ export const useRequisitionItemColumns = (
   ];
 
   // Definindo filteredColumns para sempre executar hooks depois
-  const nonDefaultColumns = ["produto_quantidade_disponivel", "quantidade_atendida"];
+  const nonDefaultColumns = ["produto_quantidade_disponivel", "quantidade_atendida", "quantidade_disponivel"];
   let filteredColumns = columns.filter((col) => !nonDefaultColumns.includes(col.field));
 
   if (updatingRecentProductsQuantity) {
@@ -415,7 +415,7 @@ export const useRequisitionItemColumns = (
         "produto_descricao",
         "quantidade_atendida",
         "quantidade",
-        "produto_quantidade_disponivel",
+        "quantidade_disponivel",
       ].includes(col.field)
     );
   }

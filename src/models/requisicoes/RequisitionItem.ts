@@ -11,6 +11,7 @@ export interface RequisitionItem {
     ativo: number;
     oc: string | null;
     data_entrega: string | null;
+    quantidade_disponivel: number;
     id_item_cotacao?: number;
     items_cotacao ? : Partial<QuoteItem[]>;
     quantidade_atendida?: number;

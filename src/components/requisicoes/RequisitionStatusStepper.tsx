@@ -299,7 +299,7 @@ const RequisitionStatusStepper = ({
   const handleAttendItems = async () => {
       try {
       let comprasItems = await RequisitionItemService.getMany({ id_requisicao });
-      comprasItems = comprasItems.filter((item) => !item.produto_quantidade_disponivel);
+      comprasItems = comprasItems.filter((item) => !item.quantidade_disponivel);
       comprasItems = [...comprasItems, ...notAttendedItems];
       console.log("comprasItems", comprasItems);
       const {estoque, compras} = await RequisitionService.attend(Number(id_requisicao), user?.CODPESSOA || 0, [...items, ...comprasItems]);

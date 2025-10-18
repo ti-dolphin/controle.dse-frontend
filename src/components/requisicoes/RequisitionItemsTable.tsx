@@ -545,14 +545,14 @@ const RequisitionItemsTable = ({ tableMaxHeight, hideFooter }: RequisitionItemsT
       dispatch(setItems(data));
       if(attendingItems){ 
         dispatch(setItems(data.map((item) => { 
-          let quantidade_atendida = item.quantidade > (item.produto_quantidade_disponivel || 0)
-              ? item.produto_quantidade_disponivel
+          let quantidade_atendida = item.quantidade > (item.quantidade_disponivel || 0)
+              ? item.quantidade_disponivel
               : item.quantidade;
           return {
             ...item,
             quantidade_atendida
           }
-        }).filter((item) => item.produto_quantidade_disponivel)
+        }).filter((item) => item.quantidade_disponivel)
       ));
       }
       defineSelectedQuoteItemsMap(data);
