@@ -40,6 +40,9 @@ export const useRequisitionItemColumns = (
   selectionModel: number[],
   blockFields: boolean
 ) => {
+
+  console.log(blockFields, 'blockFields');
+
   const dispatch = useDispatch();
   const { id_requisicao } = useParams();
   const [fillingOC, setFillingOC] = useState(false);
