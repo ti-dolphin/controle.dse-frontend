@@ -34,7 +34,7 @@ export default function ChecklistItemCard({
   const uploadImage = async (e: React.ChangeEvent<HTMLInputElement>) => {
     if (!e.target.files || e.target.files.length === 0) return;
     if (!checklistItem) return;
-  if(!updateSingleItem) return;
+    if(!updateSingleItem) return;
     try {
       setLoading(true);
       const file = e.target.files[0];

@@ -13,5 +13,14 @@ export const useProductPermissions = (user : User | null) => {
           }
         }
        }, [user]);
-       return { editProductFieldsPermitted };
+       
+       const hasStockPermission = user?.PERM_ESTOQUE === 1 || user?.PERM_ADMINISTRADOR === 1;
+  
+       const canEditStockFields = hasStockPermission || editProductFieldsPermitted;
+  
+       return { 
+         editProductFieldsPermitted,
+         hasStockPermission,
+         canEditStockFields,
+       };
 };

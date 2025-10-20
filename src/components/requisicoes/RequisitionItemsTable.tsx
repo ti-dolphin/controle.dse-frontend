@@ -392,7 +392,7 @@ const RequisitionItemsTable = ({ tableMaxHeight, hideFooter }: RequisitionItemsT
         );
         return oldRow;
       }
-      if(newRow.quantidade_atendida > newRow.quantidade){
+      if (newRow.quantidade_atendida > newRow.quantidade) {
         dispatch(
           setFeedback({
             message: `Quantidade atendida não deve ser maior que quantidade solicitada`,
