@@ -17,6 +17,7 @@ import OptionsField from '../shared/ui/OptionsField';
 import {
   addChecklist,
   updateSingleRow,
+  setRows as setChecklistRows,
 } from "../../redux/slices/patrimonios/ChecklistTableSlice";
 import { CheckListService } from '../../services/patrimonios/ChecklistService';
 import { RootState } from '../../redux/store';
@@ -77,21 +78,23 @@ const PatrimonyMovementationTable = () => {
           }
 
           // Aprova o checklist pendente
-          const updatedChecklist = await CheckListService.approve(
+          await CheckListService.approve(
             pendingChecklist.id_checklist_movimentacao || 0
           );
 
-          if (updatedChecklist) {
-            dispatch(updateSingleRow(updatedChecklist));
-          }
-      
-
+          // Recarrega os checklists atualizados do backend
+          const updatedChecklists = await CheckListService.getMany({
+            from: 'checklists',
+            id_patrimonio: Number(id_patrimonio)
+          });
+          
+          dispatch(setChecklistRows(updatedChecklists));
           dispatch(setFeedback({ message: 'Checklist aprovado com sucesso', type: 'success' }));
           
           // Fecha o modal
           setCreating(false);
           
-          // Recarrega os dados (movimentações e checklists serão atualizados via Redux)
+          // Recarrega as movimentações
           await fetchData();
 
         } catch (error) {
