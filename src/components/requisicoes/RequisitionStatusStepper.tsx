@@ -135,23 +135,36 @@ const RequisitionStatusStepper = ({
     }
   };
 
-  const validationRules = async (newStatus: RequisitionStatus ) =>  {
+  const validationRules = async (newStatus: RequisitionStatus, skipAttachmentValidation: boolean = false ) =>  {
     if(!requisition.status) return;
    const advancingStatus = newStatus.etapa > requisition.status?.etapa || 0;
 
-    if(newStatus.nome === 'Validação' && advancingStatus) {
+    // Validação apenas para status "Em Cotação" e avançando
+    if(newStatus.nome === 'Em Cotação' && advancingStatus) {
       const items = await RequisitionItemService.getMany({id_requisicao});
       const noItems = items.length === 0; 
         if(noItems) {
           throw new Error('Requisição sem itens');
         }
 
-        const hasAttachments = await checkIfItemsHaveAttachments();
-        if (!hasAttachments) {
-          throw new Error('SHOW_VALIDATION_DIALOG');
+        if(!skipAttachmentValidation) {
+          const hasAttachments = await checkIfItemsHaveAttachments();
+          if (!hasAttachments) {
+            throw new Error('SHOW_VALIDATION_DIALOG');
+          }
         }
       }
+      
       if(newStatus.nome === 'Aprovação Gerente'){ 
+        // Validação de anexos (pula se usuário já confirmou)
+        if(!skipAttachmentValidation) {
+          const hasAttachments = await checkIfItemsHaveAttachments();
+          if (!hasAttachments) {
+            throw new Error('SHOW_VALIDATION_DIALOG');
+          }
+        }
+        
+        // Validações de cotações (sempre executam)
         const quotes = await QuoteService.getMany({id_requisicao});
         const noQuotes = quotes.length === 0;
         const noQuoteItemSelected = items.every((item) => !item.id_item_cotacao);
@@ -162,8 +175,8 @@ const RequisitionStatusStepper = ({
           throw new Error('Requisição sem itens selecionados da cotação');
         }
         if(quotes.length > 0 && quotes.length < 3){ 
-           setJustifyingLessThenThreeQuotes(true);
-           throw new Error('Requisição com menos de 3 cotações');
+          setJustifyingLessThenThreeQuotes(true);
+          throw new Error('Requisição com menos de 3 cotações');
         }
       }
       return;
@@ -209,10 +222,8 @@ const RequisitionStatusStepper = ({
       }
       if(newStatus){ 
         try {
-          if(!confirmValidation){
-            //se não tiver recebido a confirmação, valida as regras, se tiver recebido a confirmação, prossegue com a alteração de status, pois o usuario confirmou a validação
-            await validationRules(newStatus);
-          }
+          // Se confirmValidation = true, pula validação de anexos mas executa outras
+          await validationRules(newStatus, confirmValidation || false);
         } catch (error: any) {
           if (error.message === 'SHOW_VALIDATION_DIALOG') {
             setPendingStatusChange(type);
@@ -672,7 +683,7 @@ useEffect(() => {
         </Box>
       </Dialog>
 
-      {/* Dialog de confirmação para status Validação sem anexos */}
+      {/* Dialog de confirmação para status Em Cotação sem anexos */}
       <Dialog
         open={showValidationDialog}
         onClose={cancelValidationStatusChange}
@@ -682,7 +693,7 @@ useEffect(() => {
         </DialogTitle>
         <DialogContent>
           <Typography>
-            Você tem certeza que deseja prosseguir para o status "Validação" sem criar nenhum anexo?
+            Você tem certeza que deseja prosseguir para o status "Em Cotação" sem criar nenhum anexo?
           </Typography>
         </DialogContent>
         <DialogActions>
