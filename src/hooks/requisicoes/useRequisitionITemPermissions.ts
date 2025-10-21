@@ -18,8 +18,7 @@
 //       const responsable = Number(user?.CODPESSOA) == Number(requisition.ID_RESPONSAVEL) && requisition.status?.nome === "Em edição";  
 //       const editionEnabledForStatus = ['requisitado', 'em cotação' ];
 //       const buyer = Number(user?.PERM_COMPRADOR) == 1 && editionEnabledForStatus.includes(requisition.status?.nome  ? requisition.status?.nome.toLowerCase() : '');
-      
-      
+
 //       setEditItemFieldsPermitted(adm || responsable || buyer);
 //       setChangeProductItemPermitted(adm || responsable || buyer);
 //       setCreateQuotePermitted((adm || buyer) && requisition.status?.nome === "Em cotação");
@@ -53,6 +52,8 @@ function isResponsable(user: User | null, requisition: Requisition): boolean {
 
 function isBuyer(user: User | null, requisition: Requisition): boolean {
   const status = requisition.status?.nome?.toLowerCase() || "";
+  console.log(status)
+  console.log('VALIDAÇÃO PERM BUYER SAMUEL: ', Number(user?.PERM_COMPRADOR) === 1, editionEnabledStatuses.includes(status));
   return (
     Number(user?.PERM_COMPRADOR) === 1 &&
     editionEnabledStatuses.includes(status)
