@@ -429,6 +429,7 @@ export const useRequisitionItemColumns = (
       );
       const colsWithRenderCell = rawCols.map((col: GridColDef) => ({
         ...col,
+        editable: true,
         renderCell: (params: any) => {
           const { id_item_requisicao } = params.row;
           const quoteItem = params.row.items_cotacao.find(
