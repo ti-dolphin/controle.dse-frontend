@@ -41,8 +41,6 @@ export const useRequisitionItemColumns = (
   blockFields: boolean
 ) => {
 
-  console.log(blockFields, 'blockFields');
-
   const dispatch = useDispatch();
   const { id_requisicao } = useParams();
   const [fillingOC, setFillingOC] = useState(false);
@@ -496,7 +494,7 @@ export const useRequisitionItemColumns = (
                   overflow: "hidden",
                   textOverflow: "ellipsis",
                   whiteSpace: "nowrap",
-                  maxWidth: " 70px",
+                  maxWidth: "110px",
                 }}
                 fontSize="0.7rem"
                 fontWeight="bold"
@@ -504,11 +502,6 @@ export const useRequisitionItemColumns = (
               >
                 {params.colDef.headerName}
               </Typography>
-              <Checkbox
-                onChange={(e) => handleSelectQuoteId(Number(params.field), e)}
-                icon={<RadioButtonUncheckedIcon sx={{ fontSize: 14 }} />}
-                checkedIcon={<CheckCircleIcon sx={{ fontSize: 14 }} />}
-              ></Checkbox>
             </Box>
           );
         },
