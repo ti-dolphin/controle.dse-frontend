@@ -14,7 +14,11 @@ import { BaseAddButton } from '../shared/BaseAddButton';
 import { Option } from '../../types';
 import { useMovementationPermissions } from '../../hooks/patrimonios/useMovementationPermissions';
 import OptionsField from '../shared/ui/OptionsField';
-import { addChecklist } from '../../redux/slices/patrimonios/ChecklistTableSlice';
+import {
+  addChecklist,
+  updateSingleRow,
+  setRows as setChecklistRows,
+} from "../../redux/slices/patrimonios/ChecklistTableSlice";
 import { CheckListService } from '../../services/patrimonios/ChecklistService';
 import { RootState } from '../../redux/store';
 
@@ -59,6 +63,43 @@ const PatrimonyMovementationTable = () => {
       const patrimonyHasPendingChecklist = ( ) => { 
         console.log("checklistRows", checklistRows);
         return checklistRows.some((checklist) => !checklist.realizado || !checklist.aprovado);
+      }
+
+      const skipMov = async () => {
+        try {
+          const pendingChecklist = checklistRows.find((checklist) => !checklist.realizado || !checklist.aprovado);
+
+          if (!pendingChecklist) {
+            dispatch(setFeedback({ 
+              message: 'Nenhum checklist pendente encontrado', 
+              type: 'error'
+            }));
+            return;
+          }
+
+          // Aprova o checklist pendente
+          await CheckListService.approve(
+            pendingChecklist.id_checklist_movimentacao || 0
+          );
+
+          // Recarrega os checklists atualizados do backend
+          const updatedChecklists = await CheckListService.getMany({
+            from: 'checklists',
+            id_patrimonio: Number(id_patrimonio)
+          });
+          
+          dispatch(setChecklistRows(updatedChecklists));
+          dispatch(setFeedback({ message: 'Checklist aprovado com sucesso', type: 'success' }));
+          
+          // Fecha o modal
+          setCreating(false);
+          
+          // Recarrega as movimentações
+          await fetchData();
+
+        } catch (error) {
+          dispatch(setFeedback({ message: 'Erro ao aprovar checklist', type: 'error' }));
+        }
       }
 
       const createMov = async ( ) => {
@@ -141,6 +182,7 @@ const PatrimonyMovementationTable = () => {
             setFormData={setFormData}
             onCancel={() => setCreating(false)}
             onConfirm={createMov}
+            onSkipMov={skipMov}
             projectOptions={projectOptions}
             userOptions={userOptions}
           />
@@ -161,45 +203,49 @@ function MovimentationForm(props: {
   setFormData: React.Dispatch<React.SetStateAction<any>>,
   onCancel: () => void,
   onConfirm: () => void,
+  onSkipMov: () => void,
   projectOptions: Option[],
   userOptions: Option[]
 }) {
-  const { formData, setFormData, onCancel, onConfirm, projectOptions, userOptions } = props
-   
+  const { formData, setFormData, onCancel, onConfirm, onSkipMov, projectOptions, userOptions } = props
+
   return (
     <Stack
       spacing={1}
       alignItems="center"
-      sx={{ width: '100%', minHeight:300}}
+      sx={{ width: "100%", minHeight: 300 }}
     >
       <Typography variant="h6" color="primary.main">
         Nova moviementação
       </Typography>
-      <OptionsField 
-       label='Projeto'
-       value={formData.id_projeto}
-       options={projectOptions}
-       optionHeight={60}
-       onChange={(id_projeto) => { 
-        console.log("id_projeto: ",  id_projeto);
-        setFormData({ ...formData, id_projeto: id_projeto});
-       }}
+      <OptionsField
+        label="Projeto"
+        value={formData.id_projeto}
+        options={projectOptions}
+        optionHeight={60}
+        onChange={(id_projeto) => {
+          console.log("id_projeto: ", id_projeto);
+          setFormData({ ...formData, id_projeto: id_projeto });
+        }}
       />
-      <OptionsField 
-       label='Responsável'
-       options={userOptions}
-       value={formData.id_responsavel}
-       onChange={(id_responsavel) => { 
-        console.log("id_responsavel: ", id_responsavel);
-        setFormData({ ...formData, id_responsavel: id_responsavel });
-       }}
+      <OptionsField
+        label="Responsável"
+        options={userOptions}
+        value={formData.id_responsavel}
+        onChange={(id_responsavel) => {
+          console.log("id_responsavel: ", id_responsavel);
+          setFormData({ ...formData, id_responsavel: id_responsavel });
+        }}
       />
       <Stack direction="row" spacing={2}>
         <Button variant="contained" color="error" onClick={onCancel}>
           Cancelar
         </Button>
-        <Button variant="contained" onClick={onConfirm}>
+        <Button onClick={onConfirm}>
           Cadastrar
+        </Button>
+        <Button color="secondary" onClick={onSkipMov}>
+          Aprovar checklist
         </Button>
       </Stack>
     </Stack>

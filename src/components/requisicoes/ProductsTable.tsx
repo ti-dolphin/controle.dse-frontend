@@ -33,7 +33,7 @@ const ProductsTable = () => {
   const theme = useTheme();
   const user = useSelector((state: RootState) => state.user.user);
   const { addingProducts, recentProductsAdded, productsAdded, replacingItemProduct} = useSelector((state: RootState) => state.requisitionItem);
-  const { editProductFieldsPermitted } = useProductPermissions(user);
+  const { editProductFieldsPermitted, hasStockPermission } = useProductPermissions(user);
   const {viewingProductAttachment, products  } = useSelector((state: RootState) => state.productSlice);
   const [searchTerm, setSearchTerm] = useState("");
 
@@ -50,6 +50,7 @@ const ProductsTable = () => {
     (params: GridCellParams, event: React.MouseEvent) => {
       if (params.field === "__check__") return;
       if(params.field === 'anexos') return;
+      
       if (!params.isEditable) {
         dispatch(
           setFeedback({
@@ -59,7 +60,13 @@ const ProductsTable = () => {
         );
         return;
       }
-      if (!editProductFieldsPermitted) {
+      
+      // Check field-specific permissions
+      const stockFields = ['quantidade_estoque', 'unidade'];
+      const isStockField = stockFields.includes(params.field);
+      
+      // Stock users can only edit stock-related fields
+      if (isStockField && !hasStockPermission && !editProductFieldsPermitted) {
         dispatch(
           setFeedback({
             message: "Você não tem permissão para editar este campo",
@@ -68,21 +75,35 @@ const ProductsTable = () => {
         );
         return;
       }
-      if (addingProducts) {
+      
+      // Non-stock fields require full product edit permission
+      if (!isStockField && !editProductFieldsPermitted) {
         dispatch(
           setFeedback({
-            message: "Você não pode alterar os camops do produto nesse momento",
+            message: "Você não tem permissão para editar este campo",
             type: "error",
           })
         );
         return;
       }
+      
+      if (addingProducts) {
+        dispatch(
+          setFeedback({
+            message: "Você não pode alterar os campos do produto nesse momento",
+            type: "error",
+          })
+        );
+        return;
+      }
+      
       if (
         (event.target as any).nodeType === 1 &&
         !event.currentTarget.contains(event.target as Element)
       ) {
         return;
       }
+      
       setCellModesModel((prevModel) => {
         return {
           ...Object.keys(prevModel).reduce(
@@ -111,7 +132,7 @@ const ProductsTable = () => {
         };
       });
     },
-    [dispatch, editProductFieldsPermitted]
+    [dispatch, editProductFieldsPermitted, hasStockPermission, addingProducts]
   );
 
   const handleChangeSelection = async (

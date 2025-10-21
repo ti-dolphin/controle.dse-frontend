@@ -46,4 +46,9 @@ export class CheckListService {
   }
 
   static async delete() {}
+
+  static async approve(id_checklist_movimentacao: number): Promise<void> {
+    const response = await api.put(`${API_ENDPOINT}/${id_checklist_movimentacao}/approve`);
+    return response.data;
+  }
 }

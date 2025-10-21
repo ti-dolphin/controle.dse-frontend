@@ -258,7 +258,6 @@ const RequisitionItemsTable = ({ tableMaxHeight, hideFooter }: RequisitionItemsT
       return;
     }
     if (!editItemFieldsPermitted) {
-      console.log("edição não permitida")
       //excessão para editar apenas o número da OC
       if(exceptionForBuyer(params.field)){ 
          if (
@@ -352,7 +351,6 @@ const RequisitionItemsTable = ({ tableMaxHeight, hideFooter }: RequisitionItemsT
   //ATUALIZA LINHA NO BACKEND
   const processRowUpdate = React.useCallback(
     async (newRow: GridRowModel, oldRow: GridRowModel) => {
-      console.log("newRow", newRow);
       if(!attendingItems){
         const payload = {
           id_item_requisicao: newRow.id_item_requisicao,
@@ -394,7 +392,7 @@ const RequisitionItemsTable = ({ tableMaxHeight, hideFooter }: RequisitionItemsT
         );
         return oldRow;
       }
-      if(newRow.quantidade_atendida > newRow.quantidade){
+      if (newRow.quantidade_atendida > newRow.quantidade) {
         dispatch(
           setFeedback({
             message: `Quantidade atendida não deve ser maior que quantidade solicitada`,
@@ -541,7 +539,6 @@ const RequisitionItemsTable = ({ tableMaxHeight, hideFooter }: RequisitionItemsT
             };
 
       const data = await RequisitionItemService.getMany(params);
-      console.log("items: ", data);
       dispatch(setItems(data));
       if(attendingItems){ 
         dispatch(setItems(data.map((item) => { 
