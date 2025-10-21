@@ -7,7 +7,7 @@ import {
   GridRowSelectionModel,
   useGridApiRef,
 } from "@mui/x-data-grid";
-import React, { useCallback, useEffect, useState } from "react";
+import React, { useCallback, useEffect, useState, useMemo } from "react";
 import { useRequisitionItemColumns } from "../../hooks/requisicoes/useRequisitionItemColumns";
 import { RequisitionItem } from "../../models/requisicoes/RequisitionItem";
 import { Box, Button, Dialog, DialogContent, DialogTitle, IconButton, useTheme } from "@mui/material";
@@ -79,10 +79,16 @@ const RequisitionItemsTable = ({ tableMaxHeight, hideFooter }: RequisitionItemsT
 
   const user = useSelector((state: RootState) => state.user.user);
 
-  const { editItemFieldsPermitted, createQuotePermitted } = useRequisitionItemPermissions(
-    user,
-    requisition
-  );
+  // Chama o hook normalmente (sempre)
+  const permissionsFromHook = useRequisitionItemPermissions(user, requisition);
+
+  // Memoriza o resultado baseado no status
+  const { editItemFieldsPermitted, createQuotePermitted } = useMemo(() => {
+    if (!requisition?.status) {
+      return { editItemFieldsPermitted: false, createQuotePermitted: false };
+    }
+    return permissionsFromHook;
+  }, [permissionsFromHook, requisition?.status]);
 
   const {
     items,
