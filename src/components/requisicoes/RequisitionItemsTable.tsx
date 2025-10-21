@@ -79,8 +79,7 @@ const RequisitionItemsTable = ({ tableMaxHeight, hideFooter }: RequisitionItemsT
 
   const user = useSelector((state: RootState) => state.user.user);
 
-  const { editItemFieldsPermitted,
-      createQuotePermitted, } = useRequisitionItemPermissions(
+  const { editItemFieldsPermitted, createQuotePermitted } = useRequisitionItemPermissions(
     user,
     requisition
   );
