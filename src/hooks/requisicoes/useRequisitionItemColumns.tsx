@@ -221,7 +221,7 @@ export const useRequisitionItemColumns = (
             <Tooltip title="Preencher">
               <IconButton
                 onClick={openShippingDateDialog}
-                sx={{ height: 20, width: 20 }}
+                sx={{ height: 0, width: 20 }}
               >
                 <ArticleOutlinedIcon sx={{ fontSize: 12 }} />
               </IconButton>
@@ -429,6 +429,7 @@ export const useRequisitionItemColumns = (
       );
       const colsWithRenderCell = rawCols.map((col: GridColDef) => ({
         ...col,
+        editable: true,
         renderCell: (params: any) => {
           const { id_item_requisicao } = params.row;
           const quoteItem = params.row.items_cotacao.find(
