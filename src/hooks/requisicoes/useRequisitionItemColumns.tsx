@@ -221,7 +221,7 @@ export const useRequisitionItemColumns = (
             <Tooltip title="Preencher">
               <IconButton
                 onClick={openShippingDateDialog}
-                sx={{ height: 0, width: 20 }}
+                sx={{ height: 20, width: 20 }}
               >
                 <ArticleOutlinedIcon sx={{ fontSize: 12 }} />
               </IconButton>
