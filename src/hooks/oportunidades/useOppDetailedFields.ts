@@ -34,7 +34,7 @@ export const useOppDetailedFields = (user: User | null, opportunity: Partial<Opp
           type: "text",
           required: true,
           disabled: false,
-          defaultValue: "",
+          defaultValue: opportunity.NOME ?? "",
         },
         {
           field: "ID_PROJETO",
@@ -43,7 +43,7 @@ export const useOppDetailedFields = (user: User | null, opportunity: Partial<Opp
           required: true,
           options: projectOptions,
           disabled: false,
-          defaultValue: "",
+          defaultValue: opportunity.ID_PROJETO != null ? String(opportunity.ID_PROJETO) : "",
         },
         {
           field: "FK_CODCLIENTE",
@@ -52,7 +52,7 @@ export const useOppDetailedFields = (user: User | null, opportunity: Partial<Opp
           disabled: false,
           required: true,
           options: clientOptions,
-          defaultValue: "",
+          defaultValue: opportunity.FK_CODCLIENTE != null ? String(opportunity.FK_CODCLIENTE) : "",
         },
         {
           field: "CODSTATUS",
@@ -61,7 +61,7 @@ export const useOppDetailedFields = (user: User | null, opportunity: Partial<Opp
           disabled: false,
           required: true,
           options: oppStatusOptions,
-          defaultValue: "",
+          defaultValue: opportunity.CODSTATUS != null ? String(opportunity.CODSTATUS) : "",
         },
         {
           field: "DATASOLICITACAO",
@@ -69,7 +69,7 @@ export const useOppDetailedFields = (user: User | null, opportunity: Partial<Opp
           type: "date",
           disabled: false,
           required: true,
-          defaultValue: "",
+          defaultValue: opportunity.DATASOLICITACAO ?? "",
         },
         {
           field: "DATAINICIO",
@@ -77,7 +77,7 @@ export const useOppDetailedFields = (user: User | null, opportunity: Partial<Opp
           type: "date",
           disabled: false,
           required: true,
-          defaultValue: "",
+          defaultValue: opportunity.DATAINICIO ?? "",
         },
         {
           field: "DATAENTREGA",
@@ -85,7 +85,7 @@ export const useOppDetailedFields = (user: User | null, opportunity: Partial<Opp
           type: "date",
           disabled: false,
           required: true,
-          defaultValue: "",
+          defaultValue: opportunity.DATAENTREGA ?? "",
         },
         {
           field: "DATAINTERACAO",
@@ -93,7 +93,7 @@ export const useOppDetailedFields = (user: User | null, opportunity: Partial<Opp
           type: "date",
           disabled: false,
           required: true,
-          defaultValue: "",
+          defaultValue: opportunity.DATAINTERACAO ?? "",
         },
         {
           field: "RESPONSAVEL",
@@ -101,7 +101,7 @@ export const useOppDetailedFields = (user: User | null, opportunity: Partial<Opp
           type: "autocomplete",
           disabled: false,
           required: true,
-          defaultValue: "",
+          defaultValue: opportunity.RESPONSAVEL != null ? String(opportunity.RESPONSAVEL) : "",
           options: comercialResponsableOptions,
         },
         {
@@ -110,7 +110,7 @@ export const useOppDetailedFields = (user: User | null, opportunity: Partial<Opp
           type: "number",
           disabled: false,
           required: false,
-          defaultValue: "",
+          defaultValue: opportunity.VALORFATDOLPHIN != null ? String(opportunity.VALORFATDOLPHIN) : "",
         },
         {
           field: "VALORFATDIRETO",
@@ -118,7 +118,7 @@ export const useOppDetailedFields = (user: User | null, opportunity: Partial<Opp
           type: "number",
           disabled: false,
           required: false,
-          defaultValue: "",
+          defaultValue: opportunity.VALORFATDIRETO != null ? String(opportunity.VALORFATDIRETO) : "",
         },
         {
           field: "VALOR_COMISSAO",
@@ -126,7 +126,7 @@ export const useOppDetailedFields = (user: User | null, opportunity: Partial<Opp
           type: "number",
           disabled: false,
           required: false,
-          defaultValue: "",
+          defaultValue: opportunity.VALOR_COMISSAO != null ? String(opportunity.VALOR_COMISSAO) : "",
         },
       ]);
     }
@@ -149,6 +149,8 @@ export const useOppDetailedFields = (user: User | null, opportunity: Partial<Opp
       "DATAENTREGA",
       "DATAINTERACAO",
     ];
+    // AQUI JÁ NÃO EXISTE MAIS AS DATAS
+    // console.log(fields, "fields before filtering dateFields OI EU SOU UM MOTOQUEIRO");
     const dateFields = fields.filter((field) => dateKeys.includes(field.field));
     const saleKeys = [
       "RESPONSAVEL",

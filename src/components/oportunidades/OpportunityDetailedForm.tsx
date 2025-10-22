@@ -22,6 +22,7 @@ import {
   formatCurrency,
   formatDateStringtoISOstring,
   getDateStringFromISOstring,
+  getDateInputValue,
 } from "../../utils";
 import BaseDeleteDialog from "../shared/BaseDeleteDialog";
 
@@ -64,14 +65,22 @@ const OpportunityDetailedForm = () => {
     const fields = fieldsMap.get(fieldMapKey)?.map((f) => f.field);
     let payload = { ...formData };
     if (fieldMapKey === "datas") {
+      console.log("[handleTextFieldChange] fieldMapKey=datas");
+      console.log("field:", field);
+      console.log("value:", value);
+      console.log("updatedOpp:", updatedOpp);
+      console.log("fields:", fields);
       fields?.forEach((f) => {
+        const formattedDate = formatDateStringtoISOstring(
+          String(updatedOpp[f as keyof Opportunity])
+        );
+        console.log(`Formatando campo ${f}:`, updatedOpp[f as keyof Opportunity], "->", formattedDate);
         payload = {
           ...payload,
-          [f]: formatDateStringtoISOstring(
-            String(updatedOpp[f as keyof Opportunity])
-          ),
+          [f]: formattedDate,
         };
       });
+      console.log("payload final:", payload);
       setFormData(payload);
       setOpportunity(updatedOpp);
       // debouncedSave(payload);
@@ -247,9 +256,7 @@ const OpportunityDetailedForm = () => {
           </Typography>
           <Grid container gap={2}>
             {fieldsMap?.get("datas")?.map((field) => {
-              const value = getDateStringFromISOstring(
-                String(opportunity[field.field as keyof Opportunity])
-              );
+              const value = field.defaultValue;
               if (
                 field.field === "DATAINTERACAO" &&
                 opportunity.status?.ACAO === 1
@@ -288,7 +295,13 @@ const OpportunityDetailedForm = () => {
                     variant="outlined"
                     type={field.type}
                     disabled={field.disabled}
-                    value={value}
+                    value={
+                      field.type === "date"
+                        ? getDateInputValue(
+                            opportunity[field.field as keyof Opportunity] as string
+                          )
+                        : value
+                    }
                     size="small"
                     InputProps={{
                       sx: { borderRadius: 0 },
