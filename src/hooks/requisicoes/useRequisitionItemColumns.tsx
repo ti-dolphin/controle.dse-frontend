@@ -531,16 +531,17 @@ export const useRequisitionItemColumns = (
     [dinamicColumns]
   );
 
-  useEffect(() => {
-    if (addingReqItems) return;
-    if (updatingRecentProductsQuantity) return;
-    fetchDinamicColumns();
-  }, [fetchDinamicColumns, addingReqItems, updatingRecentProductsQuantity, id_requisicao]);
-
   // Limpa as dinamicColumns sempre que id_requisicao mudar
   useEffect(() => {
     setDinamicColumns([]);
   }, [id_requisicao]);
+
+  useEffect(() => {
+    if (!id_requisicao || isNaN(Number(id_requisicao))) return; // Só busca se id_requisicao estiver definido e válido
+    if (addingReqItems) return;
+    if (updatingRecentProductsQuantity) return;
+    fetchDinamicColumns();
+  }, [fetchDinamicColumns, addingReqItems, updatingRecentProductsQuantity, id_requisicao]);
 
   // Troque o return direto por um useMemo:
   return useMemo(() => ({
