@@ -46,7 +46,6 @@ const RequisitionCommentList = () => {
     try {
       const data = await RequisitionCommentService.getMany({ id_requisicao });
       //log data
-      console.log('data', data);
       dispatch(setComments(data));
     } catch {
       dispatch(

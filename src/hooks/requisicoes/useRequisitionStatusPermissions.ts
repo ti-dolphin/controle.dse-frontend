@@ -27,8 +27,6 @@ export const useRequisitionStatusPermissions = (user: User | null, requisition: 
     const cancelled = requisition.status?.nome === "Cancelado";
     const stockUser = requisition.id_escopo_requisicao === 1 && user?.PERM_ESTOQUE === 1;
 
-    console.log("user", user);
-
     if(admOrBuyer && cancelled) { 
       setPermissionToActivate(true);
     }
