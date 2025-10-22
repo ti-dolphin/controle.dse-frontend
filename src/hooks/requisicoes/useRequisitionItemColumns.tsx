@@ -1,4 +1,4 @@
-import React, { ChangeEvent, useCallback, useEffect, useState } from "react";
+import React, { ChangeEvent, useCallback, useEffect, useState, useMemo } from "react";
 import { GridColDef } from "@mui/x-data-grid";
 import { formatCurrency, getDateFromISOstring } from "../../utils";
 import { useDispatch, useSelector } from "react-redux";
@@ -537,7 +537,8 @@ export const useRequisitionItemColumns = (
     fetchDinamicColumns();
   }, [fetchDinamicColumns, addingReqItems, updatingRecentProductsQuantity]);
 
-  return {
+  // Troque o return direto por um useMemo:
+  return useMemo(() => ({
     columns:
       dinamicColumns.length > 0
         ? [...filteredColumns, ...dinamicColumns]
@@ -548,5 +549,14 @@ export const useRequisitionItemColumns = (
     shippingDate,
     dinamicColumns,
     isDinamicField,
-  };
+  }), [
+    dinamicColumns,
+    filteredColumns,
+    fillingOC,
+    ocValue,
+    fillingShippingDate,
+    shippingDate,
+    isDinamicField,
+    editItemFieldsPermitted // <-- Adicione esta dependência!
+  ]);
 };

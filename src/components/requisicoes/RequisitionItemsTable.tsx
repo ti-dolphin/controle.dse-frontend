@@ -108,7 +108,7 @@ const RequisitionItemsTable = ({ tableMaxHeight, hideFooter }: RequisitionItemsT
       const updatedItems = items.filter(
         (item) => item.id_item_requisicao !== id_item_requisicao
       );
-       dispatch(removeItem(id_item_requisicao));
+      dispatch(removeItem(id_item_requisicao));
       await RequisitionItemService.delete(id_item_requisicao);
       dispatch(setRefreshRequisition(!refreshRequisition));
       dispatch(setProductsAdded(updatedItems.map((item : RequisitionItem) => item.id_produto)));

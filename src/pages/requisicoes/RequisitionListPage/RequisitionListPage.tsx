@@ -135,7 +135,6 @@ const RequisitionListPage = () => {
     };
 
     const navigateToRequisitionDetails = (params: any) => {
-      console.log("params: ", params)
       if (params.field === "actions") return;
       const { id } = params;
       navigate(`/requisicoes/${id}`);
@@ -159,7 +158,6 @@ const RequisitionListPage = () => {
           searchTerm,
           filters,
         });
-        console.log("requisitions: ", data)
         dispatch(setRows(data));
         dispatch(setLoading(false));
       } catch (e: any) {
