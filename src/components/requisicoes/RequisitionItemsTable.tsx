@@ -624,6 +624,29 @@ const RequisitionItemsTable = ({ tableMaxHeight, hideFooter }: RequisitionItemsT
     setSelectionModel([]);
   }
 
+  // Handler para navegação por Tab apenas entre células de quantidade
+  const handleCellKeyDown = useCallback(
+    (params: GridCellParams, event: React.KeyboardEvent) => {
+      if (
+        event.key === "Tab" &&
+        params.field === "quantidade" &&
+        updatingRecentProductsQuantity // só ativa no diálogo de quantidades
+      ) {
+        event.preventDefault();
+        const visibleRows = gridApiRef.current.getSortedRows();
+        const rowIndex = visibleRows.findIndex(
+          (row) => row.id_item_requisicao === params.id
+        );
+        let nextRowIndex = event.shiftKey ? rowIndex - 1 : rowIndex + 1;
+        if (nextRowIndex < 0 || nextRowIndex >= visibleRows.length) return;
+        const nextRowId = visibleRows[nextRowIndex].id_item_requisicao;
+        // Foca e ativa edição na próxima célula de quantidade
+        gridApiRef.current.setCellFocus(nextRowId, "quantidade");
+      }
+    },
+    [gridApiRef, updatingRecentProductsQuantity]
+  );
+
   useEffect(() => {
     if (requisition) {
       fetchData();
@@ -734,6 +757,8 @@ const RequisitionItemsTable = ({ tableMaxHeight, hideFooter }: RequisitionItemsT
             onCellClick={handleCellClick}
             processRowUpdate={processRowUpdate}
             hideFooter={hideFooter}
+            // Adiciona o handler para navegação customizada por Tab
+            onCellKeyDown={handleCellKeyDown}
           />
         </Box>
       )}
