@@ -535,7 +535,12 @@ export const useRequisitionItemColumns = (
     if (addingReqItems) return;
     if (updatingRecentProductsQuantity) return;
     fetchDinamicColumns();
-  }, [fetchDinamicColumns, addingReqItems, updatingRecentProductsQuantity]);
+  }, [fetchDinamicColumns, addingReqItems, updatingRecentProductsQuantity, id_requisicao]);
+
+  // Limpa as dinamicColumns sempre que id_requisicao mudar
+  useEffect(() => {
+    setDinamicColumns([]);
+  }, [id_requisicao]);
 
   // Troque o return direto por um useMemo:
   return useMemo(() => ({
@@ -557,6 +562,6 @@ export const useRequisitionItemColumns = (
     fillingShippingDate,
     shippingDate,
     isDinamicField,
-    editItemFieldsPermitted // <-- Adicione esta dependência!
+    editItemFieldsPermitted
   ]);
 };
