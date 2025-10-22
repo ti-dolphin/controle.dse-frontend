@@ -350,7 +350,7 @@ const RequisitionStatusStepper = ({
       const nextStep = currentStep - 1;
       const newStatus = statusList.find((status) => status.etapa === nextStep); //FINDS THE CORRESPONDING  NEW STATUS
       if (newStatus) {
-        await validationRules(newStatus);
+        await validationRules(newStatus, true);
       }
       if (!newStatus) {
         dispatch(

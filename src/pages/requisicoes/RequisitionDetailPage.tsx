@@ -161,7 +161,7 @@ const RequisitionDetailPage = () => {
   const shouldShowAddItemsButton = ( ) => { 
     return (
       user?.PERM_COMPRADOR ||
-      (Number(requisition.criado_por?.CODPESSOA) === Number(user?.CODPESSOA) &&
+      (Number(requisition?.ID_RESPONSAVEL) === Number(user?.CODPESSOA) &&
         requisition.status?.nome === "Em edição")
     );
   }
