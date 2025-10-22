@@ -157,6 +157,7 @@ const RequisitionListPage = () => {
           id_kanban_requisicao: selectedKanban?.id_kanban_requisicao,
           searchTerm,
           filters,
+          removeAdmView: true
         });
         dispatch(setRows(data));
         dispatch(setLoading(false));

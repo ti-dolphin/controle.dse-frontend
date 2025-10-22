@@ -152,5 +152,3 @@ const QuoteList = () => {
 }
 
 export default QuoteList
-
-
