@@ -15,7 +15,6 @@ export function getDateFromDateString(dateString: string | null): Date | null {
 
   if (!dt.isValid || dt.year <= 2000) return null;
 
-
   return dt.toUTC().toJSDate(); // always UTC midnight: 2024-08-27T00:00:00.000Z
 }
 export function isNumeric(value: any): boolean {
@@ -31,8 +30,7 @@ export const getDateStringFromISOstring = (isoDate: string | undefined | null): 
   if (!isoDate) return "";
   const dt = DateTime.fromISO(isoDate, { zone: "utc" });
   // 2025-09-22T14:36:31.000Z
-    return String(dt).replace(/[TZ]/g, " ").trim().slice(0, 16);
-
+  return String(dt).replace(/[TZ]/g, " ").trim().slice(0, 16);
 
   // return dt.isValid ? dt.toFormat("dd/MM/yyyy", { 
   //   locale: "pt-BR"
@@ -54,11 +52,22 @@ export const formatDateStringtoISOstring = (dateString: string): string => {
   return dt.isValid ? dt.toISO() : "";
 };
 
-export const getDateFromISOstring = (ISOstring : string ) => { 
-  try{ 
-     const date =  getDateFromDateString(getDateStringFromISOstring(ISOstring));
-     return date;
-  }catch(error){
+export const getDateFromISOstring = (ISOstring: string) => {
+  try {
+    const date = getDateFromDateString(getDateStringFromISOstring(ISOstring));
+    return date;
+  } catch (error) {
     return null;
   }
+};
+
+/**
+ * Extrai a parte "YYYY-MM-DD" de uma string de data (ex: "2024-06-10 15:00:00" -> "2024-06-10").
+ * Retorna string vazia se valor inválido.
+ */
+export function getDateInputValue(dateStr?: string | null): string {
+  if (!dateStr) return "";
+  // Aceita formatos "YYYY-MM-DD" ou "YYYY-MM-DD HH:mm:ss"
+  const match = dateStr.match(/^(\d{4}-\d{2}-\d{2})/);
+  return match ? match[1] : "";
 }
