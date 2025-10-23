@@ -4,6 +4,7 @@ import { User } from "../../models/User";
 import RequisitionStatusService from "../../services/requisicoes/RequisitionStatusService";
 import { useDispatch } from "react-redux";
 import { setFeedback } from "../../redux/slices/feedBackSlice";
+import { permission } from "process";
 
 export interface RequisitionStatusPermissions{ 
     permissionToChangeStatus: boolean;
@@ -41,6 +42,7 @@ export const useRequisitionStatusPermissions = (user: User | null, requisition: 
         user,
         requisition
         );
+        console.log(permissions.permissionToChangeStatus, 'permissions.permissionToChangeStatus AAAAAAAAAAAAAAAAAAAAAAAAAAAAAA');
         setPermissionToChangeStatus(permissions.permissionToChangeStatus);
         setPermissionToRevertStatus(permissions.permissionToRevertStatus);
             if (stockUser) {
