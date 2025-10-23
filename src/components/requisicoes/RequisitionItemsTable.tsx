@@ -83,12 +83,21 @@ const RequisitionItemsTable = ({ tableMaxHeight, hideFooter }: RequisitionItemsT
   const permissionsFromHook = useRequisitionItemPermissions(user, requisition);
 
   // Memoriza o resultado baseado no status
-  const { editItemFieldsPermitted, createQuotePermitted } = useMemo(() => {
+  const permissions = useMemo(() => {
     if (!requisition?.status) {
       return { editItemFieldsPermitted: false, createQuotePermitted: false };
     }
+    // Permite que o comprador edite a coluna OC na etapa de recebimento
+    const isBuyer = Number(user?.PERM_COMPRADOR) === 1;
+    const isReceivingStep =
+      requisition.status?.nome?.toLowerCase() === "recebimento";
+    if (isBuyer && isReceivingStep) {
+      // Mantém createQuotePermitted igual ao valor original do hook
+      return { editItemFieldsPermitted: true, createQuotePermitted: permissionsFromHook.createQuotePermitted };
+    }
     return permissionsFromHook;
-  }, [permissionsFromHook, requisition?.status]);
+  }, [permissionsFromHook, requisition?.status, user]);
+  const { editItemFieldsPermitted, createQuotePermitted } = permissions;
 
   const {
     items,
