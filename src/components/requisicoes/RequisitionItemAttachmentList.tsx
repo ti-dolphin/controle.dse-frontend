@@ -113,7 +113,13 @@ const RequisitionItemAttachmentList = () => {
   const handleDelete = async () => {
     if (deletingFile) {
       try {
-        await FirebaseService.delete(deletingFile.arquivo);
+        // Só deleta do Firebase se for arquivo do Firebase Storage
+        const isFirebaseFile =
+          typeof deletingFile.arquivo === "string" &&
+          deletingFile.arquivo.startsWith("https://firebasestorage.googleapis.com/");
+        if (isFirebaseFile) {
+          await FirebaseService.delete(deletingFile.arquivo);
+        }
       } catch (e: any) {}
       try {
         await RequisitionItemAttachmentService.delete(
@@ -265,7 +271,7 @@ const RequisitionItemAttachmentList = () => {
         title={"Visualizar anexo"}
       />
       <BaseInputDialog
-        open={linkDialogOpen}
+        open={   linkDialogOpen}
         onClose={closeLinkDialog}
         onConfirm={handleAddLink}
         title="Adicionar Link"

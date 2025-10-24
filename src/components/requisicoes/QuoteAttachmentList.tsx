@@ -1,4 +1,3 @@
-
 import React, { useEffect, useState, ChangeEvent } from "react";
 import {
   Box,
@@ -14,6 +13,7 @@ import {
 } from "@mui/material";
 import DeleteIcon from "@mui/icons-material/Delete";
 import CloudUploadIcon from "@mui/icons-material/CloudUpload";
+import LinkIcon from "@mui/icons-material/Link";
 
 import StyledLink from "../shared/StyledLink";
 import { useDispatch, useSelector } from "react-redux";
@@ -24,13 +24,16 @@ import BaseDeleteDialog from "../shared/BaseDeleteDialog";
 import { QuoteFile } from "../../models/requisicoes/QuoteFile";
 import { QuoteFileService } from "../../services/requisicoes/QuoteFileService";
 import BaseViewFileDialog from "../shared/BaseVIewFileDialog";
+import BaseInputDialog from "../shared/BaseInputDialog";
 
 interface QuoteAttachmentListProps {
   id_cotacao: number;
+  allowAddLink?: boolean; // permite ativar/desativar o botão de link
 }
 
 const QuoteAttachmentList: React.FC<QuoteAttachmentListProps> = ({
   id_cotacao,
+  allowAddLink = true,
 }) => {
   const dispatch = useDispatch();
 
@@ -41,6 +44,8 @@ const QuoteAttachmentList: React.FC<QuoteAttachmentListProps> = ({
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [deletingFile, setDeletingFile] = useState<QuoteFile | null>(null);
   const [selectedFile, setSelectedFile] = useState<QuoteFile | null>(null);
+  const [linkDialogOpen, setLinkDialogOpen] = useState(false);
+  const [linkInput, setLinkInput] = useState<string>("");
 
   const openViewFile = (file: QuoteFile) => {
     setSelectedFile(file);
@@ -74,7 +79,6 @@ const QuoteAttachmentList: React.FC<QuoteAttachmentListProps> = ({
   };
 
   const fetchAttachments = async () => {
-    
     setLoading(true);
     try {
       const files = await QuoteFileService.getMany({ id_cotacao });
@@ -87,14 +91,13 @@ const QuoteAttachmentList: React.FC<QuoteAttachmentListProps> = ({
   };
 
   useEffect(() => {
-   
     fetchAttachments();
     // eslint-disable-next-line
   }, [id_cotacao]);
 
   const handleFileChange = async (e: ChangeEvent<HTMLInputElement>) => {
     if (!e.target.files || e.target.files.length === 0) return;
-    
+
     const file = e.target.files[0];
     const newFile: Partial<QuoteFile> = {
       id_cotacao,
@@ -103,7 +106,10 @@ const QuoteAttachmentList: React.FC<QuoteAttachmentListProps> = ({
     };
     setLoading(true);
     try {
-      const fileUrl = await FirebaseService.upload(file, newFile.nome_arquivo || '');
+      const fileUrl = await FirebaseService.upload(
+        file,
+        newFile.nome_arquivo || ""
+      );
       newFile.url = fileUrl;
       const createdFile = await QuoteFileService.create(newFile);
       setAttachments((prev) => [...prev, createdFile]);
@@ -131,7 +137,13 @@ const QuoteAttachmentList: React.FC<QuoteAttachmentListProps> = ({
     const { id_anexo_cotacao } = deletingFile;
     setLoading(true);
     try {
-      await FirebaseService.delete(deletingFile.url);
+      // Só deleta do Firebase se for arquivo do Firebase Storage
+      const isFirebaseFile =
+        typeof deletingFile.url === "string" &&
+        deletingFile.url.startsWith("https://firebasestorage.googleapis.com/");
+      if (isFirebaseFile) {
+        await FirebaseService.delete(deletingFile.url);
+      }
       await QuoteFileService.delete(id_anexo_cotacao);
       setAttachments((prev) =>
         prev.filter((a) => a.id_anexo_cotacao !== id_anexo_cotacao)
@@ -147,6 +159,46 @@ const QuoteAttachmentList: React.FC<QuoteAttachmentListProps> = ({
       dispatch(
         setFeedback({
           message: `Erro ao excluir anexo: ${err.message}`,
+          type: "error",
+        })
+      );
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const openLinkDialog = () => {
+    setLinkDialogOpen(true);
+  };
+
+  const closeLinkDialog = () => {
+    setLinkDialogOpen(false);
+    setLinkInput("");
+  };
+
+  const handleAddLink = async () => {
+    if (!linkInput) return;
+    setLoading(true);
+    try {
+      const newFile: Partial<QuoteFile> = {
+        id_cotacao,
+        nome_arquivo: linkInput,
+        url: linkInput,
+      };
+      const createdFile = await QuoteFileService.create(newFile);
+      setAttachments((prev) => [...prev, createdFile]);
+      fetchAttachments();
+      dispatch(
+        setFeedback({
+          message: "Link adicionado como anexo!",
+          type: "success",
+        })
+      );
+      closeLinkDialog();
+    } catch (err: any) {
+      dispatch(
+        setFeedback({
+          message: `Houve um erro ao adicionar o link: ${err.message}`,
           type: "error",
         })
       );
@@ -180,10 +232,31 @@ const QuoteAttachmentList: React.FC<QuoteAttachmentListProps> = ({
               <Stack direction="row" alignItems="center" gap={1}>
                 <StyledLink
                   link={file.url}
-                  onClick={() => openViewFile(file)}
+                  onClick={() => {
+                    const fileExtensions = [
+                      ".pdf",
+                      ".jpg",
+                      ".jpeg",
+                      ".png",
+                      ".doc",
+                      ".docx",
+                      ".xls",
+                      ".xlsx",
+                    ];
+                    const isFile = fileExtensions.some((ext) =>
+                      file.url?.toLowerCase().includes(ext)
+                    );
+                    if (isFile) {
+                      openViewFile(file);
+                    } else if (
+                      file.url?.startsWith("http://") ||
+                      file.url?.startsWith("https://")
+                    ) {
+                      window.open(file.url, "_blank");
+                    }
+                  }}
                 />
                 <Typography fontSize="12px" color="text.secondary">
-                  {/* Por: {file.pessoa_criado_por?.NOME || ""} */}
                 </Typography>
               </Stack>
 
@@ -202,15 +275,32 @@ const QuoteAttachmentList: React.FC<QuoteAttachmentListProps> = ({
           ))}
         </List>
       )}
-      <Button
-        variant="contained"
-        component="label"
-        startIcon={<CloudUploadIcon />}
-        disabled={loading}
+      <Stack
+        direction={{ xs: "column", sm: "row" }}
+        alignItems={{ xs: "start", sm: "center" }}
+        sx={{ gap: 0.5 }}
       >
-        Adicionar Anexo
-        <input type="file" hidden onChange={handleFileChange} accept="*" />
-      </Button>
+        <Button
+          variant="contained"
+          component="label"
+          startIcon={<CloudUploadIcon />}
+          disabled={loading}
+        >
+          Adicionar Anexo
+          <input type="file" hidden onChange={handleFileChange} accept="*" />
+        </Button>
+        {allowAddLink && (
+          <Button
+            variant="contained"
+            startIcon={<LinkIcon sx={{ height: "20px", width: "20px" }} />}
+            sx={{ fontSize: "small" }}
+            disabled={loading}
+            onClick={openLinkDialog}
+          >
+            Adicionar Link
+          </Button>
+        )}
+      </Stack>
       <BaseDeleteDialog
         open={deleteDialogOpen}
         onConfirm={handleDelete}
@@ -221,6 +311,17 @@ const QuoteAttachmentList: React.FC<QuoteAttachmentListProps> = ({
         onClose={closeViewFile}
         fileUrl={selectedFile?.url || ""}
         title={selectedFile?.nome_arquivo}
+      />
+      <BaseInputDialog
+        open={linkDialogOpen}
+        onClose={closeLinkDialog}
+        onConfirm={handleAddLink}
+        title="Adicionar Link"
+        inputLabel="URL do Link"
+        inputValue={linkInput}
+        onInputChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+          setLinkInput(e.target.value)
+        }
       />
     </Box>
   );

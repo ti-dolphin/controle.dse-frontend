@@ -103,7 +103,7 @@ const RequisitionStatusStepper = ({
   const {refresh} = useSelector((state: RootState) => state.requisitionItem);
   const [fillingComment, setFillingComment] = useState<boolean>(false);
   const [comment, setComment] = useState<string>('');
-   const [focusedElement, setFocusedElement] = useState<EventTarget | null>(null);
+  const [focusedElement, setFocusedElement] = useState<EventTarget | null>(null);
   const  [justifyingLessThenThreeQuotes, setJustifyingLessThenThreeQuotes] = useState<boolean>(false);
   const [showValidationDialog, setShowValidationDialog] = useState<boolean>(false);
   const [pendingStatusChange, setPendingStatusChange] = useState<"acao_anterior" | "acao_posterior" | null>(null);
@@ -137,10 +137,10 @@ const RequisitionStatusStepper = ({
 
   const validationRules = async (newStatus: RequisitionStatus, skipAttachmentValidation: boolean = false ) =>  {
     if(!requisition.status) return;
-   const advancingStatus = newStatus.etapa > requisition.status?.etapa || 0;
+    const advancingStatus = newStatus.etapa > requisition.status?.etapa || 0;
 
     // Validação apenas para status "Em Cotação" e avançando
-    if(newStatus.nome === 'Em Cotação' && advancingStatus) {
+    if (newStatus.nome === 'Em Cotação' && advancingStatus) {
       const items = await RequisitionItemService.getMany({id_requisicao});
       const noItems = items.length === 0; 
         if(noItems) {
@@ -167,14 +167,15 @@ const RequisitionStatusStepper = ({
         // Validações de cotações (sempre executam)
         const quotes = await QuoteService.getMany({id_requisicao});
         const noQuotes = quotes.length === 0;
-        const noQuoteItemSelected = items.every((item) => !item.id_item_cotacao);
-        if(noQuotes) {
+        const items = await RequisitionItemService.getMany({id_requisicao});
+        const allItemsHaveSelectedSupplier = items.every((item) => !!item.id_item_cotacao);
+        if (!allItemsHaveSelectedSupplier) {
+          throw new Error('Todos os itens devem estar selecionados em algum fornecedor.');
+        }
+        if (noQuotes) {
           throw new Error('Requisição sem cotações');
         }
-        if(noQuoteItemSelected) {
-          throw new Error('Requisição sem itens selecionados da cotação');
-        }
-        if(quotes.length > 0 && quotes.length < 3){ 
+        if (quotes.length > 0 && quotes.length < 3) {
           setJustifyingLessThenThreeQuotes(true);
           throw new Error('Requisição com menos de 3 cotações');
         }
