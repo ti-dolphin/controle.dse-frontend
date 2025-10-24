@@ -135,11 +135,18 @@ const RequisitionAttachmentList: React.FC<RequisitionAttachmentListProps> = ({
   };
 
   const handleDelete = async () => {
+    console.log(deletingFile , 'oi eu sou um mamel funcionando');
     if (!deletingFile) return;
     const { id } = deletingFile;
     setLoading(true);
     try {
-      await FirebaseService.delete(deletingFile.arquivo);
+      // Só deleta do Firebase se for arquivo do Firebase Storage
+      const isFirebaseFile =
+        typeof deletingFile.arquivo === "string" &&
+        deletingFile.arquivo.startsWith("https://firebasestorage.googleapis.com/");
+      if (isFirebaseFile) {
+        await FirebaseService.delete(deletingFile.arquivo);
+      }
       await RequisitionFileService.delete(id);
       setAttachments((prev) => prev.filter((a) => a.id !== id));
       dispatch(

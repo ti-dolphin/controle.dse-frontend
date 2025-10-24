@@ -175,7 +175,7 @@ const QuoteDetailPage = () => {
             <Typography color="primary.main" variant="h6">
               Anexos
             </Typography>
-            <QuoteAttachmentList id_cotacao={Number(id_cotacao)} />
+            <QuoteAttachmentList id_cotacao={Number(id_cotacao)} allowAddLink />
             {/* This area will display the list of attachments for the quotation */}
           </Paper>
         </Grid>
