@@ -182,7 +182,7 @@ const QuoteAttachmentList: React.FC<QuoteAttachmentListProps> = ({
     try {
       const newFile: Partial<QuoteFile> = {
         id_cotacao,
-        nome_arquivo: linkInput,
+        nome_arquivo: linkInput.substring(0, 255),
         url: linkInput,
       };
       const createdFile = await QuoteFileService.create(newFile);
