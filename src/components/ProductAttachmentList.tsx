@@ -174,7 +174,7 @@ const ProductAttachmentList = () => {
     if (linkInput) {
       const newAttachment = await ProductAttachmentService.create({
         id_produto: viewingProductAttachment,
-        arquivo: linkInput,
+        arquivo: linkInput.substring(0, 255), // Limita só para link
       });
       setAttachments([...attachments, newAttachment]);
       setLinkDialogOpen(false);

@@ -146,7 +146,7 @@ const RequisitionItemAttachmentList = () => {
       const newAttachment = await RequisitionItemAttachmentService.create({
         id_item_requisicao: viewingItemAttachment,
         nome_arquivo: '',
-        arquivo: linkInput,
+        arquivo: linkInput.substring(0, 255),
       });
       setAttachments([...attachments, newAttachment]);
       setLinkDialogOpen(false);

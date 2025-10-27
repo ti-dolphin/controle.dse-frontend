@@ -191,7 +191,7 @@ const RequisitionAttachmentList: React.FC<RequisitionAttachmentListProps> = ({
     const newLink: RequisitionFile = {
       id: Math.random(),
       id_requisicao,
-      arquivo: linkInput,
+      arquivo: linkInput.substring(0, 255),
       nome_arquivo: "",
       criado_por: user.CODPESSOA,
       criado_em: new Date().toISOString(),
