@@ -47,7 +47,6 @@ const QuoteItemsTable = ({
   const [blockFields, setBlockFields] = useState(false);
   const isSupplierRoute = accessType === "supplier" ? true : false;
   const {isMobile} = useIsMobile();
-  
 
   const handleUpdateUnavailable = async (
     e: ChangeEvent<HTMLInputElement>,

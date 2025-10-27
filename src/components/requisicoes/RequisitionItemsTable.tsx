@@ -10,7 +10,15 @@ import {
 import React, { useCallback, useEffect, useState, useMemo } from "react";
 import { useRequisitionItemColumns } from "../../hooks/requisicoes/useRequisitionItemColumns";
 import { RequisitionItem } from "../../models/requisicoes/RequisitionItem";
-import { Box, Button, Dialog, DialogContent, DialogTitle, IconButton, useTheme } from "@mui/material";
+import {
+  Box,
+  Button,
+  Dialog,
+  DialogContent,
+  DialogTitle,
+  IconButton,
+  useTheme,
+} from "@mui/material";
 import { useDispatch, useSelector } from "react-redux";
 import { RootState } from "../../redux/store";
 import RequisitionItemService from "../../services/requisicoes/RequisitionItemService";
@@ -51,20 +59,30 @@ import { useIsMobile } from "../../hooks/useIsMobile";
 import { FixedSizeGrid } from "react-window";
 import RequisitionItemCard from "./RequisitionItemCard";
 import RequisitionItemAttachmentList from "./RequisitionItemAttachmentList";
-import { setItemsToAttend, setNotAttendedItems } from "../../redux/slices/requisicoes/attenItemsSlice";
+import {
+  setItemsToAttend,
+  setNotAttendedItems,
+} from "../../redux/slices/requisicoes/attenItemsSlice";
 
-interface RequisitionItemsTable { 
-    tableMaxHeight?: number;
-    hideFooter: boolean
+interface RequisitionItemsTable {
+  tableMaxHeight?: number;
+  hideFooter: boolean;
 }
-const RequisitionItemsTable = ({ tableMaxHeight, hideFooter }: RequisitionItemsTable) => {
+const RequisitionItemsTable = ({
+  tableMaxHeight,
+  hideFooter,
+}: RequisitionItemsTable) => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const theme = useTheme();
   const { id_requisicao } = useParams();
-  const {isMobile} = useIsMobile();
-  const { requisition, refreshRequisition } = useSelector((state: RootState) => state.requisition );
-  const attendingItems = useSelector((state: RootState) => state.attendingItemsSlice.attendingItems);
+  const { isMobile } = useIsMobile();
+  const { requisition, refreshRequisition } = useSelector(
+    (state: RootState) => state.requisition
+  );
+  const attendingItems = useSelector(
+    (state: RootState) => state.attendingItemsSlice.attendingItems
+  );
 
   const gridApiRef = useGridApiRef();
   const quote = useSelector((state: RootState) => state.quote.quote);
@@ -93,7 +111,10 @@ const RequisitionItemsTable = ({ tableMaxHeight, hideFooter }: RequisitionItemsT
       requisition.status?.nome?.toLowerCase() === "recebimento";
     if (isBuyer && isReceivingStep) {
       // Mantém createQuotePermitted igual ao valor original do hook
-      return { editItemFieldsPermitted: true, createQuotePermitted: permissionsFromHook.createQuotePermitted };
+      return {
+        editItemFieldsPermitted: true,
+        createQuotePermitted: permissionsFromHook.createQuotePermitted,
+      };
     }
     return permissionsFromHook;
   }, [permissionsFromHook, requisition?.status, user]);
@@ -120,7 +141,11 @@ const RequisitionItemsTable = ({ tableMaxHeight, hideFooter }: RequisitionItemsT
       dispatch(removeItem(id_item_requisicao));
       await RequisitionItemService.delete(id_item_requisicao);
       dispatch(setRefreshRequisition(!refreshRequisition));
-      dispatch(setProductsAdded(updatedItems.map((item : RequisitionItem) => item.id_produto)));
+      dispatch(
+        setProductsAdded(
+          updatedItems.map((item: RequisitionItem) => item.id_produto)
+        )
+      );
       setBlockFields(false);
       return;
     } catch (e: any) {
@@ -180,14 +205,18 @@ const RequisitionItemsTable = ({ tableMaxHeight, hideFooter }: RequisitionItemsT
     }
   };
   const [searchTerm, setSearchTerm] = useState("");
-  
-  const [cellModesModel, setCellModesModel] = React.useState<GridCellModesModel>({});
-  const [selectionModel, setSelectionModel] = React.useState<GridRowSelectionModel>([]);
-  const [quoteItemsSelected, setQuoteItemsSelected] = useState<Map<number, number>>(new Map());
+
+  const [cellModesModel, setCellModesModel] =
+    React.useState<GridCellModesModel>({});
+  const [selectionModel, setSelectionModel] =
+    React.useState<GridRowSelectionModel>([]);
+  const [quoteItemsSelected, setQuoteItemsSelected] = useState<
+    Map<number, number>
+  >(new Map());
   const [loading, setLoading] = useState(false);
   const [blockFields, setBlockFields] = useState(false);
   const [quoteListOpen, setQuoteListOpen] = useState<boolean>(false);
-  
+
   //map de <id_item_requisicao, id_item_cotacao>
   //SELECIONA ITEMS DA COTAÇÃO
   const handleChangeQuoteItemsSelected = useCallback(
@@ -200,23 +229,33 @@ const RequisitionItemsTable = ({ tableMaxHeight, hideFooter }: RequisitionItemsT
         setQuoteItemsSelected(
           new Map(quoteItemsSelected.set(id_item_requisicao, id_item_cotacao))
         );
-        const { updatedItems, updatedRequisition } = await RequisitionItemService.updateQuoteItemsSelected(Number(id_requisicao),Object.fromEntries(quoteItemsSelected));
+        const { updatedItems, updatedRequisition } =
+          await RequisitionItemService.updateQuoteItemsSelected(
+            Number(id_requisicao),
+            Object.fromEntries(quoteItemsSelected)
+          );
         dispatch(setItems(updatedItems));
         dispatch(setRequisition(updatedRequisition));
         return;
       }
-      if(requisition.status?.nome.toLowerCase() !== 'em cotação') { 
-        dispatch(setFeedback({ message: 'Apenas itens em cotação podem ser removidos', type: 'error' }));
+      if (requisition.status?.nome.toLowerCase() !== "em cotação") {
+        dispatch(
+          setFeedback({
+            message: "Apenas itens em cotação podem ser removidos",
+            type: "error",
+          })
+        );
         return;
-      };
+      }
 
       quoteItemsSelected.delete(id_item_requisicao);
       setQuoteItemsSelected(new Map(quoteItemsSelected));
-      const { updatedItems, updatedRequisition } = await RequisitionItemService.updateQuoteItemsSelected(
+      const { updatedItems, updatedRequisition } =
+        await RequisitionItemService.updateQuoteItemsSelected(
           Number(id_requisicao),
           Object.fromEntries(quoteItemsSelected)
         );
-        
+
       dispatch(setItems(updatedItems));
       dispatch(setRequisition(updatedRequisition));
     },
@@ -238,22 +277,22 @@ const RequisitionItemsTable = ({ tableMaxHeight, hideFooter }: RequisitionItemsT
     blockFields
   );
 
-  const exceptionForBuyer = (field : string ) => { 
-    if(!requisition.status) return;
-    if(field !== 'oc' && field !== 'data_entrega') return false;
-    const ocStatus = requisition.status?.nome.toLowerCase() === 'gerar oc';
+  const exceptionForBuyer = (field: string) => {
+    if (!requisition.status) return;
+    if (field !== "oc" && field !== "data_entrega") return false;
+    const ocStatus = requisition.status?.nome.toLowerCase() === "comprar";
     const buyer = Number(user?.PERM_COMPRADOR) == 1;
-    return ocStatus && buyer
-  }
+    return ocStatus && buyer;
+  };
 
-  const mobileColumns = ( ) =>  {
-    const mobile = ['produto_descricao', 'quantidade'];
+  const mobileColumns = () => {
+    const mobile = ["produto_descricao", "quantidade"];
     const filtered = columns.filter((column) => mobile.includes(column.field));
-    filtered.forEach((column) => { 
+    filtered.forEach((column) => {
       column.minWidth = 160;
     });
     return filtered;
-  }
+  };
   //CLIQUE NA CÈLULA
   const handleCellClick = (params: GridCellParams, event: React.MouseEvent) => {
     if (isDinamicField && isDinamicField(params.field)) {
@@ -271,46 +310,46 @@ const RequisitionItemsTable = ({ tableMaxHeight, hideFooter }: RequisitionItemsT
       );
       return;
     }
-    if (!editItemFieldsPermitted) {
-      //excessão para editar apenas o número da OC
-      if(exceptionForBuyer(params.field)){ 
-         if (
-           (event.target as any).nodeType === 1 &&
-           !event.currentTarget.contains(event.target as Element)
-         ) {
-           return;
-         }
-         setCellModesModel((prevModel) => {
-           return {
-             // Revert the mode of the other cells from other rows
-             ...Object.keys(prevModel).reduce(
-               (acc, id) => ({
-                 ...acc,
-                 [id]: Object.keys(prevModel[id]).reduce(
-                   (acc2, field) => ({
-                     ...acc2,
-                     [field]: { mode: GridCellModes.View },
-                   }),
-                   {}
-                 ),
-               }),
-               {}
-             ),
-             [params.id]: {
-               // Revert the mode of other cells in the same row
-               ...Object.keys(prevModel[params.id] || {}).reduce(
-                 (acc, field) => ({
-                   ...acc,
-                   [field]: { mode: GridCellModes.View },
-                 }),
-                 {}
-               ),
-               [params.field]: { mode: GridCellModes.Edit },
-             },
-           };
-         });
+    //excessão para editar apenas o número da OC
+    if (exceptionForBuyer(params.field)) {
+      if (
+        (event.target as any).nodeType === 1 &&
+        !event.currentTarget.contains(event.target as Element)
+      ) {
         return;
       }
+      setCellModesModel((prevModel) => {
+        return {
+          // Revert the mode of the other cells from other rows
+          ...Object.keys(prevModel).reduce(
+            (acc, id) => ({
+              ...acc,
+              [id]: Object.keys(prevModel[id]).reduce(
+                (acc2, field) => ({
+                  ...acc2,
+                  [field]: { mode: GridCellModes.View },
+                }),
+                {}
+              ),
+            }),
+            {}
+          ),
+          [params.id]: {
+            // Revert the mode of other cells in the same row
+            ...Object.keys(prevModel[params.id] || {}).reduce(
+              (acc, field) => ({
+                ...acc,
+                [field]: { mode: GridCellModes.View },
+              }),
+              {}
+            ),
+            [params.field]: { mode: GridCellModes.Edit },
+          },
+        };
+      });
+      return;
+    }
+    if (!editItemFieldsPermitted) {
       dispatch(
         setFeedback({
           message: `Você não tem permissão para editar este campo`,
@@ -365,7 +404,7 @@ const RequisitionItemsTable = ({ tableMaxHeight, hideFooter }: RequisitionItemsT
   //ATUALIZA LINHA NO BACKEND
   const processRowUpdate = React.useCallback(
     async (newRow: GridRowModel, oldRow: GridRowModel) => {
-      if(!attendingItems){
+      if (!attendingItems) {
         const payload = {
           id_item_requisicao: newRow.id_item_requisicao,
           quantidade: newRow.quantidade,
@@ -373,7 +412,7 @@ const RequisitionItemsTable = ({ tableMaxHeight, hideFooter }: RequisitionItemsT
           oc: newRow.oc,
           observacao: newRow.observacao,
         };
-        if(payload.quantidade < 0){ 
+        if (payload.quantidade < 0) {
           dispatch(
             setFeedback({
               message: `Quantidade solicitada não pode ser negativa`,
@@ -384,10 +423,9 @@ const RequisitionItemsTable = ({ tableMaxHeight, hideFooter }: RequisitionItemsT
         }
         return await performUpdateOnDatabase(newRow, oldRow, payload);
       }
-     
-     
+
       //estpa atendendo com estoque
-      if(newRow.quantidade_atendida < 0){
+      if (newRow.quantidade_atendida < 0) {
         dispatch(
           setFeedback({
             message: `Quantidade atendida não pode ser negativa`,
@@ -415,17 +453,22 @@ const RequisitionItemsTable = ({ tableMaxHeight, hideFooter }: RequisitionItemsT
         );
         return oldRow;
       }
-      dispatch(replaceItem({id_item_requisicao: newRow.id_item_requisicao, updatedItem: newRow as RequisitionItem}))
+      dispatch(
+        replaceItem({
+          id_item_requisicao: newRow.id_item_requisicao,
+          updatedItem: newRow as RequisitionItem,
+        })
+      );
       return newRow;
     },
     [items, dispatch]
   );
 
-
   const performUpdateOnDatabase = async (
     newRow: GridRowModel,
     oldRow: GridRowModel,
-    payload: any ) => {
+    payload: any
+  ) => {
     try {
       const updatedItem = await RequisitionItemService.update(
         newRow.id_item_requisicao,
@@ -438,7 +481,6 @@ const RequisitionItemsTable = ({ tableMaxHeight, hideFooter }: RequisitionItemsT
         })
       );
       return updatedItem;
- 
     } catch (e: any) {
       dispatch(
         setFeedback({
@@ -461,7 +503,6 @@ const RequisitionItemsTable = ({ tableMaxHeight, hideFooter }: RequisitionItemsT
       itemIds: selectionModel,
     });
     if (quote) {
-      
       navigate(`cotacao/${quote.id_cotacao}`);
     }
   };
@@ -502,7 +543,7 @@ const RequisitionItemsTable = ({ tableMaxHeight, hideFooter }: RequisitionItemsT
   };
   //SELECIONA ou DESELECIONA UMA LINHA
   const handleChangeSelection = async (
-    newRowSelectionModel: GridRowSelectionModel,
+    newRowSelectionModel: GridRowSelectionModel
   ) => {
     if (!(editItemFieldsPermitted || addingReqItems)) {
       dispatch(
@@ -554,17 +595,23 @@ const RequisitionItemsTable = ({ tableMaxHeight, hideFooter }: RequisitionItemsT
 
       const data = await RequisitionItemService.getMany(params);
       dispatch(setItems(data));
-      if(attendingItems){ 
-        dispatch(setItems(data.map((item) => { 
-          let quantidade_atendida = item.quantidade > (item.quantidade_disponivel || 0)
-              ? item.quantidade_disponivel
-              : item.quantidade;
-          return {
-            ...item,
-            quantidade_atendida
-          }
-        }).filter((item) => item.quantidade_disponivel)
-      ));
+      if (attendingItems) {
+        dispatch(
+          setItems(
+            data
+              .map((item) => {
+                let quantidade_atendida =
+                  item.quantidade > (item.quantidade_disponivel || 0)
+                    ? item.quantidade_disponivel
+                    : item.quantidade;
+                return {
+                  ...item,
+                  quantidade_atendida,
+                };
+              })
+              .filter((item) => item.quantidade_disponivel)
+          )
+        );
       }
       defineSelectedQuoteItemsMap(data);
       dispatch(setProductsAdded(data.map((item) => item.id_produto)));
@@ -590,38 +637,43 @@ const RequisitionItemsTable = ({ tableMaxHeight, hideFooter }: RequisitionItemsT
     });
   };
 
-  const handleChangeQuoteSelected = useCallback(
-  async  () => {
-      if (currentQuoteIdSelected) {
-         const quote : Partial<Quote> = await QuoteService.getById(currentQuoteIdSelected);
-        if (quote && quote.items) {
-          const quoteItems  = quote.items.map((item) => item.id_item_cotacao);
-          const itemIds = items.filter((item) => quoteItems.includes(item.id_item_cotacao || 0)).map((item) => item.id_item_requisicao);
-          setSelectionModel(itemIds);
-          dispatch(setSelectedQuote(quote));
-          return;
-        }
+  const handleChangeQuoteSelected = useCallback(async () => {
+    if (currentQuoteIdSelected) {
+      const quote: Partial<Quote> = await QuoteService.getById(
+        currentQuoteIdSelected
+      );
+      if (quote && quote.items) {
+        const quoteItems = quote.items.map((item) => item.id_item_cotacao);
+        const itemIds = items
+          .filter((item) => quoteItems.includes(item.id_item_cotacao || 0))
+          .map((item) => item.id_item_requisicao);
+        setSelectionModel(itemIds);
+        dispatch(setSelectedQuote(quote));
+        return;
       }
-      setSelectionModel([]);
-    },
-    [currentQuoteIdSelected, quoteItems]
-  );
+    }
+    setSelectionModel([]);
+  }, [currentQuoteIdSelected, quoteItems]);
 
-  const shouldShowCreateParcialReqBtn = ( ) => {
-    const allowedStatus = ['em cotação', 'requisitado'];
-    return ( !addingReqItems && 
-      !updatingRecentProductsQuantity 
-      && items.length > 0
-      && !attendingItems
-      && allowedStatus.includes(requisition.status?.nome?.toLowerCase() || ''));
-  }
+  const shouldShowCreateParcialReqBtn = () => {
+    const allowedStatus = ["em cotação", "requisitado"];
+    return (
+      !addingReqItems &&
+      !updatingRecentProductsQuantity &&
+      items.length > 0 &&
+      !attendingItems &&
+      allowedStatus.includes(requisition.status?.nome?.toLowerCase() || "")
+    );
+  };
 
   const shouldShowAttendItemsBtn = () => {
     return attendingItems && selectionModel.length > 0;
-  }
+  };
 
   const handleAttendItems = () => {
-    const selectedItems = items.filter((item) => selectionModel.includes(item.id_item_requisicao));
+    const selectedItems = items.filter((item) =>
+      selectionModel.includes(item.id_item_requisicao)
+    );
     const selectedIds = selectedItems.map((item) => item.id_item_requisicao);
     dispatch(setItemsToAttend(selectedItems));
     dispatch(
@@ -629,9 +681,13 @@ const RequisitionItemsTable = ({ tableMaxHeight, hideFooter }: RequisitionItemsT
         items.filter((item) => !selectedIds.includes(item.id_item_requisicao))
       )
     );
-    dispatch(setItems(items.filter((item) => selectedIds.includes(item.id_item_requisicao))));
+    dispatch(
+      setItems(
+        items.filter((item) => selectedIds.includes(item.id_item_requisicao))
+      )
+    );
     setSelectionModel([]);
-  }
+  };
 
   // Handler para navegação por Tab apenas entre células de quantidade
   const handleCellKeyDown = useCallback(
@@ -672,7 +728,6 @@ const RequisitionItemsTable = ({ tableMaxHeight, hideFooter }: RequisitionItemsT
     handleChangeQuoteSelected();
   }, [handleChangeQuoteSelected]);
 
-
   return (
     <Box>
       {selectionModel.length > 0 && (
@@ -700,7 +755,7 @@ const RequisitionItemsTable = ({ tableMaxHeight, hideFooter }: RequisitionItemsT
 
           {shouldShowAttendItemsBtn() && (
             <Button variant="contained" onClick={() => handleAttendItems()}>
-               atender
+              atender
             </Button>
           )}
         </Box>
@@ -744,7 +799,6 @@ const RequisitionItemsTable = ({ tableMaxHeight, hideFooter }: RequisitionItemsT
           sx={{
             height: tableMaxHeight ? tableMaxHeight : "auto",
             overFlow: "scroll",
-            
           }}
         >
           <BaseDataTable
