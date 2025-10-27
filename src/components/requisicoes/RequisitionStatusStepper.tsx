@@ -138,10 +138,18 @@ const RequisitionStatusStepper = ({
   const validationRules = async (newStatus: RequisitionStatus, skipAttachmentValidation: boolean = false ) =>  {
     if(!requisition.status) return;
     const advancingStatus = newStatus.etapa > requisition.status?.etapa || 0;
+    const items = await RequisitionItemService.getMany({id_requisicao});
+
+    if (newStatus.nome === 'Recebimento') {
+      items.map((item) => {
+        if (item.produto_codigo === "06.001.04.0002") {
+          throw new Error('Materias ou serviços não cadastrados não podem prosseguir para o status de Recebimento.');
+        }
+      })
+    }
 
     // Validação apenas para status "Em Cotação" e avançando
     if (newStatus.nome === 'Em Cotação' && advancingStatus) {
-      const items = await RequisitionItemService.getMany({id_requisicao});
       const noItems = items.length === 0; 
         if(noItems) {
           throw new Error('Requisição sem itens');
@@ -154,8 +162,8 @@ const RequisitionStatusStepper = ({
           }
         }
       }
-      
-      if(newStatus.nome === 'Aprovação Gerente'){ 
+
+      if(newStatus.nome === 'Aprovação Gerente') { 
         // Validação de anexos (pula se usuário já confirmou)
         if(!skipAttachmentValidation) {
           const hasAttachments = await checkIfItemsHaveAttachments();
