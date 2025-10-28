@@ -107,6 +107,8 @@ const RequisitionStatusStepper = ({
   const  [justifyingLessThenThreeQuotes, setJustifyingLessThenThreeQuotes] = useState<boolean>(false);
   const [showValidationDialog, setShowValidationDialog] = useState<boolean>(false);
   const [pendingStatusChange, setPendingStatusChange] = useState<"acao_anterior" | "acao_posterior" | null>(null);
+  const [showMissingTargetPriceDialog, setShowMissingTargetPriceDialog] = useState<boolean>(false);
+  const [pendingStatusChangeMissingTarget, setPendingStatusChangeMissingTarget] = useState<"acao_anterior" | "acao_posterior" | null>(null);
 
   const checkIfItemsHaveAttachments = async (): Promise<boolean> => {
     try {
@@ -140,13 +142,15 @@ const RequisitionStatusStepper = ({
     const advancingStatus = newStatus.etapa > requisition.status?.etapa || 0;
     const items = await RequisitionItemService.getMany({id_requisicao});
 
-    // if (newStatus.nome === 'Recebimento') {
-    //   items.map((item) => {
-    //     if (item.produto_codigo === "06.001.04.0002") {
-    //       throw new Error('Materias ou serviços não cadastrados não podem prosseguir para o status de Recebimento.');
-    //     }
-    //   })
-    // }
+    // Validação para status "Requisitado"
+    if (newStatus.nome === 'Requisitado') {
+      const missingTarget = items.some((item) => !item.target_price);
+      if (missingTarget && !skipAttachmentValidation) {
+        setPendingStatusChangeMissingTarget(pendingStatusChange);
+        setShowMissingTargetPriceDialog(true);
+        throw new Error('SHOW_MISSING_TARGET_PRICE_DIALOG');
+      }
+    }
 
     // Validação apenas para status "Em Cotação" e avançando
     if (newStatus.nome === 'Em Cotação' && advancingStatus) {
@@ -224,12 +228,13 @@ const RequisitionStatusStepper = ({
           : currentStep;
         
       const newStatus = statusList.find((status) => status.etapa === nextStep); //FINDS THE CORRESPONDING  NEW STATUS
-
-      if(newStatus?.nome === 'Em separação'){ 
+      
+      if (newStatus?.nome === 'Em separação') {
         dispatch(startAttendingItems());
         return;
       }
-      if(newStatus){ 
+
+      if (newStatus) { 
         try {
           // Se confirmValidation = true, pula validação de anexos mas executa outras
           await validationRules(newStatus, confirmValidation || false);
@@ -237,6 +242,11 @@ const RequisitionStatusStepper = ({
           if (error.message === 'SHOW_VALIDATION_DIALOG') {
             setPendingStatusChange(type);
             setShowValidationDialog(true);
+            return;
+          }
+          if (error.message === 'SHOW_MISSING_TARGET_PRICE_DIALOG') {
+            setPendingStatusChangeMissingTarget(type);
+            setShowMissingTargetPriceDialog(true);
             return;
           }
           throw error;
@@ -450,6 +460,19 @@ const RequisitionStatusStepper = ({
   const cancelValidationStatusChange = () => {
     setShowValidationDialog(false);
     setPendingStatusChange(null);
+  };
+
+  const confirmMissingTargetPriceStatusChange = async () => {
+    setShowMissingTargetPriceDialog(false);
+    if (pendingStatusChangeMissingTarget) {
+      await handleChangeStatus(pendingStatusChangeMissingTarget, true);
+    }
+    setPendingStatusChangeMissingTarget(null);
+  };
+
+  const cancelMissingTargetPriceStatusChange = () => {
+    setShowMissingTargetPriceDialog(false);
+    setPendingStatusChangeMissingTarget(null);
   };
 
 // Adiciona listeners globais para monitorar eventos de foco e blur
@@ -719,6 +742,40 @@ useEffect(() => {
             size="small"
             color="success"
             onClick={confirmValidationStatusChange}
+          >
+            Confirmar
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      {/* Dialog de confirmação para status Requisitado sem target_price */}
+      <Dialog
+        open={showMissingTargetPriceDialog}
+        onClose={cancelMissingTargetPriceStatusChange}
+      >
+        <DialogTitle>
+          Confirmação de mudança de status
+        </DialogTitle>
+        <DialogContent>
+          <Typography>
+            Existem itens sem preço alvo definido.<br />
+            Tem certeza que deseja prosseguir para o status "Requisitado" sem preencher o campo "Preço alvo" de todos os itens?
+          </Typography>
+        </DialogContent>
+        <DialogActions>
+          <Button
+            variant="contained"
+            size="small"
+            color="error"
+            onClick={cancelMissingTargetPriceStatusChange}
+          >
+            Cancelar
+          </Button>
+          <Button
+            variant="contained"
+            size="small"
+            color="success"
+            onClick={confirmMissingTargetPriceStatusChange}
           >
             Confirmar
           </Button>
