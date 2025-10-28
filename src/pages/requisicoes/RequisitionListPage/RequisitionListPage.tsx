@@ -146,6 +146,8 @@ const RequisitionListPage = () => {
 
     const handleCleanFilter = () => { 
       dispatch(clearfilters());
+      setDoneReqFilter(false);
+      setCancelledReqFilter(false);
     };
 
     const debouncedHandleChangeSearchTerm = useMemo(() => {
@@ -280,14 +282,24 @@ const RequisitionListPage = () => {
             <>
               {/* Checkbox para filtrar concluídos */}
               <Box sx={{ display: "inline-flex", alignItems: "center", ml: 2 }}>
-                <input type="checkbox" id="filter-concluidos" onChange={handleFilterConcluidos} />
+                <input
+                  type="checkbox"
+                  id="filter-concluidos"
+                  onChange={handleFilterConcluidos}
+                  checked={doneReqFilter}
+                />
                 <label htmlFor="filter-concluidos" style={{ marginLeft: 4, fontSize: 14 }}>
                   Concluídos
                 </label>
               </Box>
               {/* Checkbox para filtrar cancelados */}
               <Box sx={{ display: "inline-flex", alignItems: "center", ml: 2 }}>
-                <input type="checkbox" id="filter-cancelados" onChange={handleFilterCancelados} />
+                <input
+                  type="checkbox"
+                  id="filter-cancelados"
+                  onChange={handleFilterCancelados}
+                  checked={cancelledReqFilter}
+                />
                 <label htmlFor="filter-cancelados" style={{ marginLeft: 4, fontSize: 14 }}>
                   Cancelados
                 </label>
