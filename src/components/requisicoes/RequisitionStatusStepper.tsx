@@ -140,13 +140,13 @@ const RequisitionStatusStepper = ({
     const advancingStatus = newStatus.etapa > requisition.status?.etapa || 0;
     const items = await RequisitionItemService.getMany({id_requisicao});
 
-    if (newStatus.nome === 'Recebimento') {
-      items.map((item) => {
-        if (item.produto_codigo === "06.001.04.0002") {
-          throw new Error('Materias ou serviços não cadastrados não podem prosseguir para o status de Recebimento.');
-        }
-      })
-    }
+    // if (newStatus.nome === 'Recebimento') {
+    //   items.map((item) => {
+    //     if (item.produto_codigo === "06.001.04.0002") {
+    //       throw new Error('Materias ou serviços não cadastrados não podem prosseguir para o status de Recebimento.');
+    //     }
+    //   })
+    // }
 
     // Validação apenas para status "Em Cotação" e avançando
     if (newStatus.nome === 'Em Cotação' && advancingStatus) {
