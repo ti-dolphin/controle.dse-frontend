@@ -226,7 +226,7 @@ const RequisitionItemsTable = ({
       id_item_requisicao: number
     ) => {
       if (e.target.checked) {
-        setQuoteItemsSelected(
+        setQuoteItemsSelected (
           new Map(quoteItemsSelected.set(id_item_requisicao, id_item_cotacao))
         );
         const { updatedItems, updatedRequisition } =
