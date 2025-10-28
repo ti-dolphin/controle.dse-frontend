@@ -42,6 +42,8 @@ import CloseIcon from "@mui/icons-material/Close";
 const RequisitionListPage = () => {
     useRequisitionKanban();
     const [triggerFetch, setTriggerFetch] = useState(0);
+    const [doneReqFilter, setDoneReqFilter] = useState(false);
+    const [cancelledReqFilter, setCancelledReqFilter] = useState(false);
     const dispatch = useDispatch();
     const theme = useTheme();
     const user = useSelector((state: RootState) => state.user.user);
@@ -150,6 +152,7 @@ const RequisitionListPage = () => {
       return debounce(handleChangeSearchTerm, 500);
     }, [handleChangeSearchTerm]);
 
+    // Corrija o fetchData para depender dos filtros corretos
     const fetchData = React.useCallback(async () => {
       dispatch(setLoading(true));
       try {
@@ -157,6 +160,8 @@ const RequisitionListPage = () => {
           id_kanban_requisicao: selectedKanban?.id_kanban_requisicao,
           searchTerm,
           filters,
+          doneReqFilter,
+          cancelledReqFilter,
           removeAdmView: true
         });
         dispatch(setRows(data));
@@ -170,13 +175,42 @@ const RequisitionListPage = () => {
           })
         );
       }
-    }, [dispatch, user, selectedKanban, searchTerm, filters, triggerFetch]);
+    }, [
+      dispatch,
+      user,
+      selectedKanban,
+      searchTerm,
+      filters,
+      triggerFetch,
+      doneReqFilter,
+      cancelledReqFilter 
+    ]);
 
     useEffect(() => {
+
       if (selectedKanban && user) {
         fetchData();
       }
-    }, [selectedKanban, searchTerm, filters, fetchData, user]);
+    }, [
+      selectedKanban,
+      searchTerm,
+      filters,
+      fetchData,
+      user,
+      doneReqFilter,
+      cancelledReqFilter,
+    ]);
+
+    // Adicione aqui as funções de filtro para os checkboxes
+    const handleFilterConcluidos = (e: React.ChangeEvent<HTMLInputElement>) => {
+      const checked = e.target.checked;
+      setDoneReqFilter(checked);
+    };
+    const handleFilterCancelados = (e: React.ChangeEvent<HTMLInputElement>) => {
+      const checked = e.target.checked;
+      setCancelledReqFilter(checked);
+    };
+
   return (
     <Box sx={{ height: "100vh", width: "100%" }}>
       <UpperNavigation handleBack={handleBack} />
@@ -242,14 +276,30 @@ const RequisitionListPage = () => {
         <BaseTableToolBar
           handleChangeSearchTerm={debouncedHandleChangeSearchTerm}
         >
-          {!isMobile && (
-            <Button
-              sx={{ height: 30, borderRadius: 0 }}
-              variant="contained"
-              onClick={handleCleanFilter}
-            >
-              Limpar filtros
-            </Button>
+          {!isMobile && selectedKanban?.id_kanban_requisicao === 5 && (
+            <>
+              {/* Checkbox para filtrar concluídos */}
+              <Box sx={{ display: "inline-flex", alignItems: "center", ml: 2 }}>
+                <input type="checkbox" id="filter-concluidos" onChange={handleFilterConcluidos} />
+                <label htmlFor="filter-concluidos" style={{ marginLeft: 4, fontSize: 14 }}>
+                  Concluídos
+                </label>
+              </Box>
+              {/* Checkbox para filtrar cancelados */}
+              <Box sx={{ display: "inline-flex", alignItems: "center", ml: 2 }}>
+                <input type="checkbox" id="filter-cancelados" onChange={handleFilterCancelados} />
+                <label htmlFor="filter-cancelados" style={{ marginLeft: 4, fontSize: 14 }}>
+                  Cancelados
+                </label>
+              </Box>
+              <Button
+                sx={{ height: 30, borderRadius: 0 }}
+                variant="contained"
+                onClick={handleCleanFilter}
+              >
+                Limpar filtros
+              </Button>
+            </>
           )}
         </BaseTableToolBar>
         {isMobile ? (
