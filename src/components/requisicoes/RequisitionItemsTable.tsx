@@ -298,6 +298,21 @@ const RequisitionItemsTable = ({
     if (isDinamicField && isDinamicField(params.field)) {
       return;
     }
+
+  const currentStatus = requisition.status?.nome?.toLowerCase();
+    if (
+      params.field === 'target_price' &&
+      (currentStatus !== 'em edição' && currentStatus !== 'validação')
+    ) {
+      dispatch(
+        setFeedback({
+          message: `O campo selecionado não é editável`,
+          type: "error",
+        })
+      );
+      return;
+    }
+
     if (params.field === "__check__") return;
     if (params.field === "actions") return;
 
@@ -408,6 +423,7 @@ const RequisitionItemsTable = ({
         const payload = {
           id_item_requisicao: newRow.id_item_requisicao,
           quantidade: newRow.quantidade,
+          target_price: newRow.target_price,
           data_entrega: newRow.data_entrega,
           oc: newRow.oc,
           observacao: newRow.observacao,

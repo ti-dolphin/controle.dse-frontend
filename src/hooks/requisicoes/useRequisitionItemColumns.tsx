@@ -188,6 +188,13 @@ export const useRequisitionItemColumns = (
       ),
     },
     {
+      field: "target_price",
+      headerName: "Target Unitário",
+      type: "number",
+      width: 120,
+      editable: attendingItems ? false : true,
+    },  
+    {
       field: "quantidade_disponivel",
       headerName: "Estoque",
       type: "number",
