@@ -189,7 +189,7 @@ export const useRequisitionItemColumns = (
     },
     {
       field: "target_price",
-      headerName: "Target Unitário",
+      headerName: "Valor alvo unitário",
       type: "number",
       width: 120,
       editable: attendingItems ? false : true,
