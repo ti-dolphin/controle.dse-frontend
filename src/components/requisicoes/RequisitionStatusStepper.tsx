@@ -151,13 +151,13 @@ const RequisitionStatusStepper = ({
         throw new Error('SHOW_MISSING_TARGET_PRICE_DIALOG');
       }
     }
+    const noItems = items.length === 0; 
+    if(noItems) {
+      throw new Error('Requisição sem itens');
+    }
 
     // Validação apenas para status "Em Cotação" e avançando
     if (newStatus.nome === 'Em Cotação' && advancingStatus) {
-      const noItems = items.length === 0; 
-        if(noItems) {
-          throw new Error('Requisição sem itens');
-        }
 
         if(!skipAttachmentValidation) {
           const hasAttachments = await checkIfItemsHaveAttachments();

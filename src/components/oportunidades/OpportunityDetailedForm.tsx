@@ -412,6 +412,37 @@ const OpportunityDetailedForm = () => {
               <Typography color="green" fontWeight="bold" fontSize={16}>
                 {formatCurrency(Number(opportunity.VALOR_TOTAL) || 0)}
               </Typography>
+              <Button
+                variant="contained"
+                color="success"
+                size="small"
+                sx={{ ml: 2 }}
+                onClick={async () => {
+                  const CODOS = opportunity?.CODOS;
+                  if (!CODOS) return;
+                  try {
+                    await OpportunityService.sendSoldOpportunityEmail(
+                      CODOS,
+                      { ...opportunity }
+                    );
+                    dispatch(
+                      setFeedback({
+                        message: "E-mail de ganho enviado com sucesso!",
+                        type: "success",
+                      })
+                    );
+                  } catch (e: any) {
+                    dispatch(
+                      setFeedback({
+                        message: "Erro ao enviar e-mail de ganho",
+                        type: "error",
+                      })
+                    );
+                  }
+                }}
+              >
+                Informar ganho
+              </Button>
             </Stack>
           </Grid>
         </Paper>

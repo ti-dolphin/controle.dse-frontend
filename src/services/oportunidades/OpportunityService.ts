@@ -38,6 +38,10 @@ const OpportunityService = {
     delete: async (CODOS: number) => {
         const response = await api.delete(`${API_ENDPOINT}/${CODOS}`);
         return response.data;
+    },
+    sendSoldOpportunityEmail: async (CODOS: number, data: any) => {
+        const response = await api.post(`${API_ENDPOINT}/${CODOS}/informar-ganho`, data);
+        return response.data;
     }
 }
 
