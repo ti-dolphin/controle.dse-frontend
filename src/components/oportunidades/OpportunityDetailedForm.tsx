@@ -43,7 +43,11 @@ const OpportunityDetailedForm = () => {
   const saveOpp = async () => {
     if (!CODOS) return;
     try {
-      const opp = await OpportunityService.update(Number(CODOS), formData);
+      const opp = await OpportunityService.update(
+        Number(CODOS),
+        formData,
+        user ? user : undefined
+      );
       setOpportunity(opp);
       dispatch(
         setFeedback({
@@ -423,7 +427,8 @@ const OpportunityDetailedForm = () => {
                   try {
                     await OpportunityService.sendSoldOpportunityEmail(
                       CODOS,
-                      { ...opportunity }
+                      { ...opportunity },
+                      user ? user : undefined
                     );
                     dispatch(
                       setFeedback({
