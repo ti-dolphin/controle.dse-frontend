@@ -52,53 +52,54 @@ const gridContainerRef = React.useRef<HTMLDivElement>(null);
    navigate(`/oportunidades/${id}`);
  };
 
- const handleCleanFilters = ( ) => { 
-     clearFilters();
- }
+const handleCleanFilters = ( ) => { 
+    clearFilters();
+}
 
  const fetchData = useCallback(async () => {
-   if (user) {
+  console.log(filters, 'FILTERS');
+  if (user) {
     dispatch(setLoading(true));
-     try {
-       const { opps, total, totalFatDolphin, totalFatDireto } =
-         await OpportunityService.getMany({
-           user: user,
-           searchTerm,
-           filters,
-           finalizados,
-         });
-       dispatch(setRows(opps));
-       dispatch(
+    try {
+      const { opps, total, totalFatDolphin, totalFatDireto } =
+        await OpportunityService.getMany({
+          user: user,
+          searchTerm,
+          filters,
+          finalizados,
+        });
+      dispatch(setRows(opps));
+      dispatch(
           setTotals({
             total,
             totalFatDolphin,
             totalFatDireto,
           })
         );
-       dispatch(setLoading(false));
-     } catch (e: any) {
-       dispatch(setLoading(false));
-       setFeedback({
-         message: `Erro ao buscar oportunidades: ${e.message}`,
-         type: "error",
-       });
-     }
-   }
- }, [dispatch, searchTerm, filters, finalizados]);
+      dispatch(setLoading(false));
+    } catch (e: any) {
+      dispatch(setLoading(false));
+      setFeedback({
+        message: `Erro ao buscar oportunidades: ${e.message}`,
+        type: "error",
+      });
+    }
+  }
+}, [dispatch, searchTerm, filters, finalizados]);
 
- useEffect(() => {
-   fetchData();
- }, [fetchData]);
+useEffect(() => {
+  fetchData();
+}, [fetchData]);
 
- useEffect(()=> {
-   if (toolbarRef.current) {
-     setToolbarHeight(toolbarRef.current.clientHeight);
-   }
-   if (columnFiltersRef.current) {
-     setColumnFiltersHeight(columnFiltersRef.current.clientHeight);
-   }
+useEffect(()=> {
+  if (toolbarRef.current) {
+    setToolbarHeight(toolbarRef.current.clientHeight);
+  }
+  if (columnFiltersRef.current) {
+    setColumnFiltersHeight(columnFiltersRef.current.clientHeight);
+  }
    //log heihgts
- }, [toolbarRef.current, columnFiltersRef.current]);
+}, [toolbarRef.current, columnFiltersRef.current]);
   return (
     <Box
       sx={{

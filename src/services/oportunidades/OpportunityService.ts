@@ -1,4 +1,5 @@
 import api from "../../api";
+import { ReducedUser } from "../../models/User";
 
 const API_ENDPOINT = '/oportunidades';
 
@@ -26,17 +27,23 @@ const OpportunityService = {
         return response.data;
     },
     create: async (data: any, params: any) => {
-        const response = await api.post(API_ENDPOINT, data, { 
-            params: params
-        });
+        const response = await api.post(API_ENDPOINT, data, { params });
         return response.data;
     },
-    update: async (CODOS: number, data: any) => {
-        const response = await api.put(`${API_ENDPOINT}/${CODOS}`, data);
+    update: async (CODOS: number, data: any, user?: ReducedUser) => {
+        // Envia user dentro do body
+        const payload = user ? { ...data, user } : data;
+        const response = await api.put(`${API_ENDPOINT}/${CODOS}`, payload);
         return response.data;
     },
     delete: async (CODOS: number) => {
         const response = await api.delete(`${API_ENDPOINT}/${CODOS}`);
+        return response.data;
+    },
+    sendSoldOpportunityEmail: async (CODOS: number, data: any, user?: ReducedUser) => {
+        // Envia user dentro do body
+        const payload = user ? { ...data, user } : data;
+        const response = await api.post(`${API_ENDPOINT}/${CODOS}/informar-ganho`, payload);
         return response.data;
     }
 }

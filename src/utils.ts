@@ -54,8 +54,8 @@ export const formatDateStringtoISOstring = (dateString: string): string => {
 
 export const getDateFromISOstring = (ISOstring: string) => {
   try {
-    const date = getDateFromDateString(getDateStringFromISOstring(ISOstring));
-    return date;
+    const dt = DateTime.fromISO(ISOstring, { zone: "utc" });
+    return dt.isValid ? dt.toJSDate() : null;
   } catch (error) {
     return null;
   }

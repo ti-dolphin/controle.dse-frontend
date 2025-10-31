@@ -47,7 +47,13 @@ const RequisitionDetailPage = () => {
   const {requisition, refreshRequisition} = useSelector((state: RootState) => state.requisition);
   const [quoteListOpen, setQuoteListOpen] = useState<boolean>(false);
   const [fullScreenItems, setFullScreenItems] = useState<boolean>(false);
+  const [fullScreenTimeline, setFullScreenTimeline] = useState<boolean>(false);
+  const [fullScreenAttachments, setFullScreenAttachments] = useState<boolean>(false);
+  const [fullScreenComments, setFullScreenComments] = useState<boolean>(false);
   const fullScreenItemsTableContainer = useRef<HTMLDivElement>(null);
+  const fullScreenTimelineContainer = useRef<HTMLDivElement>(null);
+  const fullScreenAttachmentsContainer = useRef<HTMLDivElement>(null);
+  const fullScreenCommentsContainer = useRef<HTMLDivElement>(null);
   
   const fetchData = useCallback(async () => { 
     const requisition = await RequisitionService.getById(Number(id_requisicao));
@@ -254,14 +260,23 @@ const RequisitionDetailPage = () => {
                   flexDirection: "column",
                 }}
               >
-                <Typography
-                  variant="subtitle1"
-                  color="primary.main"
-                  fontWeight={500}
-                  mb={0.5}
-                >
-                  Comentários
-                </Typography>
+                <Box sx={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+                  <Typography
+                    variant="subtitle1"
+                    color="primary.main"
+                    fontWeight={500}
+                    mb={0.5}
+                  >
+                    Comentários
+                  </Typography>
+                  <IconButton
+                    size="small"
+                    onClick={() => setFullScreenComments(true)}
+                    color="primary"
+                  >
+                    <FullscreenIcon fontSize="small" />
+                  </IconButton>
+                </Box>
                 <Divider sx={{ mb: 1 }} />
                 <Box
                   sx={{
@@ -274,7 +289,6 @@ const RequisitionDetailPage = () => {
                 </Box>
               </Paper>
             </Grid>
-
             {/* Anexos */}
             <Grid item xs={12} md={6}>
               <Paper
@@ -286,14 +300,23 @@ const RequisitionDetailPage = () => {
                   justifyContent: "space-between",
                 }}
               >
-                <Typography
-                  variant="subtitle1"
-                  color="primary.main"
-                  fontWeight={500}
-                  mb={0.5}
-                >
-                  Anexos e Links
-                </Typography>
+                <Box sx={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+                  <Typography
+                    variant="subtitle1"
+                    color="primary.main"
+                    fontWeight={500}
+                    mb={0.5}
+                  >
+                    Anexos e Links
+                  </Typography>
+                  <IconButton
+                    size="small"
+                    onClick={() => setFullScreenAttachments(true)}
+                    color="primary"
+                  >
+                    <FullscreenIcon fontSize="small" />
+                  </IconButton>
+                </Box>
                 <Divider />
                 <Box sx={{ flex: 1, overflowY: "auto" }}>
                   <RequisitionAttachmentList
@@ -311,14 +334,23 @@ const RequisitionDetailPage = () => {
         {/* Timline/Histórico */}
         <Grid item xs={12} md={3}>
           <Paper sx={{ p: 1 }}>
-            <Typography
-              variant="subtitle1"
-              color="primary.main"
-              fontWeight={500}
-              mb={0}
-            >
-              Timeline / Histórico
-            </Typography>
+            <Box sx={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+              <Typography
+                variant="subtitle1"
+                color="primary.main"
+                fontWeight={500}
+                mb={0}
+              >
+                Timeline / Histórico
+              </Typography>
+              <IconButton
+                size="small"
+                onClick={() => setFullScreenTimeline(true)}
+                color="primary"
+              >
+                <FullscreenIcon fontSize="small" />
+              </IconButton>
+            </Box>
             <Divider />
             <Box>
               <RequisitionTimeline />
@@ -553,6 +585,93 @@ const RequisitionDetailPage = () => {
               (fullScreenItemsTableContainer.current?.offsetHeight || 0) - 60
             }
           />
+        </DialogContent>
+      </Dialog>
+      {/* Dialog tela cheia timeline/histórico */}
+      <Dialog
+        fullScreen
+        open={fullScreenTimeline}
+        onClose={() => setFullScreenTimeline(false)}
+        sx={{ display: "flex", flexDirection: "column" }}
+      >
+        <DialogTitle sx={{ maxHeight: 60 }}>
+          <Stack direction="row" alignItems="center" gap={2}>
+            <Typography fontSize="normal" color="primary.main" gutterBottom>
+              Timeline / Histórico
+            </Typography>
+            <Button
+              variant="contained"
+              color="error"
+              sx={{ fontSize: "small" }}
+              onClick={() => setFullScreenTimeline(false)}
+            >
+              Fechar
+            </Button>
+          </Stack>
+        </DialogTitle>
+        <DialogContent
+          ref={fullScreenTimelineContainer}
+          sx={{ background: "background.default" }}
+        >
+          <RequisitionTimeline />
+        </DialogContent>
+      </Dialog>
+      {/* Dialog tela cheia anexos/links */}
+      <Dialog
+        fullScreen
+        open={fullScreenAttachments}
+        onClose={() => setFullScreenAttachments(false)}
+        sx={{ display: "flex", flexDirection: "column" }}
+      >
+        <DialogTitle sx={{ maxHeight: 60 }}>
+          <Stack direction="row" alignItems="center" gap={2}>
+            <Typography fontSize="normal" color="primary.main" gutterBottom>
+              Anexos e Links
+            </Typography>
+            <Button
+              variant="contained"
+              color="error"
+              sx={{ fontSize: "small" }}
+              onClick={() => setFullScreenAttachments(false)}
+            >
+              Fechar
+            </Button>
+          </Stack>
+        </DialogTitle>
+        <DialogContent
+          ref={fullScreenAttachmentsContainer}
+          sx={{ background: "background.default" }}
+        >
+          <RequisitionAttachmentList id_requisicao={Number(id_requisicao)} />
+        </DialogContent>
+      </Dialog>
+      {/* Dialog tela cheia comentários */}
+      <Dialog
+        fullScreen
+        open={fullScreenComments}
+        onClose={() => setFullScreenComments(false)}
+        sx={{ display: "flex", flexDirection: "column" }}
+      >
+        <DialogTitle sx={{ maxHeight: 60 }}>
+          <Stack direction="row" alignItems="center" gap={2}>
+            <Typography fontSize="normal" color="primary.main" gutterBottom>
+              Comentários
+            </Typography>
+            <Button
+              variant="contained"
+              color="error"
+              sx={{ fontSize: "small" }}
+              onClick={() => setFullScreenComments(false)}
+            >
+              Fechar
+            </Button>
+          </Stack>
+        </DialogTitle>
+        <DialogContent
+          ref={fullScreenCommentsContainer}
+          sx={{ background: "background.default" }}
+        >
+          <RequisitionCommentList />
         </DialogContent>
       </Dialog>
     </Box>
