@@ -429,12 +429,10 @@ export const useRequisitionItemColumns = (
 
 
   const fetchDinamicColumns = useCallback(async () => {
-    console.log('[useRequisitionItemColumns] fetchDinamicColumns INICIO', { id_requisicao });
     try {
       const rawCols = await RequisitionItemService.getDinamicColumns(
         Number(id_requisicao)
       );
-      console.log('[useRequisitionItemColumns] fetchDinamicColumns rawCols', rawCols);
       const colsWithRenderCell = rawCols.map((col: GridColDef) => ({
         ...col,
         editable: true,
@@ -449,16 +447,6 @@ export const useRequisitionItemColumns = (
             ? Number(quoteItem.quantidade_cotada) <
               Number(quoteItem.quantidade_solicitada)
             : false;
-
-          // LOG: Renderização da célula dinâmica
-          console.log('[useRequisitionItemColumns] renderCell', {
-            field: col.field,
-            id_item_requisicao,
-            quoteItem,
-            hasquoteItem,
-            parciallyQuoted,
-            checked: quoteItemsSelected.get(Number(id_item_requisicao)) === Number(quoteItem?.id_item_cotacao)
-          });
 
           return (
             <Box sx={{ display: "flex", alignItems: "center" }}>
@@ -495,28 +483,19 @@ export const useRequisitionItemColumns = (
               {parciallyQuoted && (
                 <Tooltip
                   title={`Quantidade cotada: ${quoteItem?.quantidade_cotada}`}
-                >
+                > 
                   <ErrorIcon color="secondary" sx={{ fontSize: 14 }} />
                 </Tooltip>
               )}
             </Box>
           );
         },
-        minWidth: 130,
+        minWidth: 200,
         sortable: false,
         renderHeader: (params: any) => {
-          // LOG: Renderização do header dinâmico
-          console.log('[useRequisitionItemColumns] renderHeader', params.colDef.headerName);
           return (
             <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
               <Typography
-                noWrap
-                sx={{
-                  overflow: "hidden",
-                  textOverflow: "ellipsis",
-                  whiteSpace: "nowrap",
-                  maxWidth: "110px",
-                }}
                 fontSize="0.7rem"
                 fontWeight="bold"
                 color="primary"
@@ -528,7 +507,6 @@ export const useRequisitionItemColumns = (
         },
       }));
       setDinamicColumns(colsWithRenderCell);
-      console.log('[useRequisitionItemColumns] dinamicColumns setados', colsWithRenderCell);
     } catch (e) {
       console.error('[useRequisitionItemColumns] Erro ao buscar colunas dinâmicas', e);
       dispatch(
@@ -550,61 +528,37 @@ export const useRequisitionItemColumns = (
   const isDinamicField = useCallback(
     (field: string | number): boolean => {
       const result = dinamicColumns.some((col) => col.field === field);
-      console.log('[useRequisitionItemColumns] isDinamicField', field, result);
       return result;
     },
     [dinamicColumns]
   );
 
-  // LOG: Parâmetros iniciais do hook
-  console.log('[useRequisitionItemColumns] params', {
-    addingReqItems,
-    editItemFieldsPermitted,
-    selectionModel,
-    blockFields,
-    id_requisicao
-  });
-
   // Adicione este selector para pegar os itens da requisição
   const items = useSelector((state: RootState) => state.requisitionItem.items);
-  console.log('[useRequisitionItemColumns] items', items);
 
   // Helper para saber se todos os itens já têm items_cotacao carregado
   const allItemsHaveCotacao =
     items.length > 0 &&
     items.every((item: any) => Array.isArray(item.items_cotacao));
-  console.log('[useRequisitionItemColumns] allItemsHaveCotacao', allItemsHaveCotacao);
 
   // Limpa as dinamicColumns sempre que id_requisicao mudar
   useEffect(() => {
-    console.log('[useRequisitionItemColumns] id_requisicao mudou, limpando dinamicColumns', id_requisicao);
     setDinamicColumns([]);
   }, [id_requisicao]);
 
   useEffect(() => {
-    console.log('[useRequisitionItemColumns] useEffect para fetchDinamicColumns', {
-      id_requisicao,
-      addingReqItems,
-      updatingRecentProductsQuantity,
-      allItemsHaveCotacao
-    });
     if (!id_requisicao || isNaN(Number(id_requisicao))) {
-      console.log('[useRequisitionItemColumns] id_requisicao inválido, abortando fetch');
       return;
     }
     if (addingReqItems) {
-      console.log('[useRequisitionItemColumns] addingReqItems true, abortando fetch');
       return;
     }
     if (updatingRecentProductsQuantity) {
-      console.log('[useRequisitionItemColumns] updatingRecentProductsQuantity true, abortando fetch');
       return;
     }
     if (!allItemsHaveCotacao) {
-      console.log('[useRequisitionItemColumns] Nem todos os itens têm items_cotacao, abortando fetch');
       return;
     }
-    console.log('[useRequisitionItemColumns] Chamando fetchDinamicColumns');
     fetchDinamicColumns();
   }, [
     fetchDinamicColumns,
@@ -616,10 +570,7 @@ export const useRequisitionItemColumns = (
 
   // Troque o return direto por um useMemo:
   return useMemo(() => {
-    console.log('[useRequisitionItemColumns] useMemo retorno', {
-      dinamicColumns,
-      filteredColumns
-    });
+
     return {
       columns:
         dinamicColumns.length > 0

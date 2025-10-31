@@ -84,6 +84,8 @@ const RequisitionItemsTable = ({
     (state: RootState) => state.attendingItemsSlice.attendingItems
   );
 
+  const [quotesTotal, setQuotesTotal] = useState([]);
+
   const gridApiRef = useGridApiRef();
   const quote = useSelector((state: RootState) => state.quote.quote);
 
@@ -507,6 +509,18 @@ const RequisitionItemsTable = ({
       return oldRow;
     }
   };
+
+  const getTotalFromQuotes = async () => {
+    let quotes = await QuoteService.getAllQuotesByReq(Number(id_requisicao));
+    quotes = quotes.map((quote: any) => {
+      return {
+        total: quote.valor_total_itens
+      };
+    });
+
+    setQuotesTotal(quotes);
+  }
+
   //CRIA A COTAÇÃO A PARTIR DOS ITENS SELECIONADOS
   const createQuoteFromSelectedItems = async () => {
     //create quote from items and then redirect to quote page
@@ -743,6 +757,12 @@ const RequisitionItemsTable = ({
   useEffect(() => {
     handleChangeQuoteSelected();
   }, [handleChangeQuoteSelected]);
+
+  useEffect(() => {
+    if (id_requisicao) {
+      getTotalFromQuotes();
+    }
+  }, [id_requisicao]);
 
   return (
     <Box>
