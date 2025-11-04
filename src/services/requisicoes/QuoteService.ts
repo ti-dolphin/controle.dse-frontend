@@ -8,6 +8,13 @@ import { TaxClassification } from "../../models/requisicoes/TaxClassification";
 const API_ENDPOINT = "/cotacoes";
 
 class QuoteService {
+
+  static async getAllQuotesByReq(id_requisicao: number, token?: string): Promise<any> {
+    const config = token ? { headers: { Authorization: token } } : {};
+    const response = await api.get(`${API_ENDPOINT}/requisicao/${id_requisicao}`, config);
+    return response.data;
+  }
+
   static async getMany(params?: any): Promise<any> {
     const response = await api.get(API_ENDPOINT, { params });
     return response.data;

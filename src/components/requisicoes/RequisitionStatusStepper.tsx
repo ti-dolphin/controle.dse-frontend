@@ -142,6 +142,17 @@ const RequisitionStatusStepper = ({
     const advancingStatus = newStatus.etapa > requisition.status?.etapa || 0;
     const items = await RequisitionItemService.getMany({id_requisicao});
 
+    if (newStatus.nome === 'Validação') {
+      await Promise.all(items.map(async (item) => {
+        console.log('item', item);
+        if (item.quantidade === 0) {
+          throw new Error(
+            `O item ${item.produto_descricao} possui quantidade igual a zero.`
+          );
+        }
+      }))
+    }
+
     // Validação para status "Requisitado"
     if (newStatus.nome === 'Requisitado') {
       const missingTarget = items.some((item) => !item.target_price);
@@ -284,6 +295,7 @@ const RequisitionStatusStepper = ({
           message: "Status atualizado com sucesso!",
         })
       );
+      navigate("/requisicoes");
     } catch (e: any) {
       dispatch(
         setFeedback({
@@ -311,10 +323,17 @@ const RequisitionStatusStepper = ({
       dispatch(setRefresh(!refresh));
       dispatch(setRefreshRequisition(!refreshRequisition));
       setJustifyingLessThenThreeQuotes(false);
-       if (!permissionToChangeStatus) {
-         navigate("/requisicoes");
-         return;
-       }
+      if (!permissionToChangeStatus) {
+        navigate("/requisicoes");
+        return;
+      }
+      dispatch(
+        setFeedback({
+          type: "success", //DISPLAYS SUCCESS MESSAGE ON SCREEN
+          message: "Status atualizado com sucesso!",
+        })
+      );
+      navigate("/requisicoes");
 
     } catch (e: any) {
       dispatch(
@@ -403,10 +422,11 @@ const RequisitionStatusStepper = ({
           message: "Status atualizado com sucesso!",
         })
       );
+      navigate("/requisicoes");
     }
   };
 
-  const handleCancel = async ( ) =>  {
+  const handleCancel = async () =>  {
     try {
       const updatedRequisition = await RequisitionService.cancel(Number(id_requisicao));
       dispatch(setRequisition(updatedRequisition));
@@ -416,6 +436,7 @@ const RequisitionStatusStepper = ({
           message: "Requisição cancelada com sucesso!",
         })
       );
+      navigate("/requisicoes");
     }catch(e : any){ 
       dispatch(
         setFeedback({
@@ -427,7 +448,7 @@ const RequisitionStatusStepper = ({
   }
 
 
-  const handleActivate = async ( ) =>  {
+  const handleActivate = async () =>  {
     try {
       const updatedRequisition = await RequisitionService.activate(Number(id_requisicao));
       dispatch(setRequisition(updatedRequisition));
@@ -437,7 +458,7 @@ const RequisitionStatusStepper = ({
           message: "Requisição ativada com sucesso!",
         })
       );
-    }catch(e : any){ 
+    }catch (e : any) { 
       dispatch(
         setFeedback({
           type: "error",

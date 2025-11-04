@@ -341,6 +341,7 @@ const QuoteItemsTable = ({
         return;
       }
       const data = await QuoteItemService.getMany(params);
+      console.log(data, 'data items cotacao');
       dispatch(setQuoteItems(data));
     } catch (e) {
       dispatch(

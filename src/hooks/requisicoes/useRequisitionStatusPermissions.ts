@@ -27,12 +27,13 @@ export const useRequisitionStatusPermissions = (user: User | null, requisition: 
     const notCancelled = requisition.status?.nome !== "Cancelado";
     const cancelled = requisition.status?.nome === "Cancelado";
     const stockUser = requisition.id_escopo_requisicao === 1 && user?.PERM_ESTOQUE === 1;
+    const gerente = requisition.gerente?.CODPESSOA === user?.CODPESSOA;
 
     if(admOrBuyer && cancelled) { 
       setPermissionToActivate(true);
     }
 
-    if (admOrBuyer && notCancelled) {
+    if ((admOrBuyer || gerente ) && notCancelled) {
       setPermissionToCancel(true);
     }
     if (user && requisition.ID_REQUISICAO > 0) {
