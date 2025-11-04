@@ -36,6 +36,13 @@ const HomePage = () => {
   const user = useSelector((state: any) => state.user.user);
   const isAdmin = user ? user.PERM_ADMINISTRADOR === 1 : false;
 
+  // Redireciona para /auth se não estiver logado
+  React.useEffect(() => {
+    if (!user) {
+      navigate('/auth', { replace: true });
+    }
+  }, [user, navigate]);
+
 
   const handleClick = (event: React.MouseEvent<HTMLButtonElement>) => {
     setAnchorEl(event.currentTarget);
