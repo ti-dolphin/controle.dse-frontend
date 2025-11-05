@@ -150,7 +150,6 @@ export const useOppDetailedFields = (user: User | null, opportunity: Partial<Opp
       "DATAINTERACAO",
     ];
     // AQUI JÁ NÃO EXISTE MAIS AS DATAS
-    // console.log(fields, "fields before filtering dateFields OI EU SOU UM MOTOQUEIRO");
     const dateFields = fields.filter((field) => dateKeys.includes(field.field));
     const saleKeys = [
       "RESPONSAVEL",

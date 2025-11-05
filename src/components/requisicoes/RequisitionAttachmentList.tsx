@@ -135,7 +135,6 @@ const RequisitionAttachmentList: React.FC<RequisitionAttachmentListProps> = ({
   };
 
   const handleDelete = async () => {
-    console.log(deletingFile , 'oi eu sou um mamel funcionando');
     if (!deletingFile) return;
     const { id } = deletingFile;
     setLoading(true);

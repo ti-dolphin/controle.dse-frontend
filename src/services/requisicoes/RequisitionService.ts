@@ -1,12 +1,13 @@
 //RequisitionService
 import api from "../../api";
 import { ReducedUser } from "../../models/User";
+import { User } from "../../models/User";
 
 const  API_ENDPOINT = '/requisicoes';
 
 export default class RequisitionService {
   // Defina os métodos para interagir com a API de requisições
-  static async getMany(user: ReducedUser | null, params?: any) {
+  static async getMany(user: User | null, params?: any) {
     const response = await api.get(API_ENDPOINT, {
       params: { user, params },
     });
@@ -19,7 +20,10 @@ export default class RequisitionService {
   }
 
   static async attend(id_requisicao: number, CODPESSOA: number, items: any) {
-    const response = await api.post(`${API_ENDPOINT}/${id_requisicao}/atender`, { CODPESSOA, items });
+    const response = await api.post(
+      `${API_ENDPOINT}/${id_requisicao}/atender`,
+      { CODPESSOA, items }
+    );
     return response.data;
   }
 
@@ -29,12 +33,12 @@ export default class RequisitionService {
   }
 
   static async createFromOther(id_requisicao: number, items: any) {
-    const response = await api.post(`${API_ENDPOINT}/parcial/create`, { 
+    const response = await api.post(`${API_ENDPOINT}/parcial/create`, {
       id_requisicao,
-      items
+      items,
     });
     return response.data;
-  };
+  }
 
   static async cancel(id_requisicao: number) {
     const response = await api.put(`${API_ENDPOINT}/${id_requisicao}/cancelar`);
@@ -52,12 +56,20 @@ export default class RequisitionService {
   }
 
   static async updateStatus(id_requisicao: number, data: any) {
-    const response = await api.put(`${API_ENDPOINT}/${id_requisicao}/status`, data);
+    const response = await api.put(
+      `${API_ENDPOINT}/${id_requisicao}/status`,
+      data
+    );
     return response.data;
   }
 
   static async delete(id_requisicao: number) {
     const response = await api.delete(`${API_ENDPOINT}/${id_requisicao}`);
+    return response.data;
+  }
+
+  static async getAllFaturamentosTypes() {
+    const response = await api.get(`${API_ENDPOINT}/faturamentos/tipos`);
     return response.data;
   }
 }
