@@ -33,7 +33,7 @@ import { useIsMobile } from "../../../hooks/useIsMobile";
 import { FixedSizeGrid } from "react-window";
 import DataCard from "../../../components/shared/DataCard";
 import RequisitionCard from "../../../components/requisicoes/RequisitionCard";
-import { ReducedUser } from "../../../models/User";
+import { User, ReducedUser } from "../../../models/User";
 import Inventory2Icon from "@mui/icons-material/Inventory2";
 import { setViewingProducts } from "../../../redux/slices/productSlice";
 import ProductsTable from "../../../components/requisicoes/ProductsTable";
@@ -158,13 +158,13 @@ const RequisitionListPage = () => {
     const fetchData = React.useCallback(async () => {
       dispatch(setLoading(true));
       try {
-        const data = await RequisitionService.getMany(user as ReducedUser, {
+        const data = await RequisitionService.getMany(user as User, {
           id_kanban_requisicao: selectedKanban?.id_kanban_requisicao,
           searchTerm,
           filters,
           doneReqFilter,
           cancelledReqFilter,
-          removeAdmView: true
+          removeAdmView: true,
         });
         dispatch(setRows(data));
         dispatch(setLoading(false));
