@@ -348,11 +348,15 @@ const RequisitionStatusStepper = ({
   const handleAttendItems = async () => {
       try {
       let comprasItems = await RequisitionItemService.getMany({ id_requisicao });
+
+        const faturamentoDireto = requisition.tipo_faturamento === 2 ? true : false;
+
+        console.log('faturamentoDireto', faturamentoDireto);
+        return
+
       comprasItems = comprasItems.filter((item) => !item.quantidade_disponivel);
       comprasItems = [...comprasItems, ...notAttendedItems];
-      console.log("comprasItems", comprasItems);
       const {estoque, compras} = await RequisitionService.attend(Number(id_requisicao), user?.CODPESSOA || 0, [...items, ...comprasItems]);
-      console.log({ estoque, compras });
       dispatch(stopAttendingItems());
       if(!estoque){ 
         navigate(`/requisicoes`);

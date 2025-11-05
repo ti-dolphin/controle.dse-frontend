@@ -1,4 +1,4 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { RootState } from "../../redux/store";
 import {
@@ -9,7 +9,7 @@ import {
   setLoading,
   setError,
 } from "../../redux/slices/requisicoes/requisitionSlice";
-import { Box, Button, TextField, CircularProgress, Autocomplete, AutocompleteRenderInputParams, Typography } from "@mui/material";
+import { Box, Button, TextField, CircularProgress, Autocomplete, AutocompleteRenderInputParams, Typography, Radio, RadioGroup, FormControlLabel, FormControl, FormLabel } from "@mui/material";
 import { Requisition } from "../../models/requisicoes/Requisition";
 import { useProjectOptions } from "../../hooks/projectOptionsHook";
 import { FieldConfig, Option } from "../../types";
@@ -36,45 +36,49 @@ const RequisitionForm: React.FC = () => {
     (state: RootState) => state.requisition
   );
 
-const fields: FieldConfig[] = [
-  {
-    label: "Descrição",
-    field: "DESCRIPTION",
-    type: "text",
-    disabled: false,
-    required: true,
-    defaultValue: "",
-    value: requisition.DESCRIPTION ?? "",
-  },
-  {
-    label: "Projeto",
-    field: "ID_PROJETO",
-    type: "autocomplete",
-    disabled: false,
-    required: true,
-    defaultValue: "",
-    options: projectOptions,
-    value: projectOptions.find((opt) => opt.id === requisition.ID_PROJETO)?.id || null,
-  },
-  {
-    label: "Tipo",
-    field: "TIPO",
-    type: "autocomplete",
-    disabled: true,
-    defaultValue: "",
-    options: reqTypeOptions,
-    value: 10,
-  },
-  {
-    label: "Responsável",
-    field: "ID_RESPONSAVEL",
-    type: "autocomplete",
-    disabled: true,
-    defaultValue: user?.NOME || "",
-    options: [userOption],
-    value: userOption.id,
-  },
-];
+  const [tiposFaturamento, setTiposFaturamento] = useState<
+    { id: number; nome_faturamento: string; escopo: number }[]
+  >([]);
+  const [tipoFaturamentoSelecionado, setTipoFaturamentoSelecionado] = useState<number | null>(null);
+
+  // Buscar tipos de faturamento ao montar
+  useEffect(() => {
+    RequisitionService.getAllFaturamentosTypes().then((data) => {
+      setTiposFaturamento(data);
+      if (data && data.length > 0) setTipoFaturamentoSelecionado(data[0].id);
+    });
+  }, []);
+
+  const fields: FieldConfig[] = [
+    {
+      label: "Descrição",
+      field: "DESCRIPTION",
+      type: "text",
+      disabled: false,
+      required: true,
+      defaultValue: "",
+      value: requisition.DESCRIPTION ?? "",
+    },
+    {
+      label: "Projeto",
+      field: "ID_PROJETO",
+      type: "autocomplete",
+      disabled: false,
+      required: true,
+      defaultValue: "",
+      options: projectOptions,
+      value: projectOptions.find((opt) => opt.id === requisition.ID_PROJETO)?.id || null,
+    },
+    {
+      label: "Responsável",
+      field: "ID_RESPONSAVEL",
+      type: "autocomplete",
+      disabled: true,
+      defaultValue: user?.NOME || "",
+      options: [userOption],
+      value: userOption.id,
+    },
+  ];
 
  //setando usuário como responsável default
 
@@ -95,14 +99,16 @@ const fields: FieldConfig[] = [
     dispatch(setLoading(true));
     try {
         if (mode === "create") {
+            // Busca o tipo selecionado para pegar o escopo e tipo_faturamento correspondente
+            const tipoSelecionado = tiposFaturamento.find(t => t.id === tipoFaturamentoSelecionado);
             const newRequisition = await RequisitionService.create({
-              //fields
               DESCRIPTION : requisition.DESCRIPTION,
               ID_PROJETO : requisition.ID_PROJETO,
-              //tipo default
               TIPO : 9,
+              tipo_faturamento: tipoSelecionado ? tipoSelecionado.id : null,
               ID_RESPONSAVEL : requisition.ID_RESPONSAVEL,
               id_status_requisicao: 1,
+              id_escopo_requisicao: tipoSelecionado ? tipoSelecionado.escopo : null,
             });
             dispatch(setRows([...rows, newRequisition]));
             dispatch(clearRequisition());
@@ -119,14 +125,14 @@ const fields: FieldConfig[] = [
             return;
         }
     } catch (err: any) {
-        dispatch(setLoading(false));
-        dispatch(setError(err?.message || "Erro ao criar requisição."));
-        dispatch(
-            setFeedback({
-                message: err?.message || "Erro ao criar requisição.",
-                type: "error",
-            })
-        );
+      dispatch(setLoading(false));
+      dispatch(setError(err?.message || "Erro ao criar requisição."));
+      dispatch(
+        setFeedback({
+            message: err?.message || "Erro ao criar requisição.",
+            type: "error",
+        })
+      );
     }
   };
 
@@ -153,6 +159,16 @@ const fields: FieldConfig[] = [
     }))
   }, [dispatch])
 
+  // Função para exibir label do escopo
+  const getEscopoLabel = (escopo: number) => {
+    switch (escopo) {
+      case 1: return "Estoque";
+      case 2: return "Faturamento Dolphin";
+      case 3: return "Compras Operacional";
+      default: return "";
+    }
+  };
+
   return (
     <Box
       component="form"
@@ -168,32 +184,51 @@ const fields: FieldConfig[] = [
       >
         Nova requisição
       </Typography>
-      {fields.map((config) => {
-        if (config.type === "autocomplete") {
-          return (
-            <OptionsField
-              options={config.options || []}
-              label={config.label}
-              value={config.value}
-              optionHeight={60}
-              required={config.required}
-              onChange={(id) =>
-                handleChangeOptionField(config.field as keyof Requisition, Number(id))
-              }
-            disabled={isReadOnly || config.disabled}
+      {/* Descrição */}
+      <ElegantInput 
+        label="Descrição"
+        required={true}
+        value={String(requisition.DESCRIPTION ?? "")}
+        onChange={handleChange("DESCRIPTION")}
+        disabled={isReadOnly}
+      />
+      {/* Projeto */}
+      <OptionsField
+        options={projectOptions}
+        label="Projeto"
+        value={ projectOptions.find((opt) => opt.id === requisition.ID_PROJETO)?.id }
+        optionHeight={60}
+        required={true}
+        onChange={(id) => handleChangeOptionField("ID_PROJETO", Number(id))}
+        disabled={isReadOnly}
+      />
+      {/* Radios de tipos de faturamento - entre Projeto e Responsável */}
+      <FormControl component="fieldset" sx={{ mt: 2 }}>
+        <FormLabel component="legend">Tipo de Faturamento</FormLabel>
+        <RadioGroup
+          value={tipoFaturamentoSelecionado ?? ""}
+          onChange={e => setTipoFaturamentoSelecionado(Number(e.target.value))}
+        >
+          {tiposFaturamento.map((tipo) => (
+            <FormControlLabel
+              key={tipo.id}
+              value={tipo.id}
+              control={<Radio />}
+              label={`${tipo.nome_faturamento}`}
             />
-          );
-        }
-        return (
-          <ElegantInput 
-          label={config.label}
-          required={config.required}
-          value={String(requisition[config.field as keyof Requisition] )?? ""}
-          onChange={handleChange(config.field as keyof Requisition)}
-          disabled={isReadOnly || config.disabled}
-          />
-        );
-      })}
+          ))}
+        </RadioGroup>
+      </FormControl>
+      {/* Responsável */}
+      <OptionsField
+        options={[userOption]}
+        label="Responsável"
+        value={userOption.id}
+        optionHeight={60}
+        required={false}
+        onChange={(id) => handleChangeOptionField("ID_RESPONSAVEL", Number(id))}
+        disabled={true}
+      />
       {loading ? (
         <CircularProgress />
       ) : (
