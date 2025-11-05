@@ -143,7 +143,11 @@ const ProductsTable = () => {
       return;
     }
 
-    if (productsAdded.includes(Number(newRowSelectionModel[0]))){ 
+    console.log(productsAdded)
+
+    const selectedProductId = Number(newRowSelectionModel[0]);
+    // Permite adicionar múltiplas vezes o produto 138331
+    if (productsAdded.includes(selectedProductId) && selectedProductId !== 138331){ 
       dispatch(setFeedback({ message: 'O produto ja foi adicionado a requisição', type: 'error' }));
       return;
     }
