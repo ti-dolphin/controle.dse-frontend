@@ -43,7 +43,6 @@ export const useRequisitionStatusPermissions = (user: User | null, requisition: 
         user,
         requisition
         );
-        console.log(permissions.permissionToChangeStatus, 'permissions.permissionToChangeStatus AAAAAAAAAAAAAAAAAAAAAAAAAAAAAA');
         setPermissionToChangeStatus(permissions.permissionToChangeStatus);
         setPermissionToRevertStatus(permissions.permissionToRevertStatus);
             if (stockUser) {

@@ -279,9 +279,9 @@ const RequisitionStatusStepper = ({
           alterado_por: user?.CODPESSOA,
         }
       );
-       dispatch(setRequisition(updatedRequisition));
-       dispatch(setRefresh(!refresh));
-       dispatch(setRefreshRequisition(!refreshRequisition));
+      dispatch(setRequisition(updatedRequisition));
+      dispatch(setRefresh(!refresh));
+      dispatch(setRefreshRequisition(!refreshRequisition));
       if(!hasPermission){ 
         navigate("/requisicoes");
         return;

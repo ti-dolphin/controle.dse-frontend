@@ -37,7 +37,6 @@ const ProductsTable = ({ requisition }: ProductsTableProps) => {
   // Para acessar o tipo_faturamento:
   const tipoFaturamento = requisition?.tipo_faturamento;
 
-
   const dispatch = useDispatch();
   const theme = useTheme();
   const user = useSelector((state: RootState) => state.user.user);
@@ -196,7 +195,7 @@ const ProductsTable = ({ requisition }: ProductsTableProps) => {
     const value = e.target.value;
     setSearchTerm(value.toLowerCase());
   };
-  const getRowSelectionModelForContext =( ) => { 
+  const getRowSelectionModelForContext = ( ) => { 
     return addingProducts ? recentProductsAdded : rowSelectionModel;
   };
   //método para dar update na quantidade em estoque no mobile
@@ -207,7 +206,7 @@ const ProductsTable = ({ requisition }: ProductsTableProps) => {
         productBeingEdited.ID,
         { quantidade_estoque: newQuantity }
       );
-       dispatch(setProducts(products.map((product : Product) => product.ID === updatedProduct.ID ? updatedProduct : product)))
+      dispatch(setProducts(products.map((product : Product) => product.ID === updatedProduct.ID ? updatedProduct : product)))
       setProductBeingEdited(null);
       setQuantity(0);
     } catch (e) {
@@ -227,24 +226,17 @@ const ProductsTable = ({ requisition }: ProductsTableProps) => {
     try {
       const params: any = { searchTerm };
       
+      params.tipoFaturamento = tipoFaturamento;
+
+      if (!tipoFaturamento) return
+    
       const data = await ProductService.getMany(params);
-      
-      // Se tipo_faturamento === 3, filtra apenas os produtos específicos
-      let filteredData = data;
-      if (tipoFaturamento === 3) {
-        const allowedCodes = ['07.002.01.0028', '07.002.01.0009'];
-        filteredData = data.filter(product => 
-          allowedCodes.includes(product.codigo || '')
-        );
-      }
-      
-      const sortedData = [...filteredData].sort((a, b) => {
+
+      const sortedData = [...data].sort((a, b) => {
         const qtyA = a.quantidade_disponivel || 0;
         const qtyB = b.quantidade_disponivel || 0;
         return qtyB - qtyA;
       });
-      
-      console.log("produtos: ", sortedData);
       
       dispatch(setProducts(sortedData))
       setLoading(false);
