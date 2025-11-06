@@ -43,7 +43,7 @@ const RequisitionForm: React.FC = () => {
 
   // Buscar tipos de faturamento ao montar
   useEffect(() => {
-    RequisitionService.getAllFaturamentosTypes().then((data) => {
+    RequisitionService.getAllFaturamentosTypes({ visible: 1 }).then((data) => {
       setTiposFaturamento(data);
       if (data && data.length > 0) setTipoFaturamentoSelecionado(data[0].id);
     });

@@ -68,8 +68,8 @@ export default class RequisitionService {
     return response.data;
   }
 
-  static async getAllFaturamentosTypes() {
-    const response = await api.get(`${API_ENDPOINT}/faturamentos/tipos`);
+  static async getAllFaturamentosTypes(params?: any) {
+    const response = await api.get(`${API_ENDPOINT}/faturamentos/tipos`, { params });
     return response.data;
   }
 }
