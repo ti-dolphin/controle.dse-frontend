@@ -60,49 +60,6 @@ const RequisitionDetailPage = () => {
     dispatch(setRequisition(requisition));
   }, [id_requisicao, dispatch]);
 
-  // const handleChangeObservation = (e: ChangeEvent<HTMLTextAreaElement>) => {
-  //   const {value} = e.target;
-  //   setObservation(value);
-  // };
-
-  // const startObservationEditMode= (e:  React.FocusEvent<HTMLTextAreaElement>) => { 
-  //   const admin = Number(user?.PERM_ADMINISTRADOR) === 1;
-  //   const allowedToEdit = Number(user?.CODPESSOA) === Number(requisition.criado_por);
-  //   const editObservationPermittedForUser = admin || allowedToEdit;
-  //   if (!editObservationPermittedForUser) {
-  //     dispatch(
-  //       setFeedback({
-  //         message: "Você não tem permissão para editar esta observação.",
-  //         type: "error",
-  //       })
-  //     );
-  //     e.target.blur();
-  //     return;
-  //   }
-  //   setEditingObservation(true);
-  // }
-
-  // const handleSaveObservation = async ( ) =>  { 
-  //   try{ 
-  //     const updatedRequisition = await RequisitionService.update((Number(requisition.ID_REQUISICAO)), { 
-  //       OBSERVACAO: observation
-  //     });
-  //     dispatch(setRequisition(updatedRequisition));
-  //     setEditingObservation(false);
-  //     dispatch(setFeedback({ 
-  //       message: 'Observação salva com sucesso',
-  //       type: 'success'
-  //     }));
-  //     return;
-  //   }catch(e){ 
-  //     dispatch(setFeedback({ 
-  //       message: 'Erro ao salvar observação',
-  //       type: 'error'
-  //     }))
-  //   }
-
-  // };
-
   const createItemsFromProducts = async ( ) =>  {
     try{  
       const newItemIds = await RequisitionItemService.createMany(recentProductsAdded, requisition.ID_REQUISICAO);
@@ -447,7 +404,7 @@ const RequisitionDetailPage = () => {
           </Typography>
         </DialogTitle>
         <DialogContent>
-          {(addingProducts || replacingItemProduct) && <ProductsTable />}
+          {(addingProducts || replacingItemProduct) && <ProductsTable requisition={requisition} />}
         </DialogContent>
         <DialogActions>
           {addingProducts && recentProductsAdded.length > 0 && (

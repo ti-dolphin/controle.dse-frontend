@@ -27,7 +27,16 @@ import { FixedSizeGrid } from "react-window";
 import AttachFileIcon from '@mui/icons-material/AttachFile';
 import { green, red } from "@mui/material/colors";
 import ProductCard from "./ProductCard";
-const ProductsTable = () => {
+import { Requisition } from "../../models/requisicoes/Requisition";
+
+interface ProductsTableProps {
+  requisition?: Requisition; // Tornar opcional
+}
+
+const ProductsTable = ({ requisition }: ProductsTableProps) => {
+  // Para acessar o tipo_faturamento:
+  const tipoFaturamento = requisition?.tipo_faturamento;
+
 
   const dispatch = useDispatch();
   const theme = useTheme();
@@ -143,11 +152,7 @@ const ProductsTable = () => {
       return;
     }
 
-    console.log(productsAdded)
-
-    const selectedProductId = Number(newRowSelectionModel[0]);
-    // Permite adicionar múltiplas vezes o produto 138331
-    if (productsAdded.includes(selectedProductId) && selectedProductId !== 138331){ 
+    if (productsAdded.includes(Number(newRowSelectionModel[0]))){ 
       dispatch(setFeedback({ message: 'O produto ja foi adicionado a requisição', type: 'error' }));
       return;
     }
@@ -222,10 +227,18 @@ const ProductsTable = () => {
     try {
       const params: any = { searchTerm };
       
-      
       const data = await ProductService.getMany(params);
       
-      const sortedData = [...data].sort((a, b) => {
+      // Se tipo_faturamento === 3, filtra apenas os produtos específicos
+      let filteredData = data;
+      if (tipoFaturamento === 3) {
+        const allowedCodes = ['07.002.01.0028', '07.002.01.0009'];
+        filteredData = data.filter(product => 
+          allowedCodes.includes(product.codigo || '')
+        );
+      }
+      
+      const sortedData = [...filteredData].sort((a, b) => {
         const qtyA = a.quantidade_disponivel || 0;
         const qtyB = b.quantidade_disponivel || 0;
         return qtyB - qtyA;
@@ -244,7 +257,7 @@ const ProductsTable = () => {
         })
       );
     }
-  }, [dispatch, searchTerm]);
+  }, [dispatch, searchTerm, tipoFaturamento]);
 
   useEffect(() => {
     fetchData();
