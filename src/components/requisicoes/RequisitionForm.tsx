@@ -9,7 +9,8 @@ import {
   setLoading,
   setError,
 } from "../../redux/slices/requisicoes/requisitionSlice";
-import { Box, Button, TextField, CircularProgress, Autocomplete, AutocompleteRenderInputParams, Typography, Radio, RadioGroup, FormControlLabel, FormControl, FormLabel } from "@mui/material";
+import { Box, Button, TextField, CircularProgress, Autocomplete, AutocompleteRenderInputParams, Typography, Radio, RadioGroup, FormControlLabel, FormControl, FormLabel, Tooltip } from "@mui/material";
+import HelpOutline from "@mui/icons-material/HelpOutline";
 import { Requisition } from "../../models/requisicoes/Requisition";
 import { useProjectOptions } from "../../hooks/projectOptionsHook";
 import { FieldConfig, Option } from "../../types";
@@ -37,7 +38,7 @@ const RequisitionForm: React.FC = () => {
   );
 
   const [tiposFaturamento, setTiposFaturamento] = useState<
-    { id: number; nome_faturamento: string; escopo: number }[]
+    { id: number; nome_faturamento: string; escopo: number; descricao?: string }[]
   >([]);
   const [tipoFaturamentoSelecionado, setTipoFaturamentoSelecionado] = useState<number | null>(null);
 
@@ -97,6 +98,13 @@ const RequisitionForm: React.FC = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     dispatch(setLoading(true));
+
+    if (!tipoFaturamentoSelecionado || !requisition.ID_PROJETO || !requisition.DESCRIPTION) {
+      dispatch(setLoading(false));
+      dispatch(setError("Todos os campos são obrigatórios."));
+      return;
+    }
+
     try {
         if (mode === "create") {
             // Busca o tipo selecionado para pegar o escopo e tipo_faturamento correspondente
@@ -214,7 +222,16 @@ const RequisitionForm: React.FC = () => {
               key={tipo.id}
               value={tipo.id}
               control={<Radio />}
-              label={`${tipo.nome_faturamento}`}
+              label={
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                  <span>{tipo.nome_faturamento}</span>
+                  {tipo.descricao && (
+                    <Tooltip title={tipo.descricao} arrow placement="right">
+                      <HelpOutline sx={{ fontSize: 18, color: 'text.secondary', cursor: 'help' }} />
+                    </Tooltip>
+                  )}
+                </Box>
+              }
             />
           ))}
         </RadioGroup>
