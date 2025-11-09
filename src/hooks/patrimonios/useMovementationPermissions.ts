@@ -18,9 +18,10 @@ export const useMovementationPermissions = (rows : Partial<Movimentation>[] ) =>
         setPermissionToCreateNew(false);
         setPermissionToDelete(false);
         const adm = Number(user.PERM_ADMINISTRADOR) === 1;
+        const permMovement = Number(user.PERM_MOVIMENTAR) === 1;
         const currentResonsable =
           Number(user.CODPESSOA) === getCurrentRespnsable();
-        if (adm || currentResonsable) {
+        if (adm || currentResonsable || permMovement) {
           setPermissionToCreateNew(true);
         }
         if (adm) {
