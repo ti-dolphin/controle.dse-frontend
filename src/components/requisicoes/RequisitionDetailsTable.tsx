@@ -106,6 +106,6 @@ const RequisitionDetailsTable = ({
       </Table>
     </Paper>
   );
-};
+}; 
 
 export default memo(RequisitionDetailsTable);

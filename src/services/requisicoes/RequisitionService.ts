@@ -69,7 +69,17 @@ export default class RequisitionService {
   }
 
   static async getAllFaturamentosTypes(params?: any) {
-    const response = await api.get(`${API_ENDPOINT}/faturamentos/tipos`, { params });
+    const response = await api.get(`${API_ENDPOINT}/faturamentos/tipos`, {
+      params,
+    });
+    return response.data;
+  }
+
+  static async updateRequisitionType(id_requisicao: number, id_tipo_faturamento: number, id_status_requisicao: number) {
+    const response = await api.put(
+      `${API_ENDPOINT}/${id_requisicao}/tipo-faturamento`,
+      { id_tipo_faturamento, id_status_requisicao }
+    );
     return response.data;
   }
 }

@@ -109,14 +109,24 @@ const RequisitionForm: React.FC = () => {
         if (mode === "create") {
             // Busca o tipo selecionado para pegar o escopo e tipo_faturamento correspondente
             const tipoSelecionado = tiposFaturamento.find(t => t.id === tipoFaturamentoSelecionado);
+
+            let id_status_requisicao = 1
+            if (tipoSelecionado?.id === 3) {
+              id_status_requisicao = 107
+            } else if (tipoSelecionado?.id === 6) {
+              id_status_requisicao = 115
+            }
+
             const newRequisition = await RequisitionService.create({
-              DESCRIPTION : requisition.DESCRIPTION,
-              ID_PROJETO : requisition.ID_PROJETO,
-              TIPO : 9,
+              DESCRIPTION: requisition.DESCRIPTION,
+              ID_PROJETO: requisition.ID_PROJETO,
+              TIPO: 9,
               tipo_faturamento: tipoSelecionado ? tipoSelecionado.id : null,
-              ID_RESPONSAVEL : requisition.ID_RESPONSAVEL,
-              id_status_requisicao: tipoSelecionado?.id === 3 ? 107 : 1,
-              id_escopo_requisicao: tipoSelecionado ? tipoSelecionado.escopo : null,
+              ID_RESPONSAVEL: requisition.ID_RESPONSAVEL,
+              id_status_requisicao: id_status_requisicao,
+              id_escopo_requisicao: tipoSelecionado
+                ? tipoSelecionado.escopo
+                : null,
             });
             dispatch(setRows([...rows, newRequisition]));
             dispatch(clearRequisition());

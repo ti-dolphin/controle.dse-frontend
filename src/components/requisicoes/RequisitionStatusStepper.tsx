@@ -513,6 +513,37 @@ const RequisitionStatusStepper = ({
     setPendingStatusChangeMissingTarget(null);
   };
 
+  const handleChangeRequisitionType = async () => {
+    if (!selectedTipoFaturamento) return;
+
+    try {
+      const updatedRequisition = await RequisitionService.updateRequisitionType(
+        Number(id_requisicao),
+        selectedTipoFaturamento,
+        Number(requisition.id_status_requisicao)
+      );
+      
+      dispatch(setRequisition(updatedRequisition));
+      dispatch(setRefreshRequisition(!refreshRequisition));
+      setShowChangeTypeDialog(false);
+      setSelectedTipoFaturamento(null);
+      
+      dispatch(
+        setFeedback({
+          type: "success",
+          message: "Tipo de solicitação alterado com sucesso!",
+        })
+      );
+    } catch (e: any) {
+      dispatch(
+        setFeedback({
+          type: "error",
+          message: `Erro ao alterar tipo de solicitação: ${e.message}`,
+        })
+      );
+    }
+  };
+
 // Adiciona listeners globais para monitorar eventos de foco e blur
 useEffect(() => {
   const handleGlobalFocus = (event : FocusEvent) => {
@@ -624,17 +655,28 @@ useEffect(() => {
           </Typography>
           <ArrowCircleRightIcon fontSize="small" />
         </Button>
-        <Button
-          size="small"
-          variant="contained"
-          onClick={() => setShowChangeTypeDialog(true)}
-          sx={{ minHeight: 28, px: { xs: 0.5, sm: 1 } }}
-        >
-          <Typography fontSize={12}>
-            Alterar tipo de solicitação
-          </Typography>
-          <SwapHorizIcon fontSize="small" />
-        </Button>
+        { requisition.status?.id_status_requisicao === 1 ||
+          requisition.status?.id_status_requisicao === 10 ||
+          requisition.status?.id_status_requisicao === 2 ||
+          requisition.status?.id_status_requisicao === 3 ||
+          requisition.status?.id_status_requisicao === 107 ||
+          requisition.status?.id_status_requisicao === 108 || 
+          requisition.status?.id_status_requisicao === 109  ||
+          requisition.status?.id_status_requisicao === 115 ||
+          requisition.status?.id_status_requisicao === 116  ||
+          requisition.status?.id_status_requisicao === 117 ? (
+            <Button
+              size="small"
+              variant="contained"
+              onClick={() => setShowChangeTypeDialog(true)}
+              sx={{ minHeight: 28, px: { xs: 0.5, sm: 1 } }}
+            >
+              <Typography fontSize={12}>
+                Alterar tipo de solicitação
+              </Typography>
+              <SwapHorizIcon fontSize="small" />
+            </Button>
+          ) : null}
         {permissionToCancel && (
           <Button
             size="small"
@@ -866,7 +908,7 @@ useEffect(() => {
             variant="contained"
             size="small"
             color="success"
-            onClick={() => setShowChangeTypeDialog(false)}
+            onClick={handleChangeRequisitionType}
             disabled={selectedTipoFaturamento === null}
           >
             Confirmar
