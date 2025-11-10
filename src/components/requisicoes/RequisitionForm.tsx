@@ -212,7 +212,7 @@ const RequisitionForm: React.FC = () => {
       />
       {/* Radios de tipos de faturamento - entre Projeto e Responsável */}
       <FormControl component="fieldset" sx={{ mt: 2 }}>
-        <FormLabel component="legend">Tipo de Faturamento</FormLabel>
+        <FormLabel component="legend">Tipo de Solicitação</FormLabel>
         <RadioGroup
           value={tipoFaturamentoSelecionado ?? ""}
           onChange={e => setTipoFaturamentoSelecionado(Number(e.target.value))}

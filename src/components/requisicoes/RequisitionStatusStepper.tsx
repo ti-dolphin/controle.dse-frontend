@@ -3,6 +3,7 @@ import { RootState } from "../../redux/store";
 import { useRequisitionStatus } from "../../hooks/requisicoes/useRequisitionStatus";
 import ArrowCircleLeftIcon from "@mui/icons-material/ArrowCircleLeft";
 import ArrowCircleRightIcon from "@mui/icons-material/ArrowCircleRight";
+import SwapHorizIcon from "@mui/icons-material/SwapHoriz";
 
 import {
   Stepper,
@@ -19,6 +20,10 @@ import {
   DialogTitle,
   DialogContent,
   DialogActions,
+  Radio,
+  RadioGroup,
+  FormControlLabel,
+  FormLabel,
 } from "@mui/material";
 import CheckIcon from "@mui/icons-material/Check";
 import RequisitionService from "../../services/requisicoes/RequisitionService";
@@ -109,6 +114,20 @@ const RequisitionStatusStepper = ({
   const [pendingStatusChange, setPendingStatusChange] = useState<"acao_anterior" | "acao_posterior" | null>(null);
   const [showMissingTargetPriceDialog, setShowMissingTargetPriceDialog] = useState<boolean>(false);
   const [pendingStatusChangeMissingTarget, setPendingStatusChangeMissingTarget] = useState<"acao_anterior" | "acao_posterior" | null>(null);
+  const [tiposFaturamento, setTiposFaturamento] = useState<Array<{id: number; nome: string; nome_faturamento: string}>>([]);
+  const [showChangeTypeDialog, setShowChangeTypeDialog] = useState<boolean>(false);
+  const [selectedTipoFaturamento, setSelectedTipoFaturamento] = useState<number | null>(null);
+
+  useEffect(() => {
+    RequisitionService.getAllFaturamentosTypes({ visible: 1 }).then((data) => {
+      // Garante que nome_faturamento existe, se não, usa nome
+      const tipos = data.map((tipo: any) => ({
+        ...tipo,
+        nome_faturamento: tipo.nome_faturamento ?? tipo.nome,
+      }));
+      setTiposFaturamento(tipos);
+    });
+  }, []);
 
   const checkIfItemsHaveAttachments = async (): Promise<boolean> => {
     try {
@@ -605,6 +624,17 @@ useEffect(() => {
           </Typography>
           <ArrowCircleRightIcon fontSize="small" />
         </Button>
+        <Button
+          size="small"
+          variant="contained"
+          onClick={() => setShowChangeTypeDialog(true)}
+          sx={{ minHeight: 28, px: { xs: 0.5, sm: 1 } }}
+        >
+          <Typography fontSize={12}>
+            Alterar tipo de solicitação
+          </Typography>
+          <SwapHorizIcon fontSize="small" />
+        </Button>
         {permissionToCancel && (
           <Button
             size="small"
@@ -795,6 +825,49 @@ useEffect(() => {
             size="small"
             color="success"
             onClick={confirmMissingTargetPriceStatusChange}
+          >
+            Confirmar
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      {/* Novo Dialog/modal para alterar tipo de solicitação */}
+      <Dialog
+        open={showChangeTypeDialog}
+        onClose={() => setShowChangeTypeDialog(false)}
+      >
+        <DialogTitle>Alterar tipo de solicitação</DialogTitle>
+        <DialogContent>
+          <FormLabel component="legend">Selecione o tipo de faturamento:</FormLabel>
+          <RadioGroup
+            value={selectedTipoFaturamento ?? ""}
+            onChange={(e) => setSelectedTipoFaturamento(Number(e.target.value))}
+          >
+            {tiposFaturamento.map((tipo) => (
+              <FormControlLabel
+                key={tipo.id}
+                value={tipo.id}
+                control={<Radio />}
+                label={tipo.nome_faturamento}
+              />
+            ))}
+          </RadioGroup>
+        </DialogContent>
+        <DialogActions>
+          <Button
+            variant="contained"
+            size="small"
+            color="error"
+            onClick={() => setShowChangeTypeDialog(false)}
+          >
+            Cancelar
+          </Button>
+          <Button
+            variant="contained"
+            size="small"
+            color="success"
+            onClick={() => setShowChangeTypeDialog(false)}
+            disabled={selectedTipoFaturamento === null}
           >
             Confirmar
           </Button>
