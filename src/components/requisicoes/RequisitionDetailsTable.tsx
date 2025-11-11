@@ -10,6 +10,27 @@ import {
 import { Requisition } from "../../models/requisicoes/Requisition";
 import { getDateStringFromISOstring } from "../../utils";
 
+const getTypeByTipoFaturamento = (tipoFaturamento: any) => {
+  switch (tipoFaturamento) {
+    case 1:
+      return "Faturamento Dolphin";
+    case 2:
+      return "Faturamento Direto";
+    case 3:
+      return "Compras Operacional";
+    case 4 :
+      return "Estoque";
+    case 5: 
+      return "Estoque Operacional";
+    case 6:
+      return "Compras TI";
+    case 7:
+      return "Estoque TI";
+    default:
+      return "-";
+  }
+}
+
 interface DetailRowProps {
   label: string;
   value: string | undefined;
@@ -78,7 +99,10 @@ const RequisitionDetailsTable = ({
     { label: "Requisitante", value: requisition.responsavel?.NOME },
     { label: 'Responsável do projeto', value: requisition.responsavel_projeto?.NOME },
     { label: "Gerente do projeto", value: requisition.gerente?.NOME },
-    { label: "Tipo", value: requisition.tipo_requisicao?.nome_tipo },
+    {
+      label: "Tipo",
+      value: getTypeByTipoFaturamento(requisition.tipo_faturamento).toUpperCase(),
+    },
   ];
 
   return (

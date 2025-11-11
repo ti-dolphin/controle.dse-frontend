@@ -516,6 +516,9 @@ const RequisitionStatusStepper = ({
   const handleChangeRequisitionType = async () => {
     if (!selectedTipoFaturamento) return;
 
+    // AQUI VALIDAR OS ITENS SE PODEM IR OU NÃO PARA A NOVA SOLICITAÇÃO OU SE DEVE DIVIDIR A REQUISIÇÃO
+
+
     try {
       const updatedRequisition = await RequisitionService.updateRequisitionType(
         Number(id_requisicao),
