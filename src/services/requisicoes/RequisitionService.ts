@@ -82,4 +82,17 @@ export default class RequisitionService {
     );
     return response.data;
   }
+
+  static async changeRequisitionTypeWithSplit(
+    id_requisicao: number,
+    id_tipo_faturamento: number,
+    id_status_requisicao: number,
+    validItemIds: number[]
+  ) {
+    const response = await api.put(
+      `${API_ENDPOINT}/${id_requisicao}/tipo-faturamento/split`,
+      { id_tipo_faturamento, id_status_requisicao, validItemIds }
+    );
+    return response.data;
+  }
 }

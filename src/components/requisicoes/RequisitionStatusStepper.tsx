@@ -513,12 +513,98 @@ const RequisitionStatusStepper = ({
     setPendingStatusChangeMissingTarget(null);
   };
 
+  const getPermTargetByTipoFaturamento = (tipoFaturamentoId: any) : any => {
+    let perm
+
+    switch (tipoFaturamentoId) {
+      case 1:
+        perm = 'perm_faturamento_dse'
+        break;
+      case 2:
+        perm = 'perm_faturamento_direto'
+        break;
+      case 3:
+        perm = 'perm_operacional'
+        break;
+      case 6:
+        perm = 'perm_ti'
+        break;
+      default: 
+        perm = null
+    }
+
+    return perm;
+  }
+
   const handleChangeRequisitionType = async () => {
-    if (!selectedTipoFaturamento) return;
+    if (!selectedTipoFaturamento) return;  
 
-    // AQUI VALIDAR OS ITENS SE PODEM IR OU NÃO PARA A NOVA SOLICITAÇÃO OU SE DEVE DIVIDIR A REQUISIÇÃO
+    const permTarget = getPermTargetByTipoFaturamento(selectedTipoFaturamento);
+    if (!permTarget) {
+      throw new Error('Tipo de faturamento inválido.');
+    }
 
+    // Separar itens válidos e inválidos
+    const validItems: any[] = [];
+    const invalidItems: any[] = [];
 
+    items.forEach((item) => {
+      const prod = (item?.produto as any) ?? {};
+      if (prod[permTarget] === 1) {
+        validItems.push(item);
+      } else {
+        invalidItems.push(item);
+      }
+    });
+
+    // Se todos são inválidos, não permite mudança
+    if (validItems.length === 0) {
+      dispatch(
+        setFeedback({
+          type: "error",
+          message: "Nenhum item permite esse tipo de faturamento.",
+        })
+      );
+      return;
+    }
+
+    // Se há itens inválidos, divide a requisição
+    if (invalidItems.length > 0) {
+      try {
+        const result = await RequisitionService.changeRequisitionTypeWithSplit(
+          Number(id_requisicao),
+          selectedTipoFaturamento,
+          Number(requisition.id_status_requisicao),
+          validItems.map(item => item.id_item_requisicao)
+        );
+        
+        dispatch(setRequisition(result.originalRequisition));
+        dispatch(setRefreshRequisition(!refreshRequisition));
+        dispatch(setRefresh(!refresh));
+        setShowChangeTypeDialog(false);
+        setSelectedTipoFaturamento(null);
+        
+        dispatch(
+          setFeedback({
+            type: "success",
+            message: `Tipo de solicitação alterado! ${invalidItems.length} item(ns) foram mantidos na requisição original.`,
+          })
+        );
+        
+        // Redireciona para a lista para ver ambas requisições
+        navigate("/requisicoes");
+      } catch (e: any) {
+        dispatch(
+          setFeedback({
+            type: "error",
+            message: `Erro ao alterar tipo de solicitação: ${e.message}`,
+          })
+        );
+      }
+      return;
+    }
+
+    // Se todos são válidos, muda o tipo normalmente
     try {
       const updatedRequisition = await RequisitionService.updateRequisitionType(
         Number(id_requisicao),

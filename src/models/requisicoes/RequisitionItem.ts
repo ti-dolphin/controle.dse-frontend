@@ -23,4 +23,8 @@ export interface RequisitionItem {
     produto_unidade?: string;
     produto_quantidade_estoque?: number;
     produto_quantidade_disponivel?: number;
+    perm_ti?:number
+    perm_operacional?:number
+    perm_faturamento_direto?:number
+    perm_faturamento_dse?:number
 }
