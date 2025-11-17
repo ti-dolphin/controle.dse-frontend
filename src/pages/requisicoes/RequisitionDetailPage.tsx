@@ -191,7 +191,7 @@ const RequisitionDetailPage = () => {
         </Grid>
         {/* Detalhes da requisição */}
         <Grid item xs={12} md={3}>
-          <Paper sx={{ p: 1 }}>
+          <Paper sx={{ p: 1, height: '100%', display: 'flex', flexDirection: 'column' }}>
             <Typography
               variant="subtitle1"
               color="primary.main"
@@ -201,18 +201,20 @@ const RequisitionDetailPage = () => {
               Detalhes da requisição
             </Typography>
             <Divider sx={{ mb: 1 }} />
-            <RequisitionDetailsTable requisition={requisition} />
+            <Box sx={{ flex: 1, overflowY: 'auto' }}>
+              <RequisitionDetailsTable requisition={requisition} />
+            </Box>
           </Paper>
         </Grid>
         {/* Anexos, Comentários e Adicionar Itens */}
-        <Grid item xs={12} md={6}>
+        <Grid item xs={12} md={6} sx={{ display: 'flex' }}>
           <Grid container spacing={1}>
             {/* Comentários */}
-            <Grid item xs={12} md={6}>
+            <Grid item xs={12} md={6} sx={{ display: 'flex', flexDirection: 'column' }}>
               <Paper
                 sx={{
                   p: 1,
-                  height: "100%",
+                  height: '100%',
                   display: "flex",
                   flexDirection: "column",
                 }}
@@ -238,7 +240,6 @@ const RequisitionDetailPage = () => {
                 <Box
                   sx={{
                     flex: 1,
-                    maxHeight: 140,
                     overflowY: "auto",
                   }}
                 >
@@ -247,14 +248,13 @@ const RequisitionDetailPage = () => {
               </Paper>
             </Grid>
             {/* Anexos */}
-            <Grid item xs={12} md={6}>
+            <Grid item xs={12} md={6} sx={{ display: 'flex', flexDirection: 'column' }}>
               <Paper
                 sx={{
                   p: 1,
-                  height: "100%",
+                  height: '100%',
                   display: "flex",
                   flexDirection: "column",
-                  justifyContent: "space-between",
                 }}
               >
                 <Box sx={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
@@ -274,7 +274,7 @@ const RequisitionDetailPage = () => {
                     <FullscreenIcon fontSize="small" />
                   </IconButton>
                 </Box>
-                <Divider />
+                <Divider sx={{ mb: 1 }} />
                 <Box sx={{ flex: 1, overflowY: "auto" }}>
                   <RequisitionAttachmentList
                     id_requisicao={Number(id_requisicao)}
@@ -282,21 +282,17 @@ const RequisitionDetailPage = () => {
                 </Box>
               </Paper>
             </Grid>
-
-            {/* Ações */}
-            <Grid item xs={12}></Grid>
           </Grid>
         </Grid>
 
         {/* Timline/Histórico */}
         <Grid item xs={12} md={3}>
-          <Paper sx={{ p: 1 }}>
-            <Box sx={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+          <Paper sx={{ p: 1, height: '100%', display: 'flex', flexDirection: 'column' }}>
+            <Box sx={{ display: "flex", alignItems: "center", justifyContent: "space-between", mb: 0.5 }}>
               <Typography
                 variant="subtitle1"
                 color="primary.main"
                 fontWeight={500}
-                mb={0}
               >
                 Timeline / Histórico
               </Typography>
@@ -308,8 +304,8 @@ const RequisitionDetailPage = () => {
                 <FullscreenIcon fontSize="small" />
               </IconButton>
             </Box>
-            <Divider />
-            <Box>
+            <Divider sx={{ mb: 1 }} />
+            <Box sx={{ flex: 1, overflowY: 'auto' }}>
               <RequisitionTimeline />
             </Box>
           </Paper>
