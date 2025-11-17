@@ -566,7 +566,7 @@ const RequisitionDetailPage = () => {
           ref={fullScreenTimelineContainer}
           sx={{ background: "background.default" }}
         >
-          <RequisitionTimeline />
+          <RequisitionTimeline fullScreen={true} />
         </DialogContent>
       </Dialog>
       {/* Dialog tela cheia anexos/links */}
@@ -595,7 +595,7 @@ const RequisitionDetailPage = () => {
           ref={fullScreenAttachmentsContainer}
           sx={{ background: "background.default" }}
         >
-          <RequisitionAttachmentList id_requisicao={Number(id_requisicao)} />
+          <RequisitionAttachmentList id_requisicao={Number(id_requisicao)} fullScreen={true} />
         </DialogContent>
       </Dialog>
       {/* Dialog tela cheia comentários */}

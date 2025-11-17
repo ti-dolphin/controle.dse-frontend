@@ -1,12 +1,12 @@
-
 import { Typography } from '@mui/material'
 
 interface StyledLinkProps{ 
     link: string
     onClick: () => void;
+    fullScreen?: boolean;
 }
 
-const StyledLink = ({ link, onClick }: StyledLinkProps) => {
+const StyledLink = ({ link, onClick, fullScreen = false }: StyledLinkProps) => {
   return (
     <Typography
         sx={{
@@ -18,10 +18,11 @@ const StyledLink = ({ link, onClick }: StyledLinkProps) => {
             '&:hover': {
                 textDecoration: 'underline',
             },
-            maxWidth: 150,
+            maxWidth: fullScreen ? 'none' : 150,
             overflow: 'hidden',
-            textOverflow: 'ellipsis',
-            whiteSpace: 'nowrap',
+            textOverflow: fullScreen ? 'unset' : 'ellipsis',
+            whiteSpace: fullScreen ? 'normal' : 'nowrap',
+            wordBreak: fullScreen ? 'break-word' : 'normal',
         }}
         onClick={onClick}
         title={link}
