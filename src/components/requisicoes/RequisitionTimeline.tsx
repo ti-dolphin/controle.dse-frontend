@@ -38,10 +38,10 @@ const RequisitionTimeline = ({ fullScreen = false }: RequisitionTimelineProps) =
         );
       setAlterations(data);
     } catch (error) {
-       dispatch(setFeedback({ 
+      dispatch(setFeedback({ 
         type: 'error', 
         message: 'Erro ao buscar histórico de status'
-       }));
+      }));
     }
   };
 
