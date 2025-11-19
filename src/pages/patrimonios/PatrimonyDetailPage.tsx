@@ -1,5 +1,5 @@
 import React from 'react'
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
 import { Grid, Paper, Typography, Box, Stack, IconButton, Dialog, DialogTitle, DialogContent, Button } from '@mui/material';
 import PatrimonyMovementationTable from '../../components/patrimonios/PatrimonyMovementationTable';
 import PatrimonyForm from '../../components/patrimonios/PatrimonyForm';
@@ -12,12 +12,14 @@ import PatrimonyAttachmentList from '../../components/patrimonios/PatrimonyAttac
 const PatrimonyDetailPage = () => {
 
   const navigate = useNavigate()
+  const params = useParams();
+  const patrimonyNumber = params.id || params.idPatrimonio || params.numero || Object.values(params)[0];
   const [fullScreenChecklist, setFullScreenChecklist] = React.useState(false);
   const [attachmentDialogOpen, setAttachmentDialogOpen] = React.useState(false);
 
-   const handleBack = () => {
-     navigate("/patrimonios");
-   };
+  const handleBack = () => {
+    navigate("/patrimonios");
+  };
 
   return (
     <Box>
@@ -28,7 +30,7 @@ const PatrimonyDetailPage = () => {
           <Paper elevation={3} sx={{ p: 1 }}>
             <Stack direction="row" justifyContent="space-between" alignItems="center">
               <Typography variant="h6" color="primary.main">
-                Patrimônio
+                Patrimônio #{patrimonyNumber}
               </Typography>
               <Button
                 variant="outlined"
