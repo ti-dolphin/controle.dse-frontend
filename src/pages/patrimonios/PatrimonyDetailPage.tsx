@@ -6,11 +6,14 @@ import PatrimonyForm from '../../components/patrimonios/PatrimonyForm';
 import ChecklistTable from './ChecklistTable';
 import UpperNavigation from '../../components/shared/UpperNavigation';
 import FullscreenIcon from "@mui/icons-material/Fullscreen";
+import AttachFileIcon from "@mui/icons-material/AttachFile";
+import PatrimonyAttachmentList from '../../components/patrimonios/PatrimonyAttachmentList';
 
 const PatrimonyDetailPage = () => {
 
   const navigate = useNavigate()
   const [fullScreenChecklist, setFullScreenChecklist] = React.useState(false);
+  const [attachmentDialogOpen, setAttachmentDialogOpen] = React.useState(false);
 
    const handleBack = () => {
      navigate("/patrimonios");
@@ -23,9 +26,19 @@ const PatrimonyDetailPage = () => {
         {/* Área 1: Detalhes do Patrimônio */}
         <Grid item xs={12} md={4}>
           <Paper elevation={3} sx={{ p: 1 }}>
-            <Typography variant="h6" color="primary.main">
-              Patrimônio
-            </Typography>
+            <Stack direction="row" justifyContent="space-between" alignItems="center">
+              <Typography variant="h6" color="primary.main">
+                Patrimônio
+              </Typography>
+              <Button
+                variant="outlined"
+                startIcon={<AttachFileIcon />}
+                size="small"
+                onClick={() => setAttachmentDialogOpen(true)}
+              >
+                Anexo
+              </Button>
+            </Stack>
             <PatrimonyForm />
           </Paper>
         </Grid>
@@ -77,6 +90,12 @@ const PatrimonyDetailPage = () => {
           <ChecklistTable />
         </DialogContent>
       </Dialog>
+
+      {/* Modal de Anexos */}
+      <PatrimonyAttachmentList
+        open={attachmentDialogOpen}
+        onClose={() => setAttachmentDialogOpen(false)}
+      />
     </Box>
   );
 }
