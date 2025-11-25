@@ -426,6 +426,7 @@ const RequisitionItemsTable = ({
           id_item_requisicao: newRow.id_item_requisicao,
           quantidade: newRow.quantidade,
           target_price: newRow.target_price,
+          data_necessidade: newRow.data_necessidade,
           data_entrega: newRow.data_entrega,
           oc: newRow.oc,
           observacao: newRow.observacao,

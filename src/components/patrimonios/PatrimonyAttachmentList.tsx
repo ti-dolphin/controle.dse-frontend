@@ -186,6 +186,32 @@ const PatrimonyAttachmentList: React.FC<PatrimonyAttachmentListProps> = ({
     }
   };
 
+  const fileExtensions = [
+    '.pdf',
+    '.jpg',
+    '.jpeg',
+    '.png',
+    '.doc',
+    '.docx',
+    '.xls',
+    '.xlsx',
+  ];
+
+  const handleAttachmentClick = (attachment: PatrimonyAttachment) => {
+    const isFile = fileExtensions.some((ext) =>
+      attachment.arquivo.toLowerCase().includes(ext)
+    );
+
+    if (isFile) {
+      setSelectedFile(attachment);
+    } else if (
+      attachment.arquivo.startsWith('http://') ||
+      attachment.arquivo.startsWith('https://')
+    ) {
+      window.open(attachment.arquivo, '_blank');
+    }
+  };
+
   React.useEffect(() => {
     if (open) {
       fetchData();
@@ -240,30 +266,7 @@ const PatrimonyAttachmentList: React.FC<PatrimonyAttachmentListProps> = ({
                       <Stack direction="row" alignItems="center" gap={1}>
                         <StyledLink
                           link={attachment.arquivo}
-                          onClick={() => {
-                            const fileExtensions = [
-                              '.pdf',
-                              '.jpg',
-                              '.jpeg',
-                              '.png',
-                              '.doc',
-                              '.docx',
-                              '.xls',
-                              '.xlsx',
-                            ];
-                            const isFile = fileExtensions.some((ext) =>
-                              attachment.arquivo.toLowerCase().includes(ext)
-                            );
-
-                            if (isFile) {
-                              setSelectedFile(attachment);
-                            } else if (
-                              attachment.arquivo.startsWith('http://') ||
-                              attachment.arquivo.startsWith('https://')
-                            ) {
-                              window.open(attachment.arquivo, '_blank');
-                            }
-                          }}
+                          onClick={() => handleAttachmentClick(attachment)}
                         />
                       </Stack>
 

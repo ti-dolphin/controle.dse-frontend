@@ -22,6 +22,7 @@ export interface Requisition {
   custo_total_frete : number;
   custo_total_itens : number;
   custo_total : number;
+  valor_aprovado_diretoria?: number;
 
   tipo_requisicao?: RequisitionType;
   projeto?: Project;

@@ -117,6 +117,8 @@ const RequisitionStatusStepper = ({
   const [tiposFaturamento, setTiposFaturamento] = useState<Array<{id: number; nome: string; nome_faturamento: string}>>([]);
   const [showChangeTypeDialog, setShowChangeTypeDialog] = useState<boolean>(false);
   const [selectedTipoFaturamento, setSelectedTipoFaturamento] = useState<number | null>(null);
+  const [showValueIncreaseDialog, setShowValueIncreaseDialog] = useState<boolean>(false);
+  const [pendingStatusChangeValueIncrease, setPendingStatusChangeValueIncrease] = useState<"acao_anterior" | "acao_posterior" | null>(null);
 
   useEffect(() => {
     RequisitionService.getAllFaturamentosTypes({ visible: 1 }).then((data) => {
@@ -316,6 +318,13 @@ const RequisitionStatusStepper = ({
       );
       navigate("/requisicoes");
     } catch (e: any) {
+      // Verifica se o erro é devido ao aumento de valor acima de R$10
+      if (e.response?.data?.code === 'VALUE_INCREASE_REQUIRES_APPROVAL') {
+        setPendingStatusChangeValueIncrease(type);
+        setShowValueIncreaseDialog(true);
+        return;
+      }
+      
       dispatch(
         setFeedback({
           type: "error",
@@ -513,6 +522,68 @@ const RequisitionStatusStepper = ({
     setPendingStatusChangeMissingTarget(null);
   };
 
+  const handleValueIncreaseReview = () => {
+    // Usuário escolheu rever os valores - apenas fecha o diálogo
+    setShowValueIncreaseDialog(false);
+    setPendingStatusChangeValueIncrease(null);
+  };
+
+  const handleValueIncreaseAccept = async () => {
+    // Usuário aceitou o retorno automático para aprovação
+    setShowValueIncreaseDialog(false);
+    
+    try {
+      // Busca o status de aprovação correspondente ao escopo
+      const scopeApprovalMap: {[key: number]: number} = {
+        2: 7,   // Escopo 2 -> Status 7
+        3: 110, // Escopo 3 -> Status 110
+        5: 118  // Escopo 5 -> Status 118
+      };
+      
+      const approvalStatusId = scopeApprovalMap[requisition.id_escopo_requisicao];
+      
+      if (!approvalStatusId) {
+        dispatch(
+          setFeedback({
+            type: "error",
+            message: "Não foi possível determinar o status de aprovação para este escopo.",
+          })
+        );
+        return;
+      }
+      
+      // Envia requisição para retornar ao status de aprovação
+      const updatedRequisition = await RequisitionService.updateStatus(
+        Number(id_requisicao),
+        {
+          id_status_requisicao: approvalStatusId,
+          alterado_por: user?.CODPESSOA,
+        }
+      );
+      
+      dispatch(setRequisition(updatedRequisition));
+      dispatch(setRefresh(!refresh));
+      dispatch(setRefreshRequisition(!refreshRequisition));
+      setPendingStatusChangeValueIncrease(null);
+      
+      dispatch(
+        setFeedback({
+          type: "success",
+          message: "Requisição retornada para aprovação da diretoria devido ao aumento de valor.",
+        })
+      );
+      
+      navigate("/requisicoes");
+    } catch (e: any) {
+      dispatch(
+        setFeedback({
+          type: "error",
+          message: `Erro ao retornar para aprovação: ${e.message}`,
+        })
+      );
+    }
+  };
+
   const getPermTargetByTipoFaturamento = (tipoFaturamentoId: any) : any => {
     let perm
 
@@ -558,7 +629,7 @@ const RequisitionStatusStepper = ({
     });
 
     // Se todos são inválidos, não permite mudança
-    if (validItems.length === 0) {
+    if (validItems.length === 0 && items.length > 0) {
       dispatch(
         setFeedback({
           type: "error",
@@ -1001,6 +1072,41 @@ useEffect(() => {
             disabled={selectedTipoFaturamento === null}
           >
             Confirmar
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      {/* Dialog de aviso de aumento de valor acima do limite */}
+      <Dialog
+        open={showValueIncreaseDialog}
+        onClose={() => setShowValueIncreaseDialog(false)}
+      >
+        <DialogTitle>
+          Valor excedeu o limite aprovado
+        </DialogTitle>
+        <DialogContent>
+          <Typography>
+            O valor da requisição passou do valor limite para prosseguir sem aprovação novamente.
+            <br /><br />
+            A requisição precisará retornar para aprovação da diretoria.
+          </Typography>
+        </DialogContent>
+        <DialogActions>
+          <Button
+            variant="contained"
+            size="small"
+            color="error"
+            onClick={handleValueIncreaseReview}
+          >
+            Rever valores
+          </Button>
+          <Button
+            variant="contained"
+            size="small"
+            color="success"
+            onClick={handleValueIncreaseAccept}
+          >
+            Aceitar retorno para aprovação
           </Button>
         </DialogActions>
       </Dialog>
