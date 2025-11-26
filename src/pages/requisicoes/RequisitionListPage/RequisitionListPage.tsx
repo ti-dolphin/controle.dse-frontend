@@ -38,6 +38,7 @@ import Inventory2Icon from "@mui/icons-material/Inventory2";
 import { setViewingProducts } from "../../../redux/slices/productSlice";
 import ProductsTable from "../../../components/requisicoes/ProductsTable";
 import CloseIcon from "@mui/icons-material/Close";
+import NotificationBell from "../../../components/requisicoes/NotificationBell";
 
 const RequisitionListPage = () => {
     useRequisitionKanban();
@@ -260,20 +261,29 @@ const RequisitionListPage = () => {
           </Box>
           <RequisitionFormModal />
 
-          <Button
+          <Box
             sx={{
-              color: "white",
-              textTransform: "capitalize",
-              borderRadius: 0,
-              height: 26,
               position: "absolute",
               right: 10,
+              display: "flex",
+              alignItems: "center",
+              gap: 1,
             }}
-            startIcon={<Inventory2Icon />}
-            onClick={() => dispatch(setViewingProducts(true))}
           >
-            Produtos
-          </Button>
+            <NotificationBell />
+            <Button
+              sx={{
+                color: "white",
+                textTransform: "capitalize",
+                borderRadius: 0,
+                height: 26,
+              }}
+              startIcon={<Inventory2Icon />}
+              onClick={() => dispatch(setViewingProducts(true))}
+            >
+              Produtos
+            </Button>
+          </Box>
         </BaseToolBar>
         <BaseTableToolBar
           handleChangeSearchTerm={debouncedHandleChangeSearchTerm}
