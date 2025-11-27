@@ -228,8 +228,6 @@ const ProductsTable = ({ requisition }: ProductsTableProps) => {
       
       params.tipoFaturamento = tipoFaturamento;
 
-      if (!tipoFaturamento) return
-    
       const data = await ProductService.getMany(params);
 
       const sortedData = [...data].sort((a, b) => {

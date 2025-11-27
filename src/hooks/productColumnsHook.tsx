@@ -92,6 +92,35 @@ export const useProductColumns = () => {
         );
       },
     },
+    {
+      field: "anexos",
+      headerName: "anexos",
+      flex: 0.15,
+      editable: false,
+      renderCell: (params: GridRenderCellParams) => {
+        return (
+          <Box
+            sx={{
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              height: "100%",
+              padding: 1,
+            }}
+          >
+            <IconButton onClick={() => { dispatch(setViewingProductAttachment(params.row.ID)) }}>
+              <StyledBadge
+                variant="standard"
+                badgeContent={params.row.anexos.length}
+                color="primary"
+              >
+                <FileIcon sx={{ fontSize: 14 }} />
+              </StyledBadge>
+            </IconButton>
+          </Box>
+        );
+      },
+    },
   ];
 
   const mobileColumns: GridColDef[] = [

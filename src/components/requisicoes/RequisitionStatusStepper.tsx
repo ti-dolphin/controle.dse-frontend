@@ -107,6 +107,7 @@ const RequisitionStatusStepper = ({
   const { statusList } = useRequisitionStatus(id_requisicao); 
   const {refresh} = useSelector((state: RootState) => state.requisitionItem);
   const [fillingComment, setFillingComment] = useState<boolean>(false);
+  const [fillingAdvanceComment, setFillingAdvanceComment] = useState<boolean>(false);
   const [comment, setComment] = useState<string>('');
   const [focusedElement, setFocusedElement] = useState<EventTarget | null>(null);
   const  [justifyingLessThenThreeQuotes, setJustifyingLessThenThreeQuotes] = useState<boolean>(false);
@@ -248,6 +249,11 @@ const RequisitionStatusStepper = ({
 
     if (type === "acao_anterior") {
       setFillingComment(true);
+      return;
+    }
+
+    if (type === "acao_posterior") {
+      setFillingAdvanceComment(true);
       return;
     }
 
@@ -398,6 +404,98 @@ const RequisitionStatusStepper = ({
 
   };
 
+
+  const concludeAdvanceRequisition = async () => {
+    setFillingAdvanceComment(false);
+    try {
+      const createdComment = await RequisitionCommentService.create({
+        id_requisicao: Number(id_requisicao),
+        descricao: comment,
+        criado_por: user?.CODPESSOA || 0,
+      });
+      
+      if (createdComment) {
+        dispatch(addComment(createdComment));
+        setComment("");
+        
+        const type = "acao_posterior";
+        const currentStep = requisition.status?.etapa ?? 0;
+        const nextStep = currentStep + 1;
+        const newStatus = statusList.find((status) => status.etapa === nextStep);
+        
+        if (newStatus?.nome === 'Em separação') {
+          dispatch(startAttendingItems());
+          return;
+        }
+        
+        if (newStatus) {
+          try {
+            await validationRules(newStatus, false);
+          } catch (error: any) {
+            if (error.message === 'SHOW_VALIDATION_DIALOG') {
+              setPendingStatusChange(type);
+              setShowValidationDialog(true);
+              return;
+            }
+            if (error.message === 'SHOW_MISSING_TARGET_PRICE_DIALOG') {
+              setPendingStatusChangeMissingTarget(type);
+              setShowMissingTargetPriceDialog(true);
+              return;
+            }
+            throw error;
+          }
+        }
+        
+        if (!newStatus) {
+          dispatch(
+            setFeedback({
+              type: "error",
+              message: "Não foi possível alterar o status.",
+            })
+          );
+          return;
+        }
+        
+        const updatedRequisition = await RequisitionService.updateStatus(
+          Number(id_requisicao),
+          {
+            id_status_requisicao: newStatus.id_status_requisicao,
+            alterado_por: user?.CODPESSOA,
+          }
+        );
+        
+        dispatch(setRequisition(updatedRequisition));
+        dispatch(setRefresh(!refresh));
+        dispatch(setRefreshRequisition(!refreshRequisition));
+        
+        if (!permissionToChangeStatus) {
+          navigate("/requisicoes");
+          return;
+        }
+        
+        dispatch(
+          setFeedback({
+            type: "success",
+            message: "Status atualizado com sucesso!",
+          })
+        );
+        navigate("/requisicoes");
+      }
+    } catch (e: any) {
+      if (e.response?.data?.code === 'VALUE_INCREASE_REQUIRES_APPROVAL') {
+        setPendingStatusChangeValueIncrease("acao_posterior");
+        setShowValueIncreaseDialog(true);
+        return;
+      }
+      
+      dispatch(
+        setFeedback({
+          type: "error",
+          message: `Erro ao atualizar status: ${e.message}`,
+        })
+      );
+    }
+  };
 
   const concludeRetreatRequisition = async () => {
     setFillingComment(false);
@@ -885,6 +983,42 @@ useEffect(() => {
             size="small"
             color="success"
             onClick={() => concludeRetreatRequisition()}
+          >
+            Confirmar
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      <Dialog open={fillingAdvanceComment}>
+        <DialogTitle>
+          Adicione um comentário sobre o avanço da requisição
+        </DialogTitle>
+        <DialogContent>
+          <ElegantInput
+            label="Comentário"
+            required
+            value={comment}
+            onChange={(e) => setComment(e.target.value)}
+          />
+        </DialogContent>
+        <DialogActions>
+          <Button
+            variant="contained"
+            size="small"
+            color="error"
+            onClick={() => {
+              setFillingAdvanceComment(false);
+              setComment("");
+            }}
+          >
+            Cancelar
+          </Button>
+          <Button
+            variant="contained"
+            size="small"
+            color="success"
+            onClick={() => concludeAdvanceRequisition()}
+            disabled={!comment.trim()}
           >
             Confirmar
           </Button>
