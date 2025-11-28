@@ -13,6 +13,7 @@ class ProductAttachmentService {
   static async create(data: {
     arquivo: string,
     id_produto: number,
+    is_produto_padrao?: boolean,
   }) {
     const response = await api.post(API_ENDPOINT, data);
     return response.data;

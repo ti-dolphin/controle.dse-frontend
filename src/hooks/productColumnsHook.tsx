@@ -7,7 +7,7 @@ import { useEffect, useState } from "react";
 import { set } from "lodash";
 import { useIsMobile } from "./useIsMobile";
 import FileIcon from '@mui/icons-material/FilePresent';
-import { setViewingProductAttachment } from "../redux/slices/productSlice";
+import { setViewingProductAttachment, setViewingStandardGuide } from "../redux/slices/productSlice";
 import CircleIcon from '@mui/icons-material/Circle';
 import { useProductPermissions } from "./productPermissionsHook";
 
@@ -113,6 +113,35 @@ export const useProductColumns = () => {
                 variant="standard"
                 badgeContent={params.row.anexos.length}
                 color="primary"
+              >
+                <FileIcon sx={{ fontSize: 14 }} />
+              </StyledBadge>
+            </IconButton>
+          </Box>
+        );
+      },
+    },
+    {
+      field: "produto_padrao",
+      headerName: "Produto Padrão",
+      flex: 0.15,
+      editable: false,
+      renderCell: (params: GridRenderCellParams) => {
+        return (
+          <Box
+            sx={{
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              height: "100%",
+              padding: 1,
+            }}
+          >
+            <IconButton onClick={() => { dispatch(setViewingStandardGuide(params.row.ID)) }}>
+              <StyledBadge
+                variant="standard"
+                badgeContent={params.row.anexos?.filter((a: any) => a.is_produto_padrao === true).length}
+                color="secondary"
               >
                 <FileIcon sx={{ fontSize: 14 }} />
               </StyledBadge>
@@ -297,6 +326,35 @@ export const useProductColumns = () => {
                 variant="standard"
                 badgeContent={params.row.anexos.length}
                 color="primary"
+              >
+                <FileIcon sx={{ fontSize: 14 }} />
+              </StyledBadge>
+            </IconButton>
+          </Box>
+        );
+      },
+    },
+    {
+      field: "produto_padrao",
+      headerName: "Produto Padrão",
+      flex: 0.15,
+      editable: false,
+      renderCell: (params: GridRenderCellParams) => {
+        return (
+          <Box
+            sx={{
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              height: "100%",
+              padding: 1,
+            }}
+          >
+            <IconButton onClick={() => { dispatch(setViewingStandardGuide(params.row.ID)) }}>
+              <StyledBadge
+                variant="standard"
+                badgeContent={params.row.anexos?.filter((a: any) => a.is_produto_padrao === true).length}
+                color="secondary"
               >
                 <FileIcon sx={{ fontSize: 14 }} />
               </StyledBadge>

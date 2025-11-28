@@ -5,6 +5,7 @@ const initialState = {
   products: [] as Product[],
   viewingProducts : false,
   viewingProductAttachment: null as number | null,
+  viewingStandardGuide: null as number | null,
 };
 
 const productSlice = createSlice({
@@ -19,11 +20,14 @@ const productSlice = createSlice({
     },
     setViewingProductAttachment(state, action: PayloadAction<number | null>) {
       state.viewingProductAttachment = action.payload
+    },
+    setViewingStandardGuide(state, action: PayloadAction<number | null>) {
+      state.viewingStandardGuide = action.payload
     }
   },
 });
 
-export const { setProducts, setViewingProducts, setViewingProductAttachment } = productSlice.actions;
+export const { setProducts, setViewingProducts, setViewingProductAttachment, setViewingStandardGuide } = productSlice.actions;
 export default productSlice.reducer;
 
 export type ProductState = typeof initialState;

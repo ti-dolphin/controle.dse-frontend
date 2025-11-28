@@ -22,7 +22,8 @@ import EditIcon from "@mui/icons-material/Edit";
 import { useIsMobile } from "../../hooks/useIsMobile";
 import { useProductColumns } from "../../hooks/productColumnsHook";
 import ProductAttachmentList from "../ProductAttachmentList";
-import { setProducts, setViewingProductAttachment } from "../../redux/slices/productSlice";
+import ProductStandardGuide from "../produtos/ProductStandardGuide";
+import { setProducts, setViewingProductAttachment, setViewingStandardGuide } from "../../redux/slices/productSlice";
 import { FixedSizeGrid } from "react-window";
 import AttachFileIcon from '@mui/icons-material/AttachFile';
 import { green, red } from "@mui/material/colors";
@@ -42,7 +43,7 @@ const ProductsTable = ({ requisition }: ProductsTableProps) => {
   const user = useSelector((state: RootState) => state.user.user);
   const { addingProducts, recentProductsAdded, productsAdded, replacingItemProduct} = useSelector((state: RootState) => state.requisitionItem);
   const { editProductFieldsPermitted, hasStockPermission } = useProductPermissions(user);
-  const {viewingProductAttachment, products  } = useSelector((state: RootState) => state.productSlice);
+  const {viewingProductAttachment, viewingStandardGuide, products  } = useSelector((state: RootState) => state.productSlice);
   const [searchTerm, setSearchTerm] = useState("");
 
   const [cellModesModel, setCellModesModel]  = React.useState<GridCellModesModel>({});
@@ -349,6 +350,32 @@ const ProductsTable = ({ requisition }: ProductsTableProps) => {
         <DialogTitle>Lista de Anexos</DialogTitle>
         <DialogContent>
           <ProductAttachmentList />
+        </DialogContent>
+      </Dialog>
+
+      <Dialog
+        open={viewingStandardGuide !== null}
+        onClose={() => dispatch(setViewingStandardGuide(null))}
+        fullWidth
+        maxWidth="md"
+      >
+        <IconButton
+          onClick={() => dispatch(setViewingStandardGuide(null))}
+          sx={{
+            color: "error.main",
+            height: 30,
+            width: 30,
+            position: "absolute",
+            top: 4,
+            right: 4,
+            boxShadow: 3,
+          }}
+        >
+          <GridCloseIcon />
+        </IconButton>
+        <DialogTitle>Produto Padrão</DialogTitle>
+        <DialogContent>
+          <ProductStandardGuide />
         </DialogContent>
       </Dialog>
     </Box>
