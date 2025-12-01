@@ -8,6 +8,7 @@ import {
   clearRequisition,
   setLoading,
   setError,
+  setCreating,
 } from "../../redux/slices/requisicoes/requisitionSlice";
 import { Box, Button, TextField, CircularProgress, Autocomplete, AutocompleteRenderInputParams, Typography, Radio, RadioGroup, FormControlLabel, FormControl, FormLabel, Tooltip } from "@mui/material";
 import HelpOutline from "@mui/icons-material/HelpOutline";
@@ -161,6 +162,7 @@ const RequisitionForm: React.FC = () => {
   const handleClose = () => {
     dispatch(clearRequisition());
     dispatch(setMode("view"));
+    dispatch(setCreating(false));
     dispatch(setLoading(false));
   };
 
