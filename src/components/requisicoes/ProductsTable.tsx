@@ -29,15 +29,14 @@ import AttachFileIcon from '@mui/icons-material/AttachFile';
 import { green, red } from "@mui/material/colors";
 import ProductCard from "./ProductCard";
 import { Requisition } from "../../models/requisicoes/Requisition";
+import { fr } from "date-fns/locale";
 
 interface ProductsTableProps {
-  requisition?: Requisition; // Tornar opcional
+  tipoFaturamento: number | null | undefined; // Tipo de faturamento a ser usado no filtro (0 = todos os produtos)
+  fromReq?: boolean;
 }
 
-const ProductsTable = ({ requisition }: ProductsTableProps) => {
-  // Para acessar o tipo_faturamento:
-  const tipoFaturamento = requisition?.tipo_faturamento;
-
+const ProductsTable = ({ tipoFaturamento, fromReq }: ProductsTableProps) => {
   const dispatch = useDispatch();
   const theme = useTheme();
   const user = useSelector((state: RootState) => state.user.user);
@@ -226,7 +225,10 @@ const ProductsTable = ({ requisition }: ProductsTableProps) => {
     setLoading(true);
     try {
       const params: any = { searchTerm };
-      
+      // Usa o tipoFaturamento passado como prop
+
+      if (fromReq && (!tipoFaturamento || tipoFaturamento === 0)) return;
+
       params.tipoFaturamento = tipoFaturamento;
 
       const data = await ProductService.getMany(params);
@@ -236,8 +238,8 @@ const ProductsTable = ({ requisition }: ProductsTableProps) => {
         const qtyB = b.quantidade_disponivel || 0;
         return qtyB - qtyA;
       });
-      
-      dispatch(setProducts(sortedData))
+
+      dispatch(setProducts(sortedData));
       setLoading(false);
     } catch (e) {
       setLoading(false);

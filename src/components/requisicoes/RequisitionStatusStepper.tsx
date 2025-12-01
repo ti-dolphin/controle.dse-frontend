@@ -198,8 +198,7 @@ const RequisitionStatusStepper = ({
           }
         }
       }
-
-      if(newStatus.nome === 'Aprovação Gerente') { 
+      if(newStatus.nome === 'Aprovação Gerente' || newStatus.nome === 'Aprovação Diretoria') { 
         // Validação de anexos (pula se usuário já confirmou)
         if(!skipAttachmentValidation) {
           const hasAttachments = await checkIfItemsHaveAttachments();
@@ -252,6 +251,7 @@ const RequisitionStatusStepper = ({
       const currentStep = requisition.status?.etapa ?? 0;
       const nextStep = currentStep + 1;
       const newStatus = statusList.find((status) => status.etapa === nextStep);
+      console.log("newStatus", newStatus);
       
       if (newStatus) {
         try {
@@ -267,7 +267,16 @@ const RequisitionStatusStepper = ({
             setShowMissingTargetPriceDialog(true);
             return;
           }
-          throw error;
+          if (error.message === 'Requisição com menos de 3 cotações') {
+            setJustifyingLessThenThreeQuotes(true);
+            return;
+          }
+          // Para qualquer outro erro de validação, exibe mensagem ao usuário
+          dispatch(setFeedback({
+            type: 'error',
+            message: error.message || 'Erro ao validar requisição'
+          }));
+          return;
         }
       }
       
@@ -291,14 +300,28 @@ const RequisitionStatusStepper = ({
         criado_por: user?.CODPESSOA
       });
 
+      // Calcula o próximo status baseado na etapa atual
+      const currentStep = requisition.status?.etapa ?? 0;
+      const nextStep = currentStep + 1;
+      const newStatus = statusList.find((status) => status.etapa === nextStep);
+
+      if (!newStatus) {
+        dispatch(setFeedback({
+          type: "error",
+          message: "Não foi possível determinar o próximo status.",
+        }));
+        return;
+      }
+
       const updatedRequisition = await RequisitionService.updateStatus(Number(id_requisicao), { 
-        id_status_requisicao: 6,
+        id_status_requisicao: newStatus.id_status_requisicao,
         alterado_por: user?.CODPESSOA
       });
       dispatch(setRequisition(updatedRequisition));
       dispatch(setRefresh(!refresh));
       dispatch(setRefreshRequisition(!refreshRequisition));
       setJustifyingLessThenThreeQuotes(false);
+      setComment("");
       if (!permissionToChangeStatus) {
         navigate("/requisicoes");
         return;

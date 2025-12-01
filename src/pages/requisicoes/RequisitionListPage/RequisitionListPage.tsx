@@ -404,7 +404,7 @@ const RequisitionListPage = () => {
         <DialogTitle>Produtos</DialogTitle>
         <DialogContent sx={{ display: "flex" }}>
           <Box sx={{ flexGrow: 1 }}>
-            <ProductsTable />
+            <ProductsTable tipoFaturamento={0} />
           </Box>
         </DialogContent>
       </Dialog>

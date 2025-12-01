@@ -380,7 +380,7 @@ const RequisitionDetailPage = () => {
       </Grid>
       {/* Dialog para buscar os produtos, selecionar e adicioná-los aos itens da requisição */}
       <Dialog
-        open={addingProducts || replacingItemProduct} //o modal será aberto se estiver sendo feita substituição ou adição de produtos
+        open={(addingProducts || replacingItemProduct) && requisition?.tipo_faturamento != null} //o modal será aberto se estiver sendo feita substituição ou adição de produtos E se o tipo de faturamento já foi carregado
         onClose={handleClose}
         maxWidth="lg"
         fullWidth
@@ -400,7 +400,9 @@ const RequisitionDetailPage = () => {
           </Typography>
         </DialogTitle>
         <DialogContent>
-          {(addingProducts || replacingItemProduct) && <ProductsTable requisition={requisition} />}
+          {(addingProducts || replacingItemProduct) && requisition?.tipo_faturamento != null && (
+            <ProductsTable tipoFaturamento={requisition.tipo_faturamento} fromReq={true} />
+          )}
         </DialogContent>
         <DialogActions>
           {addingProducts && recentProductsAdded.length > 0 && (
