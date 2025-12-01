@@ -198,8 +198,15 @@ const RequisitionStatusStepper = ({
           }
         }
       }
-      // Validação ao SAIR do status "Em Cotação" (avançando)
-      if(requisition.status?.nome === 'Em Cotação' && advancingStatus) {
+      if(newStatus.nome === 'Aprovação Gerente' || newStatus.nome === 'Aprovação Diretoria') { 
+        // Validação de anexos (pula se usuário já confirmou)
+        if(!skipAttachmentValidation) {
+          const hasAttachments = await checkIfItemsHaveAttachments();
+          if (!hasAttachments) {
+            throw new Error('SHOW_VALIDATION_DIALOG');
+          }
+        }
+        
         // Validações de cotações (sempre executam)
         const quotes = await QuoteService.getMany({id_requisicao});
         const noQuotes = quotes.length === 0;
@@ -214,16 +221,6 @@ const RequisitionStatusStepper = ({
         if (quotes.length > 0 && quotes.length < 3) {
           setJustifyingLessThenThreeQuotes(true);
           throw new Error('Requisição com menos de 3 cotações');
-        }
-      }
-
-      // Validação de anexos ao entrar em status de aprovação
-      if(newStatus.nome === 'Aprovação Gerente' || newStatus.nome === 'Aprovação Diretoria') { 
-        if(!skipAttachmentValidation) {
-          const hasAttachments = await checkIfItemsHaveAttachments();
-          if (!hasAttachments) {
-            throw new Error('SHOW_VALIDATION_DIALOG');
-          }
         }
       }
       return;
