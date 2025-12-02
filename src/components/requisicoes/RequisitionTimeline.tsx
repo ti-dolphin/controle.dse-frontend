@@ -53,8 +53,8 @@ const RequisitionTimeline = ({ fullScreen = false }: RequisitionTimelineProps) =
 
   return (
     <Box sx={{ 
-      maxWidth: fullScreen ? 'none' : 600, 
-      maxHeight: fullScreen ? 'none' : 200, 
+      maxWidth: fullScreen ? 'none' : 400, 
+      maxHeight: fullScreen ? 'none' : 400, 
       overflow: 'auto', 
       mx: "auto", 
       my: 2 

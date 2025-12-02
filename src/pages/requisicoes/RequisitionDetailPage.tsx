@@ -626,7 +626,7 @@ const RequisitionDetailPage = () => {
           ref={fullScreenCommentsContainer}
           sx={{ background: "background.default" }}
         >
-          <RequisitionCommentList />
+          <RequisitionCommentList fullScreen={true} />
         </DialogContent>
       </Dialog>
     </Box>
