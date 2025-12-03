@@ -246,6 +246,12 @@ const RequisitionStatusStepper = ({
       return;
     }
 
+    // Para ação anterior (retrocesso), pula validações e vai direto para comentário
+    if (type === "acao_anterior") {
+      setFillingComment(true);
+      return;
+    }
+
     // Para ação posterior, primeiro valida as regras ANTES de pedir comentário
     if (type === "acao_posterior") {
       const currentStep = requisition.status?.etapa ?? 0;
@@ -282,11 +288,6 @@ const RequisitionStatusStepper = ({
       
       // Se passou pelas validações, pede comentário
       setFillingAdvanceComment(true);
-      return;
-    }
-
-    if (type === "acao_anterior") {
-      setFillingComment(true);
       return;
     }
   };
@@ -457,9 +458,7 @@ const RequisitionStatusStepper = ({
       const currentStep = requisition.status?.etapa ?? 0;
       const nextStep = currentStep - 1;
       const newStatus = statusList.find((status) => status.etapa === nextStep); //FINDS THE CORRESPONDING  NEW STATUS
-      if (newStatus) {
-        await validationRules(newStatus, true);
-      }
+      
       if (!newStatus) {
         dispatch(
           setFeedback({
@@ -475,6 +474,7 @@ const RequisitionStatusStepper = ({
         {
           id_status_requisicao: newStatus.id_status_requisicao,
           alterado_por: user?.CODPESSOA,
+          is_reverting: true, // Indica que é um retrocesso
         }
       );
       dispatch(setRequisition(updatedRequisition));

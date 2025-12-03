@@ -62,7 +62,7 @@ const RequisitionCommentList = ({ fullScreen = false }: RequisitionCommentListPr
   }, [fetchData]);
 
 
-  const permToEditOrDelete = (comment: RequisitionComment) =>{ 
+  const permToEditOrDelete = (comment: RequisitionComment) => { 
     return  user?.CODPESSOA === comment.pessoa_criado_por?.CODPESSOA || user?.PERM_ADMINISTRADOR;
   }
   
