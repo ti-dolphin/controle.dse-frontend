@@ -42,7 +42,7 @@ const ProductsTable = ({ tipoFaturamento, fromReq }: ProductsTableProps) => {
   const user = useSelector((state: RootState) => state.user.user);
   const { addingProducts, recentProductsAdded, productsAdded, replacingItemProduct} = useSelector((state: RootState) => state.requisitionItem);
   const { editProductFieldsPermitted, hasStockPermission } = useProductPermissions(user);
-  const {viewingProductAttachment, viewingStandardGuide, products  } = useSelector((state: RootState) => state.productSlice);
+  const {viewingProductAttachment, viewingStandardGuide, products, viewingProducts } = useSelector((state: RootState) => state.productSlice);
   const [searchTerm, setSearchTerm] = useState("");
 
   const [cellModesModel, setCellModesModel]  = React.useState<GridCellModesModel>({});
@@ -71,7 +71,20 @@ const ProductsTable = ({ tipoFaturamento, fromReq }: ProductsTableProps) => {
       
       // Check field-specific permissions
       const stockFields = ['quantidade_estoque', 'unidade'];
+      const permissionFields = ['perm_ti', 'perm_operacional', 'perm_faturamento_direto', 'perm_faturamento_dse'];
       const isStockField = stockFields.includes(params.field);
+      const isPermissionField = permissionFields.includes(params.field);
+      
+      // Only administrators can edit permission fields
+      if (isPermissionField && !user?.PERM_ADMINISTRADOR) {
+        dispatch(
+          setFeedback({
+            message: "Apenas administradores podem editar permissões de produtos",
+            type: "error",
+          })
+        );
+        return;
+      }
       
       // Stock users can only edit stock-related fields
       if (isStockField && !hasStockPermission && !editProductFieldsPermitted) {
@@ -85,7 +98,7 @@ const ProductsTable = ({ tipoFaturamento, fromReq }: ProductsTableProps) => {
       }
       
       // Non-stock fields require full product edit permission
-      if (!isStockField && !editProductFieldsPermitted) {
+      if (!isStockField && !isPermissionField && !editProductFieldsPermitted) {
         dispatch(
           setFeedback({
             message: "Você não tem permissão para editar este campo",
@@ -169,10 +182,19 @@ const ProductsTable = ({ tipoFaturamento, fromReq }: ProductsTableProps) => {
 //para salvar as mudanças
   const processRowUpdate = React.useCallback(
     async (newRow: GridRowModel, oldRow: GridRowModel) => {
-      const payload = {
+      const payload: any = {
         unidade: newRow.unidade,
         quantidade_estoque: newRow.quantidade_estoque,
       };
+      
+      // Adicionar campos de permissões se estiver visualizando produtos
+      if (viewingProducts) {
+        payload.perm_ti = newRow.perm_ti ? 1 : 0;
+        payload.perm_operacional = newRow.perm_operacional ? 1 : 0;
+        payload.perm_faturamento_direto = newRow.perm_faturamento_direto ? 1 : 0;
+        payload.perm_faturamento_dse = newRow.perm_faturamento_dse ? 1 : 0;
+      }
+      
       try {
         const updatedProduct = await ProductService.update(newRow.ID, payload);
         setProducts(products.map((product) => product.ID === updatedProduct.ID ? updatedProduct : product ));
@@ -188,7 +210,7 @@ const ProductsTable = ({ tipoFaturamento, fromReq }: ProductsTableProps) => {
         return oldRow;
       }
     },
-    [dispatch]
+    [dispatch, viewingProducts, products]
   );
   //muda o termo de busca
   const changeSearchTerm = (e: React.ChangeEvent<HTMLInputElement>) => {

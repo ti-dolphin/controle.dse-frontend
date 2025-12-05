@@ -233,7 +233,7 @@ const RequisitionDetailPage = () => {
                     onClick={() => setFullScreenComments(true)}
                     color="primary"
                   >
-                    <FullscreenIcon fontSize="small" />
+                    <FullscreenIcon fontSize="small"/>
                   </IconButton>
                 </Box>
                 <Divider sx={{ mb: 1 }} />
