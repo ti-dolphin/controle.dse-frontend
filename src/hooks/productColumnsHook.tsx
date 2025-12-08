@@ -230,7 +230,8 @@ export const useProductColumns = () => {
     }
   ];
 
-  const viewingProductsColumns: GridColDef[] = [
+  // Build viewing columns and include permission columns only for administrators
+  const viewingProductsColumnsBase: GridColDef[] = [
     {
       field: "ID",
       headerName: "ID",
@@ -363,115 +364,122 @@ export const useProductColumns = () => {
         );
       },
     },
-    {
-      field: "perm_ti",
-      headerName: "TI",
-      flex: 0.1,
-      editable: true,
-      type: "boolean",
-      renderCell: (params: GridRenderCellParams) => {
-        return (
-          <Box
-            sx={{
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              height: "100%",
-              width: "100%",
-            }}
-          >
-            <CircleIcon
-              sx={{
-                fontSize: 12,
-                color: params.value === 1 ? green[600] : red[600],
-              }}
-            />
-          </Box>
-        );
-      },
-    },
-    {
-      field: "perm_operacional",
-      headerName: "Operacional",
-      flex: 0.1,
-      editable: true,
-      type: "boolean",
-      renderCell: (params: GridRenderCellParams) => {
-        return (
-          <Box
-            sx={{
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              height: "100%",
-              width: "100%",
-            }}
-          >
-            <CircleIcon
-              sx={{
-                fontSize: 12,
-                color: params.value === 1 ? green[600] : red[600],
-              }}
-            />
-          </Box>
-        );
-      },
-    },
-    {
-      field: "perm_faturamento_direto",
-      headerName: "Fat. Direto",
-      flex: 0.1,
-      editable: true,
-      type: "boolean",
-      renderCell: (params: GridRenderCellParams) => {
-        return (
-          <Box
-            sx={{
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              height: "100%",
-              width: "100%",
-            }}
-          >
-            <CircleIcon
-              sx={{
-                fontSize: 12,
-                color: params.value === 1 ? green[600] : red[600],
-              }}
-            />
-          </Box>
-        );
-      },
-    },
-    {
-      field: "perm_faturamento_dse",
-      headerName: "Fat. DSE",
-      flex: 0.1,
-      editable: true,
-      type: "boolean",
-      renderCell: (params: GridRenderCellParams) => {
-        return (
-          <Box
-            sx={{
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              height: "100%",
-              width: "100%",
-            }}
-          >
-            <CircleIcon
-              sx={{
-                fontSize: 12,
-                color: params.value === 1 ? green[600] : red[600],
-              }}
-            />
-          </Box>
-        );
-      },
-    },
   ];
+
+  // If user is administrator, append permission columns
+  const viewingProductsColumns: GridColDef[] = [...viewingProductsColumnsBase];
+  if (user?.PERM_ADMINISTRADOR === 1) {
+    viewingProductsColumns.push(
+      {
+        field: "perm_ti",
+        headerName: "TI",
+        flex: 0.1,
+        editable: true,
+        type: "boolean",
+        renderCell: (params: GridRenderCellParams) => {
+          return (
+            <Box
+              sx={{
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                height: "100%",
+                width: "100%",
+              }}
+            >
+              <CircleIcon
+                sx={{
+                  fontSize: 12,
+                  color: params.value === 1 ? green[600] : red[600],
+                }}
+              />
+            </Box>
+          );
+        },
+      },
+      {
+        field: "perm_operacional",
+        headerName: "Operacional",
+        flex: 0.1,
+        editable: true,
+        type: "boolean",
+        renderCell: (params: GridRenderCellParams) => {
+          return (
+            <Box
+              sx={{
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                height: "100%",
+                width: "100%",
+              }}
+            >
+              <CircleIcon
+                sx={{
+                  fontSize: 12,
+                  color: params.value === 1 ? green[600] : red[600],
+                }}
+              />
+            </Box>
+          );
+        },
+      },
+      {
+        field: "perm_faturamento_direto",
+        headerName: "Fat. Direto",
+        flex: 0.1,
+        editable: true,
+        type: "boolean",
+        renderCell: (params: GridRenderCellParams) => {
+          return (
+            <Box
+              sx={{
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                height: "100%",
+                width: "100%",
+              }}
+            >
+              <CircleIcon
+                sx={{
+                  fontSize: 12,
+                  color: params.value === 1 ? green[600] : red[600],
+                }}
+              />
+            </Box>
+          );
+        },
+      },
+      {
+        field: "perm_faturamento_dse",
+        headerName: "Fat. DSE",
+        flex: 0.1,
+        editable: true,
+        type: "boolean",
+        renderCell: (params: GridRenderCellParams) => {
+          return (
+            <Box
+              sx={{
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                height: "100%",
+                width: "100%",
+              }}
+            >
+              <CircleIcon
+                sx={{
+                  fontSize: 12,
+                  color: params.value === 1 ? green[600] : red[600],
+                }}
+              />
+            </Box>
+          );
+        },
+      }
+    );
+  }
 
   useEffect(() => {
     if (isMobile) {
