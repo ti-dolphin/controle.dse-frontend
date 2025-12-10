@@ -39,13 +39,9 @@ export const useProductColumns = () => {
     try {
       const payload: any = {};
       payload[field] = currentValue === 1 ? 0 : 1;
-      const updated = await ProductService.update(row.ID, payload);
-      dispatch(setProducts((prev: any) => {
-        // If setProducts expects an array, build updated array from existing products in store
-        // We don't have direct access to products here, so simply refetching would be safer.
-        return [] as any;
-      }));
-      // Better: after update, fetch latest list and set it
+      await ProductService.update(row.ID, payload);
+      
+      // Fetch latest list and set it
       const refreshed = await ProductService.getMany();
       dispatch(setProducts(refreshed));
       dispatch(setFeedback({ message: 'Permissão atualizada', type: 'success' }));
