@@ -7,7 +7,9 @@ import { useEffect, useState } from "react";
 import { set } from "lodash";
 import { useIsMobile } from "./useIsMobile";
 import FileIcon from '@mui/icons-material/FilePresent';
-import { setViewingProductAttachment, setViewingStandardGuide } from "../redux/slices/productSlice";
+import { setViewingProductAttachment, setViewingStandardGuide, setProducts } from "../redux/slices/productSlice";
+import { setFeedback } from "../redux/slices/feedBackSlice";
+import { ProductService } from "../services/ProductService";
 import CircleIcon from '@mui/icons-material/Circle';
 import { useProductPermissions } from "./productPermissionsHook";
 
@@ -32,6 +34,26 @@ export const useProductColumns = () => {
   const [columns, setColumns] = useState<GridColDef[]>([]);
   const user = useSelector((state: RootState) => state.user.user);
   const { editProductFieldsPermitted, hasStockPermission } = useProductPermissions(user);
+  
+  const togglePermission = async (row: any, field: string, currentValue: any) => {
+    try {
+      const payload: any = {};
+      payload[field] = currentValue === 1 ? 0 : 1;
+      const updated = await ProductService.update(row.ID, payload);
+      dispatch(setProducts((prev: any) => {
+        // If setProducts expects an array, build updated array from existing products in store
+        // We don't have direct access to products here, so simply refetching would be safer.
+        return [] as any;
+      }));
+      // Better: after update, fetch latest list and set it
+      const refreshed = await ProductService.getMany();
+      dispatch(setProducts(refreshed));
+      dispatch(setFeedback({ message: 'Permissão atualizada', type: 'success' }));
+    } catch (e: any) {
+      console.error('Erro ao atualizar permissão', e);
+      dispatch(setFeedback({ message: `Erro ao atualizar permissão: ${e.message || e}`, type: 'error' }));
+    }
+  };
 
   const addingProductsColumns: GridColDef[] = [
     {
@@ -378,21 +400,13 @@ export const useProductColumns = () => {
         type: "boolean",
         renderCell: (params: GridRenderCellParams) => {
           return (
-            <Box
-              sx={{
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                height: "100%",
-                width: "100%",
-              }}
-            >
-              <CircleIcon
-                sx={{
-                  fontSize: 12,
-                  color: params.value === 1 ? green[600] : red[600],
-                }}
-              />
+            <Box sx={{ display: "flex", alignItems: "center", justifyContent: "center", height: "100%", width: "100%" }}>
+              <IconButton
+                size="small"
+                onClick={(e) => { e.stopPropagation(); togglePermission(params.row, 'perm_ti', params.value); }}
+              >
+                <CircleIcon sx={{ fontSize: 14, color: params.value === 1 ? green[600] : red[600] }} />
+              </IconButton>
             </Box>
           );
         },
@@ -405,21 +419,10 @@ export const useProductColumns = () => {
         type: "boolean",
         renderCell: (params: GridRenderCellParams) => {
           return (
-            <Box
-              sx={{
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                height: "100%",
-                width: "100%",
-              }}
-            >
-              <CircleIcon
-                sx={{
-                  fontSize: 12,
-                  color: params.value === 1 ? green[600] : red[600],
-                }}
-              />
+            <Box sx={{ display: "flex", alignItems: "center", justifyContent: "center", height: "100%", width: "100%" }}>
+              <IconButton size="small" onClick={(e) => { e.stopPropagation(); togglePermission(params.row, 'perm_operacional', params.value); }}>
+                <CircleIcon sx={{ fontSize: 14, color: params.value === 1 ? green[600] : red[600] }} />
+              </IconButton>
             </Box>
           );
         },
@@ -432,21 +435,10 @@ export const useProductColumns = () => {
         type: "boolean",
         renderCell: (params: GridRenderCellParams) => {
           return (
-            <Box
-              sx={{
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                height: "100%",
-                width: "100%",
-              }}
-            >
-              <CircleIcon
-                sx={{
-                  fontSize: 12,
-                  color: params.value === 1 ? green[600] : red[600],
-                }}
-              />
+            <Box sx={{ display: "flex", alignItems: "center", justifyContent: "center", height: "100%", width: "100%" }}>
+              <IconButton size="small" onClick={(e) => { e.stopPropagation(); togglePermission(params.row, 'perm_faturamento_direto', params.value); }}>
+                <CircleIcon sx={{ fontSize: 14, color: params.value === 1 ? green[600] : red[600] }} />
+              </IconButton>
             </Box>
           );
         },
@@ -459,21 +451,10 @@ export const useProductColumns = () => {
         type: "boolean",
         renderCell: (params: GridRenderCellParams) => {
           return (
-            <Box
-              sx={{
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                height: "100%",
-                width: "100%",
-              }}
-            >
-              <CircleIcon
-                sx={{
-                  fontSize: 12,
-                  color: params.value === 1 ? green[600] : red[600],
-                }}
-              />
+            <Box sx={{ display: "flex", alignItems: "center", justifyContent: "center", height: "100%", width: "100%" }}>
+              <IconButton size="small" onClick={(e) => { e.stopPropagation(); togglePermission(params.row, 'perm_faturamento_dse', params.value); }}>
+                <CircleIcon sx={{ fontSize: 14, color: params.value === 1 ? green[600] : red[600] }} />
+              </IconButton>
             </Box>
           );
         },

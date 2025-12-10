@@ -217,7 +217,7 @@ const ProductsTable = ({ tipoFaturamento, fromReq }: ProductsTableProps) => {
     const value = e.target.value;
     setSearchTerm(value.toLowerCase());
   };
-  const getRowSelectionModelForContext = ( ) => { 
+  const getRowSelectionModelForContext = () => { 
     return addingProducts ? recentProductsAdded : rowSelectionModel;
   };
   //método para dar update na quantidade em estoque no mobile
