@@ -92,7 +92,7 @@ const HomePage = () => {
           },
         }}
       >
-        <MenuItem onClick={handleClose}>
+        <MenuItem onClick={() => { handleClose(); navigate('/perfil'); }}>
           Perfil
         </MenuItem>
         <MenuItem onClick={( ) => navigate('/auth')}>

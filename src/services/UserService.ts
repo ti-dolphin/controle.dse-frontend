@@ -48,4 +48,9 @@ export class UserService {
     const { data } = await api.delete<User>(`${API_URL}/${CODPESSOA}`);
     return data;
   }
+
+  static async changePassword(CODPESSOA: number, payload: { currentPassword: string; newPassword: string }): Promise<{ message: string }> {
+    const { data } = await api.put<{ message: string }>(`${API_URL}/${CODPESSOA}/change-password`, payload);
+    return data;
+  }
 }
