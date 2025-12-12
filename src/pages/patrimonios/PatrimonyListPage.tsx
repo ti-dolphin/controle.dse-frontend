@@ -44,7 +44,6 @@ import { useIsMobile } from "../../hooks/useIsMobile";
 import { FixedSizeGrid } from "react-window";
 import PatrimonyCard from "../../components/patrimonios/PatrimonyCard";
 
-
 const PatrimonyListPage = () => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
@@ -53,11 +52,10 @@ const PatrimonyListPage = () => {
   const { rows, isLoading, filters, search, patrimonyBeingDeleted } = useSelector((state: RootState) => state.patrionyTable);
   const [creating, setCreating] = React.useState(false);
   const { isMobile } = useIsMobile();
-  const {notifications} = useChecklistNotifications(); 
+  const { notifications } = useChecklistNotifications(); 
   const { columns } = usePatMovementationColumns();
   const gridRef = useGridApiRef();
-  const gridContainerRef = React.useRef<HTMLDivElement>(null)
-  ;
+  const gridContainerRef = React.useRef<HTMLDivElement>(null);
   const handleBack = () => {
     navigate("/");
   };
@@ -74,7 +72,6 @@ const PatrimonyListPage = () => {
     },
     [dispatch, filter]
   );
-
 
   const deletePatrimony = async () => {
     if (!patrimonyBeingDeleted) return;
@@ -121,7 +118,6 @@ const PatrimonyListPage = () => {
         search,
         prismaFilters,
       });
-      console.log("patrimonios: ", data)
       dispatch(setRows(data));
       dispatch(setIsLoading(false));
     } catch (e: any) {

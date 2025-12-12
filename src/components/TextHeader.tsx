@@ -23,6 +23,7 @@ export const TextHeader: React.FC<TextHeaderProps> = ({
 }) => {
   const filterValue = filters[field as keyof typeof filters] ? String(filters[field as keyof typeof filters]) : "";
   const [localValue, setLocalValue] = useState<string>();
+  const isTypingRef = React.useRef(false);
 
   const debouncedSync = useMemo(
     () =>
@@ -31,11 +32,16 @@ export const TextHeader: React.FC<TextHeaderProps> = ({
           { target: { value: value === "" ? "" : value } } as any,
           field
         );
+        isTypingRef.current = false;
       }, 600),
     [handleChangeFilters, field]
   );
 
-  useEffect(() => setLocalValue(filterValue), [filters]);
+  useEffect(() => {
+    if (!isTypingRef.current) {
+      setLocalValue(filterValue);
+    }
+  }, [filterValue]);
 
   return (
     <Box sx={{ display: "flex", alignItems: "center", gap: 0.5 }}>
@@ -48,6 +54,7 @@ export const TextHeader: React.FC<TextHeaderProps> = ({
         onClick={(e) => e.stopPropagation()}
         onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
           const value = e.target.value;
+          isTypingRef.current = true;
           setLocalValue(value);
           debouncedSync(value);
         }}

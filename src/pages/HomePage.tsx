@@ -98,14 +98,12 @@ const HomePage = () => {
         <MenuItem onClick={( ) => navigate('/auth')}>
           Logout
         </MenuItem>
-         {isAdmin && (
+        {isAdmin && (
           <MenuItem onClick={( ) => navigate('/admin')}>
             painel admin
           </MenuItem>
         )}
       </Menu>
-      
-   
       <Typography
         variant="h4"
         color="primary"
