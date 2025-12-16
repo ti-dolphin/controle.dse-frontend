@@ -38,6 +38,7 @@
     "pdfjs-dist": "^3.4.120",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
+    "react-number-format": "^5.4.4",
     "react-query": "^3.39.3",
     "react-redux": "^9.2.0",
     "react-router-dom": "^6.23.1",

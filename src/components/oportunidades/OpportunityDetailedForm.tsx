@@ -25,6 +25,7 @@ import {
   getDateInputValue,
 } from "../../utils";
 import BaseDeleteDialog from "../shared/BaseDeleteDialog";
+import CurrencyInput from "../shared/ui/CurrencyInput";
 
 const OpportunityDetailedForm = () => {
   const dispatch = useDispatch();
@@ -378,6 +379,23 @@ const OpportunityDetailedForm = () => {
                   </Grid>
                 );
               }
+              
+              // Special handling for currency fields (number type)
+              if (field.type === "number") {
+                return (
+                  <Grid item xs={12} key={field.field}>
+                    <CurrencyInput
+                      label={field.label}
+                      value={opportunity[field.field as keyof Opportunity] as number | undefined}
+                      onChange={(value) => handleTextFieldChange(field, value, "venda")}
+                      name={field.field}
+                      required={field.required}
+                      disabled={field.disabled}
+                    />
+                  </Grid>
+                );
+              }
+              
               return (
                 <Grid item xs={12} key={field.field}>
                   <TextField

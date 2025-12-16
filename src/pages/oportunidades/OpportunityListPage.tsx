@@ -24,12 +24,12 @@ import OpportunityFormModal from "../../components/oportunidades/OpportunityForm
 import { BaseAddButton } from "../../components/shared/BaseAddButton";
 
 const OpportunityListPage = () => {
- const dispatch = useDispatch();
- const user = useSelector((state: RootState) => state.user.user);
-  const navigate = useNavigate();
- const {loading, rows, searchTerm } = useSelector((state: RootState) => state.opportunityTable);
- const { columns } = useOpportunityColumns();
- const theme=  useTheme();
+const dispatch = useDispatch();
+const user = useSelector((state: RootState) => state.user.user);
+const navigate = useNavigate();
+const {loading, rows, searchTerm } = useSelector((state: RootState) => state.opportunityTable);
+const { columns } = useOpportunityColumns();
+const theme=  useTheme();
 const toolbarRef = React.useRef<HTMLDivElement>(null);
 const [toolbarHeight, setToolbarHeight] = useState(0);
 const [columnFiltersHeight, setColumnFiltersHeight] = useState(0);
@@ -38,26 +38,25 @@ const { filters, handleChangeFilters, clearFilters , activeFilters} = useOpportu
 const [finalizados, setFinalizados] = useState(false);
 const {isMobile } = useIsMobile();
 const gridContainerRef = React.useRef<HTMLDivElement>(null);
- const changeSearchTerm = (event: React.ChangeEvent<HTMLInputElement>) => {
-   dispatch(setSearchTerm(event.target.value)); 
- };
+const changeSearchTerm = (event: React.ChangeEvent<HTMLInputElement>) => {
+  dispatch(setSearchTerm(event.target.value)); 
+};
 
- const handleChangeSearchTerm = debounce(changeSearchTerm, 500);
+const handleChangeSearchTerm = debounce(changeSearchTerm, 500);
 
- const openFormModal = () => {
-   dispatch(setCreating(true));
- }
+const openFormModal = () => {
+  dispatch(setCreating(true));
+}
 
- const navigateToOppDetails = (id : number ) => { 
-   navigate(`/oportunidades/${id}`);
- };
+const navigateToOppDetails = (id : number ) => { 
+  navigate(`/oportunidades/${id}`);
+};
 
 const handleCleanFilters = ( ) => { 
     clearFilters();
 }
 
- const fetchData = useCallback(async () => {
-  console.log(filters, 'FILTERS');
+const fetchData = useCallback(async () => {
   if (user) {
     dispatch(setLoading(true));
     try {
@@ -183,9 +182,13 @@ useEffect(()=> {
             disableColumnFilter
             rowHeight={36}
             onRowClick={(params) => navigateToOppDetails(Number(params.id))}
-            // onRowClick={(params) => navigateToRequisitionDetails(params)}
             getRowId={(row: any) => row.CODOS}
             theme={theme}
+            initialState={{
+              sorting: {
+                sortModel: [{ field: 'idProjeto', sort: 'desc' }]
+              }
+            }}
             slots={{
               footer: () => <OpportunityTableFooter />,
             }}

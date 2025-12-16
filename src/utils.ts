@@ -25,6 +25,17 @@ export function formatCurrency(value: number): string {
   return value.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
 }
 
+export function parseCurrency(value: string): number {
+  if (!value) return 0;
+  // Remove R$, pontos (separador de milhar) e substitui vírgula por ponto
+  const numericValue = value
+    .replace(/R\$/g, "")
+    .replace(/\./g, "")
+    .replace(/,/g, ".")
+    .trim();
+  return parseFloat(numericValue) || 0;
+}
+
 //retorna uma string no formato yyyy-MM-dd a partir de uma string no formato iso
 export const getDateStringFromISOstring = (isoDate: string | undefined | null): string => {
   if (!isoDate) return "";
