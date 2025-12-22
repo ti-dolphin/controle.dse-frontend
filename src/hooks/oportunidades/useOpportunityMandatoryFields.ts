@@ -99,7 +99,7 @@ export const useOpportunityMandatoryFields = (
         value: opportunity ? opportunity.DATAENTREGA : "",
       },
       {
-        label: "Data de Início",
+        label: "Data de Envio Inicial",
         field: "DATAINICIO",
         type: "date",
         disabled: false,

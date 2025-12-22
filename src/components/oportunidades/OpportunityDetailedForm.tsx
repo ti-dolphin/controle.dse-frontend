@@ -41,6 +41,12 @@ const OpportunityDetailedForm = () => {
 
   const { CODOS } = useParams();
 
+  const verifyStatus = () => {
+    if (!opportunity || !opportunity.status) return false;
+    const declinedStatutes = [11, 12, 13]
+    return !declinedStatutes.includes(opportunity.status.CODSTATUS);
+  }
+
   const saveOpp = async () => {
     if (!CODOS) return;
     try {
@@ -303,7 +309,9 @@ const OpportunityDetailedForm = () => {
                     value={
                       field.type === "date"
                         ? getDateInputValue(
-                            opportunity[field.field as keyof Opportunity] as string
+                            opportunity[
+                              field.field as keyof Opportunity
+                            ] as string
                           )
                         : value
                     }
@@ -379,15 +387,21 @@ const OpportunityDetailedForm = () => {
                   </Grid>
                 );
               }
-              
+
               // Special handling for currency fields (number type)
               if (field.type === "number") {
                 return (
                   <Grid item xs={12} key={field.field}>
                     <CurrencyInput
                       label={field.label}
-                      value={opportunity[field.field as keyof Opportunity] as number | undefined}
-                      onChange={(value) => handleTextFieldChange(field, value, "venda")}
+                      value={
+                        opportunity[field.field as keyof Opportunity] as
+                          | number
+                          | undefined
+                      }
+                      onChange={(value) =>
+                        handleTextFieldChange(field, value, "venda")
+                      }
                       name={field.field}
                       required={field.required}
                       disabled={field.disabled}
@@ -395,7 +409,7 @@ const OpportunityDetailedForm = () => {
                   </Grid>
                 );
               }
-              
+
               return (
                 <Grid item xs={12} key={field.field}>
                   <TextField
@@ -470,29 +484,30 @@ const OpportunityDetailedForm = () => {
           </Grid>
         </Paper>
       </Grid>
-
-      <Box
-        sx={{
-          display: "flex",
-          alignItems: "center",
-          width: "100%",
-          mt: 1,
-          borderRadius: 1,
-          px: 2,
-          gap: 2,
-        }}
-      >
-        <Button onClick={() => saveOpp()} variant="contained">
-          Salvar
-        </Button>
-        <Button
-          variant="contained"
-          color="error"
-          onClick={() => setDeletingOpp(opportunity)}
+      {verifyStatus() && (
+        <Box
+          sx={{
+            display: "flex",
+            alignItems: "center",
+            width: "100%",
+            mt: 1,
+            borderRadius: 1,
+            px: 2,
+            gap: 2,
+          }}
         >
-          Excluir Proposta
-        </Button>
-      </Box>
+          <Button onClick={() => saveOpp()} variant="contained">
+            Salvar
+          </Button>
+          <Button
+            variant="contained"
+            color="error"
+            onClick={() => setDeletingOpp(opportunity)}
+          >
+            Excluir Proposta
+          </Button>
+        </Box>
+      )}
 
       <BaseDeleteDialog
         open={Boolean(deletingOpp)}

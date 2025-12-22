@@ -61,6 +61,7 @@ const OpportunityDetailPage = () => {
         try {
           const opportunity : Opportunity = await OpportunityService.getById(Number(CODOS));
           setOpportunity(opportunity);
+          console.log(opportunity, 'aqui');
           setObservation(opportunity.observacoes);
         } catch (e) {
           dispatch(
@@ -96,7 +97,6 @@ const OpportunityDetailPage = () => {
       <Grid container direction="row" gap={1} wrap="wrap">
         {/* Seção de Campos de Cadastro */}
         <OpportunityDetailedForm />
-
         <Grid
           container
           direction={{ xs: "column", md: "row" }}

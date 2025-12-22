@@ -73,7 +73,7 @@ export const useOppDetailedFields = (user: User | null, opportunity: Partial<Opp
         },
         {
           field: "DATAINICIO",
-          label: "Data de Início",
+          label: "Data de Envio Inicial",
           type: "date",
           disabled: false,
           required: true,
