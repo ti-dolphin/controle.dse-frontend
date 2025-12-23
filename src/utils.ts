@@ -25,6 +25,17 @@ export function formatCurrency(value: number): string {
   return value.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
 }
 
+export function parseCurrency(value: string): number {
+  if (!value) return 0;
+  // Remove R$, pontos (separador de milhar) e substitui vírgula por ponto
+  const numericValue = value
+    .replace(/R\$/g, "")
+    .replace(/\./g, "")
+    .replace(/,/g, ".")
+    .trim();
+  return parseFloat(numericValue) || 0;
+}
+
 //retorna uma string no formato yyyy-MM-dd a partir de uma string no formato iso
 export const getDateStringFromISOstring = (isoDate: string | undefined | null): string => {
   if (!isoDate) return "";
@@ -54,7 +65,9 @@ export const formatDateStringtoISOstring = (dateString: string): string => {
 
 export const getDateFromISOstring = (ISOstring: string) => {
   try {
-    const dt = DateTime.fromISO(ISOstring, { zone: "utc" });
+    // Parse como UTC mas converte para data local sem ajuste de timezone
+    // Isso garante que a data mostrada seja exatamente a mesma que está no banco
+    const dt = DateTime.fromISO(ISOstring, { zone: "utc" }).setZone("local", { keepLocalTime: true });
     return dt.isValid ? dt.toJSDate() : null;
   } catch (error) {
     return null;

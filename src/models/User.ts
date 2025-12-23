@@ -43,6 +43,8 @@ export interface User {
   PERM_DIRETOR: number | null;
   PERM_EDITAR_PRODUTOS: number | null;
   PERM_ESTOQUE: number | null;
+  PERM_COMPRADOR_OPERACIONAL: number | null;
+  PERM_MOVIMENTAR: number | null;
 }
 
 export interface ReducedUser {

@@ -9,4 +9,8 @@ export interface Product {
     quantidade_estoque: number;
     quantidade_reservada: number;
     quantidade_disponivel: number;
+    perm_ti?: number;
+    perm_operacional?: number;
+    perm_faturamento_direto?: number;
+    perm_faturamento_dse?: number;
 }

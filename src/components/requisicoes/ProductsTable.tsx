@@ -22,19 +22,27 @@ import EditIcon from "@mui/icons-material/Edit";
 import { useIsMobile } from "../../hooks/useIsMobile";
 import { useProductColumns } from "../../hooks/productColumnsHook";
 import ProductAttachmentList from "../ProductAttachmentList";
-import { setProducts, setViewingProductAttachment } from "../../redux/slices/productSlice";
+import ProductStandardGuide from "../produtos/ProductStandardGuide";
+import { setProducts, setViewingProductAttachment, setViewingStandardGuide } from "../../redux/slices/productSlice";
 import { FixedSizeGrid } from "react-window";
 import AttachFileIcon from '@mui/icons-material/AttachFile';
 import { green, red } from "@mui/material/colors";
 import ProductCard from "./ProductCard";
-const ProductsTable = () => {
+import { Requisition } from "../../models/requisicoes/Requisition";
+import { fr } from "date-fns/locale";
 
+interface ProductsTableProps {
+  tipoFaturamento: number | null | undefined; // Tipo de faturamento a ser usado no filtro (0 = todos os produtos)
+  fromReq?: boolean;
+}
+
+const ProductsTable = ({ tipoFaturamento, fromReq }: ProductsTableProps) => {
   const dispatch = useDispatch();
   const theme = useTheme();
   const user = useSelector((state: RootState) => state.user.user);
   const { addingProducts, recentProductsAdded, productsAdded, replacingItemProduct} = useSelector((state: RootState) => state.requisitionItem);
   const { editProductFieldsPermitted, hasStockPermission } = useProductPermissions(user);
-  const {viewingProductAttachment, products  } = useSelector((state: RootState) => state.productSlice);
+  const {viewingProductAttachment, viewingStandardGuide, products, viewingProducts } = useSelector((state: RootState) => state.productSlice);
   const [searchTerm, setSearchTerm] = useState("");
 
   const [cellModesModel, setCellModesModel]  = React.useState<GridCellModesModel>({});
@@ -63,7 +71,20 @@ const ProductsTable = () => {
       
       // Check field-specific permissions
       const stockFields = ['quantidade_estoque', 'unidade'];
+      const permissionFields = ['perm_ti', 'perm_operacional', 'perm_faturamento_direto', 'perm_faturamento_dse'];
       const isStockField = stockFields.includes(params.field);
+      const isPermissionField = permissionFields.includes(params.field);
+      
+      // Only administrators can edit permission fields
+      if (isPermissionField && !user?.PERM_ADMINISTRADOR) {
+        dispatch(
+          setFeedback({
+            message: "Apenas administradores podem editar permissões de produtos",
+            type: "error",
+          })
+        );
+        return;
+      }
       
       // Stock users can only edit stock-related fields
       if (isStockField && !hasStockPermission && !editProductFieldsPermitted) {
@@ -77,7 +98,7 @@ const ProductsTable = () => {
       }
       
       // Non-stock fields require full product edit permission
-      if (!isStockField && !editProductFieldsPermitted) {
+      if (!isStockField && !isPermissionField && !editProductFieldsPermitted) {
         dispatch(
           setFeedback({
             message: "Você não tem permissão para editar este campo",
@@ -143,11 +164,7 @@ const ProductsTable = () => {
       return;
     }
 
-    console.log(productsAdded)
-
-    const selectedProductId = Number(newRowSelectionModel[0]);
-    // Permite adicionar múltiplas vezes o produto 138331
-    if (productsAdded.includes(selectedProductId) && selectedProductId !== 138331){ 
+    if (productsAdded.includes(Number(newRowSelectionModel[0]))){ 
       dispatch(setFeedback({ message: 'O produto ja foi adicionado a requisição', type: 'error' }));
       return;
     }
@@ -165,10 +182,19 @@ const ProductsTable = () => {
 //para salvar as mudanças
   const processRowUpdate = React.useCallback(
     async (newRow: GridRowModel, oldRow: GridRowModel) => {
-      const payload = {
+      const payload: any = {
         unidade: newRow.unidade,
         quantidade_estoque: newRow.quantidade_estoque,
       };
+      
+      // Adicionar campos de permissões se estiver visualizando produtos
+      if (viewingProducts) {
+        payload.perm_ti = newRow.perm_ti ? 1 : 0;
+        payload.perm_operacional = newRow.perm_operacional ? 1 : 0;
+        payload.perm_faturamento_direto = newRow.perm_faturamento_direto ? 1 : 0;
+        payload.perm_faturamento_dse = newRow.perm_faturamento_dse ? 1 : 0;
+      }
+      
       try {
         const updatedProduct = await ProductService.update(newRow.ID, payload);
         setProducts(products.map((product) => product.ID === updatedProduct.ID ? updatedProduct : product ));
@@ -184,14 +210,14 @@ const ProductsTable = () => {
         return oldRow;
       }
     },
-    [dispatch]
+    [dispatch, viewingProducts, products]
   );
   //muda o termo de busca
   const changeSearchTerm = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value;
     setSearchTerm(value.toLowerCase());
   };
-  const getRowSelectionModelForContext =( ) => { 
+  const getRowSelectionModelForContext = () => { 
     return addingProducts ? recentProductsAdded : rowSelectionModel;
   };
   //método para dar update na quantidade em estoque no mobile
@@ -202,7 +228,7 @@ const ProductsTable = () => {
         productBeingEdited.ID,
         { quantidade_estoque: newQuantity }
       );
-       dispatch(setProducts(products.map((product : Product) => product.ID === updatedProduct.ID ? updatedProduct : product)))
+      dispatch(setProducts(products.map((product : Product) => product.ID === updatedProduct.ID ? updatedProduct : product)))
       setProductBeingEdited(null);
       setQuantity(0);
     } catch (e) {
@@ -221,19 +247,21 @@ const ProductsTable = () => {
     setLoading(true);
     try {
       const params: any = { searchTerm };
-      
-      
+      // Usa o tipoFaturamento passado como prop
+
+      if (fromReq && (!tipoFaturamento || tipoFaturamento === 0)) return;
+
+      params.tipoFaturamento = tipoFaturamento;
+
       const data = await ProductService.getMany(params);
-      
+
       const sortedData = [...data].sort((a, b) => {
         const qtyA = a.quantidade_disponivel || 0;
         const qtyB = b.quantidade_disponivel || 0;
         return qtyB - qtyA;
       });
-      
-      console.log("produtos: ", sortedData);
-      
-      dispatch(setProducts(sortedData))
+
+      dispatch(setProducts(sortedData));
       setLoading(false);
     } catch (e) {
       setLoading(false);
@@ -244,7 +272,7 @@ const ProductsTable = () => {
         })
       );
     }
-  }, [dispatch, searchTerm]);
+  }, [dispatch, searchTerm, tipoFaturamento]);
 
   useEffect(() => {
     fetchData();
@@ -346,6 +374,32 @@ const ProductsTable = () => {
         <DialogTitle>Lista de Anexos</DialogTitle>
         <DialogContent>
           <ProductAttachmentList />
+        </DialogContent>
+      </Dialog>
+
+      <Dialog
+        open={viewingStandardGuide !== null}
+        onClose={() => dispatch(setViewingStandardGuide(null))}
+        fullWidth
+        maxWidth="md"
+      >
+        <IconButton
+          onClick={() => dispatch(setViewingStandardGuide(null))}
+          sx={{
+            color: "error.main",
+            height: 30,
+            width: 30,
+            position: "absolute",
+            top: 4,
+            right: 4,
+            boxShadow: 3,
+          }}
+        >
+          <GridCloseIcon />
+        </IconButton>
+        <DialogTitle>Produto Padrão</DialogTitle>
+        <DialogContent>
+          <ProductStandardGuide />
         </DialogContent>
       </Dialog>
     </Box>

@@ -195,6 +195,15 @@ export const useRequisitionItemColumns = (
       editable: attendingItems ? false : true,
     },  
     {
+      field: "data_necessidade",
+      headerName: "Data de necessidade",
+      type: "date",
+      width: 140,
+      editable: attendingItems ? false : true,
+      valueGetter: (data_necessidade: string) =>
+        data_necessidade ? getDateFromISOstring(data_necessidade) : null,
+    },  
+    {
       field: "quantidade_disponivel",
       headerName: "Estoque",
       type: "number",

@@ -28,8 +28,11 @@ import { ReducedUser } from "../../models/User";
 import { addComment, removeComment, replaceComment, setComments } from "../../redux/slices/requisicoes/requisitionCommentSlice";
 import { RequisitionComment } from "../../models/requisicoes/RequisitionComment";
 
+interface RequisitionCommentListProps {
+  fullScreen?: boolean;
+}
 
-const RequisitionCommentList = () => {
+const RequisitionCommentList = ({ fullScreen = false }: RequisitionCommentListProps) => {
   const dispatch = useDispatch();
   const { id_requisicao } = useParams<{ id_requisicao: string }>();
   const  refreshRequisition  = useSelector((state: RootState) => state.requisition.refreshRequisition);
@@ -59,7 +62,7 @@ const RequisitionCommentList = () => {
   }, [fetchData]);
 
 
-  const permToEditOrDelete = (comment: RequisitionComment) =>{ 
+  const permToEditOrDelete = (comment: RequisitionComment) => { 
     return  user?.CODPESSOA === comment.pessoa_criado_por?.CODPESSOA || user?.PERM_ADMINISTRADOR;
   }
   
@@ -113,7 +116,15 @@ const RequisitionCommentList = () => {
   };
 
   return (
-    <Box sx={{ p: 1 }}>
+    <Box
+      sx={{
+        maxWidth: fullScreen ? 'none' : 600,
+        maxHeight: fullScreen ? 'none' : 250,
+        overflow: "auto",
+        mx: "auto",
+        my: 2,
+      }}
+    >
       <TextField
         fullWidth
         placeholder="Adicionar comentário..."

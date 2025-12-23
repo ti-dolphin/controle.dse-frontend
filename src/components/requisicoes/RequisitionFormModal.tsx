@@ -1,6 +1,6 @@
 import React from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { setCreating, setMode } from "../../redux/slices/requisicoes/requisitionSlice";
+import { setCreating, setMode, clearRequisition } from "../../redux/slices/requisicoes/requisitionSlice";
 import { Modal, Box, IconButton } from "@mui/material";
 import AddIcon from "@mui/icons-material/Add";
 import RequisitionForm from "./RequisitionForm";
@@ -24,12 +24,15 @@ const RequisitionFormModal: React.FC = () => {
 
 
   const handleOpen = () => {
+    dispatch(clearRequisition());
     dispatch(setMode("create"));
     dispatch(setCreating(true));
   };
 
   const handleClose = () => {
+    dispatch(clearRequisition());
     dispatch(setMode("view"));
+    dispatch(setCreating(false));
   };
 
   return (

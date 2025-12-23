@@ -7,7 +7,9 @@ import { useEffect, useState } from "react";
 import { set } from "lodash";
 import { useIsMobile } from "./useIsMobile";
 import FileIcon from '@mui/icons-material/FilePresent';
-import { setViewingProductAttachment } from "../redux/slices/productSlice";
+import { setViewingProductAttachment, setViewingStandardGuide, setProducts } from "../redux/slices/productSlice";
+import { setFeedback } from "../redux/slices/feedBackSlice";
+import { ProductService } from "../services/ProductService";
 import CircleIcon from '@mui/icons-material/Circle';
 import { useProductPermissions } from "./productPermissionsHook";
 
@@ -32,6 +34,22 @@ export const useProductColumns = () => {
   const [columns, setColumns] = useState<GridColDef[]>([]);
   const user = useSelector((state: RootState) => state.user.user);
   const { editProductFieldsPermitted, hasStockPermission } = useProductPermissions(user);
+  
+  const togglePermission = async (row: any, field: string, currentValue: any) => {
+    try {
+      const payload: any = {};
+      payload[field] = currentValue === 1 ? 0 : 1;
+      await ProductService.update(row.ID, payload);
+      
+      // Fetch latest list and set it
+      const refreshed = await ProductService.getMany();
+      dispatch(setProducts(refreshed));
+      dispatch(setFeedback({ message: 'Permissão atualizada', type: 'success' }));
+    } catch (e: any) {
+      console.error('Erro ao atualizar permissão', e);
+      dispatch(setFeedback({ message: `Erro ao atualizar permissão: ${e.message || e}`, type: 'error' }));
+    }
+  };
 
   const addingProductsColumns: GridColDef[] = [
     {
@@ -88,6 +106,64 @@ export const useProductColumns = () => {
             <Typography fontSize="12px" fontWeight={"bold"}>
               {params.value}
             </Typography>
+          </Box>
+        );
+      },
+    },
+    {
+      field: "anexos",
+      headerName: "anexos",
+      flex: 0.15,
+      editable: false,
+      renderCell: (params: GridRenderCellParams) => {
+        return (
+          <Box
+            sx={{
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              height: "100%",
+              padding: 1,
+            }}
+          >
+            <IconButton onClick={() => { dispatch(setViewingProductAttachment(params.row.ID)) }}>
+              <StyledBadge
+                variant="standard"
+                badgeContent={params.row.anexos.length}
+                color="primary"
+              >
+                <FileIcon sx={{ fontSize: 14 }} />
+              </StyledBadge>
+            </IconButton>
+          </Box>
+        );
+      },
+    },
+    {
+      field: "produto_padrao",
+      headerName: "Produto Padrão",
+      flex: 0.15,
+      editable: false,
+      renderCell: (params: GridRenderCellParams) => {
+        return (
+          <Box
+            sx={{
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              height: "100%",
+              padding: 1,
+            }}
+          >
+            <IconButton onClick={() => { dispatch(setViewingStandardGuide(params.row.ID)) }}>
+              <StyledBadge
+                variant="standard"
+                badgeContent={params.row.anexos?.filter((a: any) => a.is_produto_padrao === true).length}
+                color="secondary"
+              >
+                <FileIcon sx={{ fontSize: 14 }} />
+              </StyledBadge>
+            </IconButton>
           </Box>
         );
       },
@@ -172,7 +248,8 @@ export const useProductColumns = () => {
     }
   ];
 
-  const viewingProductsColumns: GridColDef[] = [
+  // Build viewing columns and include permission columns only for administrators
+  const viewingProductsColumnsBase: GridColDef[] = [
     {
       field: "ID",
       headerName: "ID",
@@ -276,7 +353,110 @@ export const useProductColumns = () => {
         );
       },
     },
+    {
+      field: "produto_padrao",
+      headerName: "Produto Padrão",
+      flex: 0.15,
+      editable: false,
+      renderCell: (params: GridRenderCellParams) => {
+        return (
+          <Box
+            sx={{
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              height: "100%",
+              padding: 1,
+            }}
+          >
+            <IconButton onClick={() => { dispatch(setViewingStandardGuide(params.row.ID)) }}>
+              <StyledBadge
+                variant="standard"
+                badgeContent={params.row.anexos?.filter((a: any) => a.is_produto_padrao === true).length}
+                color="secondary"
+              >
+                <FileIcon sx={{ fontSize: 14 }} />
+              </StyledBadge>
+            </IconButton>
+          </Box>
+        );
+      },
+    },
   ];
+
+  // If user is administrator, append permission columns
+  const viewingProductsColumns: GridColDef[] = [...viewingProductsColumnsBase];
+  if (user?.PERM_ADMINISTRADOR === 1) {
+    viewingProductsColumns.push(
+      {
+        field: "perm_ti",
+        headerName: "TI",
+        flex: 0.1,
+        editable: true,
+        type: "boolean",
+        renderCell: (params: GridRenderCellParams) => {
+          return (
+            <Box sx={{ display: "flex", alignItems: "center", justifyContent: "center", height: "100%", width: "100%" }}>
+              <IconButton
+                size="small"
+                onClick={(e) => { e.stopPropagation(); togglePermission(params.row, 'perm_ti', params.value); }}
+              >
+                <CircleIcon sx={{ fontSize: 14, color: params.value === 1 ? green[600] : red[600] }} />
+              </IconButton>
+            </Box>
+          );
+        },
+      },
+      {
+        field: "perm_operacional",
+        headerName: "Operacional",
+        flex: 0.1,
+        editable: true,
+        type: "boolean",
+        renderCell: (params: GridRenderCellParams) => {
+          return (
+            <Box sx={{ display: "flex", alignItems: "center", justifyContent: "center", height: "100%", width: "100%" }}>
+              <IconButton size="small" onClick={(e) => { e.stopPropagation(); togglePermission(params.row, 'perm_operacional', params.value); }}>
+                <CircleIcon sx={{ fontSize: 14, color: params.value === 1 ? green[600] : red[600] }} />
+              </IconButton>
+            </Box>
+          );
+        },
+      },
+      {
+        field: "perm_faturamento_direto",
+        headerName: "Fat. Direto",
+        flex: 0.1,
+        editable: true,
+        type: "boolean",
+        renderCell: (params: GridRenderCellParams) => {
+          return (
+            <Box sx={{ display: "flex", alignItems: "center", justifyContent: "center", height: "100%", width: "100%" }}>
+              <IconButton size="small" onClick={(e) => { e.stopPropagation(); togglePermission(params.row, 'perm_faturamento_direto', params.value); }}>
+                <CircleIcon sx={{ fontSize: 14, color: params.value === 1 ? green[600] : red[600] }} />
+              </IconButton>
+            </Box>
+          );
+        },
+      },
+      {
+        field: "perm_faturamento_dse",
+        headerName: "Fat. DSE",
+        flex: 0.1,
+        editable: true,
+        type: "boolean",
+        renderCell: (params: GridRenderCellParams) => {
+          return (
+            <Box sx={{ display: "flex", alignItems: "center", justifyContent: "center", height: "100%", width: "100%" }}>
+              <IconButton size="small" onClick={(e) => { e.stopPropagation(); togglePermission(params.row, 'perm_faturamento_dse', params.value); }}>
+                <CircleIcon sx={{ fontSize: 14, color: params.value === 1 ? green[600] : red[600] }} />
+              </IconButton>
+            </Box>
+          );
+        },
+      }
+    );
+  }
 
   useEffect(() => {
     if (isMobile) {

@@ -12,16 +12,16 @@ import React from "react";
 import { TextHeader } from "../../components/TextHeader";
 
 
-export const usePatMovementationColumns = ()=> {
+export const usePatMovementationColumns = () => {
   const dispatch = useDispatch();
   const user = useSelector((state: RootState) => state.user.user);
 
   const permissionToDelete = Number(user?.PERM_ADMINISTRADOR) === 1;
   const {filters} = useSelector((state: RootState) => state.patrionyTable);
-  const handleDeleteClick =(row: Partial<Patrimony> ) => { 
+  const handleDeleteClick =(row: Partial<Patrimony>) => { 
     dispatch(setPatrimonyBeingDeleted(row))
   };
-
+  
   const handleChangeFilters = React.useCallback(
       (
         e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>,
@@ -31,7 +31,6 @@ export const usePatMovementationColumns = ()=> {
         if (value && !isNaN(Number(value)) && value.trim() !== "") {
           value = Number(value);
         }
-  
         dispatch(setFilters({ ...filters, [field]: value }));
       },
       [dispatch, filters]

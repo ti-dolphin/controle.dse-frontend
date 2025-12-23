@@ -16,11 +16,13 @@ export interface Requisition {
   data_criacao: string; //preenchido automaticamente (new Date()), não aparece no form
 
   id_status_requisicao: number; //autoComplete, não aparece no form
+  tipo_faturamento: number | null; //autocomplete, aparece no form
   id_escopo_requisicao: number;
 
   custo_total_frete : number;
   custo_total_itens : number;
   custo_total : number;
+  valor_aprovado_diretoria?: number;
 
   tipo_requisicao?: RequisitionType;
   projeto?: Project;

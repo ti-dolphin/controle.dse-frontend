@@ -21,6 +21,7 @@ const initialState: RequisitionFormState = {
     data_alteracao: "",
     data_criacao: "",
     id_status_requisicao: 1,
+    tipo_faturamento: 0,
     custo_total_frete: 0,
     custo_total_itens: 0,
     custo_total: 0,

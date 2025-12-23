@@ -73,7 +73,7 @@ export const useOppDetailedFields = (user: User | null, opportunity: Partial<Opp
         },
         {
           field: "DATAINICIO",
-          label: "Data de Início",
+          label: "Data de Envio Inicial",
           type: "date",
           disabled: false,
           required: true,
@@ -105,20 +105,20 @@ export const useOppDetailedFields = (user: User | null, opportunity: Partial<Opp
           options: comercialResponsableOptions,
         },
         {
-          field: "VALORFATDOLPHIN",
-          label: "Valor Faturamento Dolphin",
-          type: "number",
-          disabled: false,
-          required: false,
-          defaultValue: opportunity.VALORFATDOLPHIN != null ? String(opportunity.VALORFATDOLPHIN) : "",
-        },
-        {
           field: "VALORFATDIRETO",
           label: "Valor Faturamento Direto",
           type: "number",
           disabled: false,
           required: false,
           defaultValue: opportunity.VALORFATDIRETO != null ? String(opportunity.VALORFATDIRETO) : "",
+        },
+        {
+          field: "VALORFATDOLPHIN",
+          label: "Valor Faturamento Dolphin",
+          type: "number",
+          disabled: false,
+          required: false,
+          defaultValue: opportunity.VALORFATDOLPHIN != null ? String(opportunity.VALORFATDOLPHIN) : "",
         },
         {
           field: "VALOR_COMISSAO",
@@ -153,8 +153,8 @@ export const useOppDetailedFields = (user: User | null, opportunity: Partial<Opp
     const dateFields = fields.filter((field) => dateKeys.includes(field.field));
     const saleKeys = [
       "RESPONSAVEL",
-      "VALORFATDOLPHIN",
       "VALORFATDIRETO",
+      "VALORFATDOLPHIN",
       "VALOR_COMISSAO",
     ];
     const saleFields = fields.filter((field) => saleKeys.includes(field.field));

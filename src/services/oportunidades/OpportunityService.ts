@@ -22,7 +22,7 @@ const OpportunityService = {
 
     getReportInfo: async () => {
         const response = await api.get(
-          `${API_ENDPOINT}/relatorio/verificar_relatorio_semanal`
+            `${API_ENDPOINT}/relatorio/verificar_relatorio_semanal`
         );
         return response.data;
     },

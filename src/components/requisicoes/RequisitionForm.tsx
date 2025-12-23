@@ -1,4 +1,4 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { RootState } from "../../redux/store";
 import {
@@ -8,8 +8,10 @@ import {
   clearRequisition,
   setLoading,
   setError,
+  setCreating,
 } from "../../redux/slices/requisicoes/requisitionSlice";
-import { Box, Button, TextField, CircularProgress, Autocomplete, AutocompleteRenderInputParams, Typography } from "@mui/material";
+import { Box, Button, TextField, CircularProgress, Autocomplete, AutocompleteRenderInputParams, Typography, Radio, RadioGroup, FormControlLabel, FormControl, FormLabel, Tooltip } from "@mui/material";
+import HelpOutline from "@mui/icons-material/HelpOutline";
 import { Requisition } from "../../models/requisicoes/Requisition";
 import { useProjectOptions } from "../../hooks/projectOptionsHook";
 import { FieldConfig, Option } from "../../types";
@@ -36,45 +38,49 @@ const RequisitionForm: React.FC = () => {
     (state: RootState) => state.requisition
   );
 
-const fields: FieldConfig[] = [
-  {
-    label: "Descrição",
-    field: "DESCRIPTION",
-    type: "text",
-    disabled: false,
-    required: true,
-    defaultValue: "",
-    value: requisition.DESCRIPTION ?? "",
-  },
-  {
-    label: "Projeto",
-    field: "ID_PROJETO",
-    type: "autocomplete",
-    disabled: false,
-    required: true,
-    defaultValue: "",
-    options: projectOptions,
-    value: projectOptions.find((opt) => opt.id === requisition.ID_PROJETO)?.id || null,
-  },
-  {
-    label: "Tipo",
-    field: "TIPO",
-    type: "autocomplete",
-    disabled: true,
-    defaultValue: "",
-    options: reqTypeOptions,
-    value: 10,
-  },
-  {
-    label: "Responsável",
-    field: "ID_RESPONSAVEL",
-    type: "autocomplete",
-    disabled: true,
-    defaultValue: user?.NOME || "",
-    options: [userOption],
-    value: userOption.id,
-  },
-];
+  const [tiposFaturamento, setTiposFaturamento] = useState<
+    { id: number; nome_faturamento: string; escopo: number; descricao?: string }[]
+  >([]);
+  const [tipoFaturamentoSelecionado, setTipoFaturamentoSelecionado] = useState<number | null>(null);
+
+  // Buscar tipos de faturamento ao montar
+  useEffect(() => {
+    RequisitionService.getAllFaturamentosTypes({ visible: 1 }).then((data) => {
+      setTiposFaturamento(data);
+      if (data && data.length > 0) setTipoFaturamentoSelecionado(data[0].id);
+    });
+  }, []);
+
+  const fields: FieldConfig[] = [
+    {
+      label: "Descrição",
+      field: "DESCRIPTION",
+      type: "text",
+      disabled: false,
+      required: true,
+      defaultValue: "",
+      value: requisition.DESCRIPTION ?? "",
+    },
+    {
+      label: "Projeto",
+      field: "ID_PROJETO",
+      type: "autocomplete",
+      disabled: false,
+      required: true,
+      defaultValue: "",
+      options: projectOptions,
+      value: projectOptions.find((opt) => opt.id === requisition.ID_PROJETO)?.id || null,
+    },
+    {
+      label: "Responsável",
+      field: "ID_RESPONSAVEL",
+      type: "autocomplete",
+      disabled: true,
+      defaultValue: user?.NOME || "",
+      options: [userOption],
+      value: userOption.id,
+    },
+  ];
 
  //setando usuário como responsável default
 
@@ -93,16 +99,35 @@ const fields: FieldConfig[] = [
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     dispatch(setLoading(true));
+
+    if (!tipoFaturamentoSelecionado || !requisition.ID_PROJETO || !requisition.DESCRIPTION) {
+      dispatch(setLoading(false));
+      dispatch(setError("Todos os campos são obrigatórios."));
+      return;
+    }
+
     try {
         if (mode === "create") {
+            // Busca o tipo selecionado para pegar o escopo e tipo_faturamento correspondente
+            const tipoSelecionado = tiposFaturamento.find(t => t.id === tipoFaturamentoSelecionado);
+
+            let id_status_requisicao = 1
+            if (tipoSelecionado?.id === 3) {
+              id_status_requisicao = 107
+            } else if (tipoSelecionado?.id === 6) {
+              id_status_requisicao = 115
+            }
+
             const newRequisition = await RequisitionService.create({
-              //fields
-              DESCRIPTION : requisition.DESCRIPTION,
-              ID_PROJETO : requisition.ID_PROJETO,
-              //tipo default
-              TIPO : 9,
-              ID_RESPONSAVEL : requisition.ID_RESPONSAVEL,
-              id_status_requisicao: 1,
+              DESCRIPTION: requisition.DESCRIPTION,
+              ID_PROJETO: requisition.ID_PROJETO,
+              TIPO: 9,
+              tipo_faturamento: tipoSelecionado ? tipoSelecionado.id : null,
+              ID_RESPONSAVEL: requisition.ID_RESPONSAVEL,
+              id_status_requisicao: id_status_requisicao,
+              id_escopo_requisicao: tipoSelecionado
+                ? tipoSelecionado.escopo
+                : null,
             });
             dispatch(setRows([...rows, newRequisition]));
             dispatch(clearRequisition());
@@ -119,14 +144,14 @@ const fields: FieldConfig[] = [
             return;
         }
     } catch (err: any) {
-        dispatch(setLoading(false));
-        dispatch(setError(err?.message || "Erro ao criar requisição."));
-        dispatch(
-            setFeedback({
-                message: err?.message || "Erro ao criar requisição.",
-                type: "error",
-            })
-        );
+      dispatch(setLoading(false));
+      dispatch(setError(err?.message || "Erro ao criar requisição."));
+      dispatch(
+        setFeedback({
+            message: err?.message || "Erro ao criar requisição.",
+            type: "error",
+        })
+      );
     }
   };
 
@@ -137,6 +162,7 @@ const fields: FieldConfig[] = [
   const handleClose = () => {
     dispatch(clearRequisition());
     dispatch(setMode("view"));
+    dispatch(setCreating(false));
     dispatch(setLoading(false));
   };
 
@@ -153,6 +179,16 @@ const fields: FieldConfig[] = [
     }))
   }, [dispatch])
 
+  // Função para exibir label do escopo
+  const getEscopoLabel = (escopo: number) => {
+    switch (escopo) {
+      case 1: return "Estoque";
+      case 2: return "Faturamento Dolphin";
+      case 3: return "Compras Operacional";
+      default: return "";
+    }
+  };
+
   return (
     <Box
       component="form"
@@ -168,32 +204,60 @@ const fields: FieldConfig[] = [
       >
         Nova requisição
       </Typography>
-      {fields.map((config) => {
-        if (config.type === "autocomplete") {
-          return (
-            <OptionsField
-              options={config.options || []}
-              label={config.label}
-              value={config.value}
-              optionHeight={60}
-              required={config.required}
-              onChange={(id) =>
-                handleChangeOptionField(config.field as keyof Requisition, Number(id))
+      {/* Descrição */}
+      <ElegantInput 
+        label="Descrição"
+        required={true}
+        value={String(requisition.DESCRIPTION ?? "")}
+        onChange={handleChange("DESCRIPTION")}
+        disabled={isReadOnly}
+      />
+      {/* Projeto */}
+      <OptionsField
+        options={projectOptions}
+        label="Projeto"
+        value={ projectOptions.find((opt) => opt.id === requisition.ID_PROJETO)?.id }
+        optionHeight={60}
+        required={true}
+        onChange={(id) => handleChangeOptionField("ID_PROJETO", Number(id))}
+        disabled={isReadOnly}
+      />
+      {/* Radios de tipos de faturamento - entre Projeto e Responsável */}
+      <FormControl component="fieldset" sx={{ mt: 2 }}>
+        <FormLabel component="legend">Tipo de Solicitação</FormLabel>
+        <RadioGroup
+          value={tipoFaturamentoSelecionado ?? ""}
+          onChange={e => setTipoFaturamentoSelecionado(Number(e.target.value))}
+        >
+          {tiposFaturamento.map((tipo) => (
+            <FormControlLabel
+              key={tipo.id}
+              value={tipo.id}
+              control={<Radio />}
+              label={
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                  <span>{tipo.nome_faturamento}</span>
+                  {tipo.descricao && (
+                    <Tooltip title={tipo.descricao} arrow placement="right">
+                      <HelpOutline sx={{ fontSize: 18, color: 'text.secondary', cursor: 'help' }} />
+                    </Tooltip>
+                  )}
+                </Box>
               }
-            disabled={isReadOnly || config.disabled}
             />
-          );
-        }
-        return (
-          <ElegantInput 
-          label={config.label}
-          required={config.required}
-          value={String(requisition[config.field as keyof Requisition] )?? ""}
-          onChange={handleChange(config.field as keyof Requisition)}
-          disabled={isReadOnly || config.disabled}
-          />
-        );
-      })}
+          ))}
+        </RadioGroup>
+      </FormControl>
+      {/* Responsável */}
+      <OptionsField
+        options={[userOption]}
+        label="Responsável"
+        value={userOption.id}
+        optionHeight={60}
+        required={false}
+        onChange={(id) => handleChangeOptionField("ID_RESPONSAVEL", Number(id))}
+        disabled={true}
+      />
       {loading ? (
         <CircularProgress />
       ) : (

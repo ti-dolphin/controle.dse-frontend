@@ -28,11 +28,13 @@ import { getDateStringFromISOstring } from "../../utils";
 
 interface RequisitionAttachmentListProps {
   id_requisicao: number;
+  fullScreen?: boolean;
 }
 
-const RequisitionAttachmentList: React.FC<RequisitionAttachmentListProps> = ({
+const RequisitionAttachmentList = ({
   id_requisicao,
-}) => {
+  fullScreen = false,
+}: RequisitionAttachmentListProps) => {
   const dispatch = useDispatch();
   const user = useSelector((state: RootState) => state.user.user);
   const [attachments, setAttachments] = useState<RequisitionFile[]>([]);
@@ -240,6 +242,7 @@ const RequisitionAttachmentList: React.FC<RequisitionAttachmentListProps> = ({
               <Stack direction="column" alignItems="start" gap={0.2}>
                 <StyledLink
                   link={file.arquivo}
+                  fullScreen={fullScreen}
                   onClick={() => {
                     const fileExtensions = [
                       ".pdf",
@@ -265,7 +268,16 @@ const RequisitionAttachmentList: React.FC<RequisitionAttachmentListProps> = ({
                     }
                   }}
                 />
-                <Typography fontSize="12px" color="text.secondary">
+                <Typography
+                  fontSize="12px"
+                  color="text.secondary"
+                  sx={{
+                    overflow: "hidden",
+                    textOverflow: fullScreen ? "unset" : "ellipsis",
+                    whiteSpace: fullScreen ? "normal" : "nowrap",
+                    wordBreak: fullScreen ? "break-word" : "normal",
+                  }}
+                >
                   Por: {file.pessoa_criado_por?.NOME || ""} - {getDateStringFromISOstring(file.criado_em)}
                 </Typography>
               </Stack>

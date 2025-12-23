@@ -60,49 +60,6 @@ const RequisitionDetailPage = () => {
     dispatch(setRequisition(requisition));
   }, [id_requisicao, dispatch]);
 
-  // const handleChangeObservation = (e: ChangeEvent<HTMLTextAreaElement>) => {
-  //   const {value} = e.target;
-  //   setObservation(value);
-  // };
-
-  // const startObservationEditMode= (e:  React.FocusEvent<HTMLTextAreaElement>) => { 
-  //   const admin = Number(user?.PERM_ADMINISTRADOR) === 1;
-  //   const allowedToEdit = Number(user?.CODPESSOA) === Number(requisition.criado_por);
-  //   const editObservationPermittedForUser = admin || allowedToEdit;
-  //   if (!editObservationPermittedForUser) {
-  //     dispatch(
-  //       setFeedback({
-  //         message: "Você não tem permissão para editar esta observação.",
-  //         type: "error",
-  //       })
-  //     );
-  //     e.target.blur();
-  //     return;
-  //   }
-  //   setEditingObservation(true);
-  // }
-
-  // const handleSaveObservation = async ( ) =>  { 
-  //   try{ 
-  //     const updatedRequisition = await RequisitionService.update((Number(requisition.ID_REQUISICAO)), { 
-  //       OBSERVACAO: observation
-  //     });
-  //     dispatch(setRequisition(updatedRequisition));
-  //     setEditingObservation(false);
-  //     dispatch(setFeedback({ 
-  //       message: 'Observação salva com sucesso',
-  //       type: 'success'
-  //     }));
-  //     return;
-  //   }catch(e){ 
-  //     dispatch(setFeedback({ 
-  //       message: 'Erro ao salvar observação',
-  //       type: 'error'
-  //     }))
-  //   }
-
-  // };
-
   const createItemsFromProducts = async ( ) =>  {
     try{  
       const newItemIds = await RequisitionItemService.createMany(recentProductsAdded, requisition.ID_REQUISICAO);
@@ -234,7 +191,7 @@ const RequisitionDetailPage = () => {
         </Grid>
         {/* Detalhes da requisição */}
         <Grid item xs={12} md={3}>
-          <Paper sx={{ p: 1 }}>
+          <Paper sx={{ p: 1, height: '100%', display: 'flex', flexDirection: 'column' }}>
             <Typography
               variant="subtitle1"
               color="primary.main"
@@ -244,18 +201,20 @@ const RequisitionDetailPage = () => {
               Detalhes da requisição
             </Typography>
             <Divider sx={{ mb: 1 }} />
-            <RequisitionDetailsTable requisition={requisition} />
+            <Box sx={{ flex: 1, overflowY: 'auto' }}>
+              <RequisitionDetailsTable requisition={requisition} />
+            </Box>
           </Paper>
         </Grid>
         {/* Anexos, Comentários e Adicionar Itens */}
-        <Grid item xs={12} md={6}>
+        <Grid item xs={12} md={6} sx={{ display: 'flex' }}>
           <Grid container spacing={1}>
             {/* Comentários */}
-            <Grid item xs={12} md={6}>
+            <Grid item xs={12} md={6} sx={{ display: 'flex', flexDirection: 'column' }}>
               <Paper
                 sx={{
                   p: 1,
-                  height: "100%",
+                  height: '100%',
                   display: "flex",
                   flexDirection: "column",
                 }}
@@ -274,14 +233,13 @@ const RequisitionDetailPage = () => {
                     onClick={() => setFullScreenComments(true)}
                     color="primary"
                   >
-                    <FullscreenIcon fontSize="small" />
+                    <FullscreenIcon fontSize="small"/>
                   </IconButton>
                 </Box>
                 <Divider sx={{ mb: 1 }} />
                 <Box
                   sx={{
                     flex: 1,
-                    maxHeight: 140,
                     overflowY: "auto",
                   }}
                 >
@@ -290,14 +248,13 @@ const RequisitionDetailPage = () => {
               </Paper>
             </Grid>
             {/* Anexos */}
-            <Grid item xs={12} md={6}>
+            <Grid item xs={12} md={6} sx={{ display: 'flex', flexDirection: 'column' }}>
               <Paper
                 sx={{
                   p: 1,
-                  height: "100%",
+                  height: '100%',
                   display: "flex",
                   flexDirection: "column",
-                  justifyContent: "space-between",
                 }}
               >
                 <Box sx={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
@@ -317,7 +274,7 @@ const RequisitionDetailPage = () => {
                     <FullscreenIcon fontSize="small" />
                   </IconButton>
                 </Box>
-                <Divider />
+                <Divider sx={{ mb: 1 }} />
                 <Box sx={{ flex: 1, overflowY: "auto" }}>
                   <RequisitionAttachmentList
                     id_requisicao={Number(id_requisicao)}
@@ -325,21 +282,17 @@ const RequisitionDetailPage = () => {
                 </Box>
               </Paper>
             </Grid>
-
-            {/* Ações */}
-            <Grid item xs={12}></Grid>
           </Grid>
         </Grid>
 
         {/* Timline/Histórico */}
         <Grid item xs={12} md={3}>
-          <Paper sx={{ p: 1 }}>
-            <Box sx={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+          <Paper sx={{ p: 1, height: '100%', display: 'flex', flexDirection: 'column' }}>
+            <Box sx={{ display: "flex", alignItems: "center", justifyContent: "space-between", mb: 0.5 }}>
               <Typography
                 variant="subtitle1"
                 color="primary.main"
                 fontWeight={500}
-                mb={0}
               >
                 Timeline / Histórico
               </Typography>
@@ -351,8 +304,8 @@ const RequisitionDetailPage = () => {
                 <FullscreenIcon fontSize="small" />
               </IconButton>
             </Box>
-            <Divider />
-            <Box>
+            <Divider sx={{ mb: 1 }} />
+            <Box sx={{ flex: 1, overflowY: 'auto' }}>
               <RequisitionTimeline />
             </Box>
           </Paper>
@@ -427,7 +380,7 @@ const RequisitionDetailPage = () => {
       </Grid>
       {/* Dialog para buscar os produtos, selecionar e adicioná-los aos itens da requisição */}
       <Dialog
-        open={addingProducts || replacingItemProduct} //o modal será aberto se estiver sendo feita substituição ou adição de produtos
+        open={(addingProducts || replacingItemProduct) && requisition?.tipo_faturamento != null} //o modal será aberto se estiver sendo feita substituição ou adição de produtos E se o tipo de faturamento já foi carregado
         onClose={handleClose}
         maxWidth="lg"
         fullWidth
@@ -447,7 +400,9 @@ const RequisitionDetailPage = () => {
           </Typography>
         </DialogTitle>
         <DialogContent>
-          {(addingProducts || replacingItemProduct) && <ProductsTable />}
+          {(addingProducts || replacingItemProduct) && requisition?.tipo_faturamento != null && (
+            <ProductsTable tipoFaturamento={requisition.tipo_faturamento} fromReq={true} />
+          )}
         </DialogContent>
         <DialogActions>
           {addingProducts && recentProductsAdded.length > 0 && (
@@ -613,7 +568,7 @@ const RequisitionDetailPage = () => {
           ref={fullScreenTimelineContainer}
           sx={{ background: "background.default" }}
         >
-          <RequisitionTimeline />
+          <RequisitionTimeline fullScreen={true} />
         </DialogContent>
       </Dialog>
       {/* Dialog tela cheia anexos/links */}
@@ -642,7 +597,7 @@ const RequisitionDetailPage = () => {
           ref={fullScreenAttachmentsContainer}
           sx={{ background: "background.default" }}
         >
-          <RequisitionAttachmentList id_requisicao={Number(id_requisicao)} />
+          <RequisitionAttachmentList id_requisicao={Number(id_requisicao)} fullScreen={true} />
         </DialogContent>
       </Dialog>
       {/* Dialog tela cheia comentários */}
@@ -671,7 +626,7 @@ const RequisitionDetailPage = () => {
           ref={fullScreenCommentsContainer}
           sx={{ background: "background.default" }}
         >
-          <RequisitionCommentList />
+          <RequisitionCommentList fullScreen={true} />
         </DialogContent>
       </Dialog>
     </Box>

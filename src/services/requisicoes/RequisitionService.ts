@@ -55,7 +55,14 @@ export default class RequisitionService {
     return response.data;
   }
 
-  static async updateStatus(id_requisicao: number, data: any) {
+  static async updateStatus(
+    id_requisicao: number, 
+    data: { 
+      id_status_requisicao: number; 
+      alterado_por?: number;
+      is_reverting?: boolean;
+    }
+  ) {
     const response = await api.put(
       `${API_ENDPOINT}/${id_requisicao}/status`,
       data
@@ -68,8 +75,31 @@ export default class RequisitionService {
     return response.data;
   }
 
-  static async getAllFaturamentosTypes() {
-    const response = await api.get(`${API_ENDPOINT}/faturamentos/tipos`);
+  static async getAllFaturamentosTypes(params?: any) {
+    const response = await api.get(`${API_ENDPOINT}/faturamentos/tipos`, {
+      params,
+    });
+    return response.data;
+  }
+
+  static async updateRequisitionType(id_requisicao: number, id_tipo_faturamento: number, id_status_requisicao: number) {
+    const response = await api.put(
+      `${API_ENDPOINT}/${id_requisicao}/tipo-faturamento`,
+      { id_tipo_faturamento, id_status_requisicao }
+    );
+    return response.data;
+  }
+
+  static async changeRequisitionTypeWithSplit(
+    id_requisicao: number,
+    id_tipo_faturamento: number,
+    id_status_requisicao: number,
+    validItemIds: number[]
+  ) {
+    const response = await api.put(
+      `${API_ENDPOINT}/${id_requisicao}/tipo-faturamento/split`,
+      { id_tipo_faturamento, id_status_requisicao, validItemIds }
+    );
     return response.data;
   }
 }

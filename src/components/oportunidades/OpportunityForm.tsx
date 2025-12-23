@@ -23,6 +23,7 @@ const OpportunityForm = () => {
     const dispatch = useDispatch();
     const navigate = useNavigate();
     const opportunity = useSelector((state: RootState) => state.opportunity.opportunity);
+    const user = useSelector((state: RootState) => state.user.user);
   
     const [isAdicional, setIsAdicional] = useState(false);
     const { projectOptions } = useProjectOptions();
@@ -46,33 +47,33 @@ const OpportunityForm = () => {
     }
 
     const handleSubmit = async (e : React.FormEvent) => {
-        e.preventDefault();
-        const payload = {
-          NOME: opportunity?.NOME,
-          ID_PROJETO: isAdicional ? opportunity?.ID_PROJETO : null,
-          CODSTATUS: opportunity?.CODSTATUS,
-          DATASOLICITACAO: opportunity?.DATASOLICITACAO
-            ? formatDateStringtoISOstring(opportunity.DATASOLICITACAO)
-            : null,
-          DATAENTREGA: opportunity?.DATAENTREGA
-            ? formatDateStringtoISOstring(opportunity.DATAENTREGA)
-            : null,
-          DATAINICIO: opportunity?.DATAINICIO
-            ? formatDateStringtoISOstring(opportunity.DATAINICIO)
-            : null,
-          FK_CODCLIENTE: opportunity?.FK_CODCLIENTE,
-          FK_CODCOLIGADAL: opportunity?.FK_CODCOLIGADA,
-          RESPONSAVEL: opportunity?.RESPONSAVEL,
-        };
-        try {
-          const createOpp: Opportunity = await OpportunityService.create(payload, { isAdicional });
-          dispatch(setOpportunity(null));
-          dispatch(setCreating(false));
-          navigate(`/oportunidades/${createOpp.CODOS}`);
-        } catch (error) {
-          dispatch(setFeedback({ message: 'Erro ao criar oportunidade', type: 'error' }));
-          console.error(error);
-        }
+      e.preventDefault();
+      const payload = {
+        NOME: opportunity?.NOME,
+        ID_PROJETO: isAdicional ? opportunity?.ID_PROJETO : null,
+        CODSTATUS: opportunity?.CODSTATUS,
+        DATASOLICITACAO: opportunity?.DATASOLICITACAO
+          ? formatDateStringtoISOstring(opportunity.DATASOLICITACAO)
+          : null,
+        DATAENTREGA: opportunity?.DATAENTREGA
+          ? formatDateStringtoISOstring(opportunity.DATAENTREGA)
+          : null,
+        DATAINICIO: opportunity?.DATAINICIO
+          ? formatDateStringtoISOstring(opportunity.DATAINICIO)
+          : null,
+        FK_CODCLIENTE: opportunity?.FK_CODCLIENTE,
+        FK_CODCOLIGADAL: opportunity?.FK_CODCOLIGADA,
+        RESPONSAVEL: opportunity?.RESPONSAVEL || user?.CODPESSOA,
+      };
+      try {
+        const createOpp: Opportunity = await OpportunityService.create(payload, { isAdicional });
+        dispatch(setOpportunity(null));
+        dispatch(setCreating(false));
+        navigate(`/oportunidades/${createOpp.CODOS}`);
+      } catch (error) {
+        dispatch(setFeedback({ message: 'Erro ao criar oportunidade', type: 'error' }));
+        console.error(error);
+      }
     }
 
     return (

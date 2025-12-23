@@ -1,6 +1,7 @@
 import { Routes, Route } from "react-router-dom";
 import AuthPage from "./pages/AuthPage";
 import HomePage from "./pages/HomePage";
+import ProfilePage from "./pages/ProfilePage";
 import PatrimonyHomePage from "./pages/patrimonios/PatrimonyHomePage";
 import RequisitionHomePage from "./pages/requisicoes/RequisitionHomePage";
 import RequisitionDetailPage from "./pages/requisicoes/RequisitionDetailPage";
@@ -16,6 +17,7 @@ const AppRoutes = () => {
     <Routes>
       <Route path={ "/auth"} element={<AuthPage />} />
       <Route path="/" element={<HomePage />} />
+      <Route path="/perfil" element={<ProfilePage />} />
 
       <Route path="/admin" element={<AdminPage />} />
 
