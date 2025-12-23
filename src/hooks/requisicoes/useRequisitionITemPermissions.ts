@@ -4,7 +4,7 @@ import { User } from "../../models/User";
 import { useSelector } from "react-redux";
 import { RootState } from "../../redux/store";
 
-const editionEnabledStatuses = ["requisitado", "em cotação", "separar estoque"];
+const editionEnabledStatuses = ["requisitado", "em cotação", "separar estoque", "comprar", "recebimento"];
 
 function isAdmin(user: User | null): boolean {
   return Number(user?.PERM_ADMINISTRADOR) === 1;

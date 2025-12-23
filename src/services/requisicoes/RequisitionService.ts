@@ -90,6 +90,16 @@ export default class RequisitionService {
     return response.data;
   }
 
+  static async getStatusPermission(id_requisicao: number, user: User | null) {
+    const response = await api.get(
+      `${API_ENDPOINT}/${id_requisicao}/permissions`,
+      {
+        params: { user },
+      }
+    );
+    return response.data;
+  }
+
   static async changeRequisitionTypeWithSplit(
     id_requisicao: number,
     id_tipo_faturamento: number,
