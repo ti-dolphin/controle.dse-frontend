@@ -415,18 +415,42 @@ const RequisitionStatusStepper = ({
         dispatch(setRefresh(!refresh));
         dispatch(setRefreshRequisition(!refreshRequisition));
         
-        if (!permissionToChangeStatus) {
-          navigate("/requisicoes");
-          return;
+        // Verifica se o usuário tem permissão para visualizar o novo status
+        try {
+          const newPermissions = await RequisitionService.getStatusPermission(
+            Number(id_requisicao),
+            user
+          );
+          
+          // Se não tiver permissão para visualizar o novo status, navega de volta
+          if (!newPermissions.permissionToChangeStatus && !newPermissions.permissionToRevertStatus) {
+            dispatch(
+              setFeedback({
+                type: "success",
+                message: "Status atualizado com sucesso!",
+              })
+            );
+            navigate("/requisicoes");
+            return;
+          }
+          
+          // Usuário pode visualizar o novo status - permanece na página
+          dispatch(
+            setFeedback({
+              type: "success",
+              message: "Status atualizado com sucesso!",
+            })
+          );
+        } catch (permError) {
+          console.error('Erro ao verificar permissões:', permError);
+          // Em caso de erro, mantém usuário na página por segurança
+          dispatch(
+            setFeedback({
+              type: "success",
+              message: "Status atualizado com sucesso!",
+            })
+          );
         }
-        
-        dispatch(
-          setFeedback({
-            type: "success",
-            message: "Status atualizado com sucesso!",
-          })
-        );
-        navigate("/requisicoes");
       }
     } catch (e: any) {
       if (e.response?.data?.code === 'VALUE_INCREASE_REQUIRES_APPROVAL') {
@@ -479,20 +503,43 @@ const RequisitionStatusStepper = ({
       );
       dispatch(setRequisition(updatedRequisition));
       dispatch(setRefresh(!refresh));
-      if (!permissionToRevertStatus) {
-        navigate("/requisicoes");
-        return;
+      
+      // Verifica se o usuário tem permissão para visualizar o novo status
+      try {
+        const newPermissions = await RequisitionService.getStatusPermission(
+          Number(id_requisicao),
+          user
+        );
+        
+        // Se não tiver permissão para visualizar o novo status, navega de volta
+        if (!newPermissions.permissionToChangeStatus && !newPermissions.permissionToRevertStatus) {
+          dispatch(
+            setFeedback({
+              type: "success",
+              message: "Status atualizado com sucesso!",
+            })
+          );
+          navigate("/requisicoes");
+          return;
+        }
+        
+        // Usuário pode visualizar o novo status - permanece na página
+        dispatch(
+          setFeedback({
+            type: "success", //DISPLAYS SUCCESS MESSAGE ON SCREEN
+            message: "Status atualizado com sucesso!",
+          })
+        );
+      } catch (permError) {
+        console.error('Erro ao verificar permissões:', permError);
+        // Em caso de erro, mantém usuário na página por segurança
+        dispatch(
+          setFeedback({
+            type: "success",
+            message: "Status atualizado com sucesso!",
+          })
+        );
       }
-      dispatch(setRequisition(updatedRequisition));
-      dispatch(setRefresh(!refresh));
-
-      dispatch(
-        setFeedback({
-          type: "success", //DISPLAYS SUCCESS MESSAGE ON SCREEN
-          message: "Status atualizado com sucesso!",
-        })
-      );
-      navigate("/requisicoes");
     }
   };
 
