@@ -107,7 +107,6 @@ const RequisitionStatusStepper = ({
   const { statusList } = useRequisitionStatus(id_requisicao); 
   const {refresh} = useSelector((state: RootState) => state.requisitionItem);
   const [fillingComment, setFillingComment] = useState<boolean>(false);
-  const [fillingAdvanceComment, setFillingAdvanceComment] = useState<boolean>(false);
   const [comment, setComment] = useState<string>('');
   const [focusedElement, setFocusedElement] = useState<EventTarget | null>(null);
   const  [justifyingLessThenThreeQuotes, setJustifyingLessThenThreeQuotes] = useState<boolean>(false);
@@ -286,8 +285,81 @@ const RequisitionStatusStepper = ({
         }
       }
       
-      // Se passou pelas validações, pede comentário
-      setFillingAdvanceComment(true);
+      // Se passou pelas validações, avança diretamente
+      if (newStatus?.nome === 'Em separação') {
+        dispatch(startAttendingItems());
+        return;
+      }
+
+      if (!newStatus) {
+        dispatch(
+          setFeedback({
+            type: "error",
+            message: "Não foi possível determinar o próximo status.",
+          })
+        );
+        return;
+      }
+
+      try {
+        const updatedRequisition = await RequisitionService.updateStatus(
+          Number(id_requisicao),
+          {
+            id_status_requisicao: newStatus.id_status_requisicao,
+            alterado_por: user?.CODPESSOA,
+          }
+        );
+        
+        dispatch(setRequisition(updatedRequisition));
+        dispatch(setRefresh(!refresh));
+        dispatch(setRefreshRequisition(!refreshRequisition));
+        
+        try {
+          const newPermissions = await RequisitionService.getStatusPermission(
+            Number(id_requisicao),
+            user
+          );
+          
+          if (!newPermissions.permissionToChangeStatus && !newPermissions.permissionToRevertStatus) {
+            dispatch(
+              setFeedback({
+                type: "success",
+                message: "Status atualizado com sucesso!",
+              })
+            );
+            navigate("/requisicoes");
+            return;
+          }
+          
+          dispatch(
+            setFeedback({
+              type: "success",
+              message: "Status atualizado com sucesso!",
+            })
+          );
+        } catch (permError) {
+          console.error('Erro ao verificar permissões:', permError);
+          dispatch(
+            setFeedback({
+              type: "success",
+              message: "Status atualizado com sucesso!",
+            })
+          );
+        }
+      } catch (e: any) {
+        if (e.response?.data?.code === 'VALUE_INCREASE_REQUIRES_APPROVAL') {
+          setPendingStatusChangeValueIncrease("acao_posterior");
+          setShowValueIncreaseDialog(true);
+          return;
+        }
+        
+        dispatch(
+          setFeedback({
+            type: "error",
+            message: `Erro ao atualizar status: ${e.message}`,
+          })
+        );
+      }
       return;
     }
   };
@@ -368,104 +440,6 @@ const RequisitionStatusStepper = ({
       );
     }
 
-  };
-
-
-  const concludeAdvanceRequisition = async () => {
-    setFillingAdvanceComment(false);
-    try {
-      const createdComment = await RequisitionCommentService.create({
-        id_requisicao: Number(id_requisicao),
-        descricao: comment,
-        criado_por: user?.CODPESSOA || 0,
-      });
-      
-      if (createdComment) {
-        dispatch(addComment(createdComment));
-        setComment("");
-        
-        const currentStep = requisition.status?.etapa ?? 0;
-        const nextStep = currentStep + 1;
-        const newStatus = statusList.find((status) => status.etapa === nextStep);
-        
-        if (newStatus?.nome === 'Em separação') {
-          dispatch(startAttendingItems());
-          return;
-        }
-        
-        if (!newStatus) {
-          dispatch(
-            setFeedback({
-              type: "error",
-              message: "Não foi possível alterar o status.",
-            })
-          );
-          return;
-        }
-        
-        const updatedRequisition = await RequisitionService.updateStatus(
-          Number(id_requisicao),
-          {
-            id_status_requisicao: newStatus.id_status_requisicao,
-            alterado_por: user?.CODPESSOA,
-          }
-        );
-        
-        dispatch(setRequisition(updatedRequisition));
-        dispatch(setRefresh(!refresh));
-        dispatch(setRefreshRequisition(!refreshRequisition));
-        
-        // Verifica se o usuário tem permissão para visualizar o novo status
-        try {
-          const newPermissions = await RequisitionService.getStatusPermission(
-            Number(id_requisicao),
-            user
-          );
-          
-          // Se não tiver permissão para visualizar o novo status, navega de volta
-          if (!newPermissions.permissionToChangeStatus && !newPermissions.permissionToRevertStatus) {
-            dispatch(
-              setFeedback({
-                type: "success",
-                message: "Status atualizado com sucesso!",
-              })
-            );
-            navigate("/requisicoes");
-            return;
-          }
-          
-          // Usuário pode visualizar o novo status - permanece na página
-          dispatch(
-            setFeedback({
-              type: "success",
-              message: "Status atualizado com sucesso!",
-            })
-          );
-        } catch (permError) {
-          console.error('Erro ao verificar permissões:', permError);
-          // Em caso de erro, mantém usuário na página por segurança
-          dispatch(
-            setFeedback({
-              type: "success",
-              message: "Status atualizado com sucesso!",
-            })
-          );
-        }
-      }
-    } catch (e: any) {
-      if (e.response?.data?.code === 'VALUE_INCREASE_REQUIRES_APPROVAL') {
-        setPendingStatusChangeValueIncrease("acao_posterior");
-        setShowValueIncreaseDialog(true);
-        return;
-      }
-      
-      dispatch(
-        setFeedback({
-          type: "error",
-          message: `Erro ao atualizar status: ${e.message}`,
-        })
-      );
-    }
   };
 
   const handleRetreatRequisition = async () => {
@@ -978,42 +952,6 @@ useEffect(() => {
             size="small"
             color="success"
             onClick={() => handleRetreatRequisition()}
-          >
-            Confirmar
-          </Button>
-        </DialogActions>
-      </Dialog>
-
-      <Dialog open={fillingAdvanceComment}>
-        <DialogTitle>
-          Adicione um comentário sobre o avanço da requisição
-        </DialogTitle>
-        <DialogContent>
-          <ElegantInput
-            label="Comentário"
-            required
-            value={comment}
-            onChange={(e) => setComment(e.target.value)}
-          />
-        </DialogContent>
-        <DialogActions>
-          <Button
-            variant="contained"
-            size="small"
-            color="error"
-            onClick={() => {
-              setFillingAdvanceComment(false);
-              setComment("");
-            }}
-          >
-            Cancelar
-          </Button>
-          <Button
-            variant="contained"
-            size="small"
-            color="success"
-            onClick={() => concludeAdvanceRequisition()}
-            disabled={!comment.trim()}
           >
             Confirmar
           </Button>
