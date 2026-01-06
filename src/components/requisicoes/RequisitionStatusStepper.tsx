@@ -27,7 +27,10 @@ import {
 } from "@mui/material";
 import CheckIcon from "@mui/icons-material/Check";
 import RequisitionService from "../../services/requisicoes/RequisitionService";
-import { setRefreshRequisition, setRequisition } from "../../redux/slices/requisicoes/requisitionSlice";
+import {
+  setRefreshRequisition,
+  setRequisition,
+} from "../../redux/slices/requisicoes/requisitionSlice";
 import { setFeedback } from "../../redux/slices/feedBackSlice";
 import { useRequisitionStatusPermissions } from "../../hooks/requisicoes/useRequisitionStatusPermissions";
 import { RequisitionStatus } from "../../models/requisicoes/RequisitionStatus";
@@ -40,7 +43,10 @@ import { useEffect, useState } from "react";
 import ElegantInput from "../shared/ui/Input";
 import RequisitionCommentService from "../../services/requisicoes/RequisitionCommentService";
 import { addComment } from "../../redux/slices/requisicoes/requisitionCommentSlice";
-import { startAttendingItems, stopAttendingItems } from "../../redux/slices/requisicoes/attenItemsSlice";
+import {
+  startAttendingItems,
+  stopAttendingItems,
+} from "../../redux/slices/requisicoes/attenItemsSlice";
 import RequisitionItemsTable from "./RequisitionItemsTable";
 import { set } from "lodash";
 import { RequisitionItemAttachmentService } from "../../services/requisicoes/RequisitionItemAttachmentService";
@@ -99,28 +105,56 @@ const RequisitionStatusStepper = ({
   const user = useSelector((state: RootState) => state.user.user);
   const dispatch = useDispatch();
   const navigate = useNavigate();
-  const { requisition, refreshRequisition } = useSelector((state: RootState) => state.requisition);
-  const {attendingItems, notAttendedItems} = useSelector((state: RootState) => state.attendingItemsSlice);
-  const {items } = useSelector((state: RootState) => state.requisitionItem);
-  const { permissionToChangeStatus, permissionToCancel, permissionToActivate, permissionToRevertStatus } = useRequisitionStatusPermissions(user, requisition);
+  const { requisition, refreshRequisition } = useSelector(
+    (state: RootState) => state.requisition
+  );
+  const { attendingItems, notAttendedItems } = useSelector(
+    (state: RootState) => state.attendingItemsSlice
+  );
+  const { items } = useSelector((state: RootState) => state.requisitionItem);
+  const {
+    permissionToChangeStatus,
+    permissionToCancel,
+    permissionToActivate,
+    permissionToRevertStatus,
+  } = useRequisitionStatusPermissions(user, requisition);
   const currentStatusIndex = requisition.status?.etapa ?? 0;
-  const { statusList } = useRequisitionStatus(id_requisicao); 
-  const {refresh} = useSelector((state: RootState) => state.requisitionItem);
+  const { statusList } = useRequisitionStatus(id_requisicao);
+  const { refresh } = useSelector((state: RootState) => state.requisitionItem);
   const [fillingComment, setFillingComment] = useState<boolean>(false);
-  const [fillingAdvanceComment, setFillingAdvanceComment] = useState<boolean>(false);
-  const [comment, setComment] = useState<string>('');
-  const [focusedElement, setFocusedElement] = useState<EventTarget | null>(null);
-  const  [justifyingLessThenThreeQuotes, setJustifyingLessThenThreeQuotes] = useState<boolean>(false);
-  const [showValidationDialog, setShowValidationDialog] = useState<boolean>(false);
-  const [pendingStatusChange, setPendingStatusChange] = useState<"acao_anterior" | "acao_posterior" | null>(null);
-  const [showMissingTargetPriceDialog, setShowMissingTargetPriceDialog] = useState<boolean>(false);
-  const [pendingStatusChangeMissingTarget, setPendingStatusChangeMissingTarget] = useState<"acao_anterior" | "acao_posterior" | null>(null);
-  const [skipTargetPriceValidation, setSkipTargetPriceValidation] = useState<boolean>(false);
-  const [tiposFaturamento, setTiposFaturamento] = useState<Array<{id: number; nome: string; nome_faturamento: string}>>([]);
-  const [showChangeTypeDialog, setShowChangeTypeDialog] = useState<boolean>(false);
-  const [selectedTipoFaturamento, setSelectedTipoFaturamento] = useState<number | null>(null);
-  const [showValueIncreaseDialog, setShowValueIncreaseDialog] = useState<boolean>(false);
-  const [pendingStatusChangeValueIncrease, setPendingStatusChangeValueIncrease] = useState<"acao_anterior" | "acao_posterior" | null>(null);
+  const [comment, setComment] = useState<string>("");
+  const [focusedElement, setFocusedElement] = useState<EventTarget | null>(
+    null
+  );
+  const [justifyingLessThenThreeQuotes, setJustifyingLessThenThreeQuotes] =
+    useState<boolean>(false);
+  const [showValidationDialog, setShowValidationDialog] =
+    useState<boolean>(false);
+  const [pendingStatusChange, setPendingStatusChange] = useState<
+    "acao_anterior" | "acao_posterior" | null
+  >(null);
+  const [showMissingTargetPriceDialog, setShowMissingTargetPriceDialog] =
+    useState<boolean>(false);
+  const [
+    pendingStatusChangeMissingTarget,
+    setPendingStatusChangeMissingTarget,
+  ] = useState<"acao_anterior" | "acao_posterior" | null>(null);
+  const [skipTargetPriceValidation, setSkipTargetPriceValidation] =
+    useState<boolean>(false);
+  const [tiposFaturamento, setTiposFaturamento] = useState<
+    Array<{ id: number; nome: string; nome_faturamento: string }>
+  >([]);
+  const [showChangeTypeDialog, setShowChangeTypeDialog] =
+    useState<boolean>(false);
+  const [selectedTipoFaturamento, setSelectedTipoFaturamento] = useState<
+    number | null
+  >(null);
+  const [showValueIncreaseDialog, setShowValueIncreaseDialog] =
+    useState<boolean>(false);
+  const [
+    pendingStatusChangeValueIncrease,
+    setPendingStatusChangeValueIncrease,
+  ] = useState<"acao_anterior" | "acao_posterior" | null>(null);
 
   useEffect(() => {
     RequisitionService.getAllFaturamentosTypes({ visible: 1 }).then((data) => {
@@ -136,7 +170,9 @@ const RequisitionStatusStepper = ({
   const checkIfItemsHaveAttachments = async (): Promise<boolean> => {
     try {
       // Verifica anexos da requisição
-      const requisitionAttachments = await RequisitionFileService.getMany({ id_requisicao });
+      const requisitionAttachments = await RequisitionFileService.getMany({
+        id_requisicao,
+      });
       if (requisitionAttachments.length > 0) {
         return true;
       }
@@ -146,7 +182,10 @@ const RequisitionStatusStepper = ({
       let hasItemAttachments = false;
 
       for (const item of items) {
-        const attachments = await RequisitionItemAttachmentService.getByRequisitionItem(item.id_item_requisicao);
+        const attachments =
+          await RequisitionItemAttachmentService.getByRequisitionItem(
+            item.id_item_requisicao
+          );
         if (attachments.length > 0) {
           hasItemAttachments = true;
           break;
@@ -155,76 +194,88 @@ const RequisitionStatusStepper = ({
 
       return hasItemAttachments;
     } catch (error) {
-      console.error('Erro ao verificar anexos:', error);
+      console.error("Erro ao verificar anexos:", error);
       return false;
     }
   };
 
-  const validationRules = async (newStatus: RequisitionStatus, skipAttachmentValidation: boolean = false, skipTargetValidation: boolean = false ) =>  {
-    if(!requisition.status) return;
+  const validationRules = async (
+    newStatus: RequisitionStatus,
+    skipAttachmentValidation: boolean = false,
+    skipTargetValidation: boolean = false
+  ) => {
+    if (!requisition.status) return;
     const advancingStatus = newStatus.etapa > requisition.status?.etapa || 0;
-    const items = await RequisitionItemService.getMany({id_requisicao});
+    const items = await RequisitionItemService.getMany({ id_requisicao });
 
-    if (newStatus.nome === 'Validação') {
-      await Promise.all(items.map(async (item) => {
-        console.log('item', item);
-        if (item.quantidade === 0) {
-          throw new Error(
-            `O item ${item.produto_descricao} possui quantidade igual a zero.`
-          );
-        }
-      }))
+    if (newStatus.nome === "Validação") {
+      await Promise.all(
+        items.map(async (item) => {
+          console.log("item", item);
+          if (item.quantidade === 0) {
+            throw new Error(
+              `O item ${item.produto_descricao} possui quantidade igual a zero.`
+            );
+          }
+        })
+      );
     }
 
     // Validação para status "Requisitado"
-    if (newStatus.nome === 'Requisitado') {
+    if (newStatus.nome === "Requisitado") {
       const missingTarget = items.some((item) => !item.target_price);
       if (missingTarget && !skipTargetValidation) {
-        throw new Error('SHOW_MISSING_TARGET_PRICE_DIALOG');
+        throw new Error("SHOW_MISSING_TARGET_PRICE_DIALOG");
       }
     }
-    const noItems = items.length === 0; 
-    if(noItems) {
-      throw new Error('Requisição sem itens');
+    const noItems = items.length === 0;
+    if (noItems) {
+      throw new Error("Requisição sem itens");
     }
 
     // Validação apenas para status "Em Cotação" e avançando
-    if (newStatus.nome === 'Em Cotação' && advancingStatus) {
+    if (newStatus.nome === "Em Cotação" && advancingStatus) {
+      if (!skipAttachmentValidation) {
+        const hasAttachments = await checkIfItemsHaveAttachments();
+        if (!hasAttachments) {
+          throw new Error("SHOW_VALIDATION_DIALOG");
+        }
+      }
+    }
+    if (
+      newStatus.nome === "Aprovação Gerente" ||
+      newStatus.nome === "Aprovação Diretoria"
+    ) {
+      // Validação de anexos (pula se usuário já confirmou)
+      if (!skipAttachmentValidation) {
+        const hasAttachments = await checkIfItemsHaveAttachments();
+        if (!hasAttachments) {
+          throw new Error("SHOW_VALIDATION_DIALOG");
+        }
+      }
 
-        if(!skipAttachmentValidation) {
-          const hasAttachments = await checkIfItemsHaveAttachments();
-          if (!hasAttachments) {
-            throw new Error('SHOW_VALIDATION_DIALOG');
-          }
-        }
+      // Validações de cotações (sempre executam)
+      const quotes = await QuoteService.getMany({ id_requisicao });
+      const noQuotes = quotes.length === 0;
+      const items = await RequisitionItemService.getMany({ id_requisicao });
+      const allItemsHaveSelectedSupplier = items.every(
+        (item) => !!item.id_item_cotacao
+      );
+      if (!allItemsHaveSelectedSupplier) {
+        throw new Error(
+          "Todos os itens devem estar selecionados em algum fornecedor."
+        );
       }
-      if(newStatus.nome === 'Aprovação Gerente' || newStatus.nome === 'Aprovação Diretoria') { 
-        // Validação de anexos (pula se usuário já confirmou)
-        if(!skipAttachmentValidation) {
-          const hasAttachments = await checkIfItemsHaveAttachments();
-          if (!hasAttachments) {
-            throw new Error('SHOW_VALIDATION_DIALOG');
-          }
-        }
-        
-        // Validações de cotações (sempre executam)
-        const quotes = await QuoteService.getMany({id_requisicao});
-        const noQuotes = quotes.length === 0;
-        const items = await RequisitionItemService.getMany({id_requisicao});
-        const allItemsHaveSelectedSupplier = items.every((item) => !!item.id_item_cotacao);
-        if (!allItemsHaveSelectedSupplier) {
-          throw new Error('Todos os itens devem estar selecionados em algum fornecedor.');
-        }
-        if (noQuotes) {
-          throw new Error('Requisição sem cotações');
-        }
-        if (quotes.length > 0 && quotes.length < 3) {
-          setJustifyingLessThenThreeQuotes(true);
-          throw new Error('Requisição com menos de 3 cotações');
-        }
+      if (noQuotes) {
+        throw new Error("Requisição sem cotações");
       }
-      return;
-  } 
+      if (quotes.length > 0 && quotes.length < 3) {
+        setJustifyingLessThenThreeQuotes(true);
+        throw new Error("Requisição com menos de 3 cotações");
+      }
+    }
+    return;
+  };
 
   const handleChangeStatus = async (
     type: "acao_anterior" | "acao_posterior",
@@ -232,17 +283,21 @@ const RequisitionStatusStepper = ({
     skipTargetValidation?: boolean
   ) => {
     // Verifica permissão específica baseada no tipo de ação
-    const hasPermission = type === "acao_anterior" 
-      ? permissionToRevertStatus  // Para reverter, usa permissão de reversão
-      : permissionToChangeStatus; // Para avançar, usa permissão normal
+    const hasPermission =
+      type === "acao_anterior"
+        ? permissionToRevertStatus // Para reverter, usa permissão de reversão
+        : permissionToChangeStatus; // Para avançar, usa permissão normal
 
     if (!hasPermission) {
-      dispatch(setFeedback({ 
-        type: 'error', 
-        message: type === "acao_anterior"
-          ? 'Você não tem permissão para reverter ao status anterior.'
-          : 'Você não tem permissão para alterar o status.' 
-      }));
+      dispatch(
+        setFeedback({
+          type: "error",
+          message:
+            type === "acao_anterior"
+              ? "Você não tem permissão para reverter ao status anterior."
+              : "Você não tem permissão para alterar o status.",
+        })
+      );
       return;
     }
 
@@ -258,47 +313,129 @@ const RequisitionStatusStepper = ({
       const nextStep = currentStep + 1;
       const newStatus = statusList.find((status) => status.etapa === nextStep);
       console.log("newStatus", newStatus);
-      
+
       if (newStatus) {
         try {
-          await validationRules(newStatus, confirmValidation || false, skipTargetValidation || false);
+          await validationRules(
+            newStatus,
+            confirmValidation || false,
+            skipTargetValidation || false
+          );
         } catch (error: any) {
-          if (error.message === 'SHOW_VALIDATION_DIALOG') {
+          if (error.message === "SHOW_VALIDATION_DIALOG") {
             setPendingStatusChange(type);
             setShowValidationDialog(true);
             return;
           }
-          if (error.message === 'SHOW_MISSING_TARGET_PRICE_DIALOG') {
+          if (error.message === "SHOW_MISSING_TARGET_PRICE_DIALOG") {
             setPendingStatusChangeMissingTarget(type);
             setShowMissingTargetPriceDialog(true);
             return;
           }
-          if (error.message === 'Requisição com menos de 3 cotações') {
+          if (error.message === "Requisição com menos de 3 cotações") {
             setJustifyingLessThenThreeQuotes(true);
             return;
           }
           // Para qualquer outro erro de validação, exibe mensagem ao usuário
-          dispatch(setFeedback({
-            type: 'error',
-            message: error.message || 'Erro ao validar requisição'
-          }));
+          dispatch(
+            setFeedback({
+              type: "error",
+              message: error.message || "Erro ao validar requisição",
+            })
+          );
           return;
         }
       }
-      
-      // Se passou pelas validações, pede comentário
-      setFillingAdvanceComment(true);
+
+      // Se passou pelas validações, avança diretamente
+      if (newStatus?.nome === "Em separação") {
+        dispatch(startAttendingItems());
+        return;
+      }
+
+      if (!newStatus) {
+        dispatch(
+          setFeedback({
+            type: "error",
+            message: "Não foi possível determinar o próximo status.",
+          })
+        );
+        return;
+      }
+
+      try {
+        const updatedRequisition = await RequisitionService.updateStatus(
+          Number(id_requisicao),
+          {
+            id_status_requisicao: newStatus.id_status_requisicao,
+            alterado_por: user?.CODPESSOA,
+          }
+        );
+
+        dispatch(setRequisition(updatedRequisition));
+        dispatch(setRefresh(!refresh));
+        dispatch(setRefreshRequisition(!refreshRequisition));
+
+        try {
+          const newPermissions = await RequisitionService.getStatusPermission(
+            Number(id_requisicao),
+            user
+          );
+
+          if (
+            !newPermissions.permissionToChangeStatus &&
+            !newPermissions.permissionToRevertStatus
+          ) {
+            dispatch(
+              setFeedback({
+                type: "success",
+                message: "Status atualizado com sucesso!",
+              })
+            );
+            navigate("/requisicoes");
+            return;
+          }
+
+          dispatch(
+            setFeedback({
+              type: "success",
+              message: "Status atualizado com sucesso!",
+            })
+          );
+        } catch (permError) {
+          console.error("Erro ao verificar permissões:", permError);
+          dispatch(
+            setFeedback({
+              type: "success",
+              message: "Status atualizado com sucesso!",
+            })
+          );
+        }
+      } catch (e: any) {
+        if (e.response?.data?.code === "VALUE_INCREASE_REQUIRES_APPROVAL") {
+          setPendingStatusChangeValueIncrease("acao_posterior");
+          setShowValueIncreaseDialog(true);
+          return;
+        }
+
+        dispatch(
+          setFeedback({
+            type: "error",
+            message: `Erro ao atualizar status: ${e.message}`,
+          })
+        );
+      }
       return;
     }
   };
 
   const concludeLessThenThreeQuotes = async (e: React.FormEvent) => {
-    e.preventDefault()
+    e.preventDefault();
     try {
-      const newComment  = await RequisitionCommentService.create({
+      const newComment = await RequisitionCommentService.create({
         id_requisicao: Number(id_requisicao),
         descricao: comment,
-        criado_por: user?.CODPESSOA
+        criado_por: user?.CODPESSOA,
       });
 
       // Calcula o próximo status baseado na etapa atual
@@ -307,17 +444,22 @@ const RequisitionStatusStepper = ({
       const newStatus = statusList.find((status) => status.etapa === nextStep);
 
       if (!newStatus) {
-        dispatch(setFeedback({
-          type: "error",
-          message: "Não foi possível determinar o próximo status.",
-        }));
+        dispatch(
+          setFeedback({
+            type: "error",
+            message: "Não foi possível determinar o próximo status.",
+          })
+        );
         return;
       }
 
-      const updatedRequisition = await RequisitionService.updateStatus(Number(id_requisicao), { 
-        id_status_requisicao: newStatus.id_status_requisicao,
-        alterado_por: user?.CODPESSOA
-      });
+      const updatedRequisition = await RequisitionService.updateStatus(
+        Number(id_requisicao),
+        {
+          id_status_requisicao: newStatus.id_status_requisicao,
+          alterado_por: user?.CODPESSOA,
+        }
+      );
       dispatch(setRequisition(updatedRequisition));
       dispatch(setRefresh(!refresh));
       dispatch(setRefreshRequisition(!refreshRequisition));
@@ -334,7 +476,6 @@ const RequisitionStatusStepper = ({
         })
       );
       navigate("/requisicoes");
-
     } catch (e: any) {
       dispatch(
         setFeedback({
@@ -346,13 +487,19 @@ const RequisitionStatusStepper = ({
   };
 
   const handleAttendItems = async () => {
-      try {
-      let comprasItems = await RequisitionItemService.getMany({ id_requisicao });
+    try {
+      let comprasItems = await RequisitionItemService.getMany({
+        id_requisicao,
+      });
       comprasItems = comprasItems.filter((item) => !item.quantidade_disponivel);
       comprasItems = [...comprasItems, ...notAttendedItems];
-      const {estoque, compras} = await RequisitionService.attend(Number(id_requisicao), user?.CODPESSOA || 0, [...items, ...comprasItems]);
+      const { estoque, compras } = await RequisitionService.attend(
+        Number(id_requisicao),
+        user?.CODPESSOA || 0,
+        [...items, ...comprasItems]
+      );
       dispatch(stopAttendingItems());
-      if(!estoque){ 
+      if (!estoque) {
         navigate(`/requisicoes`);
         return;
       }
@@ -360,105 +507,6 @@ const RequisitionStatusStepper = ({
       dispatch(setRefresh(!refresh));
       return;
     } catch (e: any) {
-      dispatch(
-        setFeedback({
-          type: "error",
-          message: `Erro ao atualizar status: ${e.message}`,
-        })
-      );
-    }
-
-  };
-
-
-  const concludeAdvanceRequisition = async () => {
-    setFillingAdvanceComment(false);
-    try {
-      const createdComment = await RequisitionCommentService.create({
-        id_requisicao: Number(id_requisicao),
-        descricao: comment,
-        criado_por: user?.CODPESSOA || 0,
-      });
-      
-      if (createdComment) {
-        dispatch(addComment(createdComment));
-        setComment("");
-        
-        const currentStep = requisition.status?.etapa ?? 0;
-        const nextStep = currentStep + 1;
-        const newStatus = statusList.find((status) => status.etapa === nextStep);
-        
-        if (newStatus?.nome === 'Em separação') {
-          dispatch(startAttendingItems());
-          return;
-        }
-        
-        if (!newStatus) {
-          dispatch(
-            setFeedback({
-              type: "error",
-              message: "Não foi possível alterar o status.",
-            })
-          );
-          return;
-        }
-        
-        const updatedRequisition = await RequisitionService.updateStatus(
-          Number(id_requisicao),
-          {
-            id_status_requisicao: newStatus.id_status_requisicao,
-            alterado_por: user?.CODPESSOA,
-          }
-        );
-        
-        dispatch(setRequisition(updatedRequisition));
-        dispatch(setRefresh(!refresh));
-        dispatch(setRefreshRequisition(!refreshRequisition));
-        
-        // Verifica se o usuário tem permissão para visualizar o novo status
-        try {
-          const newPermissions = await RequisitionService.getStatusPermission(
-            Number(id_requisicao),
-            user
-          );
-          
-          // Se não tiver permissão para visualizar o novo status, navega de volta
-          if (!newPermissions.permissionToChangeStatus && !newPermissions.permissionToRevertStatus) {
-            dispatch(
-              setFeedback({
-                type: "success",
-                message: "Status atualizado com sucesso!",
-              })
-            );
-            navigate("/requisicoes");
-            return;
-          }
-          
-          // Usuário pode visualizar o novo status - permanece na página
-          dispatch(
-            setFeedback({
-              type: "success",
-              message: "Status atualizado com sucesso!",
-            })
-          );
-        } catch (permError) {
-          console.error('Erro ao verificar permissões:', permError);
-          // Em caso de erro, mantém usuário na página por segurança
-          dispatch(
-            setFeedback({
-              type: "success",
-              message: "Status atualizado com sucesso!",
-            })
-          );
-        }
-      }
-    } catch (e: any) {
-      if (e.response?.data?.code === 'VALUE_INCREASE_REQUIRES_APPROVAL') {
-        setPendingStatusChangeValueIncrease("acao_posterior");
-        setShowValueIncreaseDialog(true);
-        return;
-      }
-      
       dispatch(
         setFeedback({
           type: "error",
@@ -482,7 +530,7 @@ const RequisitionStatusStepper = ({
       const currentStep = requisition.status?.etapa ?? 0;
       const nextStep = currentStep - 1;
       const newStatus = statusList.find((status) => status.etapa === nextStep); //FINDS THE CORRESPONDING  NEW STATUS
-      
+
       if (!newStatus) {
         dispatch(
           setFeedback({
@@ -503,16 +551,19 @@ const RequisitionStatusStepper = ({
       );
       dispatch(setRequisition(updatedRequisition));
       dispatch(setRefresh(!refresh));
-      
+
       // Verifica se o usuário tem permissão para visualizar o novo status
       try {
         const newPermissions = await RequisitionService.getStatusPermission(
           Number(id_requisicao),
           user
         );
-        
+
         // Se não tiver permissão para visualizar o novo status, navega de volta
-        if (!newPermissions.permissionToChangeStatus && !newPermissions.permissionToRevertStatus) {
+        if (
+          !newPermissions.permissionToChangeStatus &&
+          !newPermissions.permissionToRevertStatus
+        ) {
           dispatch(
             setFeedback({
               type: "success",
@@ -522,7 +573,7 @@ const RequisitionStatusStepper = ({
           navigate("/requisicoes");
           return;
         }
-        
+
         // Usuário pode visualizar o novo status - permanece na página
         dispatch(
           setFeedback({
@@ -531,7 +582,7 @@ const RequisitionStatusStepper = ({
           })
         );
       } catch (permError) {
-        console.error('Erro ao verificar permissões:', permError);
+        console.error("Erro ao verificar permissões:", permError);
         // Em caso de erro, mantém usuário na página por segurança
         dispatch(
           setFeedback({
@@ -543,9 +594,11 @@ const RequisitionStatusStepper = ({
     }
   };
 
-  const handleCancel = async () =>  {
+  const handleCancel = async () => {
     try {
-      const updatedRequisition = await RequisitionService.cancel(Number(id_requisicao));
+      const updatedRequisition = await RequisitionService.cancel(
+        Number(id_requisicao)
+      );
       dispatch(setRequisition(updatedRequisition));
       dispatch(
         setFeedback({
@@ -554,7 +607,7 @@ const RequisitionStatusStepper = ({
         })
       );
       navigate("/requisicoes");
-    }catch(e : any){ 
+    } catch (e: any) {
       dispatch(
         setFeedback({
           type: "error",
@@ -562,12 +615,13 @@ const RequisitionStatusStepper = ({
         })
       );
     }
-  }
+  };
 
-
-  const handleActivate = async () =>  {
+  const handleActivate = async () => {
     try {
-      const updatedRequisition = await RequisitionService.activate(Number(id_requisicao));
+      const updatedRequisition = await RequisitionService.activate(
+        Number(id_requisicao)
+      );
       dispatch(setRequisition(updatedRequisition));
       dispatch(
         setFeedback({
@@ -575,7 +629,7 @@ const RequisitionStatusStepper = ({
           message: "Requisição ativada com sucesso!",
         })
       );
-    }catch (e : any) { 
+    } catch (e: any) {
       dispatch(
         setFeedback({
           type: "error",
@@ -583,7 +637,7 @@ const RequisitionStatusStepper = ({
         })
       );
     }
-  }
+  };
 
   const confirmValidationStatusChange = async () => {
     console.log("confirmValidationStatusChange");
@@ -624,27 +678,29 @@ const RequisitionStatusStepper = ({
   const handleValueIncreaseAccept = async () => {
     // Usuário aceitou o retorno automático para aprovação
     setShowValueIncreaseDialog(false);
-    
+
     try {
       // Busca o status de aprovação correspondente ao escopo
-      const scopeApprovalMap: {[key: number]: number} = {
-        2: 7,   // Escopo 2 -> Status 7
+      const scopeApprovalMap: { [key: number]: number } = {
+        2: 7, // Escopo 2 -> Status 7
         3: 110, // Escopo 3 -> Status 110
-        5: 118  // Escopo 5 -> Status 118
+        5: 118, // Escopo 5 -> Status 118
       };
-      
-      const approvalStatusId = scopeApprovalMap[requisition.id_escopo_requisicao];
-      
+
+      const approvalStatusId =
+        scopeApprovalMap[requisition.id_escopo_requisicao];
+
       if (!approvalStatusId) {
         dispatch(
           setFeedback({
             type: "error",
-            message: "Não foi possível determinar o status de aprovação para este escopo.",
+            message:
+              "Não foi possível determinar o status de aprovação para este escopo.",
           })
         );
         return;
       }
-      
+
       // Envia requisição para retornar ao status de aprovação
       const updatedRequisition = await RequisitionService.updateStatus(
         Number(id_requisicao),
@@ -653,19 +709,20 @@ const RequisitionStatusStepper = ({
           alterado_por: user?.CODPESSOA,
         }
       );
-      
+
       dispatch(setRequisition(updatedRequisition));
       dispatch(setRefresh(!refresh));
       dispatch(setRefreshRequisition(!refreshRequisition));
       setPendingStatusChangeValueIncrease(null);
-      
+
       dispatch(
         setFeedback({
           type: "success",
-          message: "Requisição retornada para aprovação da diretoria devido ao aumento de valor.",
+          message:
+            "Requisição retornada para aprovação da diretoria devido ao aumento de valor.",
         })
       );
-      
+
       navigate("/requisicoes");
     } catch (e: any) {
       dispatch(
@@ -677,35 +734,35 @@ const RequisitionStatusStepper = ({
     }
   };
 
-  const getPermTargetByTipoFaturamento = (tipoFaturamentoId: any) : any => {
-    let perm
+  const getPermTargetByTipoFaturamento = (tipoFaturamentoId: any): any => {
+    let perm;
 
     switch (tipoFaturamentoId) {
       case 1:
-        perm = 'perm_faturamento_dse'
+        perm = "perm_faturamento_dse";
         break;
       case 2:
-        perm = 'perm_faturamento_direto'
+        perm = "perm_faturamento_direto";
         break;
       case 3:
-        perm = 'perm_operacional'
+        perm = "perm_operacional";
         break;
       case 6:
-        perm = 'perm_ti'
+        perm = "perm_ti";
         break;
-      default: 
-        perm = null
+      default:
+        perm = null;
     }
 
     return perm;
-  }
+  };
 
   const handleChangeRequisitionType = async () => {
-    if (!selectedTipoFaturamento) return;  
+    if (!selectedTipoFaturamento) return;
 
     const permTarget = getPermTargetByTipoFaturamento(selectedTipoFaturamento);
     if (!permTarget) {
-      throw new Error('Tipo de faturamento inválido.');
+      throw new Error("Tipo de faturamento inválido.");
     }
 
     // Separar itens válidos e inválidos
@@ -739,22 +796,22 @@ const RequisitionStatusStepper = ({
           Number(id_requisicao),
           selectedTipoFaturamento,
           Number(requisition.id_status_requisicao),
-          validItems.map(item => item.id_item_requisicao)
+          validItems.map((item) => item.id_item_requisicao)
         );
-        
+
         dispatch(setRequisition(result.originalRequisition));
         dispatch(setRefreshRequisition(!refreshRequisition));
         dispatch(setRefresh(!refresh));
         setShowChangeTypeDialog(false);
         setSelectedTipoFaturamento(null);
-        
+
         dispatch(
           setFeedback({
             type: "success",
             message: `Tipo de solicitação alterado! ${invalidItems.length} item(ns) foram mantidos na requisição original.`,
           })
         );
-        
+
         // Redireciona para a lista para ver ambas requisições
         navigate("/requisicoes");
       } catch (e: any) {
@@ -775,12 +832,12 @@ const RequisitionStatusStepper = ({
         selectedTipoFaturamento,
         Number(requisition.id_status_requisicao)
       );
-      
+
       dispatch(setRequisition(updatedRequisition));
       dispatch(setRefreshRequisition(!refreshRequisition));
       setShowChangeTypeDialog(false);
       setSelectedTipoFaturamento(null);
-      
+
       dispatch(
         setFeedback({
           type: "success",
@@ -797,35 +854,33 @@ const RequisitionStatusStepper = ({
     }
   };
 
-// Adiciona listeners globais para monitorar eventos de foco e blur
-useEffect(() => {
-  const handleGlobalFocus = (event : FocusEvent) => {
-    if (event.target) {
-      const element = event.target as HTMLElement; // Cast the target to HTMLElement
-      if (element.classList.contains("MuiInputBase-input")){ 
-        console.log("element", element);
-         setFocusedElement(event.target);
+  // Adiciona listeners globais para monitorar eventos de foco e blur
+  useEffect(() => {
+    const handleGlobalFocus = (event: FocusEvent) => {
+      if (event.target) {
+        const element = event.target as HTMLElement; // Cast the target to HTMLElement
+        if (element.classList.contains("MuiInputBase-input")) {
+          console.log("element", element);
+          setFocusedElement(event.target);
+        }
       }
-    }
-  };
+    };
 
-  const handleGlobalBlur = () => {
-    console.log("blur")
-    setFocusedElement(null);
-  };
+    const handleGlobalBlur = () => {
+      console.log("blur");
+      setFocusedElement(null);
+    };
 
-  // Adiciona listeners para focusin e focusout (melhor que focus/blur para capturar eventos em todos os elementos)
-  window.addEventListener("focusin", handleGlobalFocus);
-  window.addEventListener("focusout", handleGlobalBlur);
+    // Adiciona listeners para focusin e focusout (melhor que focus/blur para capturar eventos em todos os elementos)
+    window.addEventListener("focusin", handleGlobalFocus);
+    window.addEventListener("focusout", handleGlobalBlur);
 
-  // Limpeza dos listeners ao desmontar o componente
-  return () => {
-    window.removeEventListener("focusin", handleGlobalFocus);
-    window.removeEventListener("focusout", handleGlobalBlur);
-  };
-}, []);
-
-  
+    // Limpeza dos listeners ao desmontar o componente
+    return () => {
+      window.removeEventListener("focusin", handleGlobalFocus);
+      window.removeEventListener("focusout", handleGlobalBlur);
+    };
+  }, []);
 
   return (
     <Box
@@ -908,28 +963,26 @@ useEffect(() => {
           </Typography>
           <ArrowCircleRightIcon fontSize="small" />
         </Button>
-        { requisition.status?.id_status_requisicao === 1 ||
-          requisition.status?.id_status_requisicao === 10 ||
-          requisition.status?.id_status_requisicao === 2 ||
-          requisition.status?.id_status_requisicao === 3 ||
-          requisition.status?.id_status_requisicao === 107 ||
-          requisition.status?.id_status_requisicao === 108 || 
-          requisition.status?.id_status_requisicao === 109  ||
-          requisition.status?.id_status_requisicao === 115 ||
-          requisition.status?.id_status_requisicao === 116  ||
-          requisition.status?.id_status_requisicao === 117 ? (
-            <Button
-              size="small"
-              variant="contained"
-              onClick={() => setShowChangeTypeDialog(true)}
-              sx={{ minHeight: 28, px: { xs: 0.5, sm: 1 } }}
-            >
-              <Typography fontSize={12}>
-                Alterar tipo de solicitação
-              </Typography>
-              <SwapHorizIcon fontSize="small" />
-            </Button>
-          ) : null}
+        {requisition.status?.id_status_requisicao === 1 ||
+        requisition.status?.id_status_requisicao === 10 ||
+        requisition.status?.id_status_requisicao === 2 ||
+        requisition.status?.id_status_requisicao === 3 ||
+        requisition.status?.id_status_requisicao === 107 ||
+        requisition.status?.id_status_requisicao === 108 ||
+        requisition.status?.id_status_requisicao === 109 ||
+        requisition.status?.id_status_requisicao === 115 ||
+        requisition.status?.id_status_requisicao === 116 ||
+        requisition.status?.id_status_requisicao === 117 ? (
+          <Button
+            size="small"
+            variant="contained"
+            onClick={() => setShowChangeTypeDialog(true)}
+            sx={{ minHeight: 28, px: { xs: 0.5, sm: 1 } }}
+          >
+            <Typography fontSize={12}>Alterar tipo de solicitação</Typography>
+            <SwapHorizIcon fontSize="small" />
+          </Button>
+        ) : null}
         {permissionToCancel && (
           <Button
             size="small"
@@ -978,42 +1031,6 @@ useEffect(() => {
             size="small"
             color="success"
             onClick={() => handleRetreatRequisition()}
-          >
-            Confirmar
-          </Button>
-        </DialogActions>
-      </Dialog>
-
-      <Dialog open={fillingAdvanceComment}>
-        <DialogTitle>
-          Adicione um comentário sobre o avanço da requisição
-        </DialogTitle>
-        <DialogContent>
-          <ElegantInput
-            label="Comentário"
-            required
-            value={comment}
-            onChange={(e) => setComment(e.target.value)}
-          />
-        </DialogContent>
-        <DialogActions>
-          <Button
-            variant="contained"
-            size="small"
-            color="error"
-            onClick={() => {
-              setFillingAdvanceComment(false);
-              setComment("");
-            }}
-          >
-            Cancelar
-          </Button>
-          <Button
-            variant="contained"
-            size="small"
-            color="success"
-            onClick={() => concludeAdvanceRequisition()}
-            disabled={!comment.trim()}
           >
             Confirmar
           </Button>
@@ -1100,12 +1117,11 @@ useEffect(() => {
         open={showValidationDialog}
         onClose={cancelValidationStatusChange}
       >
-        <DialogTitle>
-          Confirmação de mudança de status
-        </DialogTitle>
+        <DialogTitle>Confirmação de mudança de status</DialogTitle>
         <DialogContent>
           <Typography>
-            Você tem certeza que deseja prosseguir para o status "Em Cotação" sem criar nenhum anexo?
+            Você tem certeza que deseja prosseguir para o status "Em Cotação"
+            sem criar nenhum anexo?
           </Typography>
         </DialogContent>
         <DialogActions>
@@ -1133,13 +1149,13 @@ useEffect(() => {
         open={showMissingTargetPriceDialog}
         onClose={cancelMissingTargetPriceStatusChange}
       >
-        <DialogTitle>
-          Confirmação de mudança de status
-        </DialogTitle>
+        <DialogTitle>Confirmação de mudança de status</DialogTitle>
         <DialogContent>
           <Typography>
-            Existem itens sem preço alvo definido.<br />
-            Tem certeza que deseja prosseguir para o status "Requisitado" sem preencher o campo "Preço alvo" de todos os itens?
+            Existem itens sem preço alvo definido.
+            <br />
+            Tem certeza que deseja prosseguir para o status "Requisitado" sem
+            preencher o campo "Preço alvo" de todos os itens?
           </Typography>
         </DialogContent>
         <DialogActions>
@@ -1169,7 +1185,9 @@ useEffect(() => {
       >
         <DialogTitle>Alterar tipo de solicitação</DialogTitle>
         <DialogContent>
-          <FormLabel component="legend">Selecione o tipo de faturamento:</FormLabel>
+          <FormLabel component="legend">
+            Selecione o tipo de faturamento:
+          </FormLabel>
           <RadioGroup
             value={selectedTipoFaturamento ?? ""}
             onChange={(e) => setSelectedTipoFaturamento(Number(e.target.value))}
@@ -1210,14 +1228,13 @@ useEffect(() => {
         open={showValueIncreaseDialog}
         onClose={() => setShowValueIncreaseDialog(false)}
       >
-        <DialogTitle>
-          Valor excedeu o limite aprovado
-        </DialogTitle>
+        <DialogTitle>Valor excedeu o limite aprovado</DialogTitle>
         <DialogContent>
           <Typography>
-            O valor da requisição passou do valor limite para prosseguir sem aprovação novamente.
-            <br /><br />
-            A requisição precisará retornar para aprovação da diretoria.
+            O valor da requisição passou do valor limite para prosseguir sem
+            aprovação novamente.
+            <br />
+            <br />A requisição precisará retornar para aprovação da diretoria.
           </Typography>
         </DialogContent>
         <DialogActions>
