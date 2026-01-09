@@ -278,7 +278,6 @@ export function useRequisitionColumns(
       {
         field: "data_alteracao",
         headerName: "Data de Alteração",
-        flex: 1,me: "Data de Criação",
         flex: 1,
         type: "date",
         valueGetter: (value) => {
@@ -286,11 +285,12 @@ export function useRequisitionColumns(
         },
       },
       {
-        field: "tipo_requisicao",
-        headerName: "Tipo",
+        field: "data_criacao",
+        headerName: "Data de Criação",
         flex: 1,
-        valueGetter: (requisitionType: RequisitionType) => {
-          return requisitionType.nome_tipo;
+        type: "date",
+        valueGetter: (value) => {
+          return getDateFromISOstring(value);
         },
       },
       {
