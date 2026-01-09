@@ -14,6 +14,27 @@ import { RootState } from "../../redux/store";
 import { setRequisitionBeingDeletedId } from "../../redux/slices/requisicoes/requisitionTableSlice";
 import { TextHeader } from "../../components/TextHeader";
 
+const getTypeByTipoFaturamento = (tipoFaturamento: any) => {
+  switch (tipoFaturamento) {
+    case 1:
+      return "Faturamento Dolphin";
+    case 2:
+      return "Faturamento Direto";
+    case 3:
+      return "Compras Operacional";
+    case 4:
+      return "Estoque";
+    case 5:
+      return "Estoque Operacional";
+    case 6:
+      return "Compras TI";
+    case 7:
+      return "Estoque TI";
+    default:
+      return "-";
+  }
+};
+
 export function useRequisitionColumns(
   handleChangeFilters : (event: React.ChangeEvent<HTMLInputElement>, field: string) => void,
   changeSelectedRow: (row: any) => void,
@@ -150,6 +171,22 @@ export function useRequisitionColumns(
           ></TextHeader>
         ),
       },
+      {
+        field: "tipo_faturamento",
+        headerName: "Tipo",
+        flex: 1,
+        valueGetter: (tipoFaturamento: number) => {
+          return getTypeByTipoFaturamento(tipoFaturamento);
+        },
+        renderHeader: () => (
+          <TextHeader
+            label={"Tipo"}
+            field={"tipo_faturamento"}
+            filters={filters}
+            handleChangeFilters={handleChangeFilters}
+          ></TextHeader>
+        ),
+      },
       // {
       //   field: "data_criacao",
       //   headerName: "Data de Criação",
@@ -241,15 +278,7 @@ export function useRequisitionColumns(
       {
         field: "data_alteracao",
         headerName: "Data de Alteração",
-        flex: 1,
-        type: "date",
-        valueGetter: (value) => {
-          return getDateFromISOstring(value);
-        },
-      },
-      {
-        field: "data_criacao",
-        headerName: "Data de Criação",
+        flex: 1,me: "Data de Criação",
         flex: 1,
         type: "date",
         valueGetter: (value) => {

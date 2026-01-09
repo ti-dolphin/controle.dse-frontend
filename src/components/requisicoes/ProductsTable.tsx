@@ -164,7 +164,10 @@ const ProductsTable = ({ tipoFaturamento, fromReq }: ProductsTableProps) => {
       return;
     }
 
-    if (productsAdded.includes(Number(newRowSelectionModel[0]))){ 
+    const selectedProductId = Number(newRowSelectionModel[0]);
+    
+    // Allow product 138331 to be added multiple times
+    if (selectedProductId !== 138331 && productsAdded.includes(selectedProductId)){ 
       dispatch(setFeedback({ message: 'O produto ja foi adicionado a requisição', type: 'error' }));
       return;
     }
