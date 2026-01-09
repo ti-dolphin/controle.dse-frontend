@@ -165,7 +165,7 @@ const RequisitionListPage = () => {
           filters,
           doneReqFilter,
           cancelledReqFilter,
-          removeAdmView: true
+          removeAdmView: true,
         });
         dispatch(setRows(data));
         dispatch(setLoading(false));
