@@ -687,7 +687,7 @@ const RequisitionItemsTable = ({
   }, [currentQuoteIdSelected, quoteItems]);
 
   const shouldShowCreateParcialReqBtn = () => {
-    const allowedStatus = ["em cotação", "requisitado"];
+    const allowedStatus = ["em cotação", "requisitado", "validação"];
     return (
       !addingReqItems &&
       !updatingRecentProductsQuantity &&
