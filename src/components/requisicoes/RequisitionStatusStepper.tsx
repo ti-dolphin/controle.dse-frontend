@@ -244,7 +244,7 @@ const RequisitionStatusStepper = ({
     }
     if (
       newStatus.nome === "Aprovação Gerente" ||
-      newStatus.nome === "Aprovação Diretoria"
+      (newStatus.nome === "Aprovação Diretoria" && user?.PERM_COMPRADOR === 1)
     ) {
       // Validação de anexos (pula se usuário já confirmou)
       if (!skipAttachmentValidation) {
@@ -882,6 +882,13 @@ const RequisitionStatusStepper = ({
     };
   }, []);
 
+  const canChangeRequisitionType = (): boolean => {
+    const allowedStatusIds = [1, 2, 3, 10, 107, 108, 109, 115, 116, 117];
+    return allowedStatusIds.includes(
+      requisition.status?.id_status_requisicao ?? 0
+    );
+  };
+
   return (
     <Box
       sx={{
@@ -963,16 +970,7 @@ const RequisitionStatusStepper = ({
           </Typography>
           <ArrowCircleRightIcon fontSize="small" />
         </Button>
-        {requisition.status?.id_status_requisicao === 1 ||
-        requisition.status?.id_status_requisicao === 10 ||
-        requisition.status?.id_status_requisicao === 2 ||
-        requisition.status?.id_status_requisicao === 3 ||
-        requisition.status?.id_status_requisicao === 107 ||
-        requisition.status?.id_status_requisicao === 108 ||
-        requisition.status?.id_status_requisicao === 109 ||
-        requisition.status?.id_status_requisicao === 115 ||
-        requisition.status?.id_status_requisicao === 116 ||
-        requisition.status?.id_status_requisicao === 117 ? (
+        {canChangeRequisitionType() && (
           <Button
             size="small"
             variant="contained"
@@ -982,7 +980,7 @@ const RequisitionStatusStepper = ({
             <Typography fontSize={12}>Alterar tipo de solicitação</Typography>
             <SwapHorizIcon fontSize="small" />
           </Button>
-        ) : null}
+        )}
         {permissionToCancel && (
           <Button
             size="small"

@@ -1,4 +1,4 @@
-import { Box, Grid, IconButton, Menu, MenuItem, Typography } from '@mui/material'
+import { Box, Grid, IconButton, Menu, MenuItem, Typography, Stack } from '@mui/material'
 import React from 'react'
 import crm from '../assets/images/crm.jpg'
 import patrimonios from '../assets/images/patrimonios.jpg';
@@ -43,6 +43,14 @@ const HomePage = () => {
     }
   }, [user, navigate]);
 
+  const formatUserName = (name: string | undefined): string => {
+    if (!name) return 'Usuário';
+    return name
+      .toLowerCase()
+      .split(' ')
+      .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+      .join(' ');
+  };
 
   const handleClick = (event: React.MouseEvent<HTMLButtonElement>) => {
     setAnchorEl(event.currentTarget);
@@ -63,20 +71,38 @@ const HomePage = () => {
       }}
     >
 
-      <IconButton
-        aria-label="more"
-        aria-controls="long-menu"
-        aria-haspopup="true"
-        onClick={handleClick}
+      <Stack
+        direction="row"
+        alignItems="center"
+        spacing={1}
         sx={{
-          color: "primary.main",
           position: "absolute",
           right: 16,
           top: 16,
         }}
       >
-        <AccountCircleIcon />
-      </IconButton>
+        <Typography
+          variant="body1"
+          color="primary.main"
+          fontWeight={500}
+          sx={{
+            display: { xs: 'none', sm: 'block' }
+          }}
+        >
+          {formatUserName(user?.NOME)}
+        </Typography>
+        <IconButton
+          aria-label="more"
+          aria-controls="long-menu"
+          aria-haspopup="true"
+          onClick={handleClick}
+          sx={{
+            color: "primary.main",
+          }}
+        >
+          <AccountCircleIcon />
+        </IconButton>
+      </Stack>
       <Menu
         id="long-menu"
         MenuListProps={{
