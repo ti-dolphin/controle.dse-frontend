@@ -142,11 +142,22 @@ const QuoteDetailPage = () => {
     >
       {accesType !== "supplier" && (
         <UpperNavigation handleBack={handleBack}>
-          <Typography variant="h6" fontSize={"1rem"} color={"primary.main"}>{ 
-            `Requisição ${requisition.ID_REQUISICAO} | ${requisition.DESCRIPTION} | ${requisition.projeto?.DESCRICAO} - Cotação ${quote?.id_cotacao}`
-            }</Typography>
+          <Typography
+            variant="h6"
+            fontSize={"1rem"}
+            color={"primary.main"}
+          >{`Requisição ${requisition.ID_REQUISICAO} | ${requisition.DESCRIPTION} | ${requisition.projeto?.DESCRICAO} - Cotação ${quote?.id_cotacao}`}</Typography>
         </UpperNavigation>
       )}
+
+      {accesType === "supplier" && (
+        <Typography
+          variant="h6"
+          fontSize={"1rem"}
+          color={"primary.main"}
+        >{`Requisição ${requisition.ID_REQUISICAO}`}</Typography>
+      )}
+
       {/* Header Section - Will display quotation title and metadata (e.g., ID, date) */}
 
       <Grid container spacing={2} sx={{ justifyContent: "center" }}>
@@ -220,16 +231,12 @@ const QuoteDetailPage = () => {
       </Dialog>
 
       {/* Dialog de confirmação para voltar sem anexos */}
-      <Dialog
-        open={showAttachmentDialog}
-        onClose={cancelNavigation}
-      >
-        <DialogTitle>
-          Confirmação de navegação
-        </DialogTitle>
+      <Dialog open={showAttachmentDialog} onClose={cancelNavigation}>
+        <DialogTitle>Confirmação de navegação</DialogTitle>
         <DialogContent>
           <Typography>
-            Você tem certeza que deseja voltar sem criar nenhum anexo na cotação?
+            Você tem certeza que deseja voltar sem criar nenhum anexo na
+            cotação?
           </Typography>
         </DialogContent>
         <DialogActions>
