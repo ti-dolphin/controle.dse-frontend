@@ -61,7 +61,6 @@ const OpportunityDetailPage = () => {
         try {
           const opportunity : Opportunity = await OpportunityService.getById(Number(CODOS));
           setOpportunity(opportunity);
-          console.log(opportunity, 'aqui');
           setObservation(opportunity.observacoes);
         } catch (e) {
           dispatch(
