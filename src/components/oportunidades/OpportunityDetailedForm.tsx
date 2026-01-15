@@ -42,6 +42,8 @@ const OpportunityDetailedForm = () => {
   const { CODOS } = useParams();
 
   const verifyStatus = () => {
+    if (user?.PERM_ADMINISTRADOR === 1) return true;
+    
     if (!opportunity || !opportunity.status) return false;
     const declinedStatutes = [11, 12, 13]
     return !declinedStatutes.includes(opportunity.status.CODSTATUS);
