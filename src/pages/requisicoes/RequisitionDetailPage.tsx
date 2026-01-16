@@ -60,7 +60,7 @@ const RequisitionDetailPage = () => {
     dispatch(setRequisition(requisition));
   }, [id_requisicao, dispatch]);
 
-  const createItemsFromProducts = async ( ) =>  {
+  const createItemsFromProducts = async () =>  {
     try{  
       const newItemIds = await RequisitionItemService.createMany(recentProductsAdded, requisition.ID_REQUISICAO);
       dispatch(setFeedback({ 

@@ -55,6 +55,7 @@ export const useRequisitionItemColumns = (
   );
 
   const attendingItems = useSelector((state: RootState) => state.attendingItemsSlice.attendingItems);
+  const items = useSelector((state: RootState) => state.requisitionItem.items);
 
   const StyledBadge = styled(Badge)<BadgeProps>(({ theme }) => ({
     "& .MuiBadge-badge": {
@@ -63,6 +64,33 @@ export const useRequisitionItemColumns = (
       padding: "0 4px",
     },
   }));
+
+  const calculateOptimalColumnWidth = useCallback((
+    items: any[],
+    fieldName: string,
+    minWidth: number = 200,
+    maxWidth: number = 600,
+    charWidth: number = 8,
+    padding: number = 40
+  ): number => {
+    if (!items || items.length === 0) {
+      return minWidth;
+    }
+
+    const longestText = items.reduce((longest, item) => {
+      const text = String(item[fieldName] || '');
+      return text.length > longest.length ? text : longest;
+    }, '');
+
+    const calculatedWidth = (longestText.length * charWidth) + padding;
+    
+    return Math.max(minWidth, Math.min(calculatedWidth, maxWidth));
+  }, []);
+
+  const descriptionColumnWidth = useMemo(() => 
+    calculateOptimalColumnWidth(items, 'produto_descricao', 200, 600, 8, 40),
+    [items, calculateOptimalColumnWidth]
+  );
 
   const handleSelectQuoteId = (quoteId: number, e: ChangeEvent<HTMLInputElement>) => {
     const selected = e.target.checked;
@@ -150,7 +178,8 @@ export const useRequisitionItemColumns = (
       field: "produto_descricao",
       headerName: "Descrição",
       type: "string",
-      minWidth: 300,
+      width: descriptionColumnWidth,
+      flex: 0,
       renderCell: (params: any) => (
         <Box sx={{ display: "flex", alignItems: "center", height: "100%" }}>
           <Typography fontSize="12px" fontWeight="bold">
@@ -542,15 +571,10 @@ export const useRequisitionItemColumns = (
     [dinamicColumns]
   );
 
-  // Adicione este selector para pegar os itens da requisição
-  const items = useSelector((state: RootState) => state.requisitionItem.items);
-
-  // Helper para saber se todos os itens já têm items_cotacao carregado
   const allItemsHaveCotacao =
     items.length > 0 &&
     items.every((item: any) => Array.isArray(item.items_cotacao));
 
-  // Limpa as dinamicColumns sempre que id_requisicao mudar
   useEffect(() => {
     setDinamicColumns([]);
   }, [id_requisicao]);
@@ -577,9 +601,7 @@ export const useRequisitionItemColumns = (
     allItemsHaveCotacao
   ]);
 
-  // Troque o return direto por um useMemo:
   return useMemo(() => {
-
     return {
       columns:
         dinamicColumns.length > 0
