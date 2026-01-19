@@ -45,7 +45,41 @@ const OpportunityService = {
         const payload = user ? { ...data, user } : data;
         const response = await api.post(`${API_ENDPOINT}/${CODOS}/informar-ganho`, payload);
         return response.data;
+    },
+
+    /**
+     * Busca propostas semelhantes dentro do mesmo projeto nos últimos 6 meses
+     * @param projectId - ID do projeto
+     * @param searchTerm - Termo de busca (nome/descrição)
+     * @param excludeCodos - CODOS a excluir da busca (opcional)
+     * @returns Lista de propostas semelhantes (máximo 10)
+     */
+    getSimilarOpportunities: async (
+        projectId: number,
+        searchTerm: string,
+        excludeCodos?: number
+    ): Promise<SimilarOpportunity[]> => {
+        const params: Record<string, string | number> = {
+            projectId,
+            searchTerm,
+        };
+        if (excludeCodos) {
+            params.excludeCodos = excludeCodos;
+        }
+        const response = await api.get(`${API_ENDPOINT}/similar/buscar`, { params });
+        return response.data;
     }
+}
+
+export interface SimilarOpportunity {
+    CODOS: number;
+    NOME: string;
+    DATASOLICITACAO: string;
+    CODOS_ORIGINAL: number | null;
+    numeroAdicional: number;
+    status: string;
+    cliente: string;
+    isVinculada: boolean;
 }
 
 export default OpportunityService;
