@@ -110,7 +110,8 @@ const RequisitionItemsTable = ({
     // Permite que o comprador edite a coluna OC na etapa de recebimento
     const isBuyer = Number(user?.PERM_COMPRADOR) === 1;
     const isReceivingStep =
-      requisition.status?.nome?.toLowerCase() === "recebimento";
+      requisition.status?.nome?.toLowerCase() === "recebimento" ||
+      requisition.status?.nome?.toLowerCase() === "receber nf"
     if (isBuyer && isReceivingStep) {
       // Mantém createQuotePermitted igual ao valor original do hook
       return {
