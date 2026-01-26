@@ -18,9 +18,10 @@ import { useQuoteItemColumns } from "../../hooks/requisicoes/useQuoteItemColumns
 import { useQuoteItemPermissions } from "../../hooks/requisicoes/useQuoteItemPermissions";
 import RequisitionItemsTable from "./RequisitionItemsTable";
 import CloseIcon from '@mui/icons-material/Close';
-import { setAddingReqItems, setQuoteItems, setSingleQuoteItem } from "../../redux/slices/requisicoes/quoteItemSlice";
+import { setAddingReqItems, setQuoteItems, setSingleQuoteItem, setViewingItemAttachment } from "../../redux/slices/requisicoes/quoteItemSlice";
 import { useParams } from "react-router-dom";
 import { useIsMobile } from "../../hooks/useIsMobile";
+import QuoteItemAttachmentViewList from "./QuoteItemAttachmentViewList";
 
 
 interface QuoteItemsTableProps {
@@ -38,7 +39,7 @@ const QuoteItemsTable = ({
   const user = useSelector((state: RootState) => state.user.user);
   const theme = useTheme();
   const { quote, accessType } = useSelector((state: RootState) => state.quote);
-  const { quoteItems, addingReqItems } = useSelector(
+  const { quoteItems, addingReqItems, viewingItemAttachment } = useSelector(
     (state: RootState) => state.quoteItem
   );
   const [searchTerm, setSearchTerm] = useState("");
@@ -105,7 +106,11 @@ const QuoteItemsTable = ({
     }
   };
 
-  const { columns } = useQuoteItemColumns(handleUpdateUnavailable, blockFields);
+  const handleViewAttachments = (id_item_requisicao: number) => {
+    dispatch(setViewingItemAttachment(id_item_requisicao));
+  };
+
+  const { columns } = useQuoteItemColumns(handleUpdateUnavailable, blockFields, handleViewAttachments);
 
   const mobileColumns = ( ) =>  {
     const arr = [
@@ -143,12 +148,12 @@ const QuoteItemsTable = ({
       }
 
       if (!params.isEditable) {
-        dispatch(
-          setFeedback({
-            message: `O campo selecionado não é editável`,
-            type: "error",
-          })
-        );
+        // dispatch(
+        //   setFeedback({
+        //     message: `O campo selecionado não é editável`,
+        //     type: "error",
+        //   })
+        // );
         return;
       }
 
@@ -409,6 +414,28 @@ const QuoteItemsTable = ({
             <CloseIcon />
           </IconButton>
           {addingReqItems && <RequisitionItemsTable hideFooter />}
+        </DialogContent>
+      </Dialog>
+
+      {/* Dialog para visualizar anexos do item da requisição */}
+      <Dialog
+        open={viewingItemAttachment !== null}
+        fullWidth
+        maxWidth="sm"
+        onClose={() => dispatch(setViewingItemAttachment(null))}
+      >
+        <DialogTitle>Anexos do Item</DialogTitle>
+        <DialogContent>
+          <IconButton
+            sx={{ position: "absolute", top: 0, right: 0 }}
+            color="error"
+            onClick={() => dispatch(setViewingItemAttachment(null))}
+          >
+            <CloseIcon />
+          </IconButton>
+          {viewingItemAttachment !== null && (
+            <QuoteItemAttachmentViewList id_item_requisicao={viewingItemAttachment} />
+          )}
         </DialogContent>
       </Dialog>
     </Box>
