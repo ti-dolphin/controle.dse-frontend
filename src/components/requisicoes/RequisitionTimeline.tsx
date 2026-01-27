@@ -107,6 +107,16 @@ const RequisitionTimeline = ({ fullScreen = false }: RequisitionTimelineProps) =
                     primary={
                       <Typography fontSize="small">
                         {`${alteration.pessoa_alterado_por?.NOME} ${alteration.transicao?.nome_transicao}`}
+                        {alteration.pessoa_destino && (
+                          <Typography component="span" fontSize="small" color="text.secondary">
+                            {` → ${alteration.pessoa_destino.NOME}`}
+                          </Typography>
+                        )}
+                        {!alteration.pessoa_destino && alteration.perfil_destino && (
+                          <Typography component="span" fontSize="small" color="text.secondary">
+                            {` → ${alteration.perfil_destino}`}
+                          </Typography>
+                        )}
                       </Typography>
                     }
                     secondary={

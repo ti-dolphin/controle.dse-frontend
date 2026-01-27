@@ -72,13 +72,17 @@ const QuoteForm = ({ onSubmit }: QuoteFormProps) => {
 
     if (quote) {
       const codeFields = ["cnpj_fornecedor", "cnpj_faturamento"];
+      const normalizedValue = value.replace(",", ".");
+      
+      const isIncompleteDecimal = normalizedValue.endsWith(".") || /\.\d*$/.test(normalizedValue);
+      
       dispatch(
         setQuote({
           ...quote,
           [field]:
-            isNumeric(value) && !codeFields.includes(field)
-              ? Number(value)
-              : value,
+            isNumeric(normalizedValue) && !codeFields.includes(field) && !isIncompleteDecimal
+              ? Number(normalizedValue)
+              : normalizedValue,
         })
       );
     }
