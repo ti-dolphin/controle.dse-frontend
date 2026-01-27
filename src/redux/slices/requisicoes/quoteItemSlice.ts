@@ -4,11 +4,13 @@ import { QuoteItem } from "../../../models/requisicoes/QuoteItem";
 export interface QuoteItemState {
   quoteItems: QuoteItem[];
   addingReqItems: boolean;
+  viewingItemAttachment: number | null;
 }
 
 const initialState: QuoteItemState = {
   quoteItems: [],
   addingReqItems: false,
+  viewingItemAttachment: null,
 };
 
 const quoteItemSlice = createSlice({
@@ -41,6 +43,9 @@ const quoteItemSlice = createSlice({
     addingIReqItems(state, action: PayloadAction<QuoteItem[]>) {
       state.quoteItems = [...state.quoteItems, ...action.payload];
     },
+    setViewingItemAttachment(state, action: PayloadAction<number | null>) {
+      state.viewingItemAttachment = action.payload;
+    },
   },
 });
 
@@ -50,6 +55,7 @@ export const {
   addQuoteItem,
   removeQuoteItem,
   setSingleQuoteItem,
+  setViewingItemAttachment,
 } = quoteItemSlice.actions;
 export default quoteItemSlice.reducer;
 

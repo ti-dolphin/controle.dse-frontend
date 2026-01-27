@@ -1,12 +1,12 @@
 import { Autocomplete, AutocompleteRenderInputParams, Box, Button, Checkbox, Grid, Stack, TextField, Typography } from '@mui/material'
-import React, { useState } from 'react'
+import React, { useState, useEffect, useCallback, useRef } from 'react'
 import { useProjectOptions } from '../../hooks/projectOptionsHook';
 import RadioButtonUncheckedIcon from "@mui/icons-material/RadioButtonUnchecked";
 import CheckCircleIcon from "@mui/icons-material/CheckCircle";
 import { useDispatch, useSelector } from 'react-redux';
 import { RootState } from '../../redux/store';
 import useOppStatusOptions from '../../hooks/oportunidades/useOppStatusOptions';
-import OpportunityService from '../../services/oportunidades/OpportunityService';
+import OpportunityService, { SimilarOpportunity } from '../../services/oportunidades/OpportunityService';
 import { useNavigate } from 'react-router-dom';
 import { Opportunity } from '../../models/oportunidades/Opportunity';
 import { setFeedback } from '../../redux/slices/feedBackSlice';
@@ -17,6 +17,7 @@ import { useOpportunityMandatoryFields } from '../../hooks/oportunidades/useOppo
 import { formatDateStringtoISOstring } from '../../utils';
 import OptionsField from '../shared/ui/OptionsField';
 import ElegantInput from '../shared/ui/Input';
+import SimilarOpportunitiesModal from './SimilarOpportunitiesModal';
 
 
 const OpportunityForm = () => {
@@ -26,6 +27,12 @@ const OpportunityForm = () => {
     const user = useSelector((state: RootState) => state.user.user);
   
     const [isAdicional, setIsAdicional] = useState(false);
+    const [similarOpportunities, setSimilarOpportunities] = useState<SimilarOpportunity[]>([]);
+    const [showSimilarModal, setShowSimilarModal] = useState(false);
+    const [codosOriginal, setCodosOriginal] = useState<number | null>(null);
+    const [isSubmitting, setIsSubmitting] = useState(false);
+    const debounceRef = useRef<NodeJS.Timeout | null>(null);
+
     const { projectOptions } = useProjectOptions();
     const {oppStatusOptions} = useOppStatusOptions();
     const { clientOptions } = useClientOptions();
@@ -37,6 +44,48 @@ const OpportunityForm = () => {
       comercialResponsableOptions
     );
 
+    // Busca propostas semelhantes com debounce quando é adicional
+    const searchSimilarOpportunities = useCallback(async () => {
+      if (!isAdicional || !opportunity?.ID_PROJETO || !opportunity?.NOME) {
+        setSimilarOpportunities([]);
+        return;
+      }
+
+      const searchTerm = opportunity.NOME.trim();
+      if (searchTerm.length < 3) {
+        setSimilarOpportunities([]);
+        return;
+      }
+
+      try {
+        const similars = await OpportunityService.getSimilarOpportunities(
+          Number(opportunity.ID_PROJETO),
+          searchTerm
+        );
+        setSimilarOpportunities(similars);
+      } catch (error) {
+        console.error('Erro ao buscar propostas semelhantes:', error);
+        setSimilarOpportunities([]);
+      }
+    }, [isAdicional, opportunity?.ID_PROJETO, opportunity?.NOME]);
+
+    // Effect para buscar propostas semelhantes com debounce de 400ms
+    useEffect(() => {
+      if (debounceRef.current) {
+        clearTimeout(debounceRef.current);
+      }
+
+      debounceRef.current = setTimeout(() => {
+        searchSimilarOpportunities();
+      }, 400);
+
+      return () => {
+        if (debounceRef.current) {
+          clearTimeout(debounceRef.current);
+        }
+      };
+    }, [searchSimilarOpportunities]);
+
     const handleChangeTextField = (e: React.ChangeEvent<HTMLInputElement>) => {
       const { name, value } = e.target;
       dispatch(setOpportunity({ ...opportunity, [name]: value }));
@@ -46,9 +95,8 @@ const OpportunityForm = () => {
       dispatch(setOpportunity({ ...opportunity, [name]: optionId }));
     }
 
-    const handleSubmit = async (e : React.FormEvent) => {
-      e.preventDefault();
-      const payload = {
+    const buildPayload = () => {
+      return {
         NOME: opportunity?.NOME,
         ID_PROJETO: isAdicional ? opportunity?.ID_PROJETO : null,
         CODSTATUS: opportunity?.CODSTATUS,
@@ -64,7 +112,12 @@ const OpportunityForm = () => {
         FK_CODCLIENTE: opportunity?.FK_CODCLIENTE,
         FK_CODCOLIGADAL: opportunity?.FK_CODCOLIGADA,
         RESPONSAVEL: opportunity?.RESPONSAVEL || user?.CODPESSOA,
+        CODOS_ORIGINAL: codosOriginal,
       };
+    };
+
+    const createOpportunity = async (payload: ReturnType<typeof buildPayload>) => {
+      setIsSubmitting(true);
       try {
         const createOpp: Opportunity = await OpportunityService.create(payload, { isAdicional });
         dispatch(setOpportunity(null));
@@ -73,8 +126,41 @@ const OpportunityForm = () => {
       } catch (error) {
         dispatch(setFeedback({ message: 'Erro ao criar oportunidade', type: 'error' }));
         console.error(error);
+      } finally {
+        setIsSubmitting(false);
       }
-    }
+    };
+
+    const handleSubmit = async (e: React.FormEvent) => {
+      e.preventDefault();
+      
+      // Se é adicional e tem propostas semelhantes, mostrar modal primeiro
+      if (isAdicional && similarOpportunities.length > 0 && !codosOriginal) {
+        setShowSimilarModal(true);
+        return;
+      }
+
+      await createOpportunity(buildPayload());
+    };
+
+    const handleCreateNew = async () => {
+      setShowSimilarModal(false);
+      await createOpportunity(buildPayload());
+    };
+
+    const handleLinkTo = async (codos: number) => {
+      setCodosOriginal(codos);
+      setShowSimilarModal(false);
+      const payload = {
+        ...buildPayload(),
+        CODOS_ORIGINAL: codos,
+      };
+      await createOpportunity(payload);
+    };
+
+    const handleCloseSimilarModal = () => {
+      setShowSimilarModal(false);
+    };
 
     return (
       <Box
@@ -145,9 +231,18 @@ const OpportunityForm = () => {
             })}
           </Grid>
         )}
-        <Button variant="contained" type="submit">
-          Salvar
+        <Button variant="contained" type="submit" disabled={isSubmitting}>
+          {isSubmitting ? 'Salvando...' : 'Salvar'}
         </Button>
+
+        {/* Modal de propostas semelhantes */}
+        <SimilarOpportunitiesModal
+          open={showSimilarModal}
+          opportunities={similarOpportunities}
+          onClose={handleCloseSimilarModal}
+          onCreateNew={handleCreateNew}
+          onLinkTo={handleLinkTo}
+        />
       </Box>
     );
 }

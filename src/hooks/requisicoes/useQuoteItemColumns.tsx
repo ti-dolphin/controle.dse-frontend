@@ -1,15 +1,35 @@
-import { Box, Checkbox, Typography } from "@mui/material";
+import { Box, Checkbox, IconButton, Typography } from "@mui/material";
 import { GridColDef } from "@mui/x-data-grid";
 import { ChangeEvent } from "react";
+import AttachFileIcon from "@mui/icons-material/AttachFile";
 
 export const useQuoteItemColumns = (
   handleUpdateUnavailable: (params: ChangeEvent<HTMLInputElement>, itemId : number) => void,
-  blockFields: boolean
+  blockFields: boolean,
+  onViewAttachments?: (id_item_requisicao: number) => void
 )  => {
 
   
 
   const columns: GridColDef[] = [
+    {
+      field: "anexos",
+      headerName: "Anexos",
+      flex: 0.4,
+      sortable: false,
+      editable: false,
+      renderCell: (params: any) => (
+        <Box sx={{ display: "flex", alignItems: "center", height: "100%" }}>
+          <IconButton
+            size="small"
+            onClick={() => onViewAttachments?.(params.row.id_item_requisicao)}
+            title="Ver anexos do item"
+          >
+            <AttachFileIcon fontSize="small" />
+          </IconButton>
+        </Box>
+      ),
+    },
     {
       field: "produto_descricao",
       headerName: "Descrição do Produto",

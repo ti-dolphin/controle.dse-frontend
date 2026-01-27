@@ -27,9 +27,9 @@ const QuoteDetailPage = () => {
   const navigate = useNavigate();
   const domain = window.location.origin;
   
- const accesType = useSelector((state : RootState) => state.quote.accessType);
- const requisition = useSelector((state : RootState) => state.requisition.requisition);
- const [fullScreenItems, setFullScreenItems] = React.useState(false);
+  const accesType = useSelector((state : RootState) => state.quote.accessType);
+  const requisition = useSelector((state : RootState) => state.requisition.requisition);
+  const [fullScreenItems, setFullScreenItems] = React.useState(false);
   const [showAttachmentDialog, setShowAttachmentDialog] = useState<boolean>(false);
 
   const checkIfQuoteHasAttachments = async (): Promise<boolean> => {
