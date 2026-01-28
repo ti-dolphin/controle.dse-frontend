@@ -25,7 +25,7 @@ api.interceptors.response.use(
     response => response,
     error => {
         if (error.response && error.response.status === 401) {
-            window.localStorage.removeItem('token');
+            window.localStorage.removeItem('token');  
             window.localStorage.removeItem('user');
             window.location.href = '/auth';
         }

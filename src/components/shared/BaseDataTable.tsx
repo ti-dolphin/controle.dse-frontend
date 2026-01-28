@@ -27,7 +27,7 @@ const StyledDataGrid = styled(DataGrid)<{ theme: Theme }>(({ theme }) => ({
     cursor: "pointer",
 
     "&:hover": {
-      background: "#F7F8FC",
+      background: "#D0D4E8",
     },
   },
   "& .MuiDataGrid-cell": {
