@@ -3,28 +3,37 @@ import React from 'react'
 import crm from '../assets/images/crm.jpg'
 import patrimonios from '../assets/images/patrimonios.jpg';
 import requisicoes from '../assets/images/requisicoes.jpg';
+import apontamentos from '../assets/images/apontamentos.png';
 import { useNavigate } from 'react-router-dom';
 import AccountCircleIcon from '@mui/icons-material/AccountCircle';
 import { useSelector } from 'react-redux';
 
 const modules = [
   {
-    name: 'Requisições',
+    name: "Requisições",
     image: requisicoes,
-    path: '/requisicoes',
-    description: "Realize solicitações de materiais aplicados no projeto, materiais de consumo, EPI's, equipamentos do operacional ou TI, ferramentas e serviços."
+    path: "/requisicoes",
+    description:
+      "Realize solicitações de materiais aplicados no projeto, materiais de consumo, EPI's, equipamentos do operacional ou TI, ferramentas e serviços.",
   },
   {
-    name: 'Controle de Patrimônios',
+    name: "Controle de Patrimônios",
     image: patrimonios,
-    path: '/patrimonios',
-    description: 'Gerenciar a localização; Responsável pela guarda; Registro de movimentações (Obra, sede e manutenção/calibração). Controle dos acessórios (Cabos, bateria reserva)'
+    path: "/patrimonios",
+    description:
+      "Gerenciar a localização; Responsável pela guarda; Registro de movimentações (Obra, sede e manutenção/calibração). Controle dos acessórios (Cabos, bateria reserva)",
   },
   {
-    name: 'CRM',
+    name: "CRM",
     image: crm,
-    path: '/oportunidades',
-    description: 'Gerenciamneto e acompanhamento de Projetos'
+    path: "/oportunidades",
+    description: "Gerenciamneto e acompanhamento de Projetos",
+  },
+  {
+    name: "Apontamentos",
+    image: apontamentos,
+    path: "/apontamentos",
+    description: "Controle e registro de horas trabalhadas",
   },
 ]
 

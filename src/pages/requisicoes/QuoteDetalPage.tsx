@@ -44,7 +44,7 @@ const QuoteDetailPage = () => {
 
   const handleSubmitQuote  = async (e : React.FormEvent<HTMLFormElement>, data : Quote) =>  { 
       e.preventDefault();
-      try{ 
+      try {  
         const updatedQuote = await QuoteService.update(data.id_cotacao, {
           descricao  : data.descricao,
           observacao : data.observacao,
@@ -59,7 +59,7 @@ const QuoteDetailPage = () => {
         });
         dispatch(setQuote(updatedQuote));
         dispatch(setFeedback({ message: `Cotação atualizada com sucesso!`, type: 'success' }));
-      }catch(e : any){ 
+      } catch(e : any) {  
         dispatch(setFeedback({ message: `Erro ao atualizar cotação : ${e.message}`, type: 'error' }));
       }
   }

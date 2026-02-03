@@ -13,6 +13,8 @@ import checklistTableReducer from './slices/patrimonios/ChecklistTableSlice';
 import productSliceReducer from './slices/productSlice';
 import requisitionCommentReducer from './slices/requisicoes/requisitionCommentSlice';
 import attendingItemsReducer from './slices/requisicoes/attenItemsSlice';
+import notesTableReducer from './slices/apontamentos/notesTableSlice';
+
 export const store = configureStore({
   reducer: {
     user: userReducer,
@@ -29,6 +31,7 @@ export const store = configureStore({
     productSlice: productSliceReducer,
     requisitionComment: requisitionCommentReducer,
     attendingItemsSlice: attendingItemsReducer,
+    notesTable: notesTableReducer,
   },
 });
 

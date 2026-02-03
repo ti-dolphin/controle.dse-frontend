@@ -4,11 +4,12 @@ import { debounce } from "lodash";
 import { OpportunityFilters } from "../hooks/oportunidades/useOpportunityFilters";
 import { RequisitionFilters } from "../redux/slices/requisicoes/requisitionTableSlice";
 import { PatrimonyFilters } from "../redux/slices/patrimonios/PatrimonyTableSlice";
+import { NotesFilters } from "../redux/slices/apontamentos/notesTableSlice";
 
 interface TextHeaderProps {
   label: string;
   field: string;
-  filters: OpportunityFilters | RequisitionFilters | PatrimonyFilters; 
+  filters: OpportunityFilters | RequisitionFilters | PatrimonyFilters | NotesFilters; 
   handleChangeFilters: (
     event: React.ChangeEvent<HTMLInputElement>,
     field: string
