@@ -205,17 +205,6 @@ export function useNotesColumns(
         ),
       },
       {
-        field: "ATIVIDADE",
-        headerName: "Atividade",
-        flex: 1,
-        minWidth: 150,
-        renderCell: (params: GridRenderCellParams) => (
-          <Typography fontSize="11px" noWrap title={params.value || ""}>
-            {params.value ? (params.value.length > 30 ? params.value.substring(0, 30) + "..." : params.value) : "-"}
-          </Typography>
-        ),
-      },
-      {
         field: "CODSITUACAO",
         headerName: "Situação",
         width: 80,
@@ -234,11 +223,6 @@ export function useNotesColumns(
         field: "MODIFICADOPOR",
         headerName: "Modificado",
         width: 120,
-      },
-      {
-        field: "CODOS",
-        headerName: "N° OS/Tar.",
-        width: 90,
       },
     ],
     [filters, handleChangeFilters]
