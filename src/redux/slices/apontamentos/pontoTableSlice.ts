@@ -1,37 +1,37 @@
 import { createSlice, PayloadAction } from "@reduxjs/toolkit";
-import { Note } from "../../../models/Note";
+import { Ponto } from "../../../models/Ponto";
 
-export interface NotesFilters {
+export interface PontoFilters {
   CODAPONT: number | null;
   CHAPA: string;
   NOME_FUNCIONARIO: string;
-  NOME_FUNCAO: string;
-  NOME_CENTRO_CUSTO: string;
+  CODSTATUSAPONT: string;
   DESCRICAO_STATUS: string;
-  NOME_LIDER: string;
-  NOME_GERENTE: string;
+  CODCCUSTO: string;
+  CODLIDER: number | null;
   COMPETENCIA: number | null;
-  CODSITUACAO: string;
   DATA_DE: string;
   DATA_ATE: string;
+  VERIFICADO: string;
+  PROBLEMA: boolean;
+  AJUSTADO: boolean;
   ATIVOS: boolean;
-  COMENTADOS: boolean;
-  SEM_ASSIDUIDADE: boolean;
+  MOTIVO_PROBLEMA: string;
 }
 
-interface NotesTableState {
-  rows: Note[];
+interface PontoTableState {
+  rows: Ponto[];
   loading: boolean;
   error: string | null;
-  selectedRow: Note | null;
+  selectedRow: Ponto | null;
   searchTerm: string;
-  filters: NotesFilters;
+  filters: PontoFilters;
   page: number;
   pageSize: number;
   totalRows: number;
 }
 
-const initialState: NotesTableState = {
+const initialState: PontoTableState = {
   rows: [],
   loading: false,
   error: null,
@@ -41,29 +41,29 @@ const initialState: NotesTableState = {
     CODAPONT: null,
     CHAPA: "",
     NOME_FUNCIONARIO: "",
-    NOME_FUNCAO: "",
-    NOME_CENTRO_CUSTO: "",
+    CODSTATUSAPONT: "",
     DESCRICAO_STATUS: "",
-    NOME_LIDER: "",
-    NOME_GERENTE: "",
+    CODCCUSTO: "",
+    CODLIDER: null,
     COMPETENCIA: null,
-    CODSITUACAO: "",
     DATA_DE: "",
     DATA_ATE: "",
+    VERIFICADO: "",
+    PROBLEMA: false,
+    AJUSTADO: false,
     ATIVOS: true,
-    COMENTADOS: false,
-    SEM_ASSIDUIDADE: false,
+    MOTIVO_PROBLEMA: "",
   },
   page: 0,
   pageSize: 50,
   totalRows: 0,
 };
 
-const notesTableSlice = createSlice({
-  name: "notesTable",
+const pontoTableSlice = createSlice({
+  name: "pontoTable",
   initialState,
   reducers: {
-    setRows(state, action: PayloadAction<Note[]>) {
+    setRows(state, action: PayloadAction<Ponto[]>) {
       state.rows = action.payload;
     },
     setLoading(state, action: PayloadAction<boolean>) {
@@ -72,13 +72,13 @@ const notesTableSlice = createSlice({
     setError(state, action: PayloadAction<string | null>) {
       state.error = action.payload;
     },
-    setSelectedRow(state, action: PayloadAction<Note | null>) {
+    setSelectedRow(state, action: PayloadAction<Ponto | null>) {
       state.selectedRow = action.payload;
     },
     setSearchTerm(state, action: PayloadAction<string>) {
       state.searchTerm = action.payload;
     },
-    setFilters(state, action: PayloadAction<NotesFilters>) {
+    setFilters(state, action: PayloadAction<PontoFilters>) {
       state.filters = action.payload;
     },
     setPage(state, action: PayloadAction<number>) {
@@ -95,18 +95,18 @@ const notesTableSlice = createSlice({
         CODAPONT: null,
         CHAPA: "",
         NOME_FUNCIONARIO: "",
-        NOME_FUNCAO: "",
-        NOME_CENTRO_CUSTO: "",
+        CODSTATUSAPONT: "",
         DESCRICAO_STATUS: "",
-        NOME_LIDER: "",
-        NOME_GERENTE: "",
+        CODCCUSTO: "",
+        CODLIDER: null,
         COMPETENCIA: null,
-        CODSITUACAO: "",
         DATA_DE: "",
         DATA_ATE: "",
+        VERIFICADO: "",
+        PROBLEMA: false,
+        AJUSTADO: false,
         ATIVOS: true,
-        COMENTADOS: false,
-        SEM_ASSIDUIDADE: false,
+        MOTIVO_PROBLEMA: "",
       };
     },
     clearRows(state) {
@@ -129,6 +129,6 @@ export const {
   setPage,
   setPageSize,
   setTotalRows,
-} = notesTableSlice.actions;
+} = pontoTableSlice.actions;
 
-export default notesTableSlice.reducer;
+export default pontoTableSlice.reducer;

@@ -14,6 +14,7 @@ import productSliceReducer from './slices/productSlice';
 import requisitionCommentReducer from './slices/requisicoes/requisitionCommentSlice';
 import attendingItemsReducer from './slices/requisicoes/attenItemsSlice';
 import notesTableReducer from './slices/apontamentos/notesTableSlice';
+import pontoTableReducer from './slices/apontamentos/pontoTableSlice';
 
 export const store = configureStore({
   reducer: {
@@ -32,6 +33,7 @@ export const store = configureStore({
     requisitionComment: requisitionCommentReducer,
     attendingItemsSlice: attendingItemsReducer,
     notesTable: notesTableReducer,
+    pontoTable: pontoTableReducer,
   },
 });
 
