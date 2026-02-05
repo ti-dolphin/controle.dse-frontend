@@ -1,6 +1,7 @@
 import api from '../api';
 import { NotesFilters } from '../redux/slices/apontamentos/notesTableSlice';
 import { PontoFilters } from '../redux/slices/apontamentos/pontoTableSlice';
+import { ProblemaFilters } from '../redux/slices/apontamentos/problemaTableSlice';
 
 export interface NotesQueryParams {
   searchTerm?: string;
@@ -12,6 +13,13 @@ export interface NotesQueryParams {
 export interface PontoQueryParams {
   searchTerm?: string;
   filters?: PontoFilters;
+  page?: number;
+  pageSize?: number;
+}
+
+export interface ProblemaQueryParams {
+  searchTerm?: string;
+  filters?: ProblemaFilters;
   page?: number;
   pageSize?: number;
 }
@@ -89,6 +97,72 @@ const NotesService = {
         }
         
         const response = await api.get('/notes/ponto', { params: queryParams });
+        return response.data;
+    },
+
+    getManyProblema: async (params?: ProblemaQueryParams) => {
+        const queryParams: Record<string, any> = {};
+        
+        if (params?.filters) {
+            if (params.filters.CODAPONT) queryParams.CODAPONT = params.filters.CODAPONT;
+            if (params.filters.CHAPA) queryParams.CHAPA = params.filters.CHAPA;
+            if (params.filters.NOME_FUNCIONARIO) queryParams.NOME_FUNCIONARIO = params.filters.NOME_FUNCIONARIO;
+            if (params.filters.CODSTATUSAPONT) queryParams.CODSTATUSAPONT = params.filters.CODSTATUSAPONT;
+            if (params.filters.DESCRICAO_STATUS) queryParams.DESCRICAO_STATUS = params.filters.DESCRICAO_STATUS;
+            if (params.filters.CODCCUSTO) queryParams.CODCCUSTO = params.filters.CODCCUSTO;
+            if (params.filters.NOME_CENTRO_CUSTO) queryParams.NOME_CENTRO_CUSTO = params.filters.NOME_CENTRO_CUSTO;
+            if (params.filters.NOME_GERENTE) queryParams.NOME_GERENTE = params.filters.NOME_GERENTE;
+            if (params.filters.NOME_LIDER) queryParams.NOME_LIDER = params.filters.NOME_LIDER;
+            if (params.filters.COMPETENCIA) queryParams.COMPETENCIA = params.filters.COMPETENCIA;
+            if (params.filters.DATA_DE) queryParams.DATA_DE = params.filters.DATA_DE;
+            if (params.filters.DATA_ATE) queryParams.DATA_ATE = params.filters.DATA_ATE;
+            if (params.filters.ATIVOS) queryParams.ATIVOS = params.filters.ATIVOS;
+            if (params.filters.COMENTADO) queryParams.COMENTADO = params.filters.COMENTADO;
+            if (params.filters.MOTIVO_PROBLEMA) queryParams.MOTIVO_PROBLEMA = params.filters.MOTIVO_PROBLEMA;
+            if (params.filters.JUSTIFICATIVA) queryParams.JUSTIFICATIVA = params.filters.JUSTIFICATIVA;
+        }
+        
+        if (params?.searchTerm) {
+            queryParams.searchTerm = params.searchTerm;
+        }
+        
+        if (params?.page !== undefined) {
+            queryParams.page = params.page;
+        }
+        
+        if (params?.pageSize !== undefined) {
+            queryParams.pageSize = params.pageSize;
+        }
+        
+        const response = await api.get('/notes/problema', { params: queryParams });
+        return response.data;
+    },
+
+    getCentroCustos: async (ativos: boolean = true) => {
+        const response = await api.get('/notes/centro-custos', { params: { ativos } });
+        return response.data;
+    },
+
+    getStatusApontamento: async () => {
+        const response = await api.get('/notes/status-apontamento');
+        return response.data;
+    },
+
+    getLideres: async () => {
+        const response = await api.get('/notes/lideres');
+        return response.data;
+    },
+
+    updateBatch: async (codaponts: number[], data: {
+        CODSTATUSAPONT?: string;
+        CODCCUSTO?: string;
+        CODLIDER?: number;
+        MODIFICADOPOR?: string;
+        updateOnlyEmptyCentroCusto?: boolean;
+        updateOnlyEmptyLider?: boolean;
+        updateOnlyEmptyStatus?: boolean;
+    }) => {
+        const response = await api.put('/notes/batch', { codaponts, ...data });
         return response.data;
     }
 };

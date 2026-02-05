@@ -6,11 +6,12 @@ import { RequisitionFilters } from "../redux/slices/requisicoes/requisitionTable
 import { PatrimonyFilters } from "../redux/slices/patrimonios/PatrimonyTableSlice";
 import { NotesFilters } from "../redux/slices/apontamentos/notesTableSlice";
 import { PontoFilters } from "../redux/slices/apontamentos/pontoTableSlice";
+import { ProblemaFilters } from "../redux/slices/apontamentos/problemaTableSlice";
 
 interface TextHeaderProps {
   label: string;
   field: string;
-  filters: OpportunityFilters | RequisitionFilters | PatrimonyFilters | NotesFilters | PontoFilters; 
+  filters: OpportunityFilters | RequisitionFilters | PatrimonyFilters | NotesFilters | PontoFilters | ProblemaFilters; 
   handleChangeFilters: (
     event: React.ChangeEvent<HTMLInputElement>,
     field: string

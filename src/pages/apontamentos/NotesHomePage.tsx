@@ -26,9 +26,10 @@ import NotesService from "../../services/NotesService";
 import { Box, Button, useTheme, TextField, InputAdornment, FormControlLabel, Checkbox, Tabs, Tab } from "@mui/material";
 import { useNotesColumns } from "../../hooks/apontamentos/useNotesColumns";
 import { usePontoColumns } from "../../hooks/apontamentos/usePontoColumns";
+import { useProblemaColumns } from "../../hooks/apontamentos/useProblemaColumns";
 import BaseDataTable from "../../components/shared/BaseDataTable";
 import BaseDetailModal from "../../components/shared/BaseDetailModal";
-import { useGridApiRef } from "@mui/x-data-grid";
+import { useGridApiRef, GridRowSelectionModel } from "@mui/x-data-grid";
 import BaseToolBar from "../../components/shared/BaseToolBar";
 import { debounce } from "lodash";
 import { useNavigate } from "react-router-dom";
@@ -36,6 +37,18 @@ import UpperNavigation from "../../components/shared/UpperNavigation";
 import SearchIcon from "@mui/icons-material/Search";
 import { Note } from "../../models/Note";
 import { Ponto } from "../../models/Ponto";
+import { Problema } from "../../models/Problema";
+import {
+  setRows as setProblemaRows,
+  setSelectedRow as setProblemaSelectedRow,
+  setLoading as setProblemaLoading,
+  setSearchTerm as setProblemaSearchTerm,
+  setFilters as setProblemaFilters,
+  clearFilters as clearProblemaFilters,
+  setPage as setProblemaPage,
+  setPageSize as setProblemaPageSize,
+} from "../../redux/slices/apontamentos/problemaTableSlice";
+import ApontarDialog from "../../components/apontamentos/ApontarDialog";
 
 const NotesHomePage = () => {
   const dispatch = useDispatch();
@@ -43,7 +56,15 @@ const NotesHomePage = () => {
   const navigate = useNavigate();
   const gridRef = useGridApiRef();
   const gridRefPonto = useGridApiRef();
+  const gridRefProblema = useGridApiRef();
   const [activeTab, setActiveTab] = useState(0);
+
+  // Selection state for Apontamentos
+  const [selectedApontamentos, setSelectedApontamentos] = useState<GridRowSelectionModel>([]);
+  const [apontarDialogOpen, setApontarDialogOpen] = useState(false);
+
+  // User for MODIFICADOPOR
+  const user = useSelector((state: RootState) => state.user.user);
 
   // State Apontamentos
   const { rows, loading, selectedRow, searchTerm, filters, page, pageSize } =
@@ -59,6 +80,17 @@ const NotesHomePage = () => {
     page: pontoPage, 
     pageSize: pontoPageSize 
   } = useSelector((state: RootState) => state.pontoTable);
+
+  // State Problema
+  const { 
+    rows: problemaRows, 
+    loading: problemaLoading, 
+    selectedRow: problemaSelectedRow, 
+    searchTerm: problemaSearchTerm, 
+    filters: problemaFilters, 
+    page: problemaPage, 
+    pageSize: problemaPageSize 
+  } = useSelector((state: RootState) => state.problemaTable);
 
   const handleTabChange = (_event: React.SyntheticEvent, newValue: number) => {
     setActiveTab(newValue);
@@ -151,6 +183,53 @@ const NotesHomePage = () => {
   const navigateToPontoDetails = (params: any) => {
     if (params.field === "actions") return;
     changePontoSelectedRow(params.row);
+  };
+
+  // ==================== PROBLEMA ====================
+  const handleChangeProblemaFilters = useCallback(
+    (
+      e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>,
+      field: string
+    ) => {
+      let value: any = e.target.value;
+      dispatch(setProblemaFilters({ ...problemaFilters, [field]: value }));
+    },
+    [dispatch, problemaFilters]
+  );
+
+  const handleChangeProblemaCheckbox = useCallback(
+    (field: string, checked: boolean) => {
+      dispatch(setProblemaFilters({ ...problemaFilters, [field]: checked }));
+    },
+    [dispatch, problemaFilters]
+  );
+
+  const changeProblemaSelectedRow = (row: Problema | null) => {
+    dispatch(setProblemaSelectedRow(row));
+  };
+
+  const { columns: problemaColumns } = useProblemaColumns(handleChangeProblemaFilters);
+
+  const handleChangeProblemaSearchTerm = useCallback(
+    (event: React.ChangeEvent<HTMLInputElement>) => {
+      const value = event.target.value;
+      dispatch(setProblemaSearchTerm(value));
+    },
+    [dispatch]
+  );
+
+  const debouncedHandleChangeProblemaSearchTerm = useMemo(() => {
+    return debounce(handleChangeProblemaSearchTerm, 500);
+  }, [handleChangeProblemaSearchTerm]);
+
+  const handleCleanProblemaFilter = () => {
+    dispatch(clearProblemaFilters());
+    dispatch(setProblemaSearchTerm(""));
+  };
+
+  const navigateToProblemaDetails = (params: any) => {
+    if (params.field === "actions") return;
+    changeProblemaSelectedRow(params.row);
   };
 
   // Funções para calcular períodos
@@ -249,6 +328,50 @@ const NotesHomePage = () => {
     );
   };
 
+  // Períodos para Problema
+  const handleProblemaPeriodoAtual = () => {
+    const hoje = new Date();
+    const ano = hoje.getFullYear();
+    const mes = hoje.getMonth();
+    const dataInicio = new Date(ano, mes, 26);
+    const dataFim = new Date(ano, mes + 1, 25);
+
+    dispatch(
+      setProblemaFilters({
+        ...problemaFilters,
+        DATA_DE: formatDate(dataInicio),
+        DATA_ATE: formatDate(dataFim),
+      })
+    );
+  };
+
+  const handleProblemaPeriodoAnterior = () => {
+    const hoje = new Date();
+    const ano = hoje.getFullYear();
+    const mes = hoje.getMonth();
+    const dataInicio = new Date(ano, mes - 1, 26);
+    const dataFim = new Date(ano, mes, 25);
+
+    dispatch(
+      setProblemaFilters({
+        ...problemaFilters,
+        DATA_DE: formatDate(dataInicio),
+        DATA_ATE: formatDate(dataFim),
+      })
+    );
+  };
+
+  const handleProblemaHoje = () => {
+    const hoje = formatDate(new Date());
+    dispatch(
+      setProblemaFilters({
+        ...problemaFilters,
+        DATA_DE: hoje,
+        DATA_ATE: hoje,
+      })
+    );
+  };
+
   const handleBack = () => {
     navigate("/");
   };
@@ -303,6 +426,28 @@ const NotesHomePage = () => {
     }
   }, [dispatch, pontoFilters, pontoSearchTerm, pontoPage, pontoPageSize]);
 
+  const fetchProblemaData = useCallback(async () => {
+    dispatch(setProblemaLoading(true));
+    try {
+      const data = await NotesService.getManyProblema({
+        filters: problemaFilters,
+        searchTerm: problemaSearchTerm,
+        page: problemaPage,
+        pageSize: problemaPageSize,
+      });
+      dispatch(setProblemaRows(data));
+    } catch (e: any) {
+      dispatch(
+        setFeedback({
+          message: e.message || "Houve um erro ao buscar dados de problemas",
+          type: "error",
+        })
+      );
+    } finally {
+      dispatch(setProblemaLoading(false));
+    }
+  }, [dispatch, problemaFilters, problemaSearchTerm, problemaPage, problemaPageSize]);
+
   useEffect(() => {
     fetchData();
   }, [fetchData]);
@@ -312,6 +457,12 @@ const NotesHomePage = () => {
       fetchPontoData();
     }
   }, [fetchPontoData, activeTab]);
+
+  useEffect(() => {
+    if (activeTab === 2) {
+      fetchProblemaData();
+    }
+  }, [fetchProblemaData, activeTab]);
 
   return (
     <Box sx={{ height: "100vh", width: "100%" }}>
@@ -504,6 +655,16 @@ const NotesHomePage = () => {
           >
             Limpar filtros
           </Button>
+
+          <Button
+            sx={{ height: 32, borderRadius: 0, fontSize: 12, marginLeft: 'auto' }}
+            variant="contained"
+            color="primary"
+            disabled={selectedApontamentos.length === 0}
+            onClick={() => setApontarDialogOpen(true)}
+          >
+            Apontar ({selectedApontamentos.length})
+          </Button>
         </Box>
 
         <BaseDataTable
@@ -514,8 +675,13 @@ const NotesHomePage = () => {
           rowHeight={40}
           columns={columns}
           loading={loading}
+          checkboxSelection
+          rowSelectionModel={selectedApontamentos}
+          onRowSelectionModelChange={(newSelection: GridRowSelectionModel) => {
+            setSelectedApontamentos(newSelection);
+          }}
           onCellClick={(params: { field: string }) =>
-            params.field !== "actions" && navigateToNoteDetails(params)
+            params.field !== "actions" && params.field !== "__check__" && navigateToNoteDetails(params)
           }
           getRowId={(row: any) => row.CODAPONT}
           theme={theme}
@@ -703,12 +869,162 @@ const NotesHomePage = () => {
 
         {/* Aba Problemas */}
         {activeTab === 2 && (
-          <Box sx={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', backgroundColor: 'white' }}>
-            <Box sx={{ textAlign: 'center', color: 'gray' }}>
-              <Box sx={{ fontSize: 18, fontWeight: 'bold', mb: 1 }}>Problemas</Box>
-              <Box sx={{ fontSize: 14 }}>Em desenvolvimento...</Box>
+          <>
+            {/* Barra de pesquisa e filtros - Problema */}
+            <Box
+              sx={{
+                width: "100%",
+                display: "flex",
+                justifyContent: "start",
+                alignItems: "center",
+                flexWrap: "wrap",
+                gap: 1,
+                padding: 0.5,
+                backgroundColor: "white",
+                borderRadius: "0",
+                border: "1px solid lightgray",
+                marginTop: "5px"
+              }}
+            >
+              <TextField
+                size="small"
+                placeholder="Buscar..."
+                onChange={debouncedHandleChangeProblemaSearchTerm}
+                sx={{
+                  width: 200,
+                  "& .MuiOutlinedInput-root": {
+                    height: 32,
+                    fontSize: 12,
+                  },
+                }}
+                InputProps={{
+                  startAdornment: (
+                    <InputAdornment position="start">
+                      <SearchIcon sx={{ fontSize: 18 }} />
+                    </InputAdornment>
+                  ),
+                }}
+              />
+
+              <TextField
+                size="small"
+                label="De"
+                type="date"
+                value={problemaFilters.DATA_DE}
+                onChange={(e) => handleChangeProblemaFilters(e, "DATA_DE")}
+                InputLabelProps={{ shrink: true }}
+                sx={{
+                  width: 150,
+                  "& .MuiOutlinedInput-root": {
+                    height: 32,
+                    fontSize: 12,
+                  },
+                  "& .MuiInputLabel-root": {
+                    fontSize: 12,
+                  },
+                }}
+              />
+              <TextField
+                size="small"
+                label="Até"
+                type="date"
+                value={problemaFilters.DATA_ATE}
+                onChange={(e) => handleChangeProblemaFilters(e, "DATA_ATE")}
+                InputLabelProps={{ shrink: true }}
+                sx={{
+                  width: 150,
+                  "& .MuiOutlinedInput-root": {
+                    height: 32,
+                    fontSize: 12,
+                  },
+                  "& .MuiInputLabel-root": {
+                    fontSize: 12,
+                  },
+                }}
+              />
+
+              <Button
+                size="small"
+                variant="outlined"
+                onClick={handleProblemaHoje}
+                sx={{ height: 32, fontSize: 11 }}
+              >
+                Hoje
+              </Button>
+              <Button
+                size="small"
+                variant="outlined"
+                onClick={handleProblemaPeriodoAtual}
+                sx={{ height: 32, fontSize: 11 }}
+              >
+                Período Atual
+              </Button>
+              <Button
+                size="small"
+                variant="outlined"
+                onClick={handleProblemaPeriodoAnterior}
+                sx={{ height: 32, fontSize: 11 }}
+              >
+                Período Anterior
+              </Button>
+
+              <FormControlLabel
+                control={
+                  <Checkbox
+                    checked={problemaFilters.ATIVOS}
+                    onChange={(e) => handleChangeProblemaCheckbox("ATIVOS", e.target.checked)}
+                    size="small"
+                  />
+                }
+                label="Ativos"
+                sx={{ 
+                  marginLeft: 1,
+                  "& .MuiFormControlLabel-label": { fontSize: 12 } 
+                }}
+              />
+              <FormControlLabel
+                control={
+                  <Checkbox
+                    checked={problemaFilters.COMENTADO}
+                    onChange={(e) => handleChangeProblemaCheckbox("COMENTADO", e.target.checked)}
+                    size="small"
+                  />
+                }
+                label="Comentados"
+                sx={{ "& .MuiFormControlLabel-label": { fontSize: 12 } }}
+              />
+
+              <Button
+                sx={{ height: 32, borderRadius: 0, fontSize: 12 }}
+                variant="contained"
+                onClick={handleCleanProblemaFilter}
+              >
+                Limpar filtros
+              </Button>
             </Box>
-          </Box>
+
+            <BaseDataTable
+              apiRef={gridRefProblema}
+              rows={problemaRows}
+              disableColumnMenu
+              disableColumnFilter
+              rowHeight={40}
+              columns={problemaColumns}
+              loading={problemaLoading}
+              onCellClick={(params: { field: string }) =>
+                params.field !== "actions" && navigateToProblemaDetails(params)
+              }
+              getRowId={(row: any) => row.CODAPONT}
+              theme={theme}
+              paginationMode="server"
+              paginationModel={{ page: problemaPage, pageSize: problemaPageSize }}
+              onPaginationModelChange={(model: { page: number; pageSize: number }) => {
+                dispatch(setProblemaPage(model.page));
+                dispatch(setProblemaPageSize(model.pageSize));
+              }}
+              pageSizeOptions={[25, 50, 100]}
+            />
+          </>
         )}
       </Box>
 
@@ -726,6 +1042,27 @@ const NotesHomePage = () => {
         columns={pontoColumns}
         row={pontoSelectedRow}
         ref={gridRefPonto}
+      />
+
+      <BaseDetailModal
+        open={problemaSelectedRow !== null}
+        onClose={() => dispatch(setProblemaSelectedRow(null))}
+        columns={problemaColumns}
+        row={problemaSelectedRow}
+        ref={gridRefProblema}
+      />
+
+      <ApontarDialog
+        open={apontarDialogOpen}
+        onClose={() => setApontarDialogOpen(false)}
+        selectedCodaponts={selectedApontamentos.map(id => Number(id))}
+        userName={user?.LOGIN || "SISTEMA"}
+        onSuccess={() => {
+          setSelectedApontamentos([]);
+          setApontarDialogOpen(false);
+          // Refetch data
+          fetchData();
+        }}
       />
     </Box>
   );
