@@ -45,6 +45,10 @@ const OpportunityDetailedForm = () => {
     if (user?.PERM_ADMINISTRADOR === 1) return true;
     
     if (!opportunity || !opportunity.status) return false;
+    
+    // Permite que o vendedor da oportunidade edite mesmo quando ganha (status 11)
+    if (opportunity.responsavel?.CODPESSOA === user?.CODPESSOA) return true;
+    
     const declinedStatutes = [11, 12, 13]
     return !declinedStatutes.includes(opportunity.status.CODSTATUS);
   }
