@@ -376,10 +376,19 @@ const NotesHomePage = () => {
     navigate("/");
   };
 
-  const navigateToNoteDetails = (params: any) => {
-    if (params.field === "actions") return;
-    // Para visualização detalhada, pode abrir modal ou navegar
-    changeSelectedRow(params.row);
+  const handleRowClickApontamento = (params: any) => {
+    if (params.field === "actions" || params.field === "__check__") return;
+    
+    const rowId = params.row.CODAPONT;
+    const isSelected = selectedApontamentos.includes(rowId);
+    
+    if (isSelected) {
+      // Remove da seleção
+      setSelectedApontamentos(selectedApontamentos.filter(id => id !== rowId));
+    } else {
+      // Adiciona à seleção
+      setSelectedApontamentos([...selectedApontamentos, rowId]);
+    }
   };
 
   const fetchData = useCallback(async () => {
@@ -680,9 +689,7 @@ const NotesHomePage = () => {
           onRowSelectionModelChange={(newSelection: GridRowSelectionModel) => {
             setSelectedApontamentos(newSelection);
           }}
-          onCellClick={(params: { field: string }) =>
-            params.field !== "actions" && params.field !== "__check__" && navigateToNoteDetails(params)
-          }
+          onCellClick={handleRowClickApontamento}
           getRowId={(row: any) => row.CODAPONT}
           theme={theme}
           paginationMode="server"
@@ -692,6 +699,14 @@ const NotesHomePage = () => {
             dispatch(setPageSize(model.pageSize));
           }}
           pageSizeOptions={[25, 50, 100]}
+          sx={{
+            "& .MuiDataGrid-row.Mui-selected": {
+              backgroundColor: theme.palette.primary.main + "30 !important",
+            },
+            "& .MuiDataGrid-row.Mui-selected:hover": {
+              backgroundColor: theme.palette.primary.main + "40 !important",
+            },
+          }}
         />
           </>
         )}
@@ -1030,14 +1045,6 @@ const NotesHomePage = () => {
 
       <BaseDetailModal
         open={selectedRow !== null}
-        onClose={() => dispatch(setSelectedRow(null))}
-        columns={columns}
-        row={selectedRow}
-        ref={gridRef}
-      />
-
-      <BaseDetailModal
-        open={pontoSelectedRow !== null}
         onClose={() => dispatch(setPontoSelectedRow(null))}
         columns={pontoColumns}
         row={pontoSelectedRow}
