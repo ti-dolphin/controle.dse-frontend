@@ -78,13 +78,6 @@ export function useNotesColumns(
         ),
       },
       {
-        field: "BANCO_HORAS",
-        headerName: "Banco Hrs",
-        width: 90,
-        align: "center",
-        headerAlign: "center",
-      },
-      {
         field: "CHAPA",
         headerName: "Chapa",
         width: 80,
