@@ -500,6 +500,10 @@ const RequisitionItemsTable = ({
           updatedItem,
         })
       );
+      // Recalcular totais da requisição ao alterar quantidade
+      if (payload.quantidade !== undefined && payload.quantidade !== oldRow.quantidade) {
+        dispatch(setRefreshRequisition(!refreshRequisition));
+      }
       return updatedItem;
     } catch (e: any) {
       dispatch(
