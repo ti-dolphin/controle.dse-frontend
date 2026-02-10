@@ -431,6 +431,7 @@ const RequisitionItemsTable = ({
           data_entrega: newRow.data_entrega,
           oc: newRow.oc,
           observacao: newRow.observacao,
+          alterado_por: user?.CODPESSOA,
         };
         if (payload.quantidade < 0) {
           dispatch(
