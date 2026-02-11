@@ -155,6 +155,9 @@ const RequisitionStatusStepper = ({
     pendingStatusChangeValueIncrease,
     setPendingStatusChangeValueIncrease,
   ] = useState<"acao_anterior" | "acao_posterior" | null>(null);
+  const [showRevertSelectionDialog, setShowRevertSelectionDialog] =
+    useState<boolean>(false);
+  const [revertOption, setRevertOption] = useState<"previous" | "initial">("previous");
 
   useEffect(() => {
     RequisitionService.getAllFaturamentosTypes({ visible: 1 }).then((data) => {
@@ -303,6 +306,14 @@ const RequisitionStatusStepper = ({
 
     // Para ação anterior (retrocesso), pula validações e vai direto para comentário
     if (type === "acao_anterior") {
+      // Verifica se é Aprovação Gerente (id 6) ou Aprovação Diretoria (id 7)
+      const currentStatusId = requisition.id_status_requisicao;
+      if (currentStatusId === 6 || currentStatusId === 7) {
+        // Abre diálogo de seleção
+        setShowRevertSelectionDialog(true);
+        return;
+      }
+      // Para outros status, vai direto para comentário
       setFillingComment(true);
       return;
     }
@@ -590,6 +601,105 @@ const RequisitionStatusStepper = ({
           })
         );
       }
+    }
+  };
+
+  const handleRevertSelectionConfirm = () => {
+    setShowRevertSelectionDialog(false);
+    // Abre diálogo de comentário com a opção selecionada
+    setFillingComment(true);
+  };
+
+  const handleRevertWithOption = async () => {
+    setFillingComment(false);
+    
+    if (!comment.trim()) {
+      dispatch(
+        setFeedback({
+          type: "error",
+          message: "Justificativa é obrigatória.",
+        })
+      );
+      setFillingComment(true);
+      return;
+    }
+
+    try {
+      const createdComment = await RequisitionCommentService.create({
+        id_requisicao: Number(id_requisicao),
+        descricao: comment,
+        criado_por: user?.CODPESSOA || 0,
+      });
+
+      if (createdComment) {
+        dispatch(addComment(createdComment));
+      }
+
+      // Executa a ação de retrocesso baseada na opção selecionada
+      if (revertOption === "initial") {
+        // Reverter para status inicial
+        await RequisitionService.revertToInitialStatus(
+          Number(id_requisicao),
+          user,
+          comment
+        );
+      } else {
+        // Reverter para status anterior
+        await RequisitionService.revertToPreviousStatus(
+          Number(id_requisicao),
+          user,
+          comment
+        );
+      }
+
+      setComment("");
+      setRevertOption("previous");
+      dispatch(setRefreshRequisition(!refreshRequisition));
+      dispatch(setRefresh(!refresh));
+
+      // Verifica se o usuário tem permissão para visualizar o novo status
+      try {
+        const newPermissions = await RequisitionService.getStatusPermission(
+          Number(id_requisicao),
+          user
+        );
+
+        if (
+          !newPermissions.permissionToChangeStatus &&
+          !newPermissions.permissionToRevertStatus
+        ) {
+          dispatch(
+            setFeedback({
+              type: "success",
+              message: "Status atualizado com sucesso!",
+            })
+          );
+          navigate("/requisicoes");
+          return;
+        }
+
+        dispatch(
+          setFeedback({
+            type: "success",
+            message: "Status atualizado com sucesso!",
+          })
+        );
+      } catch (permError) {
+        console.error("Erro ao verificar permissões:", permError);
+        dispatch(
+          setFeedback({
+            type: "success",
+            message: "Status atualizado com sucesso!",
+          })
+        );
+      }
+    } catch (e: any) {
+      dispatch(
+        setFeedback({
+          type: "error",
+          message: `Erro ao retroceder status: ${e.message}`,
+        })
+      );
     }
   };
 
@@ -1019,7 +1129,11 @@ const RequisitionStatusStepper = ({
             variant="contained"
             size="small"
             color="error"
-            onClick={() => setFillingComment(false)}
+            onClick={() => {
+              setFillingComment(false);
+              setComment("");
+              setRevertOption("previous");
+            }}
           >
             Cancelar
           </Button>
@@ -1027,7 +1141,14 @@ const RequisitionStatusStepper = ({
             variant="contained"
             size="small"
             color="success"
-            onClick={() => handleRetreatRequisition()}
+            onClick={() => {
+              const currentStatusId = requisition.id_status_requisicao;
+              if (currentStatusId === 6 || currentStatusId === 7) {
+                handleRevertWithOption();
+              } else {
+                handleRetreatRequisition();
+              }
+            }}
           >
             Confirmar
           </Button>
@@ -1065,6 +1186,55 @@ const RequisitionStatusStepper = ({
             onClick={() => handleAttendItems()}
           >
             confirmar
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      {/* Diálogo de seleção de tipo de retrocesso */}
+      <Dialog
+        open={showRevertSelectionDialog}
+        onClose={() => setShowRevertSelectionDialog(false)}
+      >
+        <DialogTitle>Selecione o tipo de retrocesso</DialogTitle>
+        <DialogContent>
+          <Typography gutterBottom>
+            Escolha se a requisição deve voltar para o status anterior ou para o status inicial:
+          </Typography>
+          <RadioGroup
+            value={revertOption}
+            onChange={(e) => setRevertOption(e.target.value as "previous" | "initial")}
+          >
+            <FormControlLabel
+              value="previous"
+              control={<Radio />}
+              label={`Voltar para status anterior (${requisition.status?.acao_anterior || 'Status anterior'})`}
+            />
+            <FormControlLabel
+              value="initial"
+              control={<Radio />}
+              label="Voltar para status inicial (Em edição)"
+            />
+          </RadioGroup>
+        </DialogContent>
+        <DialogActions>
+          <Button
+            variant="contained"
+            size="small"
+            color="error"
+            onClick={() => {
+              setShowRevertSelectionDialog(false);
+              setRevertOption("previous");
+            }}
+          >
+            Cancelar
+          </Button>
+          <Button
+            variant="contained"
+            size="small"
+            color="success"
+            onClick={handleRevertSelectionConfirm}
+          >
+            Confirmar
           </Button>
         </DialogActions>
       </Dialog>
