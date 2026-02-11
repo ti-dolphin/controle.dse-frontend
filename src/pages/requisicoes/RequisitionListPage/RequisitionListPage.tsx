@@ -74,7 +74,6 @@ const RequisitionListPage = () => {
         field: string
       ) => {
         let value: any = e.target.value;
-        // Try to convert to number if it's a numeric value
         if (!isNaN(Number(value)) && value.trim() !== "") {
           value = Number(value);
         }
@@ -87,7 +86,7 @@ const RequisitionListPage = () => {
       handleChangeFilters,
       changeSelectedRow,
       gridRef
-    ); //RETURNS MAIN COLUMNS ARRAY AND SECONDARY COLUMNS
+    ); 
 
     const handleChangeKanban = React.useCallback(
       (event: SelectChangeEvent<unknown>) => {
@@ -143,8 +142,6 @@ const RequisitionListPage = () => {
       navigate(`/requisicoes/${id}`);
     };
 
-
-
     const handleCleanFilter = () => { 
       dispatch(clearfilters());
       setDoneReqFilter(false);
@@ -155,7 +152,6 @@ const RequisitionListPage = () => {
       return debounce(handleChangeSearchTerm, 500);
     }, [handleChangeSearchTerm]);
 
-    // Corrija o fetchData para depender dos filtros corretos
     const fetchData = React.useCallback(async () => {
       dispatch(setLoading(true));
       try {
@@ -204,7 +200,6 @@ const RequisitionListPage = () => {
       cancelledReqFilter,
     ]);
 
-    // Adicione aqui as funções de filtro para os checkboxes
     const handleFilterConcluidos = (e: React.ChangeEvent<HTMLInputElement>) => {
       const checked = e.target.checked;
       setDoneReqFilter(checked);
@@ -290,7 +285,6 @@ const RequisitionListPage = () => {
         >
           {!isMobile && selectedKanban?.id_kanban_requisicao === 5 && (
             <>
-              {/* Checkbox para filtrar concluídos */}
               <Box sx={{ display: "inline-flex", alignItems: "center", ml: 2 }}>
                 <input
                   type="checkbox"
@@ -302,7 +296,6 @@ const RequisitionListPage = () => {
                   Concluídos
                 </label>
               </Box>
-              {/* Checkbox para filtrar cancelados */}
               <Box sx={{ display: "inline-flex", alignItems: "center", ml: 2 }}>
                 <input
                   type="checkbox"

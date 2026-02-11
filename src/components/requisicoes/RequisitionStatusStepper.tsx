@@ -541,7 +541,6 @@ const RequisitionStatusStepper = ({
         return;
       }
       const updatedRequisition = await RequisitionService.updateStatus(
-        //SEND IT TO THE BACKEND!
         Number(id_requisicao),
         {
           id_status_requisicao: newStatus.id_status_requisicao,

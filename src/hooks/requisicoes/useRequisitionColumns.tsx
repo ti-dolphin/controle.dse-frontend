@@ -5,7 +5,7 @@ import { RequisitionStatus } from "../../models/requisicoes/RequisitionStatus";
 import { formatCurrency, getDateFromISOstring } from "../../utils";
 import { Box, IconButton, Typography } from "@mui/material";
 import VisibilityIcon from "@mui/icons-material/Visibility";
-import { MutableRefObject, useMemo } from "react";
+import { MutableRefObject, useMemo, useCallback } from "react";
 import { RequisitionType } from "../../models/requisicoes/RequisitionType";
 import { GridApiCommunity } from "@mui/x-data-grid/internals";
 import DeleteIcon from "@mui/icons-material/Delete";
@@ -42,13 +42,99 @@ export function useRequisitionColumns(
 ) {
   const dispatch = useDispatch();
   const user = useSelector((state: RootState) => state.user.user);
-  const { filters } = useSelector((state: RootState) => state.requisitionTable);
+  const { filters, rows } = useSelector((state: RootState) => state.requisitionTable);
+
+  const calculateOptimalColumnWidth = useCallback((
+    data: any[],
+    fieldName: string,
+    valueGetter: ((value: any) => string) | null = null,
+    minWidth: number = 80,
+    maxWidth: number = 600,
+    charWidth: number = 8,
+    padding: number = 40
+  ): number => {
+    if (!data || data.length === 0) {
+      return minWidth;
+    }
+
+    const longestText = data.reduce((longest, item) => {
+      let text = '';
+      if (valueGetter) {
+        text = String(valueGetter(item[fieldName]) || '');
+      } else {
+        text = String(item[fieldName] || '');
+      }
+      return text.length > longest.length ? text : longest;
+    }, '');
+
+    const calculatedWidth = (longestText.length * charWidth) + padding;
+    
+    return Math.max(minWidth, Math.min(calculatedWidth, maxWidth));
+  }, []);
+
+  // Calculate widths for each column based on content
+  const idColumnWidth = useMemo(() => 
+    calculateOptimalColumnWidth(rows, 'ID_REQUISICAO', null, 60, 120, 8, 40),
+    [rows, calculateOptimalColumnWidth]
+  );
+
+  const descriptionColumnWidth = useMemo(() => 
+    calculateOptimalColumnWidth(rows, 'DESCRIPTION', null, 200, 600, 8, 40),
+    [rows, calculateOptimalColumnWidth]
+  );
+
+  const projectColumnWidth = useMemo(() => 
+    calculateOptimalColumnWidth(rows, 'projeto', (p: Project) => p ? p.DESCRICAO : '', 150, 400, 8, 40),
+    [rows, calculateOptimalColumnWidth]
+  );
+
+  const requisitanteColumnWidth = useMemo(() => 
+    calculateOptimalColumnWidth(rows, 'responsavel', (u: ReducedUser) => u ? u.NOME || '' : '', 150, 300, 8, 40),
+    [rows, calculateOptimalColumnWidth]
+  );
+
+  const gerenteColumnWidth = useMemo(() => 
+    calculateOptimalColumnWidth(rows, 'gerente', (u: ReducedUser) => u ? u.NOME || '' : '', 150, 300, 8, 40),
+    [rows, calculateOptimalColumnWidth]
+  );
+
+  const responsavelProjetoColumnWidth = useMemo(() => 
+    calculateOptimalColumnWidth(rows, 'responsavel_projeto', (u: ReducedUser) => u ? u.NOME || '' : '', 150, 300, 8, 40),
+    [rows, calculateOptimalColumnWidth]
+  );
+
+  const statusColumnWidth = useMemo(() => 
+    calculateOptimalColumnWidth(rows, 'status', (s: RequisitionStatus) => s ? s.nome : '', 120, 250, 8, 40),
+    [rows, calculateOptimalColumnWidth]
+  );
+
+  const tipoColumnWidth = useMemo(() => 
+    calculateOptimalColumnWidth(rows, 'tipo_faturamento', (t: number) => getTypeByTipoFaturamento(t), 150, 300, 8, 40),
+    [rows, calculateOptimalColumnWidth]
+  );
+
+  // Calculate widths for secondary columns
+  const criadoPorColumnWidth = useMemo(() => 
+    calculateOptimalColumnWidth(rows, 'criado_por', (u: ReducedUser) => u ? u.NOME || '' : '', 150, 300, 8, 40),
+    [rows, calculateOptimalColumnWidth]
+  );
+
+  const alteradoPorColumnWidth = useMemo(() => 
+    calculateOptimalColumnWidth(rows, 'alterado_por', (u: ReducedUser) => u ? u.NOME || '' : '', 150, 300, 8, 40),
+    [rows, calculateOptimalColumnWidth]
+  );
+
+  const observacaoColumnWidth = useMemo(() => 
+    calculateOptimalColumnWidth(rows, 'OBSERVACAO', null, 200, 500, 8, 40),
+    [rows, calculateOptimalColumnWidth]
+  );
+
   const columns: GridColDef[] = useMemo(
     () => [
       {
         field: "ID_REQUISICAO",
         headerName: "ID",
-        flex: 0.6,
+        width: idColumnWidth,
         renderHeader: () => (
           <TextHeader
             label={"ID"}
@@ -61,7 +147,7 @@ export function useRequisitionColumns(
       {
         field: "DESCRIPTION",
         headerName: "Descrição",
-        flex: 2,
+        width: descriptionColumnWidth,
         renderCell: (params: GridRenderCellParams) => {
           return (
             <Box
@@ -94,7 +180,7 @@ export function useRequisitionColumns(
       {
         field: "projeto",
         headerName: "Projeto",
-        flex: 1,
+        width: projectColumnWidth,
         valueGetter: (project: Project) => {
           return project.DESCRICAO;
         },
@@ -110,7 +196,7 @@ export function useRequisitionColumns(
       {
         field: "responsavel",
         headerName: "Requisitante",
-        flex: 1,
+        width: requisitanteColumnWidth,
         valueGetter: (user: ReducedUser) => {
           return user.NOME || '';
         },
@@ -126,7 +212,7 @@ export function useRequisitionColumns(
       {
         field: "gerente",
         headerName: "Gerente",
-        flex: 1,
+        width: gerenteColumnWidth,
         valueGetter: (user: ReducedUser) => {
           return user.NOME || '';
         },
@@ -142,7 +228,7 @@ export function useRequisitionColumns(
       {
         field: "responsavel_projeto",
         headerName: "Responsável Projeto",
-        flex: 1,
+        width: responsavelProjetoColumnWidth,
         valueGetter: (user: ReducedUser) => {
           return user.NOME || '';
         },
@@ -158,7 +244,7 @@ export function useRequisitionColumns(
       {
         field: "status",
         headerName: "Status",
-        flex: 1,
+        width: statusColumnWidth,
         valueGetter: (status: RequisitionStatus) => {
           return status ? status.nome : "";
         },
@@ -174,7 +260,7 @@ export function useRequisitionColumns(
       {
         field: "tipo_faturamento",
         headerName: "Tipo",
-        flex: 1,
+        width: tipoColumnWidth,
         valueGetter: (tipoFaturamento: number) => {
           return getTypeByTipoFaturamento(tipoFaturamento);
         },
@@ -199,7 +285,7 @@ export function useRequisitionColumns(
       {
         field: "custo_total",
         headerName: "Custo Total",
-        flex: 0.4,
+        width: 120,
         type: "number",
         renderCell: (params: GridRenderCellParams) => {
           return (
@@ -219,7 +305,7 @@ export function useRequisitionColumns(
       {
         field: "actions",
         headerName: "",
-        flex: 0.5,
+        width: 100,
 
         renderCell: (params: GridRenderCellParams) => {
           const { row } = params;
@@ -249,7 +335,7 @@ export function useRequisitionColumns(
         },
       },
     ],
-    [filters]
+    [filters, idColumnWidth, descriptionColumnWidth, projectColumnWidth, requisitanteColumnWidth, gerenteColumnWidth, responsavelProjetoColumnWidth, statusColumnWidth, tipoColumnWidth]
   );
 
   const secondaryColumns: GridColDef[] = useMemo(
@@ -257,7 +343,7 @@ export function useRequisitionColumns(
       {
         field: "criado_por",
         headerName: "Criado por",
-        flex: 1,
+        width: criadoPorColumnWidth,
         valueGetter: (user: ReducedUser) => {
           return user.NOME || '';
         },
@@ -265,7 +351,7 @@ export function useRequisitionColumns(
       {
         field: "alterado_por",
         headerName: "Alterado por",
-        flex: 1,
+        width: alteradoPorColumnWidth,
         valueGetter: (user: ReducedUser) => {
           return user.NOME || '';
         },
@@ -273,12 +359,12 @@ export function useRequisitionColumns(
       {
         field: "OBSERVACAO",
         headerName: "Observação",
-        flex: 1,
+        width: observacaoColumnWidth,
       },
       {
         field: "data_alteracao",
         headerName: "Data de Alteração",
-        flex: 1,
+        width: 180,
         type: "date",
         valueGetter: (value) => {
           return getDateFromISOstring(value);
@@ -287,7 +373,7 @@ export function useRequisitionColumns(
       {
         field: "data_criacao",
         headerName: "Data de Criação",
-        flex: 1,
+        width: 180,
         type: "date",
         valueGetter: (value) => {
           return getDateFromISOstring(value);
@@ -296,13 +382,13 @@ export function useRequisitionColumns(
       {
         field: "gerente",
         headerName: "Gerente",
-        flex: 1,
+        width: gerenteColumnWidth,
         valueGetter: (user: ReducedUser) => {
           return user.NOME || '';
         },
       },
     ],
-    []
+    [criadoPorColumnWidth, alteradoPorColumnWidth, observacaoColumnWidth, gerenteColumnWidth]
   );
 
   return { columns, secondaryColumns };
