@@ -1,37 +1,18 @@
+
 import { useDispatch, useSelector } from "react-redux";
 import { RootState } from "../../redux/store";
 import { useRequisitionStatus } from "../../hooks/requisicoes/useRequisitionStatus";
 import ArrowCircleLeftIcon from "@mui/icons-material/ArrowCircleLeft";
 import ArrowCircleRightIcon from "@mui/icons-material/ArrowCircleRight";
 import SwapHorizIcon from "@mui/icons-material/SwapHoriz";
-
-import {
-  Stepper,
-  Step,
-  StepLabel,
-  StepConnector,
-  stepConnectorClasses,
-  styled,
-  Box,
-  Typography,
-  Stack,
-  Button,
-  Dialog,
-  DialogTitle,
-  DialogContent,
-  DialogActions,
-  Radio,
-  RadioGroup,
-  FormControlLabel,
-  FormLabel,
-} from "@mui/material";
+import { Stepper, 
+  Step, 
+  StepLabel, 
+  StepConnector, stepConnectorClasses, styled, Box, Typography, Stack, Button, Dialog, DialogTitle, DialogContent, DialogActions, Radio, RadioGroup, FormControlLabel, FormLabel } from "@mui/material";
 import CheckIcon from "@mui/icons-material/Check";
 import RequisitionService from "../../services/requisicoes/RequisitionService";
 import RequisitionStatusService from "../../services/requisicoes/RequisitionStatusService";
-import {
-  setRefreshRequisition,
-  setRequisition,
-} from "../../redux/slices/requisicoes/requisitionSlice";
+import { setRefreshRequisition, setRequisition } from "../../redux/slices/requisicoes/requisitionSlice";
 import { setFeedback } from "../../redux/slices/feedBackSlice";
 import { useRequisitionStatusPermissions } from "../../hooks/requisicoes/useRequisitionStatusPermissions";
 import { RequisitionStatus } from "../../models/requisicoes/RequisitionStatus";
@@ -44,10 +25,7 @@ import { useEffect, useState } from "react";
 import ElegantInput from "../shared/ui/Input";
 import RequisitionCommentService from "../../services/requisicoes/RequisitionCommentService";
 import { addComment } from "../../redux/slices/requisicoes/requisitionCommentSlice";
-import {
-  startAttendingItems,
-  stopAttendingItems,
-} from "../../redux/slices/requisicoes/attenItemsSlice";
+import { startAttendingItems, stopAttendingItems } from "../../redux/slices/requisicoes/attenItemsSlice";
 import RequisitionItemsTable from "./RequisitionItemsTable";
 import { set } from "lodash";
 import { RequisitionItemAttachmentService } from "../../services/requisicoes/RequisitionItemAttachmentService";
@@ -162,7 +140,6 @@ const RequisitionStatusStepper = ({
 
   useEffect(() => {
     RequisitionService.getAllFaturamentosTypes({ visible: 1 }).then((data) => {
-      // Garante que nome_faturamento existe, se não, usa nome
       const tipos = data.map((tipo: any) => ({
         ...tipo,
         nome_faturamento: tipo.nome_faturamento ?? tipo.nome,
@@ -309,17 +286,20 @@ const RequisitionStatusStepper = ({
     if (type === "acao_anterior") {
       // Verifica se é Aprovação Gerente (id 6) ou Aprovação Diretoria (id 7)
       const currentStatusId = requisition.id_status_requisicao;
-      if (currentStatusId === 6 || currentStatusId === 7) {
-        // Abre diálogo de seleção
+      const currentStatusNome = requisition.status?.nome?.toLowerCase() || '';
+      
+      const shouldShowRevertDialog = 
+        (currentStatusId === 6 || currentStatusId === 7) ||
+        (user?.PERM_COMPRADOR === 1 && (currentStatusNome === 'requisitado' || currentStatusNome === 'em cotação'));
+      
+      if (shouldShowRevertDialog) {
         setShowRevertSelectionDialog(true);
         return;
       }
-      // Para outros status, vai direto para comentário
       setFillingComment(true);
       return;
     }
 
-    // Para ação posterior, primeiro valida as regras ANTES de pedir comentário
     if (type === "acao_posterior") {
       const currentStep = requisition.status?.etapa ?? 0;
       const nextStep = currentStep + 1;
@@ -359,7 +339,6 @@ const RequisitionStatusStepper = ({
         }
       }
 
-      // Se passou pelas validações, avança diretamente
       if (newStatus?.nome === "Em separação") {
         dispatch(startAttendingItems());
         return;
@@ -955,33 +934,25 @@ const RequisitionStatusStepper = ({
     }
   };
 
-  // Adiciona listeners globais para monitorar eventos de foco e blur
   useEffect(() => {
-    const handleGlobalFocus = (event: FocusEvent) => {
-      if (event.target) {
-        const element = event.target as HTMLElement; // Cast the target to HTMLElement
-        if (element.classList.contains("MuiInputBase-input")) {
-          console.log("element", element);
-          setFocusedElement(event.target);
+      const handleGlobalFocus = (event: FocusEvent) => {
+        if (event.target) {
+          const element = event.target as HTMLElement;
+          if (element.classList.contains("MuiInputBase-input")) {
+            setFocusedElement(event.target);
+          }
         }
-      }
-    };
-
-    const handleGlobalBlur = () => {
-      console.log("blur");
-      setFocusedElement(null);
-    };
-
-    // Adiciona listeners para focusin e focusout (melhor que focus/blur para capturar eventos em todos os elementos)
-    window.addEventListener("focusin", handleGlobalFocus);
-    window.addEventListener("focusout", handleGlobalBlur);
-
-    // Limpeza dos listeners ao desmontar o componente
-    return () => {
-      window.removeEventListener("focusin", handleGlobalFocus);
-      window.removeEventListener("focusout", handleGlobalBlur);
-    };
-  }, []);
+      };
+      const handleGlobalBlur = () => {
+        setFocusedElement(null);
+      };
+      window.addEventListener("focusin", handleGlobalFocus);
+      window.addEventListener("focusout", handleGlobalBlur);
+      return () => {
+        window.removeEventListener("focusin", handleGlobalFocus);
+        window.removeEventListener("focusout", handleGlobalBlur);
+      };
+    }, []);
 
   const canChangeRequisitionType = (): boolean => {
     const allowedStatusIds = [1, 2, 3, 10, 107, 108, 109, 115, 116, 117];
@@ -1006,14 +977,7 @@ const RequisitionStatusStepper = ({
           activeStep={currentStatusIndex}
           connector={<CustomConnector />}
           sx={{
-            // minWidth: 600,
-            // p: 0,
-            // m: 0,
-            // "& .MuiStepLabel-label": {
-            //   mt: 0.5, // reduz espaço entre ícone e texto
-            //   fontSize: 12,
-            //   fontWeight: 500,
-            // },
+            
             padding: {
               xs: 2,
               sm: 0,
@@ -1134,8 +1098,7 @@ const RequisitionStatusStepper = ({
             size="small"
             color="success"
             onClick={() => {
-              const currentStatusId = requisition.id_status_requisicao;
-              if (currentStatusId === 6 || currentStatusId === 7) {
+              if (showRevertSelectionDialog || revertOption === "initial") {
                 handleRevertWithOption();
               } else {
                 handleRetreatRequisition();
