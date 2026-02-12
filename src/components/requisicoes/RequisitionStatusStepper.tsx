@@ -27,6 +27,7 @@ import {
 } from "@mui/material";
 import CheckIcon from "@mui/icons-material/Check";
 import RequisitionService from "../../services/requisicoes/RequisitionService";
+import RequisitionStatusService from "../../services/requisicoes/RequisitionStatusService";
 import {
   setRefreshRequisition,
   setRequisition,
@@ -388,9 +389,9 @@ const RequisitionStatusStepper = ({
         dispatch(setRefreshRequisition(!refreshRequisition));
 
         try {
-          const newPermissions = await RequisitionService.getStatusPermission(
-            Number(id_requisicao),
-            user
+          const newPermissions = await RequisitionStatusService.getStatusPermissions(
+            user!,
+            updatedRequisition
           );
 
           if (
@@ -564,9 +565,9 @@ const RequisitionStatusStepper = ({
 
       // Verifica se o usuário tem permissão para visualizar o novo status
       try {
-        const newPermissions = await RequisitionService.getStatusPermission(
-          Number(id_requisicao),
-          user
+        const newPermissions = await RequisitionStatusService.getStatusPermissions(
+          user!,
+          updatedRequisition
         );
 
         // Se não tiver permissão para visualizar o novo status, navega de volta
@@ -606,13 +607,10 @@ const RequisitionStatusStepper = ({
 
   const handleRevertSelectionConfirm = () => {
     setShowRevertSelectionDialog(false);
-    // Abre diálogo de comentário com a opção selecionada
     setFillingComment(true);
   };
 
   const handleRevertWithOption = async () => {
-    setFillingComment(false);
-    
     if (!comment.trim()) {
       dispatch(
         setFeedback({
@@ -620,84 +618,78 @@ const RequisitionStatusStepper = ({
           message: "Justificativa é obrigatória.",
         })
       );
-      setFillingComment(true);
+      return;
+    }
+  
+    if (revertOption === "previous") {
+      await handleRetreatRequisition();
       return;
     }
 
+    setFillingComment(false);
+    
     try {
-      const createdComment = await RequisitionCommentService.create({
-        id_requisicao: Number(id_requisicao),
-        descricao: comment,
-        criado_por: user?.CODPESSOA || 0,
-      });
-
-      if (createdComment) {
-        dispatch(addComment(createdComment));
-      }
-
-      // Executa a ação de retrocesso baseada na opção selecionada
-      if (revertOption === "initial") {
-        // Reverter para status inicial
-        await RequisitionService.revertToInitialStatus(
-          Number(id_requisicao),
-          user,
-          comment
-        );
-      } else {
-        // Reverter para status anterior
-        await RequisitionService.revertToPreviousStatus(
-          Number(id_requisicao),
-          user,
-          comment
-        );
-      }
-
-      setComment("");
-      setRevertOption("previous");
-      dispatch(setRefreshRequisition(!refreshRequisition));
-      dispatch(setRefresh(!refresh));
-
-      // Verifica se o usuário tem permissão para visualizar o novo status
-      try {
-        const newPermissions = await RequisitionService.getStatusPermission(
-          Number(id_requisicao),
-          user
-        );
-
-        if (
-          !newPermissions.permissionToChangeStatus &&
-          !newPermissions.permissionToRevertStatus
-        ) {
-          dispatch(
-            setFeedback({
-              type: "success",
-              message: "Status atualizado com sucesso!",
-            })
-          );
-          navigate("/requisicoes");
-          return;
-        }
-
-        dispatch(
-          setFeedback({
-            type: "success",
-            message: "Status atualizado com sucesso!",
-          })
-        );
-      } catch (permError) {
-        console.error("Erro ao verificar permissões:", permError);
-        dispatch(
-          setFeedback({
-            type: "success",
-            message: "Status atualizado com sucesso!",
-          })
-        );
-      }
+      await RequisitionService.revertToInitialStatus(
+        Number(id_requisicao),
+        user,
+        comment,
+      );
     } catch (e: any) {
       dispatch(
         setFeedback({
           type: "error",
-          message: `Erro ao retroceder status: ${e.message}`,
+          message: `Erro ao reverter status: ${e.message}`,
+        })
+      );
+      return;
+    }
+
+    const createdComment = await RequisitionCommentService.create({
+      id_requisicao: Number(id_requisicao),
+      descricao: comment,
+      criado_por: user?.CODPESSOA || 0,
+    })
+    if (createdComment) {
+      dispatch(addComment(createdComment))
+    }
+
+    setComment("");
+    setRevertOption("previous");
+    dispatch(setRefreshRequisition(!refreshRequisition));
+    dispatch(setRefresh(!refresh));
+
+    try {
+      const newPermissions = await RequisitionStatusService.getStatusPermissions(
+        user!,
+        requisition
+      );
+
+      if (
+        !newPermissions.permissionToChangeStatus &&
+        !newPermissions.permissionToRevertStatus
+      ) {
+        dispatch(
+          setFeedback({
+            type: "success",
+            message: "Status atualizado com sucesso!",
+          })
+        );
+        navigate("/requisicoes");
+        return;
+      }
+
+      dispatch(
+        setFeedback({
+          type: "success",
+          message: "Status atualizado com sucesso!",
+        })
+      );
+    } catch (permError) {
+      console.error("Erro ao verificar permissões:", permError);
+      dispatch(
+        setFeedback({
+          type: "success",
+          message: "Status atualizado com sucesso!",
         })
       );
     }
