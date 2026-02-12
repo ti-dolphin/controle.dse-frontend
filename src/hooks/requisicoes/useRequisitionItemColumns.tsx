@@ -56,6 +56,7 @@ export const useRequisitionItemColumns = (
 
   const attendingItems = useSelector((state: RootState) => state.attendingItemsSlice.attendingItems);
   const items = useSelector((state: RootState) => state.requisitionItem.items);
+  const requisition = useSelector((state: RootState) => state.requisition.requisition);
 
   const StyledBadge = styled(Badge)<BadgeProps>(({ theme }) => ({
     "& .MuiBadge-badge": {
@@ -236,8 +237,31 @@ export const useRequisitionItemColumns = (
       field: "quantidade_disponivel",
       headerName: "Estoque",
       type: "number",
-      width: 100,
+      width: 120,
       editable: false,
+      renderCell: (params: any) => {
+        const value = params.value;
+        const hasStock = value && value > 0;
+        return (
+          <Box
+            sx={{
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "end",
+              height: "100%",
+              width: "100%",
+            }}
+          >
+            <Typography 
+              fontSize="small" 
+              fontWeight="bold"
+              color={hasStock ? "success.main" : "error.main"}
+            >
+              {value || 0}
+            </Typography>
+          </Box>
+        );
+      },
     },
     {
       field: "data_entrega",
@@ -439,6 +463,16 @@ export const useRequisitionItemColumns = (
   const nonDefaultColumns = ["produto_quantidade_disponivel", "quantidade_atendida", "quantidade_disponivel"];
   let filteredColumns = columns.filter((col) => !nonDefaultColumns.includes(col.field));
 
+  // Se a requisição está no escopo de estoque (id_escopo_requisicao = 1), incluir coluna de estoque
+  const isStockScope = requisition?.id_escopo_requisicao === 1;
+  if (isStockScope && !updatingRecentProductsQuantity && !addingReqItems && !attendingItems) {
+    // Incluir a coluna quantidade_disponivel
+    const stockColumn = columns.find(col => col.field === "quantidade_disponivel");
+    if (stockColumn && !filteredColumns.includes(stockColumn)) {
+      filteredColumns = [...filteredColumns, stockColumn];
+    }
+  }
+
   if (updatingRecentProductsQuantity) {
     const selectedColumns = [
       "produto_descricao",
@@ -622,6 +656,7 @@ export const useRequisitionItemColumns = (
     fillingShippingDate,
     shippingDate,
     isDinamicField,
-    editItemFieldsPermitted
+    editItemFieldsPermitted,
+    requisition?.id_escopo_requisicao
   ]);
 };

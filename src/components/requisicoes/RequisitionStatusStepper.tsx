@@ -27,6 +27,7 @@ import {
 } from "@mui/material";
 import CheckIcon from "@mui/icons-material/Check";
 import RequisitionService from "../../services/requisicoes/RequisitionService";
+import RequisitionStatusService from "../../services/requisicoes/RequisitionStatusService";
 import {
   setRefreshRequisition,
   setRequisition,
@@ -155,6 +156,9 @@ const RequisitionStatusStepper = ({
     pendingStatusChangeValueIncrease,
     setPendingStatusChangeValueIncrease,
   ] = useState<"acao_anterior" | "acao_posterior" | null>(null);
+  const [showRevertSelectionDialog, setShowRevertSelectionDialog] =
+    useState<boolean>(false);
+  const [revertOption, setRevertOption] = useState<"previous" | "initial">("previous");
 
   useEffect(() => {
     RequisitionService.getAllFaturamentosTypes({ visible: 1 }).then((data) => {
@@ -303,6 +307,14 @@ const RequisitionStatusStepper = ({
 
     // Para ação anterior (retrocesso), pula validações e vai direto para comentário
     if (type === "acao_anterior") {
+      // Verifica se é Aprovação Gerente (id 6) ou Aprovação Diretoria (id 7)
+      const currentStatusId = requisition.id_status_requisicao;
+      if (currentStatusId === 6 || currentStatusId === 7) {
+        // Abre diálogo de seleção
+        setShowRevertSelectionDialog(true);
+        return;
+      }
+      // Para outros status, vai direto para comentário
       setFillingComment(true);
       return;
     }
@@ -377,9 +389,9 @@ const RequisitionStatusStepper = ({
         dispatch(setRefreshRequisition(!refreshRequisition));
 
         try {
-          const newPermissions = await RequisitionService.getStatusPermission(
-            Number(id_requisicao),
-            user
+          const newPermissions = await RequisitionStatusService.getStatusPermissions(
+            user!,
+            updatedRequisition
           );
 
           if (
@@ -541,7 +553,6 @@ const RequisitionStatusStepper = ({
         return;
       }
       const updatedRequisition = await RequisitionService.updateStatus(
-        //SEND IT TO THE BACKEND!
         Number(id_requisicao),
         {
           id_status_requisicao: newStatus.id_status_requisicao,
@@ -554,9 +565,9 @@ const RequisitionStatusStepper = ({
 
       // Verifica se o usuário tem permissão para visualizar o novo status
       try {
-        const newPermissions = await RequisitionService.getStatusPermission(
-          Number(id_requisicao),
-          user
+        const newPermissions = await RequisitionStatusService.getStatusPermissions(
+          user!,
+          updatedRequisition
         );
 
         // Se não tiver permissão para visualizar o novo status, navega de volta
@@ -591,6 +602,96 @@ const RequisitionStatusStepper = ({
           })
         );
       }
+    }
+  };
+
+  const handleRevertSelectionConfirm = () => {
+    setShowRevertSelectionDialog(false);
+    setFillingComment(true);
+  };
+
+  const handleRevertWithOption = async () => {
+    if (!comment.trim()) {
+      dispatch(
+        setFeedback({
+          type: "error",
+          message: "Justificativa é obrigatória.",
+        })
+      );
+      return;
+    }
+  
+    if (revertOption === "previous") {
+      await handleRetreatRequisition();
+      return;
+    }
+
+    setFillingComment(false);
+    
+    try {
+      await RequisitionService.revertToInitialStatus(
+        Number(id_requisicao),
+        user,
+        comment,
+      );
+    } catch (e: any) {
+      dispatch(
+        setFeedback({
+          type: "error",
+          message: `Erro ao reverter status: ${e.message}`,
+        })
+      );
+      return;
+    }
+
+    const createdComment = await RequisitionCommentService.create({
+      id_requisicao: Number(id_requisicao),
+      descricao: comment,
+      criado_por: user?.CODPESSOA || 0,
+    })
+    if (createdComment) {
+      dispatch(addComment(createdComment))
+    }
+
+    setComment("");
+    setRevertOption("previous");
+    dispatch(setRefreshRequisition(!refreshRequisition));
+    dispatch(setRefresh(!refresh));
+
+    try {
+      const newPermissions = await RequisitionStatusService.getStatusPermissions(
+        user!,
+        requisition
+      );
+
+      if (
+        !newPermissions.permissionToChangeStatus &&
+        !newPermissions.permissionToRevertStatus
+      ) {
+        dispatch(
+          setFeedback({
+            type: "success",
+            message: "Status atualizado com sucesso!",
+          })
+        );
+        navigate("/requisicoes");
+        return;
+      }
+
+      dispatch(
+        setFeedback({
+          type: "success",
+          message: "Status atualizado com sucesso!",
+        })
+      );
+    } catch (permError) {
+      console.error("Erro ao verificar permissões:", permError);
+      dispatch(
+        setFeedback({
+          type: "success",
+          message: "Status atualizado com sucesso!",
+        })
+      );
     }
   };
 
@@ -1020,7 +1121,11 @@ const RequisitionStatusStepper = ({
             variant="contained"
             size="small"
             color="error"
-            onClick={() => setFillingComment(false)}
+            onClick={() => {
+              setFillingComment(false);
+              setComment("");
+              setRevertOption("previous");
+            }}
           >
             Cancelar
           </Button>
@@ -1028,7 +1133,14 @@ const RequisitionStatusStepper = ({
             variant="contained"
             size="small"
             color="success"
-            onClick={() => handleRetreatRequisition()}
+            onClick={() => {
+              const currentStatusId = requisition.id_status_requisicao;
+              if (currentStatusId === 6 || currentStatusId === 7) {
+                handleRevertWithOption();
+              } else {
+                handleRetreatRequisition();
+              }
+            }}
           >
             Confirmar
           </Button>
@@ -1066,6 +1178,55 @@ const RequisitionStatusStepper = ({
             onClick={() => handleAttendItems()}
           >
             confirmar
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      {/* Diálogo de seleção de tipo de retrocesso */}
+      <Dialog
+        open={showRevertSelectionDialog}
+        onClose={() => setShowRevertSelectionDialog(false)}
+      >
+        <DialogTitle>Selecione o tipo de retrocesso</DialogTitle>
+        <DialogContent>
+          <Typography gutterBottom>
+            Escolha se a requisição deve voltar para o status anterior ou para o status inicial:
+          </Typography>
+          <RadioGroup
+            value={revertOption}
+            onChange={(e) => setRevertOption(e.target.value as "previous" | "initial")}
+          >
+            <FormControlLabel
+              value="previous"
+              control={<Radio />}
+              label={`Voltar para status anterior (${requisition.status?.acao_anterior || 'Status anterior'})`}
+            />
+            <FormControlLabel
+              value="initial"
+              control={<Radio />}
+              label="Voltar para status inicial (Em edição)"
+            />
+          </RadioGroup>
+        </DialogContent>
+        <DialogActions>
+          <Button
+            variant="contained"
+            size="small"
+            color="error"
+            onClick={() => {
+              setShowRevertSelectionDialog(false);
+              setRevertOption("previous");
+            }}
+          >
+            Cancelar
+          </Button>
+          <Button
+            variant="contained"
+            size="small"
+            color="success"
+            onClick={handleRevertSelectionConfirm}
+          >
+            Confirmar
           </Button>
         </DialogActions>
       </Dialog>

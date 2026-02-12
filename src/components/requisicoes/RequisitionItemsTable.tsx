@@ -99,21 +99,17 @@ const RequisitionItemsTable = ({
 
   const user = useSelector((state: RootState) => state.user.user);
 
-  // Chama o hook normalmente (sempre)
   const permissionsFromHook = useRequisitionItemPermissions(user, requisition);
 
-  // Memoriza o resultado baseado no status
   const permissions = useMemo(() => {
     if (!requisition?.status) {
       return { editItemFieldsPermitted: false, createQuotePermitted: false };
     }
-    // Permite que o comprador edite a coluna OC na etapa de recebimento
     const isBuyer = Number(user?.PERM_COMPRADOR) === 1;
     const isReceivingStep =
       requisition.status?.nome?.toLowerCase() === "recebimento" ||
       requisition.status?.nome?.toLowerCase() === "lançar nf"
     if (isBuyer && isReceivingStep) {
-      // Mantém createQuotePermitted igual ao valor original do hook
       return {
         editItemFieldsPermitted: true,
         createQuotePermitted: permissionsFromHook.createQuotePermitted,
@@ -137,7 +133,6 @@ const RequisitionItemsTable = ({
   const handleDeleteItem = async (id_item_requisicao: number) => {
     setBlockFields(true);
     try {
-      //atualiza UI imediatamente
       const updatedItems = items.filter(
         (item) => item.id_item_requisicao !== id_item_requisicao
       );
@@ -174,7 +169,6 @@ const RequisitionItemsTable = ({
       dispatch(setFeedback({ message: "Erro ao preencher OC", type: "error" }));
     }
   };
-  //PREENCHER DATA DE ENTREGA DOS ITENS SELECIONADOS
   const handleFillShippingDate = async (date: string) => {
     if (!date) {
       dispatch(
@@ -220,8 +214,6 @@ const RequisitionItemsTable = ({
   const [blockFields, setBlockFields] = useState(false);
   const [quoteListOpen, setQuoteListOpen] = useState<boolean>(false);
 
-  //map de <id_item_requisicao, id_item_cotacao>
-  //SELECIONA ITEMS DA COTAÇÃO
   const handleChangeQuoteItemsSelected = useCallback(
     async (
       e: React.ChangeEvent<HTMLInputElement>,
@@ -267,7 +259,6 @@ const RequisitionItemsTable = ({
 
   const toolbarRef = React.useRef<HTMLDivElement>(null);
 
-  //CRIA E RENDERIZA AS COLUNAS DA TABELA COM FUNCOES
   const { columns, isDinamicField } = useRequisitionItemColumns(
     addingReqItems,
     editItemFieldsPermitted,
@@ -296,7 +287,6 @@ const RequisitionItemsTable = ({
     });
     return filtered;
   };
-  //CLIQUE NA CÈLULA
   const handleCellClick = (params: GridCellParams, event: React.MouseEvent) => {
     if (isDinamicField && isDinamicField(params.field)) {
       return;
@@ -328,7 +318,6 @@ const RequisitionItemsTable = ({
       );
       return;
     }
-    //excessão para editar apenas o número da OC
     if (exceptionForBuyer(params.field)) {
       if (
         (event.target as any).nodeType === 1 &&
@@ -338,7 +327,6 @@ const RequisitionItemsTable = ({
       }
       setCellModesModel((prevModel) => {
         return {
-          // Revert the mode of the other cells from other rows
           ...Object.keys(prevModel).reduce(
             (acc, id) => ({
               ...acc,
@@ -353,7 +341,6 @@ const RequisitionItemsTable = ({
             {}
           ),
           [params.id]: {
-            // Revert the mode of other cells in the same row
             ...Object.keys(prevModel[params.id] || {}).reduce(
               (acc, field) => ({
                 ...acc,
@@ -384,7 +371,6 @@ const RequisitionItemsTable = ({
     }
     setCellModesModel((prevModel) => {
       return {
-        // Revert the mode of the other cells from other rows
         ...Object.keys(prevModel).reduce(
           (acc, id) => ({
             ...acc,
@@ -399,7 +385,6 @@ const RequisitionItemsTable = ({
           {}
         ),
         [params.id]: {
-          // Revert the mode of other cells in the same row
           ...Object.keys(prevModel[params.id] || {}).reduce(
             (acc, field) => ({
               ...acc,
@@ -412,14 +397,12 @@ const RequisitionItemsTable = ({
       };
     });
   };
-  //PROCESSA MUDANÇA DE ESTADO DA CÉLULA "EDIT", "VIEW"
   const handleCellModesModelChange = React.useCallback(
     (newModel: GridCellModesModel) => {
       setCellModesModel(newModel);
     },
     []
   );
-  //ATUALIZA LINHA NO BACKEND
   const processRowUpdate = React.useCallback(
     async (newRow: GridRowModel, oldRow: GridRowModel) => {
       if (!attendingItems) {
@@ -431,6 +414,7 @@ const RequisitionItemsTable = ({
           data_entrega: newRow.data_entrega,
           oc: newRow.oc,
           observacao: newRow.observacao,
+          alterado_por: user?.CODPESSOA,
         };
         if (payload.quantidade < 0) {
           dispatch(
@@ -444,7 +428,6 @@ const RequisitionItemsTable = ({
         return await performUpdateOnDatabase(newRow, oldRow, payload);
       }
 
-      //estpa atendendo com estoque
       if (newRow.quantidade_atendida < 0) {
         dispatch(
           setFeedback({
@@ -500,6 +483,9 @@ const RequisitionItemsTable = ({
           updatedItem,
         })
       );
+      if (payload.quantidade !== undefined && payload.quantidade !== oldRow.quantidade) {
+        dispatch(setRefreshRequisition(!refreshRequisition));
+      }
       return updatedItem;
     } catch (e: any) {
       dispatch(
@@ -523,9 +509,7 @@ const RequisitionItemsTable = ({
     setQuotesTotal(quotes);
   }
 
-  //CRIA A COTAÇÃO A PARTIR DOS ITENS SELECIONADOS
   const createQuoteFromSelectedItems = async () => {
-    //create quote from items and then redirect to quote page
     const quote: Quote = await QuoteService.create({
       id_requisicao: requisition.ID_REQUISICAO,
       fornecedor: "",
@@ -538,7 +522,6 @@ const RequisitionItemsTable = ({
       navigate(`cotacao/${quote.id_cotacao}`);
     }
   };
-  //ADICIONA ITEMS À REQUSIIÇÃO A PARTIR DOS PRODUTOS SELECIONADOS
   const handleAddItemsToRequisition = async () => {
     if (quote) {
       try {
@@ -573,7 +556,6 @@ const RequisitionItemsTable = ({
       }
     }
   };
-  //SELECIONA ou DESELECIONA UMA LINHA
   const handleChangeSelection = async (
     newRowSelectionModel: GridRowSelectionModel
   ) => {
@@ -602,14 +584,11 @@ const RequisitionItemsTable = ({
     }
     setSelectionModel(newRowSelectionModel);
   };
-  //MUDA O TERMO DE BUSCA
   const changeSearchTerm = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value;
     setSearchTerm(value.toLowerCase());
   };
-  //DEBOUNCED
   const debouncedHandleChangeSearchTerm = debounce(changeSearchTerm, 500);
-  //BUSCA ITENS DA REQUISIÇÃO
   const fetchData = useCallback(async () => {
     setLoading(true);
     try {
@@ -659,9 +638,7 @@ const RequisitionItemsTable = ({
     }
   }, [dispatch, requisition.ID_REQUISICAO, searchTerm, newItems]);
 
-  //CONFIGURA O MAPA DE ITENS DE COTAÇÃO  SELECIONADOS POR ITENS DE REQUISIÇÃO
   const defineSelectedQuoteItemsMap = (items: RequisitionItem[]) => {
-    // const map = new Map<number, number>();
     items.forEach((item) => {
       if (item.id_item_cotacao) {
         quoteItemsSelected.set(item.id_item_requisicao, item.id_item_cotacao);
@@ -721,13 +698,12 @@ const RequisitionItemsTable = ({
     setSelectionModel([]);
   };
 
-  // Handler para navegação por Tab apenas entre células de quantidade
   const handleCellKeyDown = useCallback(
     (params: GridCellParams, event: React.KeyboardEvent) => {
       if (
         event.key === "Tab" &&
         params.field === "quantidade" &&
-        updatingRecentProductsQuantity // só ativa no diálogo de quantidades
+        updatingRecentProductsQuantity
       ) {
         event.preventDefault();
         const visibleRows = gridApiRef.current.getSortedRows();
@@ -737,7 +713,6 @@ const RequisitionItemsTable = ({
         let nextRowIndex = event.shiftKey ? rowIndex - 1 : rowIndex + 1;
         if (nextRowIndex < 0 || nextRowIndex >= visibleRows.length) return;
         const nextRowId = visibleRows[nextRowIndex].id_item_requisicao;
-        // Foca e ativa edição na próxima célula de quantidade
         gridApiRef.current.setCellFocus(nextRowId, "quantidade");
       }
     },
@@ -858,7 +833,6 @@ const RequisitionItemsTable = ({
             onCellClick={handleCellClick}
             processRowUpdate={processRowUpdate}
             hideFooter={hideFooter}
-            // Adiciona o handler para navegação customizada por Tab
             onCellKeyDown={handleCellKeyDown}
           />
         </Box>

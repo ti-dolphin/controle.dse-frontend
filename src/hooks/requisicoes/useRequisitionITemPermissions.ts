@@ -42,6 +42,14 @@ function isProjectManager(user: User | null, requisition: Requisition): boolean 
   )
 }
 
+function isDirector(user: User | null, requisition: Requisition): boolean {
+  const status = requisition.status?.nome?.toLowerCase() || "";
+
+  if (status !== 'aprovação diretoria') return false
+
+  return Number(user?.PERM_DIRETOR) === 1;
+}
+
 export const useRequisitionItemPermissions = (
   user: User | null,
   requisition: Requisition
@@ -49,7 +57,7 @@ export const useRequisitionItemPermissions = (
   const [editItemFieldsPermitted, setEditItemFieldsPermitted] = useState(false);
   const [changeProductItemPermitted, setChangeProductItemPermitted] = useState(false);
   const [createQuotePermitted, setCreateQuotePermitted] = useState(false);
-  useSelector((state: RootState) => state.attendingItemsSlice.attendingItems); // Mantido caso precise do valor
+  useSelector((state: RootState) => state.attendingItemsSlice.attendingItems);
 
   useEffect(() => {
     const admin = isAdmin(user);
@@ -58,14 +66,9 @@ export const useRequisitionItemPermissions = (
     const status = requisition.status?.nome?.toLowerCase() || "";
     const stockUser = isStockUser(user, requisition);
     const projectManager = isProjectManager(user, requisition);
+    const director = isDirector(user, requisition);
 
-
-    console.log("responsable: ", responsable);
-    console.log("admin: ", admin);
-    console.log("buyer: ", buyer);
-    console.log("projectManager: ", projectManager);
-
-    setEditItemFieldsPermitted(admin || responsable || buyer || stockUser || projectManager);
+    setEditItemFieldsPermitted(admin || responsable || buyer || stockUser || projectManager || director);
     setChangeProductItemPermitted(admin || responsable || buyer || projectManager);
     setCreateQuotePermitted((admin || buyer) && status === "em cotação");
   }, [user, requisition]);

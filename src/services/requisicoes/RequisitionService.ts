@@ -112,4 +112,30 @@ export default class RequisitionService {
     );
     return response.data;
   }
+
+  static async revertToPreviousStatus(
+    id_requisicao: number,
+    user: User | null,
+    motivo: string
+  ) {
+    const response = await api.put(
+      `${API_ENDPOINT}/${id_requisicao}/status/revert`,
+      { motivo },
+      { params: { user } }
+    );
+    return response.data;
+  }
+
+  static async revertToInitialStatus(
+    id_requisicao: number,
+    user: User | null,
+    motivo: string
+  ) {
+    const response = await api.put(
+      `${API_ENDPOINT}/${id_requisicao}/status/revert-initial`,
+      { motivo },
+      { params: { user } }
+    );
+    return response.data;
+  }
 }

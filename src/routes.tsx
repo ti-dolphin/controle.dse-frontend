@@ -10,6 +10,7 @@ import OpportunityHomePage from "./pages/oportunidades/OpportunityHomePage";
 import OportunityDetailPage from "./pages/oportunidades/OpportunityDetailPage";
 import PatrimonyDetailPage from "./pages/patrimonios/PatrimonyDetailPage";
 import ChecklistListPage from "./pages/patrimonios/ChecklistListListPage";
+import NotesHomePage from "./pages/apontamentos/NotesHomePage";
 import AdminPage from "./pages/AdminPage";
 // Exemplo de páginas
 const AppRoutes = () => { 
@@ -37,6 +38,11 @@ const AppRoutes = () => {
       <Route path="/oportunidades/:CODOS" element={<OportunityDetailPage />} />
       {/* <Route path="/oportunidades/novo" element={<OpportunityCreationModal />} /> */}
       {/* <Route path="/oportunidades/form" element={<OpportunityForm />} /> */}
+
+      {/* Apontamentos */}
+      <Route path="/apontamentos" element={<NotesHomePage />} />
+
+
     </Routes>
   );
 };
