@@ -25,6 +25,7 @@ import { useDispatch, useSelector } from "react-redux";
 import { RootState } from "../../redux/store";
 import { useCallback } from "react";
 import RequisitionDetailsTable from "../../components/requisicoes/RequisitionDetailsTable";
+import BuyerSelectionDialog from "../../components/requisicoes/BuyerSelectionDialog";
 import AddIcon from "@mui/icons-material/Add";
 import RequisitionAttachmentList from "../../components/requisicoes/RequisitionAttachmentList";
 import { setFeedback } from "../../redux/slices/feedBackSlice";
@@ -51,6 +52,7 @@ const RequisitionDetailPage = () => {
   const { recentProductsAdded, replacingItemProduct, itemBeingReplaced, productSelected, refresh } = useSelector((state: RootState) => state.requisitionItem);
   const {requisition, refreshRequisition} = useSelector((state: RootState) => state.requisition);
   const [quoteListOpen, setQuoteListOpen] = useState<boolean>(false);
+  const [buyerDialogOpen, setBuyerDialogOpen] = useState<boolean>(false);
   const [fullScreenItems, setFullScreenItems] = useState<boolean>(false);
   const [fullScreenTimeline, setFullScreenTimeline] = useState<boolean>(false);
   const [fullScreenAttachments, setFullScreenAttachments] = useState<boolean>(false);
@@ -121,6 +123,32 @@ const RequisitionDetailPage = () => {
     dispatch(setAddingProducts(false));
     dispatch(setReplacingItemProduct(false));
   }
+
+  const handleOpenBuyerDialog = () => {
+    setBuyerDialogOpen(true);
+  };
+
+  const handleCloseBuyerDialog = () => {
+    setBuyerDialogOpen(false);
+  };
+
+  const handleConfirmBuyerChange = async (buyerId: number | null) => {
+    try {
+      await RequisitionService.update(requisition.ID_REQUISICAO, {
+        id_comprador: buyerId,
+      });
+      dispatch(setFeedback({
+        message: 'Comprador atualizado com sucesso',
+        type: 'success'
+      }));
+      fetchData(); // Recarrega os dados da requisição
+    } catch (error) {
+      dispatch(setFeedback({
+        message: 'Erro ao atualizar comprador',
+        type: 'error'
+      }));
+    }
+  };
 
   const handleBack =( ) => {
     navigate("/requisicoes");
@@ -209,7 +237,10 @@ const RequisitionDetailPage = () => {
                 </Typography>
               </AccordionSummary>
               <AccordionDetails sx={{ p: 1 }}>
-                <RequisitionDetailsTable requisition={requisition} />
+                <RequisitionDetailsTable 
+                  requisition={requisition} 
+                  onBuyerDoubleClick={handleOpenBuyerDialog}
+                />
               </AccordionDetails>
             </Accordion>
           ) : (
@@ -224,7 +255,10 @@ const RequisitionDetailPage = () => {
               </Typography>
               <Divider sx={{ mb: 1 }} />
               <Box sx={{ flex: 1, overflowY: 'auto' }}>
-                <RequisitionDetailsTable requisition={requisition} />
+                <RequisitionDetailsTable 
+                  requisition={requisition} 
+                  onBuyerDoubleClick={handleOpenBuyerDialog}
+                />
               </Box>
             </Paper>
           )}
@@ -686,6 +720,13 @@ const RequisitionDetailPage = () => {
           <RequisitionCommentList fullScreen={true} />
         </DialogContent>
       </Dialog>
+      {/* Dialog seleção de comprador */}
+      <BuyerSelectionDialog
+        open={buyerDialogOpen}
+        onClose={handleCloseBuyerDialog}
+        onConfirm={handleConfirmBuyerChange}
+        currentBuyerId={requisition?.id_comprador}
+      />
     </Box>
   );
 };

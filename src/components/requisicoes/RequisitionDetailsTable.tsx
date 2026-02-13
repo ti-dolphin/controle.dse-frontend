@@ -34,13 +34,18 @@ const getTypeByTipoFaturamento = (tipoFaturamento: any) => {
 interface DetailRowProps {
   label: string;
   value: string | undefined;
+  onDoubleClick?: () => void;
+  clickable?: boolean;
 }
 
-const DetailRow: React.FC<DetailRowProps> = ({ label, value }) => (
+const DetailRow: React.FC<DetailRowProps> = ({ label, value, onDoubleClick, clickable }) => (
   <TableRow
     sx={{
       height: 20,
+      cursor: clickable ? "pointer" : "default",
+      "&:hover": clickable ? { backgroundColor: "action.hover" } : {},
     }}
+    onDoubleClick={onDoubleClick}
   >
     <TableCell
       sx={{
@@ -77,10 +82,12 @@ const DetailRow: React.FC<DetailRowProps> = ({ label, value }) => (
 
 interface RequisitionDetailsTableProps {
   requisition: Requisition;
+  onBuyerDoubleClick?: () => void;
 }
 
 const RequisitionDetailsTable = ({
   requisition,
+  onBuyerDoubleClick,
 }: RequisitionDetailsTableProps) => {
   const rows: DetailRowProps[] = [
     {
@@ -99,6 +106,12 @@ const RequisitionDetailsTable = ({
     { label: "Requisitante", value: requisition.responsavel?.NOME },
     { label: 'Responsável do projeto', value: requisition.responsavel_projeto?.NOME },
     { label: "Gerente do projeto", value: requisition.gerente?.NOME },
+    { 
+      label: "Comprador", 
+      value: requisition.comprador?.NOME || "Não atribuído",
+      onDoubleClick: onBuyerDoubleClick,
+      clickable: true 
+    },
     {
       label: "Tipo",
       value: getTypeByTipoFaturamento(requisition.tipo_faturamento).toUpperCase(),
@@ -124,7 +137,13 @@ const RequisitionDetailsTable = ({
       >
         <TableBody>
           {rows.map((row, index) => (
-            <DetailRow key={index} label={row.label} value={row.value} />
+            <DetailRow 
+              key={index} 
+              label={row.label} 
+              value={row.value} 
+              onDoubleClick={row.onDoubleClick}
+              clickable={row.clickable}
+            />
           ))}
         </TableBody>
       </Table>
