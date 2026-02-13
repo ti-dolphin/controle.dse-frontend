@@ -103,6 +103,11 @@ export function useRequisitionColumns(
     [rows, calculateOptimalColumnWidth]
   );
 
+  const compradorColumnWidth = useMemo(() => 
+    calculateOptimalColumnWidth(rows, 'comprador', (u: ReducedUser) => u ? u.NOME || '' : '', 150, 300, 8, 40),
+    [rows, calculateOptimalColumnWidth]
+  );
+
   const statusColumnWidth = useMemo(() => 
     calculateOptimalColumnWidth(rows, 'status', (s: RequisitionStatus) => s ? s.nome : '', 120, 250, 8, 40),
     [rows, calculateOptimalColumnWidth]
@@ -236,6 +241,22 @@ export function useRequisitionColumns(
           <TextHeader
             label={"Responsável Projeto"}
             field={"responsavel_projeto"}
+            filters={filters}
+            handleChangeFilters={handleChangeFilters}
+          ></TextHeader>
+        ),
+      },
+      {
+        field: "comprador",
+        headerName: "Comprador",
+        width: compradorColumnWidth,
+        valueGetter: (user: ReducedUser) => {
+          return user ? user.NOME || '' : '';
+        },
+        renderHeader: () => (
+          <TextHeader
+            label={"Comprador"}
+            field={"comprador"}
             filters={filters}
             handleChangeFilters={handleChangeFilters}
           ></TextHeader>

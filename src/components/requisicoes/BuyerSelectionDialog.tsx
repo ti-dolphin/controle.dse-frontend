@@ -32,10 +32,9 @@ const BuyerSelectionDialog: React.FC<BuyerSelectionDialogProps> = ({
   const fetchBuyers = useCallback(async () => {
     setLoading(true);
     try {
-      const response = await UserService.getMany({ PERM_COMPRADOR: 1 });
+      const response = await UserService.getMany({ PERM_COMPRADOR: 1});
       setBuyers(response);
       
-      // Define o comprador atual se houver
       if (currentBuyerId) {
         const currentBuyer = response.find(
           (buyer) => buyer.CODPESSOA === currentBuyerId
