@@ -1,4 +1,7 @@
 import {
+  Accordion,
+  AccordionDetails,
+  AccordionSummary,
   Box,
   Grid,
   Paper,
@@ -12,6 +15,7 @@ import {
   DialogContent,
   IconButton,
 } from "@mui/material";
+import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
 import { useEffect, useRef, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import RequisitionService from "../../services/requisicoes/RequisitionService";
@@ -35,6 +39,7 @@ import { formatCurrency } from "../../utils";
 import UpperNavigation from "../../components/shared/UpperNavigation";
 import FullscreenIcon from "@mui/icons-material/Fullscreen";
 import RequisitionCommentList from "../../components/requisicoes/RequisitionCommentList";
+import { useIsMobile } from "../../hooks/useIsMobile";
 
 const RequisitionDetailPage = () => {
 
@@ -54,6 +59,7 @@ const RequisitionDetailPage = () => {
   const fullScreenTimelineContainer = useRef<HTMLDivElement>(null);
   const fullScreenAttachmentsContainer = useRef<HTMLDivElement>(null);
   const fullScreenCommentsContainer = useRef<HTMLDivElement>(null);
+  const { isMobile } = useIsMobile();
   
   const fetchData = useCallback(async () => { 
     const requisition = await RequisitionService.getById(Number(id_requisicao));
@@ -191,61 +197,95 @@ const RequisitionDetailPage = () => {
         </Grid>
         {/* Detalhes da requisição */}
         <Grid item xs={12} md={3}>
-          <Paper sx={{ p: 1, height: '100%', display: 'flex', flexDirection: 'column' }}>
-            <Typography
-              variant="subtitle1"
-              color="primary.main"
-              fontWeight={500}
-              mb={0.5}
-            >
-              Detalhes da requisição
-            </Typography>
-            <Divider sx={{ mb: 1 }} />
-            <Box sx={{ flex: 1, overflowY: 'auto' }}>
-              <RequisitionDetailsTable requisition={requisition} />
-            </Box>
-          </Paper>
+          {isMobile ? (
+            <Accordion defaultExpanded={false}>
+              <AccordionSummary expandIcon={<ExpandMoreIcon />}>
+                <Typography
+                  variant="subtitle1"
+                  color="primary.main"
+                  fontWeight={500}
+                >
+                  Detalhes da requisição
+                </Typography>
+              </AccordionSummary>
+              <AccordionDetails sx={{ p: 1 }}>
+                <RequisitionDetailsTable requisition={requisition} />
+              </AccordionDetails>
+            </Accordion>
+          ) : (
+            <Paper sx={{ p: 1, height: '100%', display: 'flex', flexDirection: 'column' }}>
+              <Typography
+                variant="subtitle1"
+                color="primary.main"
+                fontWeight={500}
+                mb={0.5}
+              >
+                Detalhes da requisição
+              </Typography>
+              <Divider sx={{ mb: 1 }} />
+              <Box sx={{ flex: 1, overflowY: 'auto' }}>
+                <RequisitionDetailsTable requisition={requisition} />
+              </Box>
+            </Paper>
+          )}
         </Grid>
         {/* Anexos, Comentários e Adicionar Itens */}
         <Grid item xs={12} md={6} sx={{ display: 'flex' }}>
           <Grid container spacing={1}>
             {/* Comentários */}
             <Grid item xs={12} md={6} sx={{ display: 'flex', flexDirection: 'column' }}>
-              <Paper
-                sx={{
-                  p: 1,
-                  height: '100%',
-                  display: "flex",
-                  flexDirection: "column",
-                }}
-              >
-                <Box sx={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-                  <Typography
-                    variant="subtitle1"
-                    color="primary.main"
-                    fontWeight={500}
-                    mb={0.5}
-                  >
-                    Comentários
-                  </Typography>
-                  <IconButton
-                    size="small"
-                    onClick={() => setFullScreenComments(true)}
-                    color="primary"
-                  >
-                    <FullscreenIcon fontSize="small"/>
-                  </IconButton>
-                </Box>
-                <Divider sx={{ mb: 1 }} />
-                <Box
+              {isMobile ? (
+                <Accordion defaultExpanded={false}>
+                  <AccordionSummary expandIcon={<ExpandMoreIcon />}>
+                    <Typography
+                      variant="subtitle1"
+                      color="primary.main"
+                      fontWeight={500}
+                    >
+                      Comentários
+                    </Typography>
+                  </AccordionSummary>
+                  <AccordionDetails sx={{ p: 1 }}>
+                    <RequisitionCommentList />
+                  </AccordionDetails>
+                </Accordion>
+              ) : (
+                <Paper
                   sx={{
-                    flex: 1,
-                    overflowY: "auto",
+                    p: 1,
+                    height: '100%',
+                    display: "flex",
+                    flexDirection: "column",
                   }}
                 >
-                  <RequisitionCommentList />
-                </Box>
-              </Paper>
+                  <Box sx={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+                    <Typography
+                      variant="subtitle1"
+                      color="primary.main"
+                      fontWeight={500}
+                      mb={0.5}
+                    >
+                      Comentários
+                    </Typography>
+                    <IconButton
+                      size="small"
+                      onClick={() => setFullScreenComments(true)}
+                      color="primary"
+                    >
+                      <FullscreenIcon fontSize="small"/>
+                    </IconButton>
+                  </Box>
+                  <Divider sx={{ mb: 1 }} />
+                  <Box
+                    sx={{
+                      flex: 1,
+                      overflowY: "auto",
+                    }}
+                  >
+                    <RequisitionCommentList />
+                  </Box>
+                </Paper>
+              )}
             </Grid>
             {/* Anexos */}
             <Grid item xs={12} md={6} sx={{ display: 'flex', flexDirection: 'column' }}>
@@ -285,30 +325,47 @@ const RequisitionDetailPage = () => {
           </Grid>
         </Grid>
 
-        {/* Timline/Histórico */}
+        {/* Timeline/Histórico */}
         <Grid item xs={12} md={3}>
-          <Paper sx={{ p: 1, height: '100%', display: 'flex', flexDirection: 'column' }}>
-            <Box sx={{ display: "flex", alignItems: "center", justifyContent: "space-between", mb: 0.5 }}>
-              <Typography
-                variant="subtitle1"
-                color="primary.main"
-                fontWeight={500}
-              >
-                Timeline / Histórico
-              </Typography>
-              <IconButton
-                size="small"
-                onClick={() => setFullScreenTimeline(true)}
-                color="primary"
-              >
-                <FullscreenIcon fontSize="small" />
-              </IconButton>
-            </Box>
-            <Divider sx={{ mb: 1 }} />
-            <Box sx={{ flex: 1, overflowY: 'auto' }}>
-              <RequisitionTimeline />
-            </Box>
-          </Paper>
+          {isMobile ? (
+            <Accordion defaultExpanded={false}>
+              <AccordionSummary expandIcon={<ExpandMoreIcon />}>
+                <Typography
+                  variant="subtitle1"
+                  color="primary.main"
+                  fontWeight={500}
+                >
+                  Timeline / Histórico
+                </Typography>
+              </AccordionSummary>
+              <AccordionDetails sx={{ p: 1 }}>
+                <RequisitionTimeline />
+              </AccordionDetails>
+            </Accordion>
+          ) : (
+            <Paper sx={{ p: 1, height: '100%', display: 'flex', flexDirection: 'column' }}>
+              <Box sx={{ display: "flex", alignItems: "center", justifyContent: "space-between", mb: 0.5 }}>
+                <Typography
+                  variant="subtitle1"
+                  color="primary.main"
+                  fontWeight={500}
+                >
+                  Timeline / Histórico
+                </Typography>
+                <IconButton
+                  size="small"
+                  onClick={() => setFullScreenTimeline(true)}
+                  color="primary"
+                >
+                  <FullscreenIcon fontSize="small" />
+                </IconButton>
+              </Box>
+              <Divider sx={{ mb: 1 }} />
+              <Box sx={{ flex: 1, overflowY: 'auto' }}>
+                <RequisitionTimeline />
+              </Box>
+            </Paper>
+          )}
         </Grid>
 
         {/* Tabela de Itens */}

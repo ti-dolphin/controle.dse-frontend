@@ -280,10 +280,12 @@ const RequisitionItemsTable = ({
   };
 
   const mobileColumns = () => {
-    const mobile = ["produto_descricao", "quantidade"];
-    const filtered = columns.filter((column) => mobile.includes(column.field));
+    const mobile = ["produto_descricao", "quantidade", "actions"];
+    const filtered = columns.filter((column) => mobile.includes(column.field) || isDinamicField?.(column.field));
     filtered.forEach((column) => {
-      column.minWidth = 160;
+      if (column.field !== "actions") {
+        column.minWidth = 160;
+      }
     });
     return filtered;
   };
