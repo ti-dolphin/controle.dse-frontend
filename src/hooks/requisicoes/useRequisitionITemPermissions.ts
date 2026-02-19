@@ -38,7 +38,7 @@ function isProjectManager(user: User | null, requisition: Requisition): boolean 
 
   return (
     Number(requisition?.gerente?.CODPESSOA) === Number(user?.CODPESSOA) &&
-    editionEnabledStatuses.includes(status)
+    (editionEnabledStatuses.includes(status) || (status === "aprovação diretoria" || status === "aprovação gerente"))
   )
 }
 
