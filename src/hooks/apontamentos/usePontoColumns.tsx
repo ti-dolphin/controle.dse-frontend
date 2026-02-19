@@ -2,32 +2,27 @@ import { GridColDef } from "@mui/x-data-grid";
 import { useMemo } from "react";
 import { useSelector } from "react-redux";
 import { RootState } from "../../redux/store";
-import CheckCircleIcon from "@mui/icons-material/CheckCircle";
-import CancelIcon from "@mui/icons-material/Cancel";
+import { Checkbox } from "@mui/material";
 import { TextHeader } from "../../components/TextHeader";
 
 const formatDate = (value: string | null) => {
   if (!value) return "";
-  const date = new Date(value);
-  return date.toLocaleDateString("pt-BR");
+  const [year, month, day] = String(value).split("T")[0].split("-");
+  return `${day}/${month}/${year}`;
 };
 
 const formatDateTime = (value: string | null) => {
   if (!value) return "";
-  const date = new Date(value);
-  return date.toLocaleString("pt-BR");
-};
-
-const BooleanCell = ({ value }: { value: boolean }) => {
-  return value ? (
-    <CheckCircleIcon sx={{ color: "green", fontSize: 18 }} />
-  ) : (
-    <CancelIcon sx={{ color: "red", fontSize: 18 }} />
-  );
+  const [datePart, timePart] = String(value).split("T");
+  const [year, month, day] = datePart.split("-");
+  if (!timePart) return `${day}/${month}/${year}`;
+  const time = timePart.replace("Z", "").split(".")[0];
+  return `${day}/${month}/${year} ${time}`;
 };
 
 export const usePontoColumns = (
-  handleChangeFilters: (event: React.ChangeEvent<HTMLInputElement>, field: string) => void
+  handleChangeFilters: (event: React.ChangeEvent<HTMLInputElement>, field: string) => void,
+  onToggleField?: (codapont: number, field: string, currentValue: boolean) => void
 ) => {
   const { filters } = useSelector((state: RootState) => state.pontoTable);
 
@@ -83,13 +78,51 @@ export const usePontoColumns = (
         ),
       },
       {
+        field: "NOME_CENTRO_CUSTO",
+        headerName: "Centro de Custo",
+        width: 200,
+        sortable: true,
+        renderHeader: () => (
+          <TextHeader
+            label="Centro de Custo"
+            field="NOME_CENTRO_CUSTO"
+            filters={filters}
+            handleChangeFilters={handleChangeFilters}
+          />
+        ),
+      },
+      {
+        field: "NOME_LIDER",
+        headerName: "Líder",
+        width: 180,
+        sortable: true,
+        renderHeader: () => (
+          <TextHeader
+            label="Líder"
+            field="NOME_LIDER"
+            filters={filters}
+            handleChangeFilters={handleChangeFilters}
+          />
+        ),
+      },
+      {
         field: "VERIFICADO",
         headerName: "Verificado",
         width: 90,
         sortable: true,
         align: "center",
         headerAlign: "center",
-        renderCell: (params: any) => <BooleanCell value={params.value} />,
+        renderCell: (params: any) => (
+          <Checkbox
+            checked={!!params.value}
+            size="small"
+            onClick={(e) => {
+              e.stopPropagation();
+              onToggleField?.(params.row.CODAPONT, "VERIFICADO", !!params.value);
+            }}
+            sx={{ padding: 0 }}
+          />
+        ),
       },
       {
         field: "PROBLEMA",
@@ -98,7 +131,17 @@ export const usePontoColumns = (
         sortable: true,
         align: "center",
         headerAlign: "center",
-        renderCell: (params: any) => <BooleanCell value={params.value} />,
+        renderCell: (params: any) => (
+          <Checkbox
+            checked={!!params.value}
+            size="small"
+            onClick={(e) => {
+              e.stopPropagation();
+              onToggleField?.(params.row.CODAPONT, "PROBLEMA", !!params.value);
+            }}
+            sx={{ padding: 0 }}
+          />
+        ),
       },
       {
         field: "AJUSTADO",
@@ -107,7 +150,17 @@ export const usePontoColumns = (
         sortable: true,
         align: "center",
         headerAlign: "center",
-        renderCell: (params: any) => <BooleanCell value={params.value} />,
+        renderCell: (params: any) => (
+          <Checkbox
+            checked={!!params.value}
+            size="small"
+            onClick={(e) => {
+              e.stopPropagation();
+              onToggleField?.(params.row.CODAPONT, "AJUSTADO", !!params.value);
+            }}
+            sx={{ padding: 0 }}
+          />
+        ),
       },
       {
         field: "DATA_HORA_MOTIVO",
@@ -130,8 +183,27 @@ export const usePontoColumns = (
           />
         ),
       },
+      {
+        field: "DATA_HORA_JUSTIFICATIVA",
+        headerName: "Data Justificativa",
+        width: 150,
+        sortable: true,
+        valueFormatter: (params: any) => formatDateTime(params),
+      },
+      {
+        field: "JUSTIFICADO_POR",
+        headerName: "Justificado por",
+        width: 150,
+        sortable: true,
+      },
+      {
+        field: "JUSTIFICATIVA",
+        headerName: "Justificativa",
+        width: 300,
+        sortable: true,
+      },
     ],
-    [filters, handleChangeFilters]
+    [filters, handleChangeFilters, onToggleField]
   );
 
   return { columns };

@@ -59,7 +59,32 @@ const PontoTab: React.FC = () => {
     [dispatch]
   );
 
-  const { columns: pontoColumns } = usePontoColumns(handleChangePontoFilters);
+  const handleTogglePontoField = useCallback(
+    async (codapont: number, field: string, currentValue: boolean) => {
+      try {
+        await NotesService.updatePontoField(codapont, field, !currentValue);
+        dispatch(
+          setPontoRows(
+            pontoRows.map((row) =>
+              row.CODAPONT === codapont
+                ? { ...row, [field]: !currentValue }
+                : row
+            )
+          )
+        );
+      } catch (e: any) {
+        dispatch(
+          setFeedback({
+            message: e.message || "Erro ao atualizar campo",
+            type: "error",
+          })
+        );
+      }
+    },
+    [dispatch, pontoRows]
+  );
+
+  const { columns: pontoColumns } = usePontoColumns(handleChangePontoFilters, handleTogglePontoField);
 
   const handleChangePontoSearchTerm = useCallback(
     (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -125,7 +150,7 @@ const PontoTab: React.FC = () => {
 
   const navigateToPontoDetails = useCallback(
     (params: any) => {
-      if (params.field === "actions") return;
+      if (params.field === "actions" || params.field === "VERIFICADO" || params.field === "PROBLEMA" || params.field === "AJUSTADO") return;
       changePontoSelectedRow(params.row);
     },
     [changePontoSelectedRow]

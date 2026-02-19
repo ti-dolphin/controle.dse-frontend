@@ -8,7 +8,9 @@ export interface PontoFilters {
   CODSTATUSAPONT: string;
   DESCRICAO_STATUS: string;
   CODCCUSTO: string;
+  NOME_CENTRO_CUSTO: string;
   CODLIDER: number | null;
+  NOME_LIDER: string;
   COMPETENCIA: number | null;
   DATA_DE: string;
   DATA_ATE: string;
@@ -44,7 +46,9 @@ const initialState: PontoTableState = {
     CODSTATUSAPONT: "",
     DESCRICAO_STATUS: "",
     CODCCUSTO: "",
+    NOME_CENTRO_CUSTO: "",
     CODLIDER: null,
+    NOME_LIDER: "",
     COMPETENCIA: null,
     DATA_DE: "",
     DATA_ATE: "",
@@ -98,7 +102,9 @@ const pontoTableSlice = createSlice({
         CODSTATUSAPONT: "",
         DESCRICAO_STATUS: "",
         CODCCUSTO: "",
+        NOME_CENTRO_CUSTO: "",
         CODLIDER: null,
+        NOME_LIDER: "",
         COMPETENCIA: null,
         DATA_DE: "",
         DATA_ATE: "",
