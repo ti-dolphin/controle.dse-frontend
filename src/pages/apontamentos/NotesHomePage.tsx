@@ -48,20 +48,7 @@ const NotesHomePage = () => {
           flexDirection: "column",
         }}
       >
-        <BaseToolBar transparent={false}>
-          <Box sx={{ display: "flex", gap: 2, alignItems: "center" }}>
-            <Box
-              sx={{
-                color: "white",
-                fontWeight: "bold",
-                fontSize: 16,
-                textTransform: "uppercase",
-              }}
-            >
-              Apontamentos
-            </Box>
-          </Box>
-        </BaseToolBar>
+   
 
         <Box sx={{ borderBottom: 1, borderColor: "divider", backgroundColor: "white" }}>
           <Tabs
