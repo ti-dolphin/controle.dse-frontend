@@ -34,7 +34,6 @@ const NotesHomePage = () => {
 
   const handleApontarDialogSuccess = () => {
     handleApontarDialogClose();
-    // Trigger refetch by switching tabs (force remount)
     setActiveTab(0);
   };
 
@@ -48,7 +47,6 @@ const NotesHomePage = () => {
           flexDirection: "column",
         }}
       >
-   
 
         <Box sx={{ borderBottom: 1, borderColor: "divider", backgroundColor: "white" }}>
           <Tabs

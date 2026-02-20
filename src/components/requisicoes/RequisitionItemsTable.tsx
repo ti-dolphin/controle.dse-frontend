@@ -511,6 +511,24 @@ const RequisitionItemsTable = ({
     setQuotesTotal(quotes);
   }
 
+  const getRowClassName = useCallback((params: any) => {
+    const item = params.row;
+    
+    if (quotesTotal.length === 0) {
+      return '';
+    }
+
+    if (!item.items_cotacao || item.items_cotacao.length === 0) {
+      return '';
+    }
+
+    const hasAnyPrice = item.items_cotacao.some(
+      (quoteItem: any) => quoteItem && quoteItem.preco_unitario > 0 && !quoteItem.indisponivel
+    );
+
+    return !hasAnyPrice ? 'item-without-quote' : '';
+  }, [quotesTotal]);
+
   const createQuoteFromSelectedItems = async () => {
     const quote: Quote = await QuoteService.create({
       id_requisicao: requisition.ID_REQUISICAO,
@@ -814,6 +832,12 @@ const RequisitionItemsTable = ({
           sx={{
             height: tableMaxHeight ? tableMaxHeight : "auto",
             overFlow: "scroll",
+            '& .item-without-quote': {
+              backgroundColor: '#ffebee !important',
+              '&:hover': {
+                backgroundColor: '#ffcdd2 !important',
+              },
+            },
           }}
         >
           <BaseDataTable
@@ -836,6 +860,7 @@ const RequisitionItemsTable = ({
             processRowUpdate={processRowUpdate}
             hideFooter={hideFooter}
             onCellKeyDown={handleCellKeyDown}
+            getRowClassName={getRowClassName}
           />
         </Box>
       )}

@@ -3,7 +3,7 @@ import { useDispatch, useSelector } from 'react-redux'
 import { RootState } from '../../redux/store';
 import QuoteService from '../../services/requisicoes/QuoteService';
 import { Quote } from '../../models/requisicoes/Quote';
-import { Box, IconButton, List, ListItem, ListItemButton, Stack, Typography } from '@mui/material';
+import { Box, IconButton, List, ListItem, ListItemButton, Stack, Typography, Select, MenuItem, FormControl, InputLabel } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
 import { formatCurrency } from '../../utils';
 import DeleteIcon from '@mui/icons-material/Delete';
@@ -22,6 +22,7 @@ const QuoteList = () => {
   const [quotes, setQuotes] = useState<Quote[]>([]);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState<boolean>(false);
   const [quoteIdToDelete, setQuoteIdToDelete] = useState<number>(0);
+  const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('asc');
 
   const handleOpenDeleteDialog = (id_cotacao: number) => {
     if(!permissionToDeleteQuote) { 
@@ -68,16 +69,35 @@ const QuoteList = () => {
         id_requisicao: requisition.ID_REQUISICAO
       });
 
-      setQuotes(data);
+      const sorted = [...data].sort((a, b) => {
+        const valueA = Number(a.valor_total || 0);
+        const valueB = Number(b.valor_total || 0);
+        return sortOrder === 'asc' ? valueA - valueB : valueB - valueA;
+      });
+
+      setQuotes(sorted);
     }
-  }, [requisition]);
+  }, [requisition, sortOrder]);
 
   useEffect(() => { 
     fetchData();
-  }, [requisition]);
+  }, [fetchData]);
 
   return (
     <Box sx={{ width: "100%", maxWidth: 360, p: 2, maxHeight: 500 }}>
+      <Box sx={{ mb: 2 }}>
+        <FormControl fullWidth size="small">
+          <InputLabel>Ordenar por preço</InputLabel>
+          <Select
+            value={sortOrder}
+            label="Ordenar por preço"
+            onChange={(e) => setSortOrder(e.target.value as 'asc' | 'desc')}
+          >
+            <MenuItem value="asc">Menor para Maior</MenuItem>
+            <MenuItem value="desc">Maior para Menor</MenuItem>
+          </Select>
+        </FormControl>
+      </Box>
       <nav aria-label="main mailbox folders">
         <List sx={{ display: "flex", flexDirection: "column", gap: 1 }}>
           {quotes.map((quote, index) => {

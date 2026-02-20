@@ -392,6 +392,41 @@ export const useRequisitionItemColumns = (
       ),
     },
     {
+      field: "melhor_preco",
+      headerName: "Melhor Preço",
+      type: "number",
+      minWidth: 120,
+      sortable: true,
+      valueGetter: (value: any, row: any) => {
+        if (!row.items_cotacao || row.items_cotacao.length === 0) {
+          return null;
+        }
+        const prices = row.items_cotacao
+          .filter((item: any) => item && item.preco_unitario > 0 && !item.indisponivel)
+          .map((item: any) => Number(item.preco_unitario));
+        
+        return prices.length > 0 ? Math.min(...prices) : null;
+      },
+      renderCell: (params) => {
+        const price = params.value;
+        if (price === null || price === undefined) {
+          return (
+            <Typography fontSize="small" color="text.secondary">
+              -
+            </Typography>
+          );
+        }
+        return (
+          <Typography fontSize="small" fontWeight="bold" color="success.main">
+            {new Intl.NumberFormat('pt-BR', {
+              style: 'currency',
+              currency: 'BRL'
+            }).format(price)}
+          </Typography>
+        );
+      },
+    },
+    {
       field: "actions",
       headerName: "Ações",
       type: "actions",
