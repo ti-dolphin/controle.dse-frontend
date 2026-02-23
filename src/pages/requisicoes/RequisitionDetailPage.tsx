@@ -446,7 +446,7 @@ const RequisitionDetailPage = () => {
                 }
               </Stack>
 
-              <Box sx={{ display: "flex", flexDirection: "row", gap: 1 }}>
+              <Box sx={{ display: "flex", flexDirection: "row", gap: 2, alignItems: "center" }}>
                 <Typography variant="subtitle2" color="primary.main">
                   Itens:{" "}
                   {formatCurrency(Number(requisition.custo_total_itens || 0))}
@@ -458,6 +458,25 @@ const RequisitionDetailPage = () => {
                 <Typography variant="subtitle2" color="success.main">
                   Custo total:{" "}
                   {formatCurrency(Number(requisition.custo_total || 0))}
+                </Typography>
+              </Box>
+              {/* Legenda */}
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mt: 1 }}>
+                <Typography variant="caption" color="text.secondary" fontWeight={600}>
+                  Legenda:
+                </Typography>
+                <Box
+                  sx={{
+                    width: 12,
+                    height: 12,
+                    borderRadius: '50%',
+                    bgcolor: 'error.main',
+                    display: 'inline-block',
+                    mr: 0.5,
+                  }}
+                />
+                <Typography variant="caption" color="error.main" fontWeight={600}>
+                  Itens sem cotação
                 </Typography>
               </Box>
             </Stack>
@@ -611,11 +630,26 @@ const RequisitionDetailPage = () => {
                   Cotações
                 </Button>
               )}
-              <Box ml="auto">
+              <Box ml="auto" display="flex" alignItems="center" gap={2}>
                 <Typography variant="subtitle2" color="success.main">
                   Custo total:{" "}
                   {formatCurrency(Number(requisition.custo_total || 0))}
                 </Typography>
+                <Box display="flex" alignItems="center" gap={1}>
+                  <Box
+                    sx={{
+                      width: 12,
+                      height: 12,
+                      borderRadius: '50%',
+                      bgcolor: 'error.main',
+                      display: 'inline-block',
+                      mr: 0.5,
+                    }}
+                  />
+                  <Typography variant="subtitle2" color="error.main" fontWeight={600}>
+                    Itens sem cotação
+                  </Typography>
+                </Box>
               </Box>
             </Stack>
           </Stack>
