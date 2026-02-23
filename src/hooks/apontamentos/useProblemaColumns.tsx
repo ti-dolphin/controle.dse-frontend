@@ -8,8 +8,8 @@ import { TextHeader } from "../../components/TextHeader";
 
 const formatDate = (value: string | null) => {
   if (!value) return "";
-  const date = new Date(value);
-  return date.toLocaleDateString("pt-BR");
+  const [year, month, day] = String(value).split("T")[0].split("-");
+  return `${day}/${month}/${year}`;
 };
 
 const BooleanCell = ({ value }: { value: boolean }) => {

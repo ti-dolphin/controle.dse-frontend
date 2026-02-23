@@ -392,6 +392,41 @@ export const useRequisitionItemColumns = (
       ),
     },
     {
+      field: "melhor_preco",
+      headerName: "Melhor Preço",
+      type: "number",
+      minWidth: 120,
+      sortable: true,
+      valueGetter: (value: any, row: any) => {
+        if (!row.items_cotacao || row.items_cotacao.length === 0) {
+          return null;
+        }
+        const prices = row.items_cotacao
+          .filter((item: any) => item && item.preco_unitario > 0 && !item.indisponivel)
+          .map((item: any) => Number(item.preco_unitario));
+        
+        return prices.length > 0 ? Math.min(...prices) : null;
+      },
+      renderCell: (params) => {
+        const price = params.value;
+        if (price === null || price === undefined) {
+          return (
+            <Typography fontSize="small" color="text.secondary">
+              -
+            </Typography>
+          );
+        }
+        return (
+          <Typography fontSize="small" fontWeight="bold" color="success.main">
+            {new Intl.NumberFormat('pt-BR', {
+              style: 'currency',
+              currency: 'BRL'
+            }).format(price)}
+          </Typography>
+        );
+      },
+    },
+    {
       field: "actions",
       headerName: "Ações",
       type: "actions",
@@ -508,6 +543,14 @@ export const useRequisitionItemColumns = (
       const colsWithRenderCell = rawCols.map((col: GridColDef) => ({
         ...col,
         editable: true,
+        // Permite ordenação correta pelo valor numérico do preço cotado
+        valueGetter: (value: any, row: any) => {
+          if (!row) return null;
+          const quoteItem = row.items_cotacao?.find(
+            (item: QuoteItem) => Number(item.id_cotacao) === Number(col.field)
+          );
+          return quoteItem && !quoteItem.indisponivel ? Number(quoteItem.preco_unitario) : null;
+        },
         renderCell: (params: any) => {
           const { id_item_requisicao } = params.row;
           const quoteItem = params.row.items_cotacao.find(
@@ -563,7 +606,7 @@ export const useRequisitionItemColumns = (
           );
         },
         minWidth: 200,
-        sortable: false,
+        sortable: true,
         renderHeader: (params: any) => {
           return (
             <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>

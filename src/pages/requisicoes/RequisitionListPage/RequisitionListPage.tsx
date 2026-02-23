@@ -11,6 +11,8 @@ import {
   clearfilters,
   setRequisitionBeingDeletedId,
   removeRow,
+  setDoneReqFilter,
+  setCancelledReqFilter,
 } from "../../../redux/slices/requisicoes/requisitionTableSlice";
 import { setFeedback } from "../../../redux/slices/feedBackSlice";
 import RequisitionService from "../../../services/requisicoes/RequisitionService";
@@ -43,8 +45,6 @@ import NotificationBell from "../../../components/requisicoes/NotificationBell";
 const RequisitionListPage = () => {
     useRequisitionKanban();
     const [triggerFetch, setTriggerFetch] = useState(0);
-    const [doneReqFilter, setDoneReqFilter] = useState(false);
-    const [cancelledReqFilter, setCancelledReqFilter] = useState(false);
     const dispatch = useDispatch();
     const theme = useTheme();
     const user = useSelector((state: RootState) => state.user.user);
@@ -59,6 +59,8 @@ const RequisitionListPage = () => {
       kanbans,
       selectedKanban,
       requisitionBeingDeletedId,
+      doneReqFilter,
+      cancelledReqFilter,
     } = useSelector((state: RootState) => state.requisitionTable);
 
     const {isMobile } = useIsMobile();
@@ -144,8 +146,16 @@ const RequisitionListPage = () => {
 
     const handleCleanFilter = () => { 
       dispatch(clearfilters());
-      setDoneReqFilter(false);
-      setCancelledReqFilter(false);
+    };
+
+    const handleFilterConcluidos = (e: React.ChangeEvent<HTMLInputElement>) => {
+      const checked = e.target.checked;
+      dispatch(setDoneReqFilter(checked));
+    };
+
+    const handleFilterCancelados = (e: React.ChangeEvent<HTMLInputElement>) => {
+      const checked = e.target.checked;
+      dispatch(setCancelledReqFilter(checked));
     };
 
     const debouncedHandleChangeSearchTerm = useMemo(() => {
@@ -199,15 +209,6 @@ const RequisitionListPage = () => {
       doneReqFilter,
       cancelledReqFilter,
     ]);
-
-    const handleFilterConcluidos = (e: React.ChangeEvent<HTMLInputElement>) => {
-      const checked = e.target.checked;
-      setDoneReqFilter(checked);
-    };
-    const handleFilterCancelados = (e: React.ChangeEvent<HTMLInputElement>) => {
-      const checked = e.target.checked;
-      setCancelledReqFilter(checked);
-    };
 
   return (
     <Box sx={{ height: "100vh", width: "100%" }}>

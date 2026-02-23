@@ -9,14 +9,16 @@ import CancelIcon from "@mui/icons-material/Cancel";
 
 const getWeekDay = (dateString: string): string => {
   if (!dateString) return "-";
-  const date = new Date(dateString);
+  const [year, month, day] = String(dateString).split("T")[0].split("-").map(Number);
+  const date = new Date(year, month - 1, day);
   const days = ["domingo", "segunda-feira", "terça-feira", "quarta-feira", "quinta-feira", "sexta-feira", "sábado"];
   return days[date.getDay()];
 };
 
 const formatDate = (dateString: string): string => {
   if (!dateString) return "-";
-  return new Date(dateString).toLocaleDateString("pt-BR");
+  const [year, month, day] = String(dateString).split("T")[0].split("-");
+  return `${day}/${month}/${year}`;
 };
 
 const getSituacaoLabel = (situacao: string): string => {

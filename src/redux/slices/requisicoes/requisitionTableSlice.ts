@@ -30,7 +30,7 @@ export interface RequisitionFilters {
   tipo: string;
   custo_total: number | null;
   responsavel_projeto: string;
-  // data_criacao: string;
+  comprador: string;
 }
 interface RequisitionTableState {
   rows: Requisition[];
@@ -41,7 +41,9 @@ interface RequisitionTableState {
   selectedKanban: RequisitionKanban | null;
   searchTerm: string;
   filters: RequisitionFilters;
-  requisitionBeingDeletedId: number | null; // New state to track deletion
+  requisitionBeingDeletedId: number | null;
+  doneReqFilter: boolean;
+  cancelledReqFilter: boolean;
 }
 
 const initialState: RequisitionTableState = {
@@ -64,9 +66,11 @@ const initialState: RequisitionTableState = {
     tipo: "",
     custo_total: null,
     responsavel_projeto: "",
-    // data_criacao: "",
+    comprador: "",
   },
-  requisitionBeingDeletedId: null, // Initialize with null
+  requisitionBeingDeletedId: null,
+  doneReqFilter: false,
+  cancelledReqFilter: false,
 };
 
 const requisitionTableSlice = createSlice({
@@ -101,7 +105,13 @@ const requisitionTableSlice = createSlice({
       state.filters = action.payload;
     },
     setRequisitionBeingDeletedId(state, action: PayloadAction<number | null>) {
-      state.requisitionBeingDeletedId = action.payload; // New reducer to set the deletion ID
+      state.requisitionBeingDeletedId = action.payload;
+    },
+    setDoneReqFilter(state, action: PayloadAction<boolean>) {
+      state.doneReqFilter = action.payload;
+    },
+    setCancelledReqFilter(state, action: PayloadAction<boolean>) {
+      state.cancelledReqFilter = action.payload;
     },
     clearfilters(state) {
       state.filters = {
@@ -116,8 +126,10 @@ const requisitionTableSlice = createSlice({
         tipo: "",
         custo_total: null,
         responsavel_projeto: "",
-        // data_criacao: "",
+        comprador: "",
       };
+      state.doneReqFilter = false;
+      state.cancelledReqFilter = false;
     },
     clearRows(state) {
       state.rows = [];
@@ -138,7 +150,9 @@ export const {
   setSearchTerm,
   clearfilters,
   setFilters,
-  setRequisitionBeingDeletedId, // Export the new action
+  setRequisitionBeingDeletedId,
   removeRow,
+  setDoneReqFilter,
+  setCancelledReqFilter,
 } = requisitionTableSlice.actions;
 export default requisitionTableSlice.reducer;

@@ -73,7 +73,9 @@ const NotesService = {
             if (params.filters.CODSTATUSAPONT) queryParams.CODSTATUSAPONT = params.filters.CODSTATUSAPONT;
             if (params.filters.DESCRICAO_STATUS) queryParams.DESCRICAO_STATUS = params.filters.DESCRICAO_STATUS;
             if (params.filters.CODCCUSTO) queryParams.CODCCUSTO = params.filters.CODCCUSTO;
+            if (params.filters.NOME_CENTRO_CUSTO) queryParams.NOME_CENTRO_CUSTO = params.filters.NOME_CENTRO_CUSTO;
             if (params.filters.CODLIDER) queryParams.CODLIDER = params.filters.CODLIDER;
+            if (params.filters.NOME_LIDER) queryParams.NOME_LIDER = params.filters.NOME_LIDER;
             if (params.filters.COMPETENCIA) queryParams.COMPETENCIA = params.filters.COMPETENCIA;
             if (params.filters.DATA_DE) queryParams.DATA_DE = params.filters.DATA_DE;
             if (params.filters.DATA_ATE) queryParams.DATA_ATE = params.filters.DATA_ATE;
@@ -163,6 +165,11 @@ const NotesService = {
         updateOnlyEmptyStatus?: boolean;
     }) => {
         const response = await api.put('/notes/batch', { codaponts, ...data });
+        return response.data;
+    },
+
+    updatePontoField: async (codapont: number, field: string, value: boolean) => {
+        const response = await api.patch(`/notes/ponto/${codapont}`, { field, value });
         return response.data;
     }
 };
