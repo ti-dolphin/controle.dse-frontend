@@ -543,6 +543,14 @@ export const useRequisitionItemColumns = (
       const colsWithRenderCell = rawCols.map((col: GridColDef) => ({
         ...col,
         editable: true,
+        // Permite ordenação correta pelo valor numérico do preço cotado
+        valueGetter: (value: any, row: any) => {
+          if (!row) return null;
+          const quoteItem = row.items_cotacao?.find(
+            (item: QuoteItem) => Number(item.id_cotacao) === Number(col.field)
+          );
+          return quoteItem && !quoteItem.indisponivel ? Number(quoteItem.preco_unitario) : null;
+        },
         renderCell: (params: any) => {
           const { id_item_requisicao } = params.row;
           const quoteItem = params.row.items_cotacao.find(
@@ -598,7 +606,7 @@ export const useRequisitionItemColumns = (
           );
         },
         minWidth: 200,
-        sortable: false,
+        sortable: true,
         renderHeader: (params: any) => {
           return (
             <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
