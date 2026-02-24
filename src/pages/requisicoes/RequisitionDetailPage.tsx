@@ -49,7 +49,7 @@ const RequisitionDetailPage = () => {
   const user = useSelector((state: RootState) => state.user.user);
   const {addingProducts, updatingRecentProductsQuantity} = useSelector((state: RootState) => state.requisitionItem);
   const {id_requisicao} = useParams();
-  const { recentProductsAdded, replacingItemProduct, itemBeingReplaced, productSelected, refresh } = useSelector((state: RootState) => state.requisitionItem);
+  const { recentProductsAdded, replacingItemProduct, itemBeingReplaced, productSelected, refresh, items } = useSelector((state: RootState) => state.requisitionItem);
   const {requisition, refreshRequisition} = useSelector((state: RootState) => state.requisition);
   const [quoteListOpen, setQuoteListOpen] = useState<boolean>(false);
   const [buyerDialogOpen, setBuyerDialogOpen] = useState<boolean>(false);
@@ -173,6 +173,25 @@ const RequisitionDetailPage = () => {
     return statusList.includes((requisition.status.nome ?? "").toLowerCase());
   }
 
+  const hasItemsWithoutQuote = () => {
+    if (!items || items.length === 0) {
+      return false;
+    }
+
+    return items.some((item: any) => {
+
+      if (!item.items_cotacao || item.items_cotacao.length === 0) {
+        return false;
+      }
+
+      const hasAnyPrice = item.items_cotacao.some(
+        (quoteItem: any) => quoteItem && quoteItem.preco_unitario > 0 && !quoteItem.indisponivel
+      );
+
+      return !hasAnyPrice; 
+    });
+  }
+
   useEffect(() => {
     if (id_requisicao) {
       fetchData();
@@ -237,14 +256,21 @@ const RequisitionDetailPage = () => {
                 </Typography>
               </AccordionSummary>
               <AccordionDetails sx={{ p: 1 }}>
-                <RequisitionDetailsTable 
-                  requisition={requisition} 
+                <RequisitionDetailsTable
+                  requisition={requisition}
                   onBuyerDoubleClick={handleOpenBuyerDialog}
                 />
               </AccordionDetails>
             </Accordion>
           ) : (
-            <Paper sx={{ p: 1, height: '100%', display: 'flex', flexDirection: 'column' }}>
+            <Paper
+              sx={{
+                p: 1,
+                height: "100%",
+                display: "flex",
+                flexDirection: "column",
+              }}
+            >
               <Typography
                 variant="subtitle1"
                 color="primary.main"
@@ -254,9 +280,9 @@ const RequisitionDetailPage = () => {
                 Detalhes da requisição
               </Typography>
               <Divider sx={{ mb: 1 }} />
-              <Box sx={{ flex: 1, overflowY: 'auto' }}>
-                <RequisitionDetailsTable 
-                  requisition={requisition} 
+              <Box sx={{ flex: 1, overflowY: "auto" }}>
+                <RequisitionDetailsTable
+                  requisition={requisition}
                   onBuyerDoubleClick={handleOpenBuyerDialog}
                 />
               </Box>
@@ -264,10 +290,15 @@ const RequisitionDetailPage = () => {
           )}
         </Grid>
         {/* Anexos, Comentários e Adicionar Itens */}
-        <Grid item xs={12} md={6} sx={{ display: 'flex' }}>
+        <Grid item xs={12} md={6} sx={{ display: "flex" }}>
           <Grid container spacing={1}>
             {/* Comentários */}
-            <Grid item xs={12} md={6} sx={{ display: 'flex', flexDirection: 'column' }}>
+            <Grid
+              item
+              xs={12}
+              md={6}
+              sx={{ display: "flex", flexDirection: "column" }}
+            >
               {isMobile ? (
                 <Accordion defaultExpanded={false}>
                   <AccordionSummary expandIcon={<ExpandMoreIcon />}>
@@ -287,12 +318,18 @@ const RequisitionDetailPage = () => {
                 <Paper
                   sx={{
                     p: 1,
-                    height: '100%',
+                    height: "100%",
                     display: "flex",
                     flexDirection: "column",
                   }}
                 >
-                  <Box sx={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+                  <Box
+                    sx={{
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "space-between",
+                    }}
+                  >
                     <Typography
                       variant="subtitle1"
                       color="primary.main"
@@ -306,7 +343,7 @@ const RequisitionDetailPage = () => {
                       onClick={() => setFullScreenComments(true)}
                       color="primary"
                     >
-                      <FullscreenIcon fontSize="small"/>
+                      <FullscreenIcon fontSize="small" />
                     </IconButton>
                   </Box>
                   <Divider sx={{ mb: 1 }} />
@@ -322,16 +359,27 @@ const RequisitionDetailPage = () => {
               )}
             </Grid>
             {/* Anexos */}
-            <Grid item xs={12} md={6} sx={{ display: 'flex', flexDirection: 'column' }}>
+            <Grid
+              item
+              xs={12}
+              md={6}
+              sx={{ display: "flex", flexDirection: "column" }}
+            >
               <Paper
                 sx={{
                   p: 1,
-                  height: '100%',
+                  height: "100%",
                   display: "flex",
                   flexDirection: "column",
                 }}
               >
-                <Box sx={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+                <Box
+                  sx={{
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "space-between",
+                  }}
+                >
                   <Typography
                     variant="subtitle1"
                     color="primary.main"
@@ -377,8 +425,22 @@ const RequisitionDetailPage = () => {
               </AccordionDetails>
             </Accordion>
           ) : (
-            <Paper sx={{ p: 1, height: '100%', display: 'flex', flexDirection: 'column' }}>
-              <Box sx={{ display: "flex", alignItems: "center", justifyContent: "space-between", mb: 0.5 }}>
+            <Paper
+              sx={{
+                p: 1,
+                height: "100%",
+                display: "flex",
+                flexDirection: "column",
+              }}
+            >
+              <Box
+                sx={{
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "space-between",
+                  mb: 0.5,
+                }}
+              >
                 <Typography
                   variant="subtitle1"
                   color="primary.main"
@@ -395,7 +457,7 @@ const RequisitionDetailPage = () => {
                 </IconButton>
               </Box>
               <Divider sx={{ mb: 1 }} />
-              <Box sx={{ flex: 1, overflowY: 'auto' }}>
+              <Box sx={{ flex: 1, overflowY: "auto" }}>
                 <RequisitionTimeline />
               </Box>
             </Paper>
@@ -434,8 +496,7 @@ const RequisitionDetailPage = () => {
                     Adicionar Itens
                   </Button>
                 )}
-                {
-                  shouldShowQuoteListButton() &&
+                {shouldShowQuoteListButton() && (
                   <Button
                     onClick={() => setQuoteListOpen(true)}
                     variant="contained"
@@ -443,10 +504,17 @@ const RequisitionDetailPage = () => {
                   >
                     Cotações
                   </Button>
-                }
+                )}
               </Stack>
 
-              <Box sx={{ display: "flex", flexDirection: "row", gap: 2, alignItems: "center" }}>
+              <Box
+                sx={{
+                  display: "flex",
+                  flexDirection: "row",
+                  gap: 2,
+                  alignItems: "center",
+                }}
+              >
                 <Typography variant="subtitle2" color="primary.main">
                   Itens:{" "}
                   {formatCurrency(Number(requisition.custo_total_itens || 0))}
@@ -461,24 +529,36 @@ const RequisitionDetailPage = () => {
                 </Typography>
               </Box>
               {/* Legenda */}
-              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mt: 1 }}>
-                <Typography variant="caption" color="text.secondary" fontWeight={600}>
-                  Legenda:
-                </Typography>
+              {hasItemsWithoutQuote() && (
                 <Box
-                  sx={{
-                    width: 12,
-                    height: 12,
-                    borderRadius: '50%',
-                    bgcolor: 'error.main',
-                    display: 'inline-block',
-                    mr: 0.5,
-                  }}
-                />
-                <Typography variant="caption" color="error.main" fontWeight={600}>
-                  Itens sem cotação
-                </Typography>
-              </Box>
+                  sx={{ display: "flex", alignItems: "center", gap: 1, mt: 1 }}
+                >
+                  <Typography
+                    variant="caption"
+                    color="text.secondary"
+                    fontWeight={600}
+                  >
+                    Legenda:
+                  </Typography>
+                  <Box
+                    sx={{
+                      width: 12,
+                      height: 12,
+                      borderRadius: "50%",
+                      bgcolor: "error.main",
+                      display: "inline-block",
+                      mr: 0.5,
+                    }}
+                  />
+                  <Typography
+                    variant="caption"
+                    color="error.main"
+                    fontWeight={600}
+                  >
+                    Itens sem cotação
+                  </Typography>
+                </Box>
+              )}
             </Stack>
 
             <Divider sx={{ mb: 1 }} />
@@ -490,7 +570,10 @@ const RequisitionDetailPage = () => {
       </Grid>
       {/* Dialog para buscar os produtos, selecionar e adicioná-los aos itens da requisição */}
       <Dialog
-        open={(addingProducts || replacingItemProduct) && requisition?.tipo_faturamento != null} //o modal será aberto se estiver sendo feita substituição ou adição de produtos E se o tipo de faturamento já foi carregado
+        open={
+          (addingProducts || replacingItemProduct) &&
+          requisition?.tipo_faturamento != null
+        } //o modal será aberto se estiver sendo feita substituição ou adição de produtos E se o tipo de faturamento já foi carregado
         onClose={handleClose}
         maxWidth="lg"
         fullWidth
@@ -510,9 +593,13 @@ const RequisitionDetailPage = () => {
           </Typography>
         </DialogTitle>
         <DialogContent>
-          {(addingProducts || replacingItemProduct) && requisition?.tipo_faturamento != null && (
-            <ProductsTable tipoFaturamento={requisition.tipo_faturamento} fromReq={true} />
-          )}
+          {(addingProducts || replacingItemProduct) &&
+            requisition?.tipo_faturamento != null && (
+              <ProductsTable
+                tipoFaturamento={requisition.tipo_faturamento}
+                fromReq={true}
+              />
+            )}
         </DialogContent>
         <DialogActions>
           {addingProducts && recentProductsAdded.length > 0 && (
@@ -635,21 +722,27 @@ const RequisitionDetailPage = () => {
                   Custo total:{" "}
                   {formatCurrency(Number(requisition.custo_total || 0))}
                 </Typography>
-                <Box display="flex" alignItems="center" gap={1}>
-                  <Box
-                    sx={{
-                      width: 12,
-                      height: 12,
-                      borderRadius: '50%',
-                      bgcolor: 'error.main',
-                      display: 'inline-block',
-                      mr: 0.5,
-                    }}
-                  />
-                  <Typography variant="subtitle2" color="error.main" fontWeight={600}>
-                    Itens sem cotação
-                  </Typography>
-                </Box>
+                {hasItemsWithoutQuote() && (
+                  <Box display="flex" alignItems="center" gap={1}>
+                    <Box
+                      sx={{
+                        width: 12,
+                        height: 12,
+                        borderRadius: "50%",
+                        bgcolor: "error.main",
+                        display: "inline-block",
+                        mr: 0.5,
+                      }}
+                    />
+                    <Typography
+                      variant="subtitle2"
+                      color="error.main"
+                      fontWeight={600}
+                    >
+                      Itens sem cotação
+                    </Typography>
+                  </Box>
+                )}
               </Box>
             </Stack>
           </Stack>
@@ -722,7 +815,10 @@ const RequisitionDetailPage = () => {
           ref={fullScreenAttachmentsContainer}
           sx={{ background: "background.default" }}
         >
-          <RequisitionAttachmentList id_requisicao={Number(id_requisicao)} fullScreen={true} />
+          <RequisitionAttachmentList
+            id_requisicao={Number(id_requisicao)}
+            fullScreen={true}
+          />
         </DialogContent>
       </Dialog>
       {/* Dialog tela cheia comentários */}
@@ -762,7 +858,7 @@ const RequisitionDetailPage = () => {
         currentBuyerId={requisition?.id_comprador}
       />
     </Box>
-  );
+  )
 };
 
 export default RequisitionDetailPage;
