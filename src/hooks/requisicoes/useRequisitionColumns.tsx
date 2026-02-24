@@ -187,7 +187,7 @@ export function useRequisitionColumns(
         headerName: "Projeto",
         width: projectColumnWidth,
         valueGetter: (project: Project) => {
-          return project.DESCRICAO;
+          return project?.DESCRICAO || '';
         },
         renderHeader: () => (
           <TextHeader
@@ -203,7 +203,7 @@ export function useRequisitionColumns(
         headerName: "Requisitante",
         width: requisitanteColumnWidth,
         valueGetter: (user: ReducedUser) => {
-          return user.NOME || '';
+          return user?.NOME || '';
         },
         renderHeader: () => (
           <TextHeader
@@ -219,7 +219,7 @@ export function useRequisitionColumns(
         headerName: "Gerente",
         width: gerenteColumnWidth,
         valueGetter: (user: ReducedUser) => {
-          return user.NOME || '';
+          return user?.NOME || '';
         },
         renderHeader: () => (
           <TextHeader
@@ -235,7 +235,7 @@ export function useRequisitionColumns(
         headerName: "Responsável Projeto",
         width: responsavelProjetoColumnWidth,
         valueGetter: (user: ReducedUser) => {
-          return user.NOME || '';
+          return user?.NOME || '';
         },
         renderHeader: () => (
           <TextHeader
@@ -366,7 +366,7 @@ export function useRequisitionColumns(
         headerName: "Criado por",
         width: criadoPorColumnWidth,
         valueGetter: (user: ReducedUser) => {
-          return user.NOME || '';
+          return user?.NOME || '';
         },
       },
       {
@@ -374,7 +374,7 @@ export function useRequisitionColumns(
         headerName: "Alterado por",
         width: alteradoPorColumnWidth,
         valueGetter: (user: ReducedUser) => {
-          return user.NOME || '';
+          return user?.NOME || '';
         },
       },
       {
@@ -405,7 +405,7 @@ export function useRequisitionColumns(
         headerName: "Gerente",
         width: gerenteColumnWidth,
         valueGetter: (user: ReducedUser) => {
-          return user.NOME || '';
+          return user?.NOME || '';
         },
       },
     ],
