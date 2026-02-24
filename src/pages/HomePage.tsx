@@ -29,12 +29,12 @@ const modules = [
     path: "/oportunidades",
     description: "Gerenciamneto e acompanhamento de Projetos",
   },
-  // {
-  //   name: "Apontamentos",
-  //   image: apontamentos,
-  //   path: "/apontamentos",
-  //   description: "Controle e registro de horas trabalhadas",
-  // },
+  {
+    name: "Apontamentos",
+    image: apontamentos,
+    path: "/apontamentos",
+    description: "Controle e registro de horas trabalhadas",
+  },
 ]
 
 const HomePage = () => {
