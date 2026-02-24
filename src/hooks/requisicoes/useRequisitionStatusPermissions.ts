@@ -34,7 +34,7 @@ export const useRequisitionStatusPermissions = (user: User | null, requisition: 
         setPermissionToActivate(true);
       }
 
-      if ((admOrBuyer || gerente) && notCancelled) {
+      if ((admOrBuyer || gerente || director) && notCancelled) {
         setPermissionToCancel(true);
       }
       if (user && requisition.ID_REQUISICAO > 0) {

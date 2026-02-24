@@ -17,6 +17,7 @@ import { RootState } from "../../redux/store";
 import FullscreenIcon from "@mui/icons-material/Fullscreen";
 import UpperNavigation from "../../components/shared/UpperNavigation";
 import { QuoteFileService } from "../../services/requisicoes/QuoteFileService";
+import { formatCurrency } from "../../utils";
 
 const QuoteDetailPage = () => {
   const dispatch = useDispatch();
@@ -203,6 +204,31 @@ const QuoteDetailPage = () => {
                 <FullscreenIcon />
               </IconButton>
             </Stack>
+            
+            <Box
+              sx={{
+                display: "flex",
+                flexDirection: "row",
+                gap: 2,
+                alignItems: "center",
+                mt: 2,
+                mb: 1,
+              }}
+            >
+              <Typography variant="subtitle2" color="primary.main">
+                Itens:{" "}
+                {formatCurrency(Number((quote?.valor_total || 0) - (quote?.valor_frete || 0)))}
+              </Typography>
+              <Typography variant="subtitle2" color="primary.main">
+                Fretes:{" "}
+                {formatCurrency(Number(quote?.valor_frete || 0))}
+              </Typography>
+              <Typography variant="subtitle2" color="success.main">
+                Custo total:{" "}
+                {formatCurrency(Number(quote?.valor_total || 0))}
+              </Typography>
+            </Box>
+            
             <QuoteItemsTable hideFooter={false} tableMaxHeight={400} />
           </Paper>
         </Grid>
@@ -225,6 +251,28 @@ const QuoteDetailPage = () => {
             >
               Fechar
             </Button>
+            <Box
+              sx={{
+                display: "flex",
+                flexDirection: "row",
+                gap: 2,
+                alignItems: "center",
+                ml: "auto",
+              }}
+            >
+              <Typography variant="subtitle2" color="primary.main">
+                Itens:{" "}
+                {formatCurrency(Number((quote?.valor_total || 0) - (quote?.valor_frete || 0)))}
+              </Typography>
+              <Typography variant="subtitle2" color="primary.main">
+                Fretes:{" "}
+                {formatCurrency(Number(quote?.valor_frete || 0))}
+              </Typography>
+              <Typography variant="subtitle2" color="success.main">
+                Custo total:{" "}
+                {formatCurrency(Number(quote?.valor_total || 0))}
+              </Typography>
+            </Box>
           </Stack>
         </DialogTitle>
         <QuoteItemsTable hideFooter={false} tableMaxHeight={600} />
