@@ -1,11 +1,12 @@
 import { GridColDef, GridRenderCellParams } from "@mui/x-data-grid";
-import { Box, Typography, Chip } from "@mui/material";
+import { Box, Typography, Chip, IconButton, Tooltip } from "@mui/material";
 import { useMemo } from "react";
 import { useSelector } from "react-redux";
 import { RootState } from "../../redux/store";
 import { TextHeader } from "../../components/TextHeader";
 import CheckCircleIcon from "@mui/icons-material/CheckCircle";
 import CancelIcon from "@mui/icons-material/Cancel";
+import CommentIcon from "@mui/icons-material/Comment";
 
 const getWeekDay = (dateString: string): string => {
   if (!dateString) return "-";
@@ -37,7 +38,8 @@ const getSituacaoLabel = (situacao: string): string => {
 };
 
 export function useNotesColumns(
-  handleChangeFilters: (event: React.ChangeEvent<HTMLInputElement>, field: string) => void
+  handleChangeFilters: (event: React.ChangeEvent<HTMLInputElement>, field: string) => void,
+  onCommentClick?: (codapont: number) => void
 ) {
   const { filters } = useSelector((state: RootState) => state.notesTable);
 
@@ -219,8 +221,33 @@ export function useNotesColumns(
         headerName: "Modificado",
         width: 120,
       },
+      {
+        field: "actions",
+        headerName: "Ações",
+        width: 80,
+        align: "center",
+        headerAlign: "center",
+        sortable: false,
+        filterable: false,
+        renderCell: (params: GridRenderCellParams) => (
+          <Tooltip title="Comentários">
+            <IconButton
+              size="small"
+              onClick={(e) => {
+                e.stopPropagation();
+                onCommentClick?.(params.row.CODAPONT);
+              }}
+              sx={{ 
+                color: params.row.COMENTADO ? "primary.main" : "text.secondary",
+              }}
+            >
+              <CommentIcon fontSize="small" />
+            </IconButton>
+          </Tooltip>
+        ),
+      },
     ],
-    [filters, handleChangeFilters]
+    [filters, handleChangeFilters, onCommentClick]
   );
 
   return { columns };

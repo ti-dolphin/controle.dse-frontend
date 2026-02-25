@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useMemo } from "react";
+import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { RootState } from "../../../redux/store";
 import {
@@ -9,6 +9,7 @@ import {
   clearFilters,
   setPage,
   setPageSize,
+  setRefreshNotes,
 } from "../../../redux/slices/apontamentos/notesTableSlice";
 import { setFeedback } from "../../../redux/slices/feedBackSlice";
 import NotesService from "../../../services/NotesService";
@@ -18,6 +19,7 @@ import BaseDataTable from "../../shared/BaseDataTable";
 import { useGridApiRef, GridRowSelectionModel } from "@mui/x-data-grid";
 import { debounce } from "lodash";
 import SearchIcon from "@mui/icons-material/Search";
+import NoteCommentDialog from "../NoteCommentDialog";
 
 interface ApontamentosTabProps {
   selectedApontamentos: GridRowSelectionModel;
@@ -34,9 +36,13 @@ const ApontamentosTab: React.FC<ApontamentosTabProps> = ({
   const theme = useTheme();
   const gridRef = useGridApiRef();
 
-  const { rows, loading, searchTerm, filters, page, pageSize } = useSelector(
+  const [commentDialogOpen, setCommentDialogOpen] = useState(false);
+  const [selectedCodapont, setSelectedCodapont] = useState<number | null>(null);
+
+  const { rows, loading, searchTerm, filters, page, pageSize, refreshNotes } = useSelector(
     (state: RootState) => state.notesTable
   );
+  const user = useSelector((state: RootState) => state.user.user);
 
   const handleChangeFilters = useCallback(
     (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>, field: string) => {
@@ -53,7 +59,22 @@ const ApontamentosTab: React.FC<ApontamentosTabProps> = ({
     [dispatch, filters]
   );
 
-  const { columns } = useNotesColumns(handleChangeFilters);
+  const handleCommentClick = useCallback((codapont: number) => {
+    setSelectedCodapont(codapont);
+    setCommentDialogOpen(true);
+  }, []);
+
+  const handleCloseCommentDialog = useCallback(() => {
+    setCommentDialogOpen(false);
+    setSelectedCodapont(null);
+  }, []);
+
+  const handleCommentChange = useCallback(() => {
+    // Disparar refresh da tabela de apontamentos
+    dispatch(setRefreshNotes(!refreshNotes));
+  }, [dispatch, refreshNotes]);
+
+  const { columns } = useNotesColumns(handleChangeFilters, handleCommentClick);
 
   const handleChangeSearchTerm = useCallback(
     (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -153,7 +174,7 @@ const ApontamentosTab: React.FC<ApontamentosTabProps> = ({
     } finally {
       dispatch(setLoading(false));
     }
-  }, [dispatch, filters, searchTerm, page, pageSize]);
+  }, [dispatch, filters, searchTerm, page, pageSize, refreshNotes]);
 
   useEffect(() => {
     fetchData();
@@ -340,6 +361,14 @@ const ApontamentosTab: React.FC<ApontamentosTabProps> = ({
             backgroundColor: theme.palette.primary.main + "40 !important",
           },
         }}
+      />
+
+      <NoteCommentDialog
+        open={commentDialogOpen}
+        onClose={handleCloseCommentDialog}
+        codapont={selectedCodapont || 0}
+        userName={user?.LOGIN || "SISTEMA"}
+        onCommentChange={handleCommentChange}
       />
     </>
   );

@@ -1,6 +1,7 @@
 import React, { useState } from "react";
-import { useSelector } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import { RootState } from "../../redux/store";
+import { setRefreshNotes } from "../../redux/slices/apontamentos/notesTableSlice";
 import { Box, Tabs, Tab } from "@mui/material";
 import { GridRowSelectionModel } from "@mui/x-data-grid";
 import { useNavigate } from "react-router-dom";
@@ -13,11 +14,13 @@ import ProblemasTab from "../../components/apontamentos/tabs/ProblemasTab";
 
 const NotesHomePage = () => {
   const navigate = useNavigate();
+  const dispatch = useDispatch();
   const [activeTab, setActiveTab] = useState(0);
   const [selectedApontamentos, setSelectedApontamentos] = useState<GridRowSelectionModel>([]);
   const [apontarDialogOpen, setApontarDialogOpen] = useState(false);
 
   const user = useSelector((state: RootState) => state.user.user);
+  const { refreshNotes } = useSelector((state: RootState) => state.notesTable);
 
   const handleTabChange = (_event: React.SyntheticEvent, newValue: number) => {
     setActiveTab(newValue);
@@ -35,6 +38,7 @@ const NotesHomePage = () => {
   const handleApontarDialogSuccess = () => {
     handleApontarDialogClose();
     setActiveTab(0);
+    dispatch(setRefreshNotes(!refreshNotes));
   };
 
   return (
