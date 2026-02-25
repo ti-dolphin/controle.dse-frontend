@@ -29,6 +29,7 @@ interface NotesTableState {
   page: number;
   pageSize: number;
   totalRows: number;
+  refreshNotes: boolean;
 }
 
 const initialState: NotesTableState = {
@@ -57,6 +58,7 @@ const initialState: NotesTableState = {
   page: 0,
   pageSize: 50,
   totalRows: 0,
+  refreshNotes: false,
 };
 
 const notesTableSlice = createSlice({
@@ -114,6 +116,9 @@ const notesTableSlice = createSlice({
       state.loading = false;
       state.error = null;
     },
+    setRefreshNotes(state, action: PayloadAction<boolean>) {
+      state.refreshNotes = action.payload;
+    },
   },
 });
 
@@ -129,6 +134,7 @@ export const {
   setPage,
   setPageSize,
   setTotalRows,
+  setRefreshNotes,
 } = notesTableSlice.actions;
 
 export default notesTableSlice.reducer;

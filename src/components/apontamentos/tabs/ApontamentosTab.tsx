@@ -34,7 +34,7 @@ const ApontamentosTab: React.FC<ApontamentosTabProps> = ({
   const theme = useTheme();
   const gridRef = useGridApiRef();
 
-  const { rows, loading, searchTerm, filters, page, pageSize } = useSelector(
+  const { rows, loading, searchTerm, filters, page, pageSize, refreshNotes } = useSelector(
     (state: RootState) => state.notesTable
   );
 
@@ -153,7 +153,7 @@ const ApontamentosTab: React.FC<ApontamentosTabProps> = ({
     } finally {
       dispatch(setLoading(false));
     }
-  }, [dispatch, filters, searchTerm, page, pageSize]);
+  }, [dispatch, filters, searchTerm, page, pageSize, refreshNotes]);
 
   useEffect(() => {
     fetchData();
