@@ -62,10 +62,14 @@ export const useQuoteItemColumns = (
       type: "number",
       flex: 0.6,
       editable: true,
+      valueParser: (value: any) => {
+        if (value === '' || value === null || value === undefined) return 0;
+        return parseFloat(value);
+      },
       renderCell: (params: any) => (
         <Box sx={{ display: "flex", alignItems: "center", height: "100%" }}>
           <Typography fontSize="small" fontWeight="bold" color="black">
-            {params.value}
+            {params.value != null ? parseFloat(params.value) : ''}
           </Typography>
         </Box>
       ),
