@@ -15,6 +15,7 @@ import {
 import { useDispatch } from "react-redux";
 import { setFeedback } from "../../redux/slices/feedBackSlice";
 import NotesService from "../../services/NotesService";
+import { Note } from "../../models/Note";
 
 interface CentroCusto {
   CODCUSTO: string;
@@ -39,6 +40,7 @@ interface ApontarDialogProps {
   selectedCodaponts: number[];
   onSuccess: () => void;
   userName?: string;
+  selectedNote?: Note;
 }
 
 const ApontarDialog: React.FC<ApontarDialogProps> = ({
@@ -47,6 +49,7 @@ const ApontarDialog: React.FC<ApontarDialogProps> = ({
   selectedCodaponts,
   onSuccess,
   userName,
+  selectedNote,
 }) => {
   const dispatch = useDispatch();
   const [loading, setLoading] = useState(false);
@@ -73,6 +76,46 @@ const ApontarDialog: React.FC<ApontarDialogProps> = ({
       loadOptions();
     }
   }, [open, centrosCustoAtivos]);
+
+  // Preencher campos com dados do apontamento selecionado (se houver apenas 1)
+  useEffect(() => {
+    if (open && selectedNote && selectedCodaponts.length === 1) {
+      // Aguardar o carregamento das opções
+      if (centroCustos.length === 0 || statusList.length === 0 || lideres.length === 0) {
+        return;
+      }
+
+      // Preencher Centro de Custo se existir
+      if (selectedNote.CODCCUSTO) {
+        const centroCusto = centroCustos.find(
+          (cc) => cc.CODCUSTO === selectedNote.CODCCUSTO
+        );
+        if (centroCusto) {
+          setSelectedCentroCusto(centroCusto);
+        }
+      }
+
+      // Preencher Líder se existir
+      if (selectedNote.CODPESSOA_LIDER) {
+        const lider = lideres.find(
+          (l) => l.CODPESSOA === selectedNote.CODPESSOA_LIDER
+        );
+        if (lider) {
+          setSelectedLider(lider);
+        }
+      }
+
+      // Preencher Status se existir
+      if (selectedNote.CODSTATUSAPONT) {
+        const status = statusList.find(
+          (s) => s.CODSTATUSAPONT === selectedNote.CODSTATUSAPONT
+        );
+        if (status) {
+          setSelectedStatus(status);
+        }
+      }
+    }
+  }, [open, selectedNote, selectedCodaponts, centroCustos, statusList, lideres]);
 
   const loadOptions = async () => {
     setLoading(true);

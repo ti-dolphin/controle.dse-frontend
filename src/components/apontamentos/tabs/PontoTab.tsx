@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useMemo } from "react";
+import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { RootState } from "../../../redux/store";
 import {
@@ -38,6 +38,7 @@ const PontoTab: React.FC = () => {
     pageSize: pontoPageSize,
     totalRows: pontoTotalRows,
   } = useSelector((state: RootState) => state.pontoTable);
+  const [initialized, setInitialized] = useState(false);
 
   const handleChangePontoFilters = useCallback(
     (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>, field: string) => {
@@ -181,9 +182,20 @@ const PontoTab: React.FC = () => {
     }
   }, [dispatch, pontoFilters, pontoSearchTerm, pontoPage, pontoPageSize]);
 
+  // Inicializar filtro apenas uma vez ao montar
   useEffect(() => {
-    fetchPontoData();
-  }, [fetchPontoData]);
+    if (!initialized && !pontoFilters.DATA_DE && !pontoFilters.DATA_ATE) {
+      handlePontoHoje();
+      setInitialized(true);
+    }
+  }, []);
+
+  // Buscar dados apenas após inicialização
+  useEffect(() => {
+    if (initialized) {
+      fetchPontoData();
+    }
+  }, [fetchPontoData, initialized]);
 
   return (
     <>
