@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useMemo } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { RootState } from "../../redux/store";
 import { setRefreshNotes } from "../../redux/slices/apontamentos/notesTableSlice";
@@ -20,7 +20,15 @@ const NotesHomePage = () => {
   const [apontarDialogOpen, setApontarDialogOpen] = useState(false);
 
   const user = useSelector((state: RootState) => state.user.user);
-  const { refreshNotes } = useSelector((state: RootState) => state.notesTable);
+  const { refreshNotes, rows } = useSelector((state: RootState) => state.notesTable);
+
+  // Buscar dados do apontamento selecionado se houver apenas 1
+  const selectedNote = useMemo(() => {
+    if (selectedApontamentos.length === 1) {
+      return rows.find((row) => row.CODAPONT === Number(selectedApontamentos[0]));
+    }
+    return undefined;
+  }, [selectedApontamentos, rows]);
 
   const handleTabChange = (_event: React.SyntheticEvent, newValue: number) => {
     setActiveTab(newValue);
@@ -91,6 +99,7 @@ const NotesHomePage = () => {
         selectedCodaponts={selectedApontamentos.map((id) => Number(id))}
         userName={user?.LOGIN || "SISTEMA"}
         onSuccess={handleApontarDialogSuccess}
+        selectedNote={selectedNote}
       />
     </Box>
   );

@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useMemo } from "react";
+import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { RootState } from "../../../redux/store";
 import {
@@ -38,6 +38,7 @@ const ProblemasTab: React.FC = () => {
     pageSize: problemaPageSize,
     totalRows: problemaTotalRows,
   } = useSelector((state: RootState) => state.problemaTable);
+  const [initialized, setInitialized] = useState(false);
 
   const handleChangeProblemaFilters = useCallback(
     (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>, field: string) => {
@@ -156,9 +157,20 @@ const ProblemasTab: React.FC = () => {
     }
   }, [dispatch, problemaFilters, problemaSearchTerm, problemaPage, problemaPageSize]);
 
+  // Inicializar filtro apenas uma vez ao montar
   useEffect(() => {
-    fetchProblemaData();
-  }, [fetchProblemaData]);
+    if (!initialized && !problemaFilters.DATA_DE && !problemaFilters.DATA_ATE) {
+      handleProblemaHoje();
+      setInitialized(true);
+    }
+  }, []);
+
+  // Buscar dados apenas após inicialização
+  useEffect(() => {
+    if (initialized) {
+      fetchProblemaData();
+    }
+  }, [fetchProblemaData, initialized]);
 
   return (
     <>

@@ -44,6 +44,7 @@ const ApontamentosTab: React.FC<ApontamentosTabProps> = ({
     (state: RootState) => state.notesTable
   );
   const user = useSelector((state: RootState) => state.user.user);
+  const [initialized, setInitialized] = useState(false);
 
   const handleChangeFilters = useCallback(
     (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>, field: string) => {
@@ -178,9 +179,20 @@ const ApontamentosTab: React.FC<ApontamentosTabProps> = ({
     }
   }, [dispatch, filters, searchTerm, page, pageSize, refreshNotes]);
 
+  // Inicializar filtro apenas uma vez ao montar
   useEffect(() => {
-    fetchData();
-  }, [fetchData]);
+    if (!initialized && !filters.DATA_DE && !filters.DATA_ATE) {
+      handleHoje();
+      setInitialized(true);
+    }
+  }, []);
+
+  // Buscar dados apenas após inicialização
+  useEffect(() => {
+    if (initialized) {
+      fetchData();
+    }
+  }, [fetchData, initialized]);
 
   return (
     <>
