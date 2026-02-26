@@ -24,6 +24,11 @@ export interface ProblemaQueryParams {
   pageSize?: number;
 }
 
+export interface PaginatedResponse<T> {
+  data: T[];
+  total: number;
+}
+
 const NotesService = {
     getMany: async (params?: NotesQueryParams) => {
         const queryParams: Record<string, any> = {};
