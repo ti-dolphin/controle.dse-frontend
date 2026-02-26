@@ -118,6 +118,16 @@ const OpportunityForm = () => {
 
     const createOpportunity = async (payload: ReturnType<typeof buildPayload>) => {
       setIsSubmitting(true);
+      if (
+        !payload.CODSTATUS ||
+        !payload.NOME ||
+        !payload.RESPONSAVEL ||
+        !payload.FK_CODCLIENTE
+      ) {
+        dispatch(setFeedback({ message: 'Preencha todos os campos obrigatórios', type: 'error' }));
+        setIsSubmitting(false);
+        return;
+      }
       try {
         const createOpp: Opportunity = await OpportunityService.create(payload, { isAdicional });
         dispatch(setOpportunity(null));

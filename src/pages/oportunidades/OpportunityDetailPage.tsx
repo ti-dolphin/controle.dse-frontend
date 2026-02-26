@@ -89,7 +89,7 @@ const OpportunityDetailPage = () => {
             color="primary.main"
             fontWeight="bold"
           >
-            {`${opportunity?.cliente.NOMEFANTASIA} - ${opportunity?.projeto.ID}.${opportunity?.adicional.ID} `}
+            {`${opportunity?.projeto.ID}.${opportunity?.adicional.NUMERO} - ${opportunity?.cliente.NOMEFANTASIA}`}
           </Typography>
         </Stack>
       </UpperNavigation>
@@ -127,7 +127,9 @@ const OpportunityDetailPage = () => {
               </Typography>
               <TextField
                 label="Observação"
-                onChange={(e: React.ChangeEvent<HTMLInputElement>) => setObservation(e.target.value) }
+                onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+                  setObservation(e.target.value)
+                }
                 onBlur={saveObservation}
                 value={observation}
                 multiline
@@ -163,7 +165,7 @@ const OpportunityDetailPage = () => {
         </Grid>
       </Grid>
     </Box>
-  );
+  )
 };
 
 export default OpportunityDetailPage;

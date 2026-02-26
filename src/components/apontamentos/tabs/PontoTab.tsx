@@ -10,6 +10,7 @@ import {
   clearFilters as clearPontoFilters,
   setPage as setPontoPage,
   setPageSize as setPontoPageSize,
+  setTotalRows as setPontoTotalRows,
 } from "../../../redux/slices/apontamentos/pontoTableSlice";
 import { setFeedback } from "../../../redux/slices/feedBackSlice";
 import NotesService from "../../../services/NotesService";
@@ -35,6 +36,7 @@ const PontoTab: React.FC = () => {
     filters: pontoFilters,
     page: pontoPage,
     pageSize: pontoPageSize,
+    totalRows: pontoTotalRows,
   } = useSelector((state: RootState) => state.pontoTable);
 
   const handleChangePontoFilters = useCallback(
@@ -159,13 +161,14 @@ const PontoTab: React.FC = () => {
   const fetchPontoData = useCallback(async () => {
     dispatch(setPontoLoading(true));
     try {
-      const data = await NotesService.getManyPonto({
+      const response = await NotesService.getManyPonto({
         filters: pontoFilters,
         searchTerm: pontoSearchTerm,
         page: pontoPage,
         pageSize: pontoPageSize,
       });
-      dispatch(setPontoRows(data));
+      dispatch(setPontoRows(response.data));
+      dispatch(setPontoTotalRows(response.total));
     } catch (e: any) {
       dispatch(
         setFeedback({
@@ -338,6 +341,7 @@ const PontoTab: React.FC = () => {
         getRowId={(row: any) => row.CODAPONT}
         theme={theme}
         paginationMode="server"
+        rowCount={pontoTotalRows}
         paginationModel={{ page: pontoPage, pageSize: pontoPageSize }}
         onPaginationModelChange={(model: { page: number; pageSize: number }) => {
           dispatch(setPontoPage(model.page));

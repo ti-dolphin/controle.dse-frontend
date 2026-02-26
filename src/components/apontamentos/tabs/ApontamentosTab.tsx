@@ -10,6 +10,7 @@ import {
   setPage,
   setPageSize,
   setRefreshNotes,
+  setTotalRows,
 } from "../../../redux/slices/apontamentos/notesTableSlice";
 import { setFeedback } from "../../../redux/slices/feedBackSlice";
 import NotesService from "../../../services/NotesService";
@@ -39,7 +40,7 @@ const ApontamentosTab: React.FC<ApontamentosTabProps> = ({
   const [commentDialogOpen, setCommentDialogOpen] = useState(false);
   const [selectedCodapont, setSelectedCodapont] = useState<number | null>(null);
 
-  const { rows, loading, searchTerm, filters, page, pageSize, refreshNotes } = useSelector(
+  const { rows, loading, searchTerm, filters, page, pageSize, totalRows, refreshNotes } = useSelector(
     (state: RootState) => state.notesTable
   );
   const user = useSelector((state: RootState) => state.user.user);
@@ -157,13 +158,14 @@ const ApontamentosTab: React.FC<ApontamentosTabProps> = ({
   const fetchData = useCallback(async () => {
     dispatch(setLoading(true));
     try {
-      const data = await NotesService.getMany({
+      const response = await NotesService.getMany({
         filters,
         searchTerm,
         page,
         pageSize,
       });
-      dispatch(setRows(data));
+      dispatch(setRows(response.data));
+      dispatch(setTotalRows(response.total));
     } catch (e: any) {
       dispatch(
         setFeedback({
@@ -347,6 +349,7 @@ const ApontamentosTab: React.FC<ApontamentosTabProps> = ({
         getRowId={(row: any) => row.CODAPONT}
         theme={theme}
         paginationMode="server"
+        rowCount={totalRows}
         paginationModel={{ page, pageSize }}
         onPaginationModelChange={(model: { page: number; pageSize: number }) => {
           dispatch(setPage(model.page));

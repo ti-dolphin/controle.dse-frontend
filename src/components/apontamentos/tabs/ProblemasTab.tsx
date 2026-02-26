@@ -10,6 +10,7 @@ import {
   clearFilters as clearProblemaFilters,
   setPage as setProblemaPage,
   setPageSize as setProblemaPageSize,
+  setTotalRows as setProblemaRowCount,
 } from "../../../redux/slices/apontamentos/problemaTableSlice";
 import { setFeedback } from "../../../redux/slices/feedBackSlice";
 import NotesService from "../../../services/NotesService";
@@ -35,6 +36,7 @@ const ProblemasTab: React.FC = () => {
     filters: problemaFilters,
     page: problemaPage,
     pageSize: problemaPageSize,
+    totalRows: problemaTotalRows,
   } = useSelector((state: RootState) => state.problemaTable);
 
   const handleChangeProblemaFilters = useCallback(
@@ -134,13 +136,14 @@ const ProblemasTab: React.FC = () => {
   const fetchProblemaData = useCallback(async () => {
     dispatch(setProblemaLoading(true));
     try {
-      const data = await NotesService.getManyProblema({
+      const response = await NotesService.getManyProblema({
         filters: problemaFilters,
         searchTerm: problemaSearchTerm,
         page: problemaPage,
         pageSize: problemaPageSize,
       });
-      dispatch(setProblemaRows(data));
+      dispatch(setProblemaRows(response.data));
+      dispatch(setProblemaRowCount(response.total));
     } catch (e: any) {
       dispatch(
         setFeedback({
@@ -305,6 +308,7 @@ const ProblemasTab: React.FC = () => {
         getRowId={(row: any) => row.CODAPONT}
         theme={theme}
         paginationMode="server"
+        rowCount={problemaTotalRows}
         paginationModel={{ page: problemaPage, pageSize: problemaPageSize }}
         onPaginationModelChange={(model: { page: number; pageSize: number }) => {
           dispatch(setProblemaPage(model.page));
