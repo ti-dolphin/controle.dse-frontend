@@ -76,6 +76,12 @@ const ProblemasTab: React.FC = () => {
     [handleChangeProblemaSearchTerm]
   );
 
+  useEffect(() => {
+    return () => {
+      debouncedHandleChangeProblemaSearchTerm.cancel();
+    };
+  }, [debouncedHandleChangeProblemaSearchTerm]);
+
   const handleCleanProblemaFilter = useCallback(() => {
     dispatch(clearProblemaFilters());
     dispatch(setProblemaSearchTerm(""));
@@ -159,10 +165,10 @@ const ProblemasTab: React.FC = () => {
 
   // Inicializar filtro apenas uma vez ao montar
   useEffect(() => {
-    if (!initialized && !problemaFilters.DATA_DE && !problemaFilters.DATA_ATE) {
+    if (!problemaFilters.DATA_DE && !problemaFilters.DATA_ATE) {
       handleProblemaHoje();
-      setInitialized(true);
     }
+    setInitialized(true);
   }, []);
 
   // Buscar dados apenas após inicialização

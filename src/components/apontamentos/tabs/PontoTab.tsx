@@ -106,6 +106,12 @@ const PontoTab: React.FC = () => {
     [handleChangePontoSearchTerm]
   );
 
+  useEffect(() => {
+    return () => {
+      debouncedHandleChangePontoSearchTerm.cancel();
+    };
+  }, [debouncedHandleChangePontoSearchTerm]);
+
   const handleCleanPontoFilter = useCallback(() => {
     dispatch(clearPontoFilters());
     dispatch(setPontoSearchTerm(""));
@@ -188,10 +194,10 @@ const PontoTab: React.FC = () => {
   }, [dispatch, pontoFilters, pontoSearchTerm, pontoPage, pontoPageSize]);
 
   useEffect(() => {
-    if (!initialized && !pontoFilters.DATA_DE && !pontoFilters.DATA_ATE) {
+    if (!pontoFilters.DATA_DE && !pontoFilters.DATA_ATE) {
       handlePontoHoje();
-      setInitialized(true);
     }
+    setInitialized(true);
   }, []);
 
   useEffect(() => {

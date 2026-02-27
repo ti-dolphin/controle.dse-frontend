@@ -90,6 +90,12 @@ const ApontamentosTab: React.FC<ApontamentosTabProps> = ({
     [handleChangeSearchTerm]
   );
 
+  useEffect(() => {
+    return () => {
+      debouncedHandleChangeSearchTerm.cancel();
+    };
+  }, [debouncedHandleChangeSearchTerm]);
+
   const handleCleanFilter = useCallback(() => {
     dispatch(clearFilters());
     dispatch(setSearchTerm(""));
@@ -181,10 +187,10 @@ const ApontamentosTab: React.FC<ApontamentosTabProps> = ({
 
   // Inicializar filtro apenas uma vez ao montar
   useEffect(() => {
-    if (!initialized && !filters.DATA_DE && !filters.DATA_ATE) {
+    if (!filters.DATA_DE && !filters.DATA_ATE) {
       handleHoje();
-      setInitialized(true);
     }
+    setInitialized(true);
   }, []);
 
   // Buscar dados apenas após inicialização
