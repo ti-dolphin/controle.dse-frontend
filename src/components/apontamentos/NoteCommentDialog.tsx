@@ -12,7 +12,8 @@ import {
 } from "@mui/material";
 import CloseIcon from "@mui/icons-material/Close";
 import { DataGrid, GridColDef, GridRowSelectionModel } from "@mui/x-data-grid";
-import { useDispatch } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
+import { RootState } from "../../redux/store";
 import { setFeedback } from "../../redux/slices/feedBackSlice";
 import NoteCommentService from "../../services/NoteCommentService";
 import { NoteComment } from "../../models/NoteComment";
@@ -34,6 +35,7 @@ const NoteCommentDialog: React.FC<NoteCommentDialogProps> = ({
   onCommentChange,
 }) => {
   const dispatch = useDispatch();
+  const user = useSelector((state: RootState) => state.user.user);
   const [comments, setComments] = useState<NoteComment[]>([]);
   const [loading, setLoading] = useState(false);
   const [newComment, setNewComment] = useState("");
@@ -231,7 +233,8 @@ const NoteCommentDialog: React.FC<NoteCommentDialogProps> = ({
               variant="outlined"
               size="small"
               onClick={handleDeleteComments}
-              disabled={selectedComments.length === 0 || loading}
+              disabled={selectedComments.length === 0 || loading || (!user?.PERM_COMENT_APONT && !user?.PERM_ADMINISTRADOR)}
+              title={(!user?.PERM_COMENT_APONT && !user?.PERM_ADMINISTRADOR) ? "Você não tem permissão para excluir comentários" : ""}
               sx={{ fontSize: 11 }}
             >
               Excluir
@@ -240,7 +243,8 @@ const NoteCommentDialog: React.FC<NoteCommentDialogProps> = ({
               variant="contained"
               size="small"
               onClick={handleCreateComment}
-              disabled={!newComment.trim() || loading}
+              disabled={!newComment.trim() || loading || (!user?.PERM_COMENT_APONT && !user?.PERM_ADMINISTRADOR)}
+              title={(!user?.PERM_COMENT_APONT && !user?.PERM_ADMINISTRADOR) ? "Você não tem permissão para criar comentários" : ""}
               sx={{ fontSize: 11 }}
             >
               Comentar

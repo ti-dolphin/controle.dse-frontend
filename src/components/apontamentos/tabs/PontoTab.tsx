@@ -38,6 +38,7 @@ const PontoTab: React.FC = () => {
     pageSize: pontoPageSize,
     totalRows: pontoTotalRows,
   } = useSelector((state: RootState) => state.pontoTable);
+  const user = useSelector((state: RootState) => state.user.user);
   const [initialized, setInitialized] = useState(false);
 
   const handleChangePontoFilters = useCallback(
@@ -87,7 +88,11 @@ const PontoTab: React.FC = () => {
     [dispatch, pontoRows]
   );
 
-  const { columns: pontoColumns } = usePontoColumns(handleChangePontoFilters, handleTogglePontoField);
+  const { columns: pontoColumns } = usePontoColumns(
+    handleChangePontoFilters,
+    handleTogglePontoField,
+    !!(user?.PERM_APONTAMENTO_PONTO || user?.PERM_ADMINISTRADOR)
+  );
 
   const handleChangePontoSearchTerm = useCallback(
     (event: React.ChangeEvent<HTMLInputElement>) => {
