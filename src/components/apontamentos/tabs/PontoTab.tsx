@@ -182,7 +182,6 @@ const PontoTab: React.FC = () => {
     }
   }, [dispatch, pontoFilters, pontoSearchTerm, pontoPage, pontoPageSize]);
 
-  // Inicializar filtro apenas uma vez ao montar
   useEffect(() => {
     if (!initialized && !pontoFilters.DATA_DE && !pontoFilters.DATA_ATE) {
       handlePontoHoje();
@@ -190,7 +189,6 @@ const PontoTab: React.FC = () => {
     }
   }, []);
 
-  // Buscar dados apenas após inicialização
   useEffect(() => {
     if (initialized) {
       fetchPontoData();
