@@ -22,7 +22,8 @@ const formatDateTime = (value: string | null) => {
 
 export const usePontoColumns = (
   handleChangeFilters: (event: React.ChangeEvent<HTMLInputElement>, field: string) => void,
-  onToggleField?: (codapont: number, field: string, currentValue: boolean) => void
+  onToggleField?: (codapont: number, field: string, currentValue: boolean) => void,
+  hasPermission?: boolean
 ) => {
   const { filters, rows } = useSelector((state: RootState) => state.pontoTable);
 
@@ -185,11 +186,15 @@ export const usePontoColumns = (
           <Checkbox
             checked={!!params.value}
             size="small"
+            disabled={!hasPermission}
             onClick={(e) => {
               e.stopPropagation();
-              onToggleField?.(params.row.CODAPONT, "VERIFICADO", !!params.value);
+              if (hasPermission) {
+                onToggleField?.(params.row.CODAPONT, "VERIFICADO", !!params.value);
+              }
             }}
             sx={{ padding: 0 }}
+            title={!hasPermission ? "Você não tem permissão para alterar este campo" : ""}
           />
         ),
       },
@@ -204,11 +209,15 @@ export const usePontoColumns = (
           <Checkbox
             checked={!!params.value}
             size="small"
+            disabled={!hasPermission}
             onClick={(e) => {
               e.stopPropagation();
-              onToggleField?.(params.row.CODAPONT, "PROBLEMA", !!params.value);
+              if (hasPermission) {
+                onToggleField?.(params.row.CODAPONT, "PROBLEMA", !!params.value);
+              }
             }}
             sx={{ padding: 0 }}
+            title={!hasPermission ? "Você não tem permissão para alterar este campo" : ""}
           />
         ),
       },
@@ -223,11 +232,15 @@ export const usePontoColumns = (
           <Checkbox
             checked={!!params.value}
             size="small"
+            disabled={!hasPermission}
             onClick={(e) => {
               e.stopPropagation();
-              onToggleField?.(params.row.CODAPONT, "AJUSTADO", !!params.value);
+              if (hasPermission) {
+                onToggleField?.(params.row.CODAPONT, "AJUSTADO", !!params.value);
+              }
             }}
             sx={{ padding: 0 }}
+            title={!hasPermission ? "Você não tem permissão para alterar este campo" : ""}
           />
         ),
       },
@@ -272,7 +285,7 @@ export const usePontoColumns = (
         sortable: true,
       },
     ],
-    [filters, handleChangeFilters, onToggleField, chapaColumnWidth, funcionarioColumnWidth, statusColumnWidth, centroCustoColumnWidth, liderColumnWidth, motivoColumnWidth, justificadoPorColumnWidth, justificativaColumnWidth]
+    [filters, handleChangeFilters, onToggleField, hasPermission, chapaColumnWidth, funcionarioColumnWidth, statusColumnWidth, centroCustoColumnWidth, liderColumnWidth, motivoColumnWidth, justificadoPorColumnWidth, justificativaColumnWidth]
   );
 
   return { columns };
