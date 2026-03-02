@@ -1,11 +1,10 @@
-import React, { useCallback, useEffect, useMemo, useState } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { RootState } from "../../../redux/store";
 import {
   setRows as setProblemaRows,
   setSelectedRow as setProblemaSelectedRow,
   setLoading as setProblemaLoading,
-  setSearchTerm as setProblemaSearchTerm,
   setFilters as setProblemaFilters,
   clearFilters as clearProblemaFilters,
   setPage as setProblemaPage,
@@ -13,15 +12,15 @@ import {
   setTotalRows as setProblemaRowCount,
 } from "../../../redux/slices/apontamentos/problemaTableSlice";
 import { setFeedback } from "../../../redux/slices/feedBackSlice";
+import { clearCommonFilters } from "../../../redux/slices/apontamentos/commonFiltersSlice";
 import NotesService from "../../../services/NotesService";
-import { Box, Button, useTheme, TextField, InputAdornment, FormControlLabel, Checkbox } from "@mui/material";
+import { Box, Button, useTheme, FormControlLabel, Checkbox } from "@mui/material";
 import { useProblemaColumns } from "../../../hooks/apontamentos/useProblemaColumns";
 import BaseDataTable from "../../shared/BaseDataTable";
 import BaseDetailModal from "../../shared/BaseDetailModal";
 import { useGridApiRef } from "@mui/x-data-grid";
-import { debounce } from "lodash";
-import SearchIcon from "@mui/icons-material/Search";
 import { Problema } from "../../../models/Problema";
+import CommonFilters from "../CommonFilters";
 
 const ProblemasTab: React.FC = () => {
   const dispatch = useDispatch();
@@ -32,12 +31,12 @@ const ProblemasTab: React.FC = () => {
     rows: problemaRows,
     loading: problemaLoading,
     selectedRow: problemaSelectedRow,
-    searchTerm: problemaSearchTerm,
     filters: problemaFilters,
     page: problemaPage,
     pageSize: problemaPageSize,
     totalRows: problemaTotalRows,
   } = useSelector((state: RootState) => state.problemaTable);
+  const commonFilters = useSelector((state: RootState) => state.commonFilters.filters);
   const [initialized, setInitialized] = useState(false);
 
   const handleChangeProblemaFilters = useCallback(
@@ -64,73 +63,10 @@ const ProblemasTab: React.FC = () => {
 
   const { columns: problemaColumns } = useProblemaColumns(handleChangeProblemaFilters);
 
-  const handleChangeProblemaSearchTerm = useCallback(
-    (event: React.ChangeEvent<HTMLInputElement>) => {
-      dispatch(setProblemaSearchTerm(event.target.value));
-    },
-    [dispatch]
-  );
-
-  const debouncedHandleChangeProblemaSearchTerm = useMemo(
-    () => debounce(handleChangeProblemaSearchTerm, 500),
-    [handleChangeProblemaSearchTerm]
-  );
-
-  useEffect(() => {
-    return () => {
-      debouncedHandleChangeProblemaSearchTerm.cancel();
-    };
-  }, [debouncedHandleChangeProblemaSearchTerm]);
-
   const handleCleanProblemaFilter = useCallback(() => {
     dispatch(clearProblemaFilters());
-    dispatch(setProblemaSearchTerm(""));
+    dispatch(clearCommonFilters());
   }, [dispatch]);
-
-  const formatDate = (date: Date) => date.toISOString().split("T")[0];
-
-  const handleProblemaPeriodoAtual = useCallback(() => {
-    const hoje = new Date();
-    const ano = hoje.getFullYear();
-    const mes = hoje.getMonth();
-    const dataInicio = new Date(ano, mes, 26);
-    const dataFim = new Date(ano, mes + 1, 25);
-
-    dispatch(
-      setProblemaFilters({
-        ...problemaFilters,
-        DATA_DE: formatDate(dataInicio),
-        DATA_ATE: formatDate(dataFim),
-      })
-    );
-  }, [dispatch, problemaFilters]);
-
-  const handleProblemaPeriodoAnterior = useCallback(() => {
-    const hoje = new Date();
-    const ano = hoje.getFullYear();
-    const mes = hoje.getMonth();
-    const dataInicio = new Date(ano, mes - 1, 26);
-    const dataFim = new Date(ano, mes, 25);
-
-    dispatch(
-      setProblemaFilters({
-        ...problemaFilters,
-        DATA_DE: formatDate(dataInicio),
-        DATA_ATE: formatDate(dataFim),
-      })
-    );
-  }, [dispatch, problemaFilters]);
-
-  const handleProblemaHoje = useCallback(() => {
-    const hoje = formatDate(new Date());
-    dispatch(
-      setProblemaFilters({
-        ...problemaFilters,
-        DATA_DE: hoje,
-        DATA_ATE: hoje,
-      })
-    );
-  }, [dispatch, problemaFilters]);
 
   const navigateToProblemaDetails = useCallback(
     (params: any) => {
@@ -144,8 +80,13 @@ const ProblemasTab: React.FC = () => {
     dispatch(setProblemaLoading(true));
     try {
       const response = await NotesService.getManyProblema({
-        filters: problemaFilters,
-        searchTerm: problemaSearchTerm,
+        filters: {
+          ...problemaFilters,
+          DATA_DE: commonFilters.DATA_DE,
+          DATA_ATE: commonFilters.DATA_ATE,
+          ATIVOS: commonFilters.ATIVOS,
+        },
+        searchTerm: commonFilters.searchTerm,
         page: problemaPage,
         pageSize: problemaPageSize,
       });
@@ -161,17 +102,12 @@ const ProblemasTab: React.FC = () => {
     } finally {
       dispatch(setProblemaLoading(false));
     }
-  }, [dispatch, problemaFilters, problemaSearchTerm, problemaPage, problemaPageSize]);
+  }, [dispatch, problemaFilters, commonFilters, problemaPage, problemaPageSize]);
 
-  // Inicializar filtro apenas uma vez ao montar
   useEffect(() => {
-    if (!problemaFilters.DATA_DE && !problemaFilters.DATA_ATE) {
-      handleProblemaHoje();
-    }
     setInitialized(true);
   }, []);
 
-  // Buscar dados apenas após inicialização
   useEffect(() => {
     if (initialized) {
       fetchProblemaData();
@@ -195,102 +131,8 @@ const ProblemasTab: React.FC = () => {
           marginTop: "5px",
         }}
       >
-        <TextField
-          size="small"
-          placeholder="Buscar..."
-          onChange={debouncedHandleChangeProblemaSearchTerm}
-          sx={{
-            width: 200,
-            "& .MuiOutlinedInput-root": {
-              height: 32,
-              fontSize: 12,
-            },
-          }}
-          InputProps={{
-            startAdornment: (
-              <InputAdornment position="start">
-                <SearchIcon sx={{ fontSize: 18 }} />
-              </InputAdornment>
-            ),
-          }}
-        />
+        <CommonFilters />
 
-        <TextField
-          size="small"
-          label="De"
-          type="date"
-          value={problemaFilters.DATA_DE}
-          onChange={(e) => handleChangeProblemaFilters(e, "DATA_DE")}
-          InputLabelProps={{ shrink: true }}
-          sx={{
-            width: 150,
-            "& .MuiOutlinedInput-root": {
-              height: 32,
-              fontSize: 12,
-            },
-            "& .MuiInputLabel-root": {
-              fontSize: 12,
-            },
-          }}
-        />
-        <TextField
-          size="small"
-          label="Até"
-          type="date"
-          value={problemaFilters.DATA_ATE}
-          onChange={(e) => handleChangeProblemaFilters(e, "DATA_ATE")}
-          InputLabelProps={{ shrink: true }}
-          sx={{
-            width: 150,
-            "& .MuiOutlinedInput-root": {
-              height: 32,
-              fontSize: 12,
-            },
-            "& .MuiInputLabel-root": {
-              fontSize: 12,
-            },
-          }}
-        />
-
-        <Button
-          size="small"
-          variant="outlined"
-          onClick={handleProblemaHoje}
-          sx={{ height: 32, fontSize: 11 }}
-        >
-          Hoje
-        </Button>
-        <Button
-          size="small"
-          variant="outlined"
-          onClick={handleProblemaPeriodoAtual}
-          sx={{ height: 32, fontSize: 11 }}
-        >
-          Período Atual
-        </Button>
-        <Button
-          size="small"
-          variant="outlined"
-          onClick={handleProblemaPeriodoAnterior}
-          sx={{ height: 32, fontSize: 11 }}
-        >
-          Período Anterior
-        </Button>
-
-        <FormControlLabel
-          control={
-            <Checkbox
-              checked={problemaFilters.ATIVOS}
-              onChange={(e) => handleChangeProblemaCheckbox("ATIVOS", e.target.checked)}
-              size="small"
-            />
-          }
-          label="Ativos"
-          sx={{
-            marginLeft: 1,
-            "& .MuiFormControlLabel-label": { fontSize: 12 },
-          }}
-        />
         <FormControlLabel
           control={
             <Checkbox

@@ -127,8 +127,8 @@ export function useNotesColumns(
         headerAlign: "center",
         renderCell: (params: GridRenderCellParams) => (
           params.value ? 
-            <CheckCircleIcon sx={{ color: "green", fontSize: 18 }} /> : 
-            <CancelIcon sx={{ color: "red", fontSize: 18 }} />
+            <CancelIcon sx={{ color: "red", fontSize: 18 }} /> :
+            <CheckCircleIcon sx={{ color: "green", fontSize: 18 }} />
         ),
       },
       {
