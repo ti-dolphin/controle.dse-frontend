@@ -4,7 +4,6 @@ import { RootState } from "../../../redux/store";
 import {
   setRows,
   setLoading,
-  setSearchTerm,
   setFilters,
   clearFilters,
   setPage,
@@ -13,14 +12,14 @@ import {
   setTotalRows,
 } from "../../../redux/slices/apontamentos/notesTableSlice";
 import { setFeedback } from "../../../redux/slices/feedBackSlice";
+import { clearCommonFilters } from "../../../redux/slices/apontamentos/commonFiltersSlice";
 import NotesService from "../../../services/NotesService";
-import { Box, Button, useTheme, TextField, InputAdornment, FormControlLabel, Checkbox } from "@mui/material";
+import { Box, Button, useTheme, FormControlLabel, Checkbox } from "@mui/material";
 import { useNotesColumns } from "../../../hooks/apontamentos/useNotesColumns";
 import BaseDataTable from "../../shared/BaseDataTable";
 import { useGridApiRef, GridRowSelectionModel } from "@mui/x-data-grid";
-import { debounce } from "lodash";
-import SearchIcon from "@mui/icons-material/Search";
 import NoteCommentDialog from "../NoteCommentDialog";
+import CommonFilters from "../CommonFilters";
 
 interface ApontamentosTabProps {
   selectedApontamentos: GridRowSelectionModel;
@@ -40,9 +39,10 @@ const ApontamentosTab: React.FC<ApontamentosTabProps> = ({
   const [commentDialogOpen, setCommentDialogOpen] = useState(false);
   const [selectedCodapont, setSelectedCodapont] = useState<number | null>(null);
 
-  const { rows, loading, searchTerm, filters, page, pageSize, totalRows, refreshNotes } = useSelector(
+  const { rows, loading, filters, page, pageSize, totalRows, refreshNotes } = useSelector(
     (state: RootState) => state.notesTable
   );
+  const commonFilters = useSelector((state: RootState) => state.commonFilters.filters);
   const user = useSelector((state: RootState) => state.user.user);
   const [initialized, setInitialized] = useState(false);
 
@@ -61,6 +61,11 @@ const ApontamentosTab: React.FC<ApontamentosTabProps> = ({
     [dispatch, filters]
   );
 
+  const handleCleanFilter = useCallback(() => {
+    dispatch(clearFilters());
+    dispatch(clearCommonFilters());
+  }, [dispatch]);
+
   const handleCommentClick = useCallback((codapont: number) => {
     setSelectedCodapont(codapont);
     setCommentDialogOpen(true);
@@ -77,74 +82,6 @@ const ApontamentosTab: React.FC<ApontamentosTabProps> = ({
   }, [dispatch, refreshNotes]);
 
   const { columns } = useNotesColumns(handleChangeFilters, handleCommentClick);
-
-  const handleChangeSearchTerm = useCallback(
-    (event: React.ChangeEvent<HTMLInputElement>) => {
-      dispatch(setSearchTerm(event.target.value));
-    },
-    [dispatch]
-  );
-
-  const debouncedHandleChangeSearchTerm = useMemo(
-    () => debounce(handleChangeSearchTerm, 500),
-    [handleChangeSearchTerm]
-  );
-
-  useEffect(() => {
-    return () => {
-      debouncedHandleChangeSearchTerm.cancel();
-    };
-  }, [debouncedHandleChangeSearchTerm]);
-
-  const handleCleanFilter = useCallback(() => {
-    dispatch(clearFilters());
-    dispatch(setSearchTerm(""));
-  }, [dispatch]);
-
-  const formatDate = (date: Date) => date.toISOString().split("T")[0];
-
-  const handlePeriodoAtual = useCallback(() => {
-    const hoje = new Date();
-    const ano = hoje.getFullYear();
-    const mes = hoje.getMonth();
-    const dataInicio = new Date(ano, mes, 26);
-    const dataFim = new Date(ano, mes + 1, 25);
-
-    dispatch(
-      setFilters({
-        ...filters,
-        DATA_DE: formatDate(dataInicio),
-        DATA_ATE: formatDate(dataFim),
-      })
-    );
-  }, [dispatch, filters]);
-
-  const handlePeriodoAnterior = useCallback(() => {
-    const hoje = new Date();
-    const ano = hoje.getFullYear();
-    const mes = hoje.getMonth();
-    const dataInicio = new Date(ano, mes - 1, 26);
-    const dataFim = new Date(ano, mes, 25);
-
-    dispatch(
-      setFilters({
-        ...filters,
-        DATA_DE: formatDate(dataInicio),
-        DATA_ATE: formatDate(dataFim),
-      })
-    );
-  }, [dispatch, filters]);
-
-  const handleHoje = useCallback(() => {
-    const hoje = formatDate(new Date());
-    dispatch(
-      setFilters({
-        ...filters,
-        DATA_DE: hoje,
-        DATA_ATE: hoje,
-      })
-    );
-  }, [dispatch, filters]);
 
   const handleRowClickApontamento = useCallback(
     (params: any) => {
@@ -166,8 +103,13 @@ const ApontamentosTab: React.FC<ApontamentosTabProps> = ({
     dispatch(setLoading(true));
     try {
       const response = await NotesService.getMany({
-        filters,
-        searchTerm,
+        filters: {
+          ...filters,
+          DATA_DE: commonFilters.DATA_DE,
+          DATA_ATE: commonFilters.DATA_ATE,
+          ATIVOS: commonFilters.ATIVOS,
+        },
+        searchTerm: commonFilters.searchTerm,
         page,
         pageSize,
       });
@@ -183,17 +125,12 @@ const ApontamentosTab: React.FC<ApontamentosTabProps> = ({
     } finally {
       dispatch(setLoading(false));
     }
-  }, [dispatch, filters, searchTerm, page, pageSize, refreshNotes]);
+  }, [dispatch, filters, commonFilters, page, pageSize, refreshNotes]);
 
-  // Inicializar filtro apenas uma vez ao montar
   useEffect(() => {
-    if (!filters.DATA_DE && !filters.DATA_ATE) {
-      handleHoje();
-    }
     setInitialized(true);
   }, []);
 
-  // Buscar dados apenas após inicialização
   useEffect(() => {
     if (initialized) {
       fetchData();
@@ -217,99 +154,8 @@ const ApontamentosTab: React.FC<ApontamentosTabProps> = ({
           marginTop: "5px",
         }}
       >
-        <TextField
-          size="small"
-          placeholder="Buscar..."
-          onChange={debouncedHandleChangeSearchTerm}
-          sx={{
-            width: 200,
-            "& .MuiOutlinedInput-root": {
-              height: 32,
-              fontSize: 12,
-            },
-          }}
-          InputProps={{
-            startAdornment: (
-              <InputAdornment position="start">
-                <SearchIcon sx={{ fontSize: 18 }} />
-              </InputAdornment>
-            ),
-          }}
-        />
+        <CommonFilters />
 
-        <TextField
-          size="small"
-          label="De"
-          type="date"
-          value={filters.DATA_DE}
-          onChange={(e) => handleChangeFilters(e, "DATA_DE")}
-          InputLabelProps={{ shrink: true }}
-          sx={{
-            width: 150,
-            "& .MuiOutlinedInput-root": {
-              height: 32,
-              fontSize: 12,
-            },
-            "& .MuiInputLabel-root": {
-              fontSize: 12,
-            },
-          }}
-        />
-        <TextField
-          size="small"
-          label="Até"
-          type="date"
-          value={filters.DATA_ATE}
-          onChange={(e) => handleChangeFilters(e, "DATA_ATE")}
-          InputLabelProps={{ shrink: true }}
-          sx={{
-            width: 150,
-            "& .MuiOutlinedInput-root": {
-              height: 32,
-              fontSize: 12,
-            },
-            "& .MuiInputLabel-root": {
-              fontSize: 12,
-            },
-          }}
-        />
-
-        <Button
-          sx={{ height: 32, borderRadius: 0, fontSize: 11 }}
-          variant="outlined"
-          onClick={handleHoje}
-        >
-          Hoje
-        </Button>
-        <Button
-          sx={{ height: 32, borderRadius: 0, fontSize: 11 }}
-          variant="outlined"
-          onClick={handlePeriodoAtual}
-        >
-          Período atual
-        </Button>
-        <Button
-          sx={{ height: 32, borderRadius: 0, fontSize: 11 }}
-          variant="outlined"
-          onClick={handlePeriodoAnterior}
-        >
-          Período anterior
-        </Button>
-
-        <FormControlLabel
-          control={
-            <Checkbox
-              checked={filters.ATIVOS}
-              onChange={(e) => handleChangeCheckbox("ATIVOS", e.target.checked)}
-              size="small"
-            />
-          }
-          label="Ativos"
-          sx={{
-            marginLeft: 1,
-            "& .MuiFormControlLabel-label": { fontSize: 12 },
-          }}
-        />
         <FormControlLabel
           control={
             <Checkbox

@@ -1,11 +1,10 @@
-import React, { useCallback, useEffect, useMemo, useState } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { RootState } from "../../../redux/store";
 import {
   setRows as setPontoRows,
   setSelectedRow as setPontoSelectedRow,
   setLoading as setPontoLoading,
-  setSearchTerm as setPontoSearchTerm,
   setFilters as setPontoFilters,
   clearFilters as clearPontoFilters,
   setPage as setPontoPage,
@@ -13,15 +12,15 @@ import {
   setTotalRows as setPontoTotalRows,
 } from "../../../redux/slices/apontamentos/pontoTableSlice";
 import { setFeedback } from "../../../redux/slices/feedBackSlice";
+import { clearCommonFilters } from "../../../redux/slices/apontamentos/commonFiltersSlice";
 import NotesService from "../../../services/NotesService";
-import { Box, Button, useTheme, TextField, InputAdornment, FormControlLabel, Checkbox } from "@mui/material";
+import { Box, Button, useTheme, FormControlLabel, Checkbox } from "@mui/material";
 import { usePontoColumns } from "../../../hooks/apontamentos/usePontoColumns";
 import BaseDataTable from "../../shared/BaseDataTable";
 import BaseDetailModal from "../../shared/BaseDetailModal";
 import { useGridApiRef } from "@mui/x-data-grid";
-import { debounce } from "lodash";
-import SearchIcon from "@mui/icons-material/Search";
 import { Ponto } from "../../../models/Ponto";
+import CommonFilters from "../CommonFilters";
 
 const PontoTab: React.FC = () => {
   const dispatch = useDispatch();
@@ -32,12 +31,12 @@ const PontoTab: React.FC = () => {
     rows: pontoRows,
     loading: pontoLoading,
     selectedRow: pontoSelectedRow,
-    searchTerm: pontoSearchTerm,
     filters: pontoFilters,
     page: pontoPage,
     pageSize: pontoPageSize,
     totalRows: pontoTotalRows,
   } = useSelector((state: RootState) => state.pontoTable);
+  const commonFilters = useSelector((state: RootState) => state.commonFilters.filters);
   const user = useSelector((state: RootState) => state.user.user);
   const [initialized, setInitialized] = useState(false);
 
@@ -94,73 +93,10 @@ const PontoTab: React.FC = () => {
     !!(user?.PERM_APONTAMENTO_PONTO || user?.PERM_ADMINISTRADOR)
   );
 
-  const handleChangePontoSearchTerm = useCallback(
-    (event: React.ChangeEvent<HTMLInputElement>) => {
-      dispatch(setPontoSearchTerm(event.target.value));
-    },
-    [dispatch]
-  );
-
-  const debouncedHandleChangePontoSearchTerm = useMemo(
-    () => debounce(handleChangePontoSearchTerm, 500),
-    [handleChangePontoSearchTerm]
-  );
-
-  useEffect(() => {
-    return () => {
-      debouncedHandleChangePontoSearchTerm.cancel();
-    };
-  }, [debouncedHandleChangePontoSearchTerm]);
-
   const handleCleanPontoFilter = useCallback(() => {
     dispatch(clearPontoFilters());
-    dispatch(setPontoSearchTerm(""));
+    dispatch(clearCommonFilters());
   }, [dispatch]);
-
-  const formatDate = (date: Date) => date.toISOString().split("T")[0];
-
-  const handlePontoPeriodoAtual = useCallback(() => {
-    const hoje = new Date();
-    const ano = hoje.getFullYear();
-    const mes = hoje.getMonth();
-    const dataInicio = new Date(ano, mes, 26);
-    const dataFim = new Date(ano, mes + 1, 25);
-
-    dispatch(
-      setPontoFilters({
-        ...pontoFilters,
-        DATA_DE: formatDate(dataInicio),
-        DATA_ATE: formatDate(dataFim),
-      })
-    );
-  }, [dispatch, pontoFilters]);
-
-  const handlePontoPeriodoAnterior = useCallback(() => {
-    const hoje = new Date();
-    const ano = hoje.getFullYear();
-    const mes = hoje.getMonth();
-    const dataInicio = new Date(ano, mes - 1, 26);
-    const dataFim = new Date(ano, mes, 25);
-
-    dispatch(
-      setPontoFilters({
-        ...pontoFilters,
-        DATA_DE: formatDate(dataInicio),
-        DATA_ATE: formatDate(dataFim),
-      })
-    );
-  }, [dispatch, pontoFilters]);
-
-  const handlePontoHoje = useCallback(() => {
-    const hoje = formatDate(new Date());
-    dispatch(
-      setPontoFilters({
-        ...pontoFilters,
-        DATA_DE: hoje,
-        DATA_ATE: hoje,
-      })
-    );
-  }, [dispatch, pontoFilters]);
 
   const navigateToPontoDetails = useCallback(
     (params: any) => {
@@ -174,8 +110,13 @@ const PontoTab: React.FC = () => {
     dispatch(setPontoLoading(true));
     try {
       const response = await NotesService.getManyPonto({
-        filters: pontoFilters,
-        searchTerm: pontoSearchTerm,
+        filters: {
+          ...pontoFilters,
+          DATA_DE: commonFilters.DATA_DE,
+          DATA_ATE: commonFilters.DATA_ATE,
+          ATIVOS: commonFilters.ATIVOS,
+        },
+        searchTerm: commonFilters.searchTerm,
         page: pontoPage,
         pageSize: pontoPageSize,
       });
@@ -191,12 +132,9 @@ const PontoTab: React.FC = () => {
     } finally {
       dispatch(setPontoLoading(false));
     }
-  }, [dispatch, pontoFilters, pontoSearchTerm, pontoPage, pontoPageSize]);
+  }, [dispatch, pontoFilters, commonFilters, pontoPage, pontoPageSize]);
 
   useEffect(() => {
-    if (!pontoFilters.DATA_DE && !pontoFilters.DATA_ATE) {
-      handlePontoHoje();
-    }
     setInitialized(true);
   }, []);
 
@@ -223,99 +161,8 @@ const PontoTab: React.FC = () => {
           marginTop: "5px",
         }}
       >
-        <TextField
-          size="small"
-          placeholder="Buscar..."
-          onChange={debouncedHandleChangePontoSearchTerm}
-          sx={{
-            width: 200,
-            "& .MuiOutlinedInput-root": {
-              height: 32,
-              fontSize: 12,
-            },
-          }}
-          InputProps={{
-            startAdornment: (
-              <InputAdornment position="start">
-                <SearchIcon sx={{ fontSize: 18 }} />
-              </InputAdornment>
-            ),
-          }}
-        />
+        <CommonFilters />
 
-        <TextField
-          size="small"
-          label="De"
-          type="date"
-          value={pontoFilters.DATA_DE}
-          onChange={(e) => handleChangePontoFilters(e, "DATA_DE")}
-          InputLabelProps={{ shrink: true }}
-          sx={{
-            width: 150,
-            "& .MuiOutlinedInput-root": {
-              height: 32,
-              fontSize: 12,
-            },
-            "& .MuiInputLabel-root": {
-              fontSize: 12,
-            },
-          }}
-        />
-        <TextField
-          size="small"
-          label="Até"
-          type="date"
-          value={pontoFilters.DATA_ATE}
-          onChange={(e) => handleChangePontoFilters(e, "DATA_ATE")}
-          InputLabelProps={{ shrink: true }}
-          sx={{
-            width: 150,
-            "& .MuiOutlinedInput-root": {
-              height: 32,
-              fontSize: 12,
-            },
-            "& .MuiInputLabel-root": {
-              fontSize: 12,
-            },
-          }}
-        />
-
-        <Button
-          sx={{ height: 32, borderRadius: 0, fontSize: 11 }}
-          variant="outlined"
-          onClick={handlePontoHoje}
-        >
-          Hoje
-        </Button>
-        <Button
-          sx={{ height: 32, borderRadius: 0, fontSize: 11 }}
-          variant="outlined"
-          onClick={handlePontoPeriodoAtual}
-        >
-          Período atual
-        </Button>
-        <Button
-          sx={{ height: 32, borderRadius: 0, fontSize: 11 }}
-          variant="outlined"
-          onClick={handlePontoPeriodoAnterior}
-        >
-          Período anterior
-        </Button>
-
-        <FormControlLabel
-          control={
-            <Checkbox
-              checked={pontoFilters.ATIVOS}
-              onChange={(e) => handleChangePontoCheckbox("ATIVOS", e.target.checked)}
-              size="small"
-            />
-          }
-          label="Ativos"
-          sx={{
-            marginLeft: 1,
-            "& .MuiFormControlLabel-label": { fontSize: 12 },
-          }}
-        />
         <FormControlLabel
           control={
             <Checkbox
