@@ -30,10 +30,11 @@ const modules = [
     description: "Gerenciamneto e acompanhamento de Projetos",
   },
   {
-    name: "Apontamentos",
+    name: "Gestão de Pessoas",
     image: apontamentos,
     path: "/apontamentos",
-    description: "Controle e registro de horas trabalhadas",
+    description:
+      "Controle de contratos de experiência, férias, apontamentos e folgas.",
   },
 ]
 

@@ -215,6 +215,42 @@ export function useRequisitionColumns(
         ),
       },
       {
+        field: "status",
+        headerName: "Status",
+        width: statusColumnWidth,
+        valueGetter: (status: RequisitionStatus) => {
+          return status ? status.nome : "";
+        },
+        renderHeader: () => (
+          <TextHeader
+            label={"Status"}
+            field={"status"}
+            filters={filters}
+            handleChangeFilters={handleChangeFilters}
+          ></TextHeader>
+        ),
+      },
+      {
+        field: "custo_total",
+        headerName: "Custo Total",
+        width: 120,
+        type: "number",
+        renderCell: (params: GridRenderCellParams) => {
+          return (
+            <Box
+              sx={{
+                display: "flex",
+                flexDirection: "column",
+                height: "100%",
+                justifyContent: "center",
+              }}
+            >
+              {formatCurrency(Number(params.value))}
+            </Box>
+          );
+        },
+      },
+      {
         field: "gerente",
         headerName: "Gerente",
         width: gerenteColumnWidth,
@@ -263,22 +299,6 @@ export function useRequisitionColumns(
         ),
       },
       {
-        field: "status",
-        headerName: "Status",
-        width: statusColumnWidth,
-        valueGetter: (status: RequisitionStatus) => {
-          return status ? status.nome : "";
-        },
-        renderHeader: () => (
-          <TextHeader
-            label={"Status"}
-            field={"status"}
-            filters={filters}
-            handleChangeFilters={handleChangeFilters}
-          ></TextHeader>
-        ),
-      },
-      {
         field: "tipo_faturamento",
         headerName: "Tipo",
         width: tipoColumnWidth,
@@ -294,40 +314,10 @@ export function useRequisitionColumns(
           ></TextHeader>
         ),
       },
-      // {
-      //   field: "data_criacao",
-      //   headerName: "Data de Criação",
-      //   flex: 0.5,
-      //   type: "date",
-      //   valueGetter: (value) => {
-      //     return getDateFromISOstring(value);
-      //   },
-      // },
-      {
-        field: "custo_total",
-        headerName: "Custo Total",
-        width: 120,
-        type: "number",
-        renderCell: (params: GridRenderCellParams) => {
-          return (
-            <Box
-              sx={{
-                display: "flex",
-                flexDirection: "column",
-                height: "100%",
-                justifyContent: "center",
-              }}
-            >
-              {formatCurrency(Number(params.value))}
-            </Box>
-          );
-        },
-      },
       {
         field: "actions",
         headerName: "",
         width: 100,
-
         renderCell: (params: GridRenderCellParams) => {
           const { row } = params;
           return (

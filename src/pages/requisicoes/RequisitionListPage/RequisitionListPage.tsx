@@ -41,6 +41,8 @@ import { setViewingProducts } from "../../../redux/slices/productSlice";
 import ProductsTable from "../../../components/requisicoes/ProductsTable";
 import CloseIcon from "@mui/icons-material/Close";
 import NotificationBell from "../../../components/requisicoes/NotificationBell";
+import { getRequisitionUrgencyLevel } from "../../../utils";
+import { Requisition } from "../../../models/requisicoes/Requisition";
 
 const RequisitionListPage = () => {
     useRequisitionKanban();
@@ -110,6 +112,35 @@ const RequisitionListPage = () => {
         dispatch(setSearchTerm(value.toLowerCase()));
       },
       [dispatch]
+    );
+
+    /**
+     * Define a classe CSS da linha com base no status e tempo de permanência.
+     * Destaca requisições em aprovação há 3+ dias (amarelo) ou 5+ dias (vermelho).
+     * Aplica apenas no kanban "A Fazer" (id = 1).
+     */
+    const getRowClassName = React.useCallback(
+      (params: any) => {
+        // Só aplica destaque no kanban "A Fazer"
+        if (selectedKanban?.id_kanban_requisicao !== 1) {
+          return '';
+        }
+
+        const requisition = params.row as Requisition;
+        const urgencyLevel = getRequisitionUrgencyLevel(
+          requisition.id_status_requisicao,
+          requisition.data_ultima_alteracao_status
+        );
+
+        if (urgencyLevel === 'critical') {
+          return 'requisition-critical';
+        } else if (urgencyLevel === 'warning') {
+          return 'requisition-warning';
+        }
+
+        return '';
+      },
+      [selectedKanban]
     );
 
     const handleDeleteRequisition = async () => {
@@ -293,7 +324,10 @@ const RequisitionListPage = () => {
                   onChange={handleFilterConcluidos}
                   checked={doneReqFilter}
                 />
-                <label htmlFor="filter-concluidos" style={{ marginLeft: 4, fontSize: 14 }}>
+                <label
+                  htmlFor="filter-concluidos"
+                  style={{ marginLeft: 4, fontSize: 14 }}
+                >
                   Concluídos
                 </label>
               </Box>
@@ -304,7 +338,10 @@ const RequisitionListPage = () => {
                   onChange={handleFilterCancelados}
                   checked={cancelledReqFilter}
                 />
-                <label htmlFor="filter-cancelados" style={{ marginLeft: 4, fontSize: 14 }}>
+                <label
+                  htmlFor="filter-cancelados"
+                  style={{ marginLeft: 4, fontSize: 14 }}
+                >
                   Cancelados
                 </label>
               </Box>
@@ -339,9 +376,9 @@ const RequisitionListPage = () => {
               height={gridContainerRef.current?.offsetHeight || 400}
             >
               {({ columnIndex, rowIndex, style }) => {
-                const itemIndex = rowIndex;
-                const requisition = rows[itemIndex];
-                if (!requisition) return null;
+                const itemIndex = rowIndex
+                const requisition = rows[itemIndex]
+                if (!requisition) return null
                 return (
                   <RequisitionCard
                     req={requisition}
@@ -350,7 +387,7 @@ const RequisitionListPage = () => {
                       navigate(`/requisicoes/${requisition.ID_REQUISICAO}`)
                     }
                   />
-                );
+                )
               }}
             </FixedSizeGrid>
           </Box>
@@ -363,11 +400,20 @@ const RequisitionListPage = () => {
             rowHeight={40}
             columns={columns}
             loading={loading}
-            onCellClick={(params: { field: string; }) =>
+            onCellClick={(params: { field: string }) =>
               params.field !== "actions" && navigateToRequisitionDetails(params)
             }
             getRowId={(row: any) => row.ID_REQUISICAO}
+            getRowClassName={getRowClassName}
             theme={theme}
+            sx={{
+              "& .requisition-warning": {
+                backgroundColor: "#fff3cc !important",
+              },
+              "& .requisition-critical": {
+                backgroundColor: "#ffcccc !important",
+              },
+            }}
           />
         )}
       </Box>
@@ -403,7 +449,7 @@ const RequisitionListPage = () => {
         </DialogContent>
       </Dialog>
     </Box>
-  );
+  )
 };
 
 export default RequisitionListPage;

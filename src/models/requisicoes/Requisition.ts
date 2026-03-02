@@ -24,6 +24,7 @@ export interface Requisition {
   custo_total : number;
   valor_aprovado_diretoria?: number;
   id_comprador?: number;
+  data_ultima_alteracao_status?: string | null;
 
   tipo_requisicao?: RequisitionType;
   projeto?: Project;
