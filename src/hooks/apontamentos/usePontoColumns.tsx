@@ -4,6 +4,7 @@ import { useSelector } from "react-redux";
 import { RootState } from "../../redux/store";
 import { Checkbox } from "@mui/material";
 import { TextHeader } from "../../components/TextHeader";
+import { calculateColumnWidth } from "../../utils/calculateColumnWidth";
 
 const formatDate = (value: string | null) => {
   if (!value) return "";
@@ -27,81 +28,24 @@ export const usePontoColumns = (
 ) => {
   const { filters, rows } = useSelector((state: RootState) => state.pontoTable);
 
-  const calculateOptimalColumnWidth = useCallback((
-    data: any[],
-    fieldName: string,
-    valueGetter: ((value: any) => string) | null = null,
-    minWidth: number = 80,
-    maxWidth: number = 600,
-    charWidth: number = 8,
-    padding: number = 40
-  ): number => {
-    if (!data || data.length === 0) {
-      return minWidth;
-    }
-
-    const longestText = data.reduce((longest, item) => {
-      let text = '';
-      if (valueGetter) {
-        text = String(valueGetter(item[fieldName]) || '');
-      } else {
-        text = String(item[fieldName] || '');
-      }
-      return text.length > longest.length ? text : longest;
-    }, '');
-
-    const calculatedWidth = (longestText.length * charWidth) + padding;
-    
-    return Math.max(minWidth, Math.min(calculatedWidth, maxWidth));
-  }, []);
-
-  // Calculate widths for each column based on content
-  const chapaColumnWidth = useMemo(() => 
-    calculateOptimalColumnWidth(rows, 'CHAPA', null, 70, 120, 8, 40),
-    [rows, calculateOptimalColumnWidth]
-  );
-
-  const funcionarioColumnWidth = useMemo(() => 
-    calculateOptimalColumnWidth(rows, 'NOME_FUNCIONARIO', null, 180, 400, 8, 40),
-    [rows, calculateOptimalColumnWidth]
-  );
-
-  const statusColumnWidth = useMemo(() => 
-    calculateOptimalColumnWidth(rows, 'DESCRICAO_STATUS', null, 100, 200, 8, 40),
-    [rows, calculateOptimalColumnWidth]
-  );
-
-  const centroCustoColumnWidth = useMemo(() => 
-    calculateOptimalColumnWidth(rows, 'NOME_CENTRO_CUSTO', null, 150, 400, 8, 40),
-    [rows, calculateOptimalColumnWidth]
-  );
-
-  const liderColumnWidth = useMemo(() => 
-    calculateOptimalColumnWidth(rows, 'NOME_LIDER', null, 150, 300, 8, 40),
-    [rows, calculateOptimalColumnWidth]
-  );
-
-  const motivoColumnWidth = useMemo(() => 
-    calculateOptimalColumnWidth(rows, 'MOTIVO_PROBLEMA', null, 200, 500, 8, 40),
-    [rows, calculateOptimalColumnWidth]
-  );
-
-  const justificadoPorColumnWidth = useMemo(() => 
-    calculateOptimalColumnWidth(rows, 'JUSTIFICADO_POR', null, 120, 250, 8, 40),
-    [rows, calculateOptimalColumnWidth]
-  );
-
-  const justificativaColumnWidth = useMemo(() => 
-    calculateOptimalColumnWidth(rows, 'JUSTIFICATIVA', null, 200, 500, 8, 40),
-    [rows, calculateOptimalColumnWidth]
-  );
+  // Calculate widths for each column based on content using centralized function
+  const columnWidths = useMemo(() => ({
+    CHAPA: calculateColumnWidth(rows, 'CHAPA', 'Chapa', undefined, undefined, 70, 120),
+    NOME_FUNCIONARIO: calculateColumnWidth(rows, 'NOME_FUNCIONARIO', 'Nome', undefined, undefined, 180, 400),
+    DESCRICAO_STATUS: calculateColumnWidth(rows, 'DESCRICAO_STATUS', 'Status', undefined, undefined, 100, 200),
+    NOME_CENTRO_CUSTO: calculateColumnWidth(rows, 'NOME_CENTRO_CUSTO', 'Centro de Custo', undefined, undefined, 150, 400),
+    NOME_LIDER: calculateColumnWidth(rows, 'NOME_LIDER', 'Líder', undefined, undefined, 150, 300),
+    MOTIVO_PROBLEMA: calculateColumnWidth(rows, 'MOTIVO_PROBLEMA', 'Motivo', undefined, undefined, 200, 500),
+    JUSTIFICADO_POR: calculateColumnWidth(rows, 'JUSTIFICADO_POR', 'Justificado Por', undefined, undefined, 120, 250),
+    JUSTIFICATIVA: calculateColumnWidth(rows, 'JUSTIFICATIVA', 'Justificativa', undefined, undefined, 200, 500),
+  }), [rows]);
 
   const columns: GridColDef[] = useMemo(
     () => [
       {
         field: "CHAPA",
         headerName: "Chapa",
-        width: chapaColumnWidth,
+        width: columnWidths.CHAPA,
         sortable: true,
         renderHeader: () => (
           <TextHeader
@@ -115,7 +59,7 @@ export const usePontoColumns = (
       {
         field: "NOME_FUNCIONARIO",
         headerName: "Nome",
-        width: funcionarioColumnWidth,
+        width: columnWidths.NOME_FUNCIONARIO,
         sortable: true,
         renderHeader: () => (
           <TextHeader
@@ -136,7 +80,7 @@ export const usePontoColumns = (
       {
         field: "DESCRICAO_STATUS",
         headerName: "Status",
-        width: statusColumnWidth,
+        width: columnWidths.DESCRICAO_STATUS,
         sortable: true,
         renderHeader: () => (
           <TextHeader
@@ -150,7 +94,7 @@ export const usePontoColumns = (
       {
         field: "NOME_CENTRO_CUSTO",
         headerName: "Centro de Custo",
-        width: centroCustoColumnWidth,
+        width: columnWidths.NOME_CENTRO_CUSTO,
         sortable: true,
         renderHeader: () => (
           <TextHeader
@@ -164,7 +108,7 @@ export const usePontoColumns = (
       {
         field: "NOME_LIDER",
         headerName: "Líder",
-        width: liderColumnWidth,
+        width: columnWidths.NOME_LIDER,
         sortable: true,
         renderHeader: () => (
           <TextHeader
@@ -254,7 +198,7 @@ export const usePontoColumns = (
       {
         field: "MOTIVO_PROBLEMA",
         headerName: "Motivo",
-        width: motivoColumnWidth,
+        width: columnWidths.MOTIVO_PROBLEMA,
         sortable: true,
         renderHeader: () => (
           <TextHeader
@@ -275,17 +219,17 @@ export const usePontoColumns = (
       {
         field: "JUSTIFICADO_POR",
         headerName: "Justificado por",
-        width: justificadoPorColumnWidth,
+        width: columnWidths.JUSTIFICADO_POR,
         sortable: true,
       },
       {
         field: "JUSTIFICATIVA",
         headerName: "Justificativa",
-        width: justificativaColumnWidth,
+        width: columnWidths.JUSTIFICATIVA,
         sortable: true,
       },
     ],
-    [filters, handleChangeFilters, onToggleField, hasPermission, chapaColumnWidth, funcionarioColumnWidth, statusColumnWidth, centroCustoColumnWidth, liderColumnWidth, motivoColumnWidth, justificadoPorColumnWidth, justificativaColumnWidth]
+    [filters, handleChangeFilters, onToggleField, hasPermission, columnWidths]
   );
 
   return { columns };

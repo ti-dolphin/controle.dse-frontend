@@ -8,16 +8,25 @@ import { useDispatch, useSelector } from "react-redux";
 import DeleteIcon from "@mui/icons-material/Delete";
 import { setFilters, setPatrimonyBeingDeleted } from "../../redux/slices/patrimonios/PatrimonyTableSlice";
 import { RootState } from "../../redux/store";
-import React from "react";
+import React, { useMemo } from "react";
 import { TextHeader } from "../../components/TextHeader";
+import { calculateColumnWidth } from "../../utils/calculateColumnWidth";
 
 
-export const usePatMovementationColumns = () => {
+export const usePatMovementationColumns = (rows: any[] = []) => {
   const dispatch = useDispatch();
   const user = useSelector((state: RootState) => state.user.user);
 
   const permissionToDelete = Number(user?.PERM_ADMINISTRADOR) === 1;
   const {filters} = useSelector((state: RootState) => state.patrionyTable);
+
+  // Calcula os widths uma única vez e memoriza
+  const columnWidths = useMemo(() => {
+    return {
+      responsavel: calculateColumnWidth(rows, "responsavel", "Responsável", (user: ReducedUser) => user?.NOME || 'N/A'),
+      gerente: calculateColumnWidth(rows, "gerente", "Gerente", (user: ReducedUser) => user?.NOME || 'N/A'),
+    };
+  }, [rows]);
   const handleDeleteClick =(row: Partial<Patrimony>) => { 
     dispatch(setPatrimonyBeingDeleted(row))
   };
@@ -36,7 +45,7 @@ export const usePatMovementationColumns = () => {
       [dispatch, filters]
     );
 
-  const columns: GridColDef[] = [
+  const columns: GridColDef[] = useMemo(() => [
     {
       field: "id_patrimonio",
       headerName: "ID",
@@ -179,9 +188,8 @@ export const usePatMovementationColumns = () => {
     {
       field: "responsavel",
       headerName: "Responsável",
-      width: 200,
-      valueGetter: (user: ReducedUser) => user.NOME || "N/A",
-      flex: 1,
+      width: columnWidths.responsavel,
+      valueGetter: (user: ReducedUser) => user?.NOME || "N/A",
       renderHeader: () => (
         <TextHeader
           label={"Responsável"}
@@ -194,9 +202,8 @@ export const usePatMovementationColumns = () => {
     {
       field: "gerente",
       headerName: "Gerente",
-      width: 200,
-      valueGetter: (user: ReducedUser) => user.NOME || "N/A",
-      flex: 1,
+      width: columnWidths.gerente,
+      valueGetter: (user: ReducedUser) => user?.NOME || "N/A",
       renderHeader: () => (
         <TextHeader
           label={"Gerente"}
@@ -223,7 +230,7 @@ export const usePatMovementationColumns = () => {
         );
       }
     },
-  ];
+  ], [filters, columnWidths, permissionToDelete]);
 
   return { columns };
 };

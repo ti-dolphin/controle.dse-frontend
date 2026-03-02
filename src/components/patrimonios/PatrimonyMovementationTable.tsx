@@ -35,7 +35,7 @@ const PatrimonyMovementationTable = () => {
       const [creating , setCreating] = React.useState(false);
       const [deletingMov, setDeletingMov] = React.useState<number | null>(null);
       const {permissionToCreateNew, permissionToDelete} = useMovementationPermissions(rows);
-      const { columns } = useMovementationColumns(deletingMov, setDeletingMov, permissionToDelete);
+      const { columns } = useMovementationColumns(deletingMov, setDeletingMov, permissionToDelete, rows);
       const [formData, setFormData] = React.useState<Partial<Movimentation>>({
         id_patrimonio: Number(id_patrimonio),
         id_projeto: 0,

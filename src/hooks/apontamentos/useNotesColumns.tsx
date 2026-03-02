@@ -7,6 +7,7 @@ import { TextHeader } from "../../components/TextHeader";
 import CheckCircleIcon from "@mui/icons-material/CheckCircle";
 import CancelIcon from "@mui/icons-material/Cancel";
 import CommentIcon from "@mui/icons-material/Comment";
+import { calculateColumnWidth } from "../../utils/calculateColumnWidth";
 
 const getWeekDay = (dateString: string): string => {
   if (!dateString) return "-";
@@ -43,79 +44,18 @@ export function useNotesColumns(
 ) {
   const { filters, rows } = useSelector((state: RootState) => state.notesTable);
 
-  const calculateOptimalColumnWidth = useCallback((
-    data: any[],
-    fieldName: string,
-    valueGetter: ((value: any) => string) | null = null,
-    minWidth: number = 80,
-    maxWidth: number = 600,
-    charWidth: number = 8,
-    padding: number = 40
-  ): number => {
-    if (!data || data.length === 0) {
-      return minWidth;
-    }
-
-    const longestText = data.reduce((longest, item) => {
-      let text = '';
-      if (valueGetter) {
-        text = String(valueGetter(item[fieldName]) || '');
-      } else {
-        text = String(item[fieldName] || '');
-      }
-      return text.length > longest.length ? text : longest;
-    }, '');
-
-    const calculatedWidth = (longestText.length * charWidth) + padding;
-    
-    return Math.max(minWidth, Math.min(calculatedWidth, maxWidth));
-  }, []);
-
-  // Calculate widths for each column based on content
-  const chapaColumnWidth = useMemo(() => 
-    calculateOptimalColumnWidth(rows, 'CHAPA', null, 70, 120, 8, 40),
-    [rows, calculateOptimalColumnWidth]
-  );
-
-  const funcionarioColumnWidth = useMemo(() => 
-    calculateOptimalColumnWidth(rows, 'NOME_FUNCIONARIO', null, 180, 400, 8, 40),
-    [rows, calculateOptimalColumnWidth]
-  );
-
-  const funcaoColumnWidth = useMemo(() => 
-    calculateOptimalColumnWidth(rows, 'NOME_FUNCAO', null, 150, 350, 8, 40),
-    [rows, calculateOptimalColumnWidth]
-  );
-
-  const gerenteColumnWidth = useMemo(() => 
-    calculateOptimalColumnWidth(rows, 'NOME_GERENTE', null, 120, 300, 8, 40),
-    [rows, calculateOptimalColumnWidth]
-  );
-
-  const centroCustoColumnWidth = useMemo(() => 
-    calculateOptimalColumnWidth(rows, 'NOME_CENTRO_CUSTO', null, 150, 400, 8, 40),
-    [rows, calculateOptimalColumnWidth]
-  );
-
-  const codReduzidoColumnWidth = useMemo(() => 
-    calculateOptimalColumnWidth(rows, 'CODREDUZIDO', null, 80, 150, 8, 40),
-    [rows, calculateOptimalColumnWidth]
-  );
-
-  const statusColumnWidth = useMemo(() => 
-    calculateOptimalColumnWidth(rows, 'DESCRICAO_STATUS', null, 100, 200, 8, 40),
-    [rows, calculateOptimalColumnWidth]
-  );
-
-  const liderColumnWidth = useMemo(() => 
-    calculateOptimalColumnWidth(rows, 'NOME_LIDER', null, 120, 300, 8, 40),
-    [rows, calculateOptimalColumnWidth]
-  );
-
-  const modificadoPorColumnWidth = useMemo(() => 
-    calculateOptimalColumnWidth(rows, 'MODIFICADOPOR', null, 120, 250, 8, 40),
-    [rows, calculateOptimalColumnWidth]
-  );
+  // Calculate widths for each column based on content using centralized function
+  const columnWidths = useMemo(() => ({
+    CHAPA: calculateColumnWidth(rows, 'CHAPA', 'Chapa', undefined, undefined, 70, 120),
+    NOME_FUNCIONARIO: calculateColumnWidth(rows, 'NOME_FUNCIONARIO', 'Funcionário', undefined, undefined, 180, 400),
+    NOME_FUNCAO: calculateColumnWidth(rows, 'NOME_FUNCAO', 'Função', undefined, undefined, 150, 350),
+    NOME_GERENTE: calculateColumnWidth(rows, 'NOME_GERENTE', 'Gerente', undefined, undefined, 120, 300),
+    NOME_CENTRO_CUSTO: calculateColumnWidth(rows, 'NOME_CENTRO_CUSTO', 'Centro de Custo', undefined, undefined, 150, 400),
+    CODREDUZIDO: calculateColumnWidth(rows, 'CODREDUZIDO', 'Cód. Red.', undefined, undefined, 80, 150),
+    DESCRICAO_STATUS: calculateColumnWidth(rows, 'DESCRICAO_STATUS', 'Status', undefined, undefined, 100, 200),
+    NOME_LIDER: calculateColumnWidth(rows, 'NOME_LIDER', 'Líder', undefined, undefined, 120, 300),
+    MODIFICADOPOR: calculateColumnWidth(rows, 'MODIFICADOPOR', 'Modificado Por', undefined, undefined, 120, 250),
+  }), [rows]);
 
   const columns: GridColDef[] = useMemo(
     () => [
@@ -158,7 +98,7 @@ export function useNotesColumns(
       {
         field: "CHAPA",
         headerName: "Chapa",
-        width: chapaColumnWidth,
+        width: columnWidths.CHAPA,
         renderHeader: () => (
           <TextHeader
             label="Chapa"
@@ -171,7 +111,7 @@ export function useNotesColumns(
       {
         field: "NOME_FUNCIONARIO",
         headerName: "Funcionário",
-        width: funcionarioColumnWidth,
+        width: columnWidths.NOME_FUNCIONARIO,
         renderCell: (params: GridRenderCellParams) => (
           <Box sx={{ display: "flex", flexDirection: "column", justifyContent: "center", height: "100%" }}>
             <Typography fontSize="11px" fontWeight="bold">
@@ -191,7 +131,7 @@ export function useNotesColumns(
       {
         field: "NOME_FUNCAO",
         headerName: "Função",
-        width: funcaoColumnWidth,
+        width: columnWidths.NOME_FUNCAO,
         renderHeader: () => (
           <TextHeader
             label="Função"
@@ -216,7 +156,7 @@ export function useNotesColumns(
       {
         field: "NOME_GERENTE",
         headerName: "Gerente",
-        width: gerenteColumnWidth,
+        width: columnWidths.NOME_GERENTE,
         renderHeader: () => (
           <TextHeader
             label="Gerente"
@@ -229,7 +169,7 @@ export function useNotesColumns(
       {
         field: "NOME_CENTRO_CUSTO",
         headerName: "Centro de Custo",
-        width: centroCustoColumnWidth,
+        width: columnWidths.NOME_CENTRO_CUSTO,
         renderHeader: () => (
           <TextHeader
             label="Centro de Custo"
@@ -242,12 +182,12 @@ export function useNotesColumns(
       {
         field: "CODREDUZIDO",
         headerName: "CNO (CEI)",
-        width: codReduzidoColumnWidth,
+        width: columnWidths.CODREDUZIDO,
       },
       {
         field: "DESCRICAO_STATUS",
         headerName: "Status",
-        width: statusColumnWidth,
+        width: columnWidths.DESCRICAO_STATUS,
         renderHeader: () => (
           <TextHeader
             label="Status"
@@ -260,7 +200,7 @@ export function useNotesColumns(
       {
         field: "NOME_LIDER",
         headerName: "Líder",
-        width: liderColumnWidth,
+        width: columnWidths.NOME_LIDER,
         renderHeader: () => (
           <TextHeader
             label="Líder"
@@ -288,7 +228,7 @@ export function useNotesColumns(
       {
         field: "MODIFICADOPOR",
         headerName: "Modificado",
-        width: modificadoPorColumnWidth,
+        width: columnWidths.MODIFICADOPOR,
       },
       {
         field: "actions",
@@ -316,7 +256,7 @@ export function useNotesColumns(
         ),
       },
     ],
-    [filters, handleChangeFilters, onCommentClick, chapaColumnWidth, funcionarioColumnWidth, funcaoColumnWidth, gerenteColumnWidth, centroCustoColumnWidth, codReduzidoColumnWidth, statusColumnWidth, liderColumnWidth, modificadoPorColumnWidth]
+    [filters, handleChangeFilters, onCommentClick, columnWidths]
   );
 
   return { columns };

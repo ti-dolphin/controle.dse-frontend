@@ -89,7 +89,8 @@ const RequisitionListPage = () => {
     const { columns, secondaryColumns } = useRequisitionColumns(
       handleChangeFilters,
       changeSelectedRow,
-      gridRef
+      gridRef,
+      rows
     ); 
 
     const handleChangeKanban = React.useCallback(

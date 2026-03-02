@@ -53,7 +53,7 @@ const PatrimonyListPage = () => {
   const [creating, setCreating] = React.useState(false);
   const { isMobile } = useIsMobile();
   const { notifications } = useChecklistNotifications(); 
-  const { columns } = usePatMovementationColumns();
+  const { columns } = usePatMovementationColumns(rows);
   const gridRef = useGridApiRef();
   const gridContainerRef = React.useRef<HTMLDivElement>(null);
   const handleBack = () => {
