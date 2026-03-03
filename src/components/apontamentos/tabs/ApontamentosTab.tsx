@@ -14,12 +14,14 @@ import {
 import { setFeedback } from "../../../redux/slices/feedBackSlice";
 import { clearCommonFilters } from "../../../redux/slices/apontamentos/commonFiltersSlice";
 import NotesService from "../../../services/NotesService";
-import { Box, Button, useTheme, FormControlLabel, Checkbox } from "@mui/material";
+import { Box, Button, useTheme, FormControlLabel, Checkbox, CircularProgress } from "@mui/material";
 import { useNotesColumns } from "../../../hooks/apontamentos/useNotesColumns";
 import BaseDataTable from "../../shared/BaseDataTable";
 import { useGridApiRef, GridRowSelectionModel } from "@mui/x-data-grid";
 import NoteCommentDialog from "../NoteCommentDialog";
 import CommonFilters from "../CommonFilters";
+import FileDownloadIcon from '@mui/icons-material/FileDownload';
+import { formatNotesForExcel, exportToExcel } from "../../../utils/excelExport";
 
 interface ApontamentosTabProps {
   selectedApontamentos: GridRowSelectionModel;
@@ -38,6 +40,7 @@ const ApontamentosTab: React.FC<ApontamentosTabProps> = ({
 
   const [commentDialogOpen, setCommentDialogOpen] = useState(false);
   const [selectedCodapont, setSelectedCodapont] = useState<number | null>(null);
+  const [isExporting, setIsExporting] = useState(false);
 
   const { rows, loading, filters, page, pageSize, totalRows, refreshNotes } = useSelector(
     (state: RootState) => state.notesTable
@@ -65,6 +68,59 @@ const ApontamentosTab: React.FC<ApontamentosTabProps> = ({
     dispatch(clearFilters());
     dispatch(clearCommonFilters());
   }, [dispatch]);
+
+  const handleExportExcel = useCallback(async () => {
+    setIsExporting(true);
+    try {
+      // Buscar todos os dados com os filtros aplicados
+      const response = await NotesService.getAllForExport({
+        filters: {
+          ...filters,
+          DATA_DE: commonFilters.DATA_DE,
+          DATA_ATE: commonFilters.DATA_ATE,
+          ATIVOS: commonFilters.ATIVOS,
+        },
+        searchTerm: commonFilters.searchTerm,
+      });
+
+      if (!response.data || response.data.length === 0) {
+        dispatch(
+          setFeedback({
+            message: "Não há dados para exportar com os filtros aplicados",
+            type: "error",
+          })
+        );
+        return;
+      }
+
+      // Formatar dados para Excel
+      const formattedData = formatNotesForExcel(response.data);
+
+      // Gerar nome do arquivo com data atual
+      const today = new Date();
+      const dateStr = `${today.getDate().toString().padStart(2, '0')}-${(today.getMonth() + 1).toString().padStart(2, '0')}-${today.getFullYear()}`;
+      const fileName = `Apontamentos_${dateStr}`;
+
+      // Exportar para Excel
+      exportToExcel(formattedData, fileName, 'Apontamentos');
+
+      dispatch(
+        setFeedback({
+          message: `${response.data.length} registros exportados com sucesso`,
+          type: "success",
+        })
+      );
+    } catch (e: any) {
+      dispatch(
+        setFeedback({
+          message: e.message || "Houve um erro ao exportar os dados",
+          type: "error",
+        })
+      );
+    } finally {
+      setIsExporting(false);
+    }
+  }, [dispatch, filters, commonFilters]);
 
   const handleCommentClick = useCallback((codapont: number) => {
     setSelectedCodapont(codapont);
@@ -185,6 +241,16 @@ const ApontamentosTab: React.FC<ApontamentosTabProps> = ({
           onClick={handleCleanFilter}
         >
           Limpar filtros
+        </Button>
+
+        <Button
+          sx={{ height: 32, borderRadius: 0, fontSize: 12 }}
+          variant="contained"
+          onClick={handleExportExcel}
+          disabled={isExporting || loading}
+          startIcon={isExporting ? <CircularProgress size={16} color="inherit" /> : <FileDownloadIcon />}
+        >
+          {isExporting ? 'Exportando...' : 'Exportar Excel'}
         </Button>
 
         <Button

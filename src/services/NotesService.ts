@@ -176,7 +176,43 @@ const NotesService = {
     updatePontoField: async (codapont: number, field: string, value: boolean) => {
         const response = await api.patch(`/notes/ponto/${codapont}`, { field, value });
         return response.data;
-    }
+    },
+
+    /**
+     * Busca todos os apontamentos com filtros aplicados (sem paginação)
+     * Usado para exportação de dados
+     */
+    getAllForExport: async (params?: Omit<NotesQueryParams, 'page' | 'pageSize'>) => {
+        const queryParams: Record<string, any> = {};
+        
+        if (params?.filters) {
+            if (params.filters.CODAPONT) queryParams.CODAPONT = params.filters.CODAPONT;
+            if (params.filters.CHAPA) queryParams.CHAPA = params.filters.CHAPA;
+            if (params.filters.COMPETENCIA) queryParams.COMPETENCIA = params.filters.COMPETENCIA;
+            if (params.filters.CODSITUACAO) queryParams.CODSITUACAO = params.filters.CODSITUACAO;
+            if (params.filters.NOME_FUNCIONARIO) queryParams.NOME_FUNCIONARIO = params.filters.NOME_FUNCIONARIO;
+            if (params.filters.NOME_FUNCAO) queryParams.NOME_FUNCAO = params.filters.NOME_FUNCAO;
+            if (params.filters.NOME_CENTRO_CUSTO) queryParams.NOME_CENTRO_CUSTO = params.filters.NOME_CENTRO_CUSTO;
+            if (params.filters.DESCRICAO_STATUS) queryParams.DESCRICAO_STATUS = params.filters.DESCRICAO_STATUS;
+            if (params.filters.NOME_LIDER) queryParams.NOME_LIDER = params.filters.NOME_LIDER;
+            if (params.filters.NOME_GERENTE) queryParams.NOME_GERENTE = params.filters.NOME_GERENTE;
+            if (params.filters.DATA_DE) queryParams.DATA_DE = params.filters.DATA_DE;
+            if (params.filters.DATA_ATE) queryParams.DATA_ATE = params.filters.DATA_ATE;
+            if (params.filters.ATIVOS) queryParams.ATIVOS = params.filters.ATIVOS;
+            if (params.filters.COMENTADOS) queryParams.COMENTADOS = params.filters.COMENTADOS;
+            if (params.filters.SEM_ASSIDUIDADE) queryParams.SEM_ASSIDUIDADE = params.filters.SEM_ASSIDUIDADE;
+        }
+        
+        if (params?.searchTerm) {
+            queryParams.searchTerm = params.searchTerm;
+        }
+        
+        // Buscar todos os registros sem paginação
+        queryParams.all = true;
+        
+        const response = await api.get('/notes', { params: queryParams });
+        return response.data;
+    },
 };
 
 export default NotesService;

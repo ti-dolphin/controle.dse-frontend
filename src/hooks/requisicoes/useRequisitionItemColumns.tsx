@@ -22,8 +22,8 @@ import RadioButtonUncheckedIcon from "@mui/icons-material/RadioButtonUnchecked";
 import CheckCircleIcon from "@mui/icons-material/CheckCircle";
 import ErrorIcon from "@mui/icons-material/Error";
 import ContentCopyIcon from "@mui/icons-material/ContentCopy";
-
 import FileIcon from '@mui/icons-material/FilePresent';
+import { calculateColumnWidth } from "../../utils/calculateColumnWidth";
 
 export const useRequisitionItemColumns = (
   addingReqItems: boolean,
@@ -66,31 +66,10 @@ export const useRequisitionItemColumns = (
     },
   }));
 
-  const calculateOptimalColumnWidth = useCallback((
-    items: any[],
-    fieldName: string,
-    minWidth: number = 200,
-    maxWidth: number = 600,
-    charWidth: number = 8,
-    padding: number = 40
-  ): number => {
-    if (!items || items.length === 0) {
-      return minWidth;
-    }
-
-    const longestText = items.reduce((longest, item) => {
-      const text = String(item[fieldName] || '');
-      return text.length > longest.length ? text : longest;
-    }, '');
-
-    const calculatedWidth = (longestText.length * charWidth) + padding;
-    
-    return Math.max(minWidth, Math.min(calculatedWidth, maxWidth));
-  }, []);
-
+  // Calcula a largura dinâmica da coluna de descrição
   const descriptionColumnWidth = useMemo(() => 
-    calculateOptimalColumnWidth(items, 'produto_descricao', 200, 600, 8, 40),
-    [items, calculateOptimalColumnWidth]
+    calculateColumnWidth(items, 'produto_descricao', 'Descrição', undefined, undefined, 200, 600),
+    [items]
   );
 
   const handleSelectQuoteId = (quoteId: number, e: ChangeEvent<HTMLInputElement>) => {

@@ -84,3 +84,44 @@ export function getDateInputValue(dateStr?: string | null): string {
   const match = dateStr.match(/^(\d{4}-\d{2}-\d{2})/);
   return match ? match[1] : "";
 }
+
+/**
+ * Verifica o nível de urgência da requisição com base no tempo no status.
+ * Retorna:
+ * - 'critical' se está há 5 dias ou mais em Aprovação Gerente ou Diretoria (vermelho)
+ * - 'warning' se está há 3 dias ou mais em Aprovação Gerente ou Diretoria (amarelo)
+ * - null se não precisa destaque
+ */
+export function getRequisitionUrgencyLevel(
+  statusId: number,
+  dataUltimaAlteracaoStatus: string | null | undefined
+): 'critical' | 'warning' | null {
+  // Verifica se é um dos status de aprovação que devem ser monitorados
+  const statusAprovacao = [6, 7]; // 6 = Aprovação Gerente, 7 = Aprovação Diretoria
+  if (!statusAprovacao.includes(statusId)) {
+    return null;
+  }
+
+  // Verifica se há data da última alteração
+  if (!dataUltimaAlteracaoStatus) {
+    return null;
+  }
+
+  // Calcula dias desde a última alteração de status
+  const dataAlteracao = DateTime.fromISO(dataUltimaAlteracaoStatus, { zone: "utc" });
+  if (!dataAlteracao.isValid) {
+    return null;
+  }
+
+  const agora = DateTime.utc();
+  const diasNoStatus = agora.diff(dataAlteracao, 'days').days;
+
+  // Define o nível de urgência baseado nos dias
+  if (diasNoStatus >= 5) {
+    return 'critical'; // Vermelho
+  } else if (diasNoStatus >= 3) {
+    return 'warning'; // Amarelo
+  }
+
+  return null;
+}
