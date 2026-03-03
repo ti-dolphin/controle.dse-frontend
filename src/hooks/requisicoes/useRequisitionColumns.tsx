@@ -45,11 +45,10 @@ export function useRequisitionColumns(
   const user = useSelector((state: RootState) => state.user.user);
   const { filters } = useSelector((state: RootState) => state.requisitionTable);
 
-  // Calcula os widths uma única vez e memoriza
   const columnWidths = useMemo(() => {
     return {
       ID_REQUISICAO: calculateColumnWidth(rows, "ID_REQUISICAO", "ID"),
-      DESCRIPTION: calculateColumnWidth(rows, "DESCRIPTION", "Descrição", undefined, undefined, 150, 400),
+      DESCRIPTION: calculateColumnWidth(rows, "DESCRIPTION", "Descrição", undefined, undefined),
       projeto: calculateColumnWidth(rows, "projeto", "Projeto", (project: Project) => project?.DESCRICAO || ''),
       responsavel: calculateColumnWidth(rows, "responsavel", "Requisitante", (user: ReducedUser) => user?.NOME || ''),
       status: calculateColumnWidth(rows, "status", "Status", (status: RequisitionStatus) => status?.nome || ''),
@@ -58,11 +57,6 @@ export function useRequisitionColumns(
       responsavel_projeto: calculateColumnWidth(rows, "responsavel_projeto", "Responsável Projeto", (user: ReducedUser) => user?.NOME || ''),
       comprador: calculateColumnWidth(rows, "comprador", "Comprador", (user: ReducedUser) => user?.NOME || ''),
       tipo_faturamento: calculateColumnWidth(rows, "tipo_faturamento", "Tipo", (value) => getTypeByTipoFaturamento(value)),
-      criado_por: calculateColumnWidth(rows, "criado_por", "Criado por", (user: ReducedUser) => user?.NOME || ''),
-      alterado_por: calculateColumnWidth(rows, "alterado_por", "Alterado por", (user: ReducedUser) => user?.NOME || ''),
-      OBSERVACAO: calculateColumnWidth(rows, "OBSERVACAO", "Observação", undefined, undefined, 150, 400),
-      data_alteracao: calculateColumnWidth(rows, "data_alteracao", "Data de Alteração", (value) => getDateFromISOstring(value)),
-      data_criacao: calculateColumnWidth(rows, "data_criacao", "Data de Criação", (value) => getDateFromISOstring(value)),
     };
   }, [rows]);
 
@@ -281,58 +275,5 @@ export function useRequisitionColumns(
     [filters, columnWidths, user, dispatch]
   );
 
-  const secondaryColumns: GridColDef[] = useMemo(
-    () => [
-      {
-        field: "criado_por",
-        headerName: "Criado por",
-        width: columnWidths.criado_por,
-        valueGetter: (user: ReducedUser) => {
-          return user?.NOME || '';
-        },
-      },
-      {
-        field: "alterado_por",
-        headerName: "Alterado por",
-        width: columnWidths.alterado_por,
-        valueGetter: (user: ReducedUser) => {
-          return user?.NOME || '';
-        },
-      },
-      {
-        field: "OBSERVACAO",
-        headerName: "Observação",
-        width: columnWidths.OBSERVACAO,
-      },
-      {
-        field: "data_alteracao",
-        headerName: "Data de Alteração",
-        width: columnWidths.data_alteracao,
-        type: "date",
-        valueGetter: (value) => {
-          return getDateFromISOstring(value);
-        },
-      },
-      {
-        field: "data_criacao",
-        headerName: "Data de Criação",
-        width: columnWidths.data_criacao,
-        type: "date",
-        valueGetter: (value) => {
-          return getDateFromISOstring(value);
-        },
-      },
-      {
-        field: "gerente",
-        headerName: "Gerente",
-        width: columnWidths.gerente,
-        valueGetter: (user: ReducedUser) => {
-          return user?.NOME || '';
-        },
-      },
-    ],
-    [columnWidths]
-  );
-
-  return { columns, secondaryColumns };
+  return { columns };
 }

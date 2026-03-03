@@ -44,7 +44,6 @@ export function useNotesColumns(
 ) {
   const { filters, rows } = useSelector((state: RootState) => state.notesTable);
 
-  // Calculate widths for each column based on content using centralized function
   const columnWidths = useMemo(() => ({
     CHAPA: calculateColumnWidth(rows, 'CHAPA', 'Chapa', undefined, undefined, 70, 120),
     NOME_FUNCIONARIO: calculateColumnWidth(rows, 'NOME_FUNCIONARIO', 'Funcionário', undefined, undefined, 180, 400),

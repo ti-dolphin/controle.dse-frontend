@@ -23,6 +23,13 @@ export const usePatMovementationColumns = (rows: any[] = []) => {
   // Calcula os widths uma única vez e memoriza
   const columnWidths = useMemo(() => {
     return {
+      id_patrimonio: calculateColumnWidth(rows, "id_patrimonio", "ID"),
+      patrimonio_nserie: calculateColumnWidth(rows, "patrimonio_nserie", "Nº Série"),
+      patrimonio_nome: calculateColumnWidth(rows, "patrimonio_nome", "Patrimônio"),
+      patrimonio_descricao: calculateColumnWidth(rows, "patrimonio_descricao", "Descrição"),
+      patrimonio_tipo: calculateColumnWidth(rows, "patrimonio_tipo", "Tipo", (type: PatrimonyType) => type.nome_tipo || "N/A"),
+      patrimonio_valor_compra: calculateColumnWidth(rows, "patrimonio_valor_compra", "Valor compra", (value: any) => value ? `R$ ${Number(value).toFixed(2)}` : `R$ 0.00`),
+      projeto: calculateColumnWidth(rows, "projeto", "Projeto", (projeto: Project) => projeto.DESCRICAO || "N/A"),
       responsavel: calculateColumnWidth(rows, "responsavel", "Responsável", (user: ReducedUser) => user?.NOME || 'N/A'),
       gerente: calculateColumnWidth(rows, "gerente", "Gerente", (user: ReducedUser) => user?.NOME || 'N/A'),
     };
@@ -50,7 +57,7 @@ export const usePatMovementationColumns = (rows: any[] = []) => {
       field: "id_patrimonio",
       headerName: "ID",
       type: "number",
-      flex: 0.5,
+      width: columnWidths.id_patrimonio,
       renderCell: (params: any) => (
         <Box
           sx={{
@@ -77,7 +84,7 @@ export const usePatMovementationColumns = (rows: any[] = []) => {
     {
       field: "patrimonio_nserie",
       headerName: "Nº Série",
-      flex: 0.6,
+      width: columnWidths.patrimonio_nserie,
       renderCell: (params: any) => (
         <Box
           sx={{
@@ -104,7 +111,7 @@ export const usePatMovementationColumns = (rows: any[] = []) => {
     {
       field: "patrimonio_nome",
       headerName: "Patrimônio",
-      flex: 0.6,
+      width: columnWidths.patrimonio_nome,
       renderCell: (params: any) => (
         <Box
           sx={{
@@ -131,7 +138,7 @@ export const usePatMovementationColumns = (rows: any[] = []) => {
     {
       field: "patrimonio_descricao",
       headerName: "Descrição",
-      flex: 1.4,
+      width: columnWidths.patrimonio_descricao,
       renderHeader: () => (
         <TextHeader
           label={"Descrição"}
@@ -144,7 +151,7 @@ export const usePatMovementationColumns = (rows: any[] = []) => {
     {
       field: "patrimonio_tipo",
       headerName: "Tipo",
-      flex: 0.3,
+      width: columnWidths.patrimonio_tipo,
       valueGetter: (type: PatrimonyType) => type.nome_tipo || "N/A",
       renderHeader: () => (
         <TextHeader
@@ -161,7 +168,7 @@ export const usePatMovementationColumns = (rows: any[] = []) => {
       type: "number",
       valueFormatter: (value: any) =>
         value ? `R$ ${Number(value).toFixed(2)}` : `R$ 0.00`,
-      flex: 0.5,
+      width: columnWidths.patrimonio_valor_compra,
       renderHeader: () => (
         <TextHeader
           label={"Valor compra"}
@@ -175,7 +182,7 @@ export const usePatMovementationColumns = (rows: any[] = []) => {
       field: "projeto",
       headerName: "Projeto",
       valueGetter: (projeto: Project) => projeto.DESCRICAO || "N/A",
-      flex: 1,
+      width: columnWidths.projeto,
       renderHeader: () => (
         <TextHeader
           label={"Projeto"}

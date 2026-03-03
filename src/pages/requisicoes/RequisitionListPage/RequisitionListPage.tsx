@@ -86,7 +86,7 @@ const RequisitionListPage = () => {
       [dispatch, filters]
     );
 
-    const { columns, secondaryColumns } = useRequisitionColumns(
+    const { columns } = useRequisitionColumns(
       handleChangeFilters,
       changeSelectedRow,
       gridRef,
@@ -115,14 +115,8 @@ const RequisitionListPage = () => {
       [dispatch]
     );
 
-    /**
-     * Define a classe CSS da linha com base no status e tempo de permanência.
-     * Destaca requisições em aprovação há 3+ dias (amarelo) ou 5+ dias (vermelho).
-     * Aplica apenas no kanban "A Fazer" (id = 1).
-     */
     const getRowClassName = React.useCallback(
       (params: any) => {
-        // Só aplica destaque no kanban "A Fazer"
         if (selectedKanban?.id_kanban_requisicao !== 1) {
           return '';
         }
