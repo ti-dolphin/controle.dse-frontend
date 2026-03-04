@@ -13,7 +13,7 @@ export const calculateColumnWidth = (
     return minWidth;
   }
 
-  const fontToUse = font || '11px Roboto';
+  const fontToUse = font || '12px Roboto';
   const sampleSize = Math.min(50, rows.length)
   const measure = textMeasurer(fontToUse);
 
@@ -35,7 +35,7 @@ export const calculateColumnWidth = (
     0
   );
 
-  const finalWidth = Math.max(headerWidth, contentWidth) + 45;
+  const finalWidth = Math.max(headerWidth, contentWidth) + 40;
 
   return Math.max(minWidth, Math.min(maxWidth, finalWidth));
 }
