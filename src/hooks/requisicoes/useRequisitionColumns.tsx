@@ -47,16 +47,16 @@ export function useRequisitionColumns(
 
   const columnWidths = useMemo(() => {
     return {
-      ID_REQUISICAO: calculateColumnWidth(rows, "ID_REQUISICAO", "ID"),
-      DESCRIPTION: calculateColumnWidth(rows, "DESCRIPTION", "Descrição", undefined, undefined),
-      projeto: calculateColumnWidth(rows, "projeto", "Projeto", (project: Project) => project?.DESCRICAO || ''),
-      responsavel: calculateColumnWidth(rows, "responsavel", "Requisitante", (user: ReducedUser) => user?.NOME || ''),
-      status: calculateColumnWidth(rows, "status", "Status", (status: RequisitionStatus) => status?.nome || ''),
-      custo_total: calculateColumnWidth(rows, "custo_total", "Custo Total", (value) => formatCurrency(Number(value || 0))),
-      gerente: calculateColumnWidth(rows, "gerente", "Gerente", (user: ReducedUser) => user?.NOME || ''),
-      responsavel_projeto: calculateColumnWidth(rows, "responsavel_projeto", "Responsável Projeto", (user: ReducedUser) => user?.NOME || ''),
-      comprador: calculateColumnWidth(rows, "comprador", "Comprador", (user: ReducedUser) => user?.NOME || ''),
-      tipo_faturamento: calculateColumnWidth(rows, "tipo_faturamento", "Tipo", (value) => getTypeByTipoFaturamento(value)),
+      ID_REQUISICAO: calculateColumnWidth(rows, "ID_REQUISICAO", "ID", undefined, "12px Roboto"),
+      DESCRIPTION: calculateColumnWidth(rows, "DESCRIPTION", "Descrição", undefined, "bold 12px Roboto"),
+      projeto: calculateColumnWidth(rows, "projeto", "Projeto", (project: Project) => project?.DESCRICAO || '', "12px Roboto"),
+      responsavel: calculateColumnWidth(rows, "responsavel", "Requisitante", (user: ReducedUser) => user?.NOME || '', "12px Roboto"),
+      status: calculateColumnWidth(rows, "status", "Status", (status: RequisitionStatus) => status?.nome || '', "12px Roboto"),
+      custo_total: calculateColumnWidth(rows, "custo_total", "Custo Total", (value) => formatCurrency(Number(value || 0)), "12px Roboto"),
+      gerente: calculateColumnWidth(rows, "gerente", "Gerente", (user: ReducedUser) => user?.NOME || '', "12px Roboto"),
+      responsavel_projeto: calculateColumnWidth(rows, "responsavel_projeto", "Responsável Projeto", (user: ReducedUser) => user?.NOME || '', "12px Roboto"),
+      comprador: calculateColumnWidth(rows, "comprador", "Comprador", (user: ReducedUser) => user?.NOME || '', "12px Roboto"),
+      tipo_faturamento: calculateColumnWidth(rows, "tipo_faturamento", "Tipo", (value) => getTypeByTipoFaturamento(value), "12px Roboto"),
     };
   }, [rows]);
 
@@ -66,6 +66,27 @@ export function useRequisitionColumns(
         field: "ID_REQUISICAO",
         headerName: "ID",
         width: columnWidths.ID_REQUISICAO,
+        renderCell: (params: GridRenderCellParams) => {
+          return (
+            <Box
+              sx={{
+                display: "flex",
+                flexDirection: "column",
+                height: "100%",
+                justifyContent: "center",
+              }}
+            >
+              <Typography
+                sx={{
+                  fontSize: "12px",
+                  color: "text.primary",
+                }}
+              >
+                {params.value}
+              </Typography>
+            </Box>
+          );
+        },
         renderHeader: () => (
           <TextHeader
             label={"ID"}
@@ -90,9 +111,11 @@ export function useRequisitionColumns(
               }}
             >
               <Typography
-                fontSize="12px"
-                fontWeight="bold"
-                color="text.primary"
+                sx={{
+                  fontSize: "12px",
+                  fontWeight: "bold",
+                  color: "text.primary",
+                }}
               >
                 {params.value}
               </Typography>
@@ -115,6 +138,27 @@ export function useRequisitionColumns(
         valueGetter: (project: Project) => {
           return project?.DESCRICAO || '';
         },
+        renderCell: (params: GridRenderCellParams) => {
+          return (
+            <Box
+              sx={{
+                display: "flex",
+                flexDirection: "column",
+                height: "100%",
+                justifyContent: "center",
+              }}
+            >
+              <Typography
+                sx={{
+                  fontSize: "12px",
+                  color: "text.primary",
+                }}
+              >
+                {params.value}
+              </Typography>
+            </Box>
+          );
+        },
         renderHeader: () => (
           <TextHeader
             label={"Projeto"}
@@ -131,6 +175,27 @@ export function useRequisitionColumns(
         valueGetter: (user: ReducedUser) => {
           return user?.NOME || '';
         },
+        renderCell: (params: GridRenderCellParams) => {
+          return (
+            <Box
+              sx={{
+                display: "flex",
+                flexDirection: "column",
+                height: "100%",
+                justifyContent: "center",
+              }}
+            >
+              <Typography
+                sx={{
+                  fontSize: "12px",
+                  color: "text.primary",
+                }}
+              >
+                {params.value}
+              </Typography>
+            </Box>
+          );
+        },
         renderHeader: () => (
           <TextHeader
             label={"Requisitante"}
@@ -146,6 +211,27 @@ export function useRequisitionColumns(
         width: columnWidths.status,
         valueGetter: (status: RequisitionStatus) => {
           return status ? status.nome : "";
+        },
+        renderCell: (params: GridRenderCellParams) => {
+          return (
+            <Box
+              sx={{
+                display: "flex",
+                flexDirection: "column",
+                height: "100%",
+                justifyContent: "center",
+              }}
+            >
+              <Typography
+                sx={{
+                  fontSize: "12px",
+                  color: "text.primary",
+                }}
+              >
+                {params.value}
+              </Typography>
+            </Box>
+          );
         },
         renderHeader: () => (
           <TextHeader
@@ -171,7 +257,14 @@ export function useRequisitionColumns(
                 justifyContent: "center",
               }}
             >
-              {formatCurrency(Number(params.value))}
+              <Typography
+                sx={{
+                  fontSize: "12px",
+                  color: "text.primary",
+                }}
+              >
+                {formatCurrency(Number(params.value))}
+              </Typography>
             </Box>
           );
         },
@@ -182,6 +275,27 @@ export function useRequisitionColumns(
         width: columnWidths.gerente,
         valueGetter: (user: ReducedUser) => {
           return user?.NOME || '';
+        },
+        renderCell: (params: GridRenderCellParams) => {
+          return (
+            <Box
+              sx={{
+                display: "flex",
+                flexDirection: "column",
+                height: "100%",
+                justifyContent: "center",
+              }}
+            >
+              <Typography
+                sx={{
+                  fontSize: "12px",
+                  color: "text.primary",
+                }}
+              >
+                {params.value}
+              </Typography>
+            </Box>
+          );
         },
         renderHeader: () => (
           <TextHeader
@@ -199,6 +313,27 @@ export function useRequisitionColumns(
         valueGetter: (user: ReducedUser) => {
           return user?.NOME || '';
         },
+        renderCell: (params: GridRenderCellParams) => {
+          return (
+            <Box
+              sx={{
+                display: "flex",
+                flexDirection: "column",
+                height: "100%",
+                justifyContent: "center",
+              }}
+            >
+              <Typography
+                sx={{
+                  fontSize: "12px",
+                  color: "text.primary",
+                }}
+              >
+                {params.value}
+              </Typography>
+            </Box>
+          );
+        },
         renderHeader: () => (
           <TextHeader
             label={"Responsável Projeto"}
@@ -215,6 +350,27 @@ export function useRequisitionColumns(
         valueGetter: (user: ReducedUser) => {
           return user ? user.NOME || '' : '';
         },
+        renderCell: (params: GridRenderCellParams) => {
+          return (
+            <Box
+              sx={{
+                display: "flex",
+                flexDirection: "column",
+                height: "100%",
+                justifyContent: "center",
+              }}
+            >
+              <Typography
+                sx={{
+                  fontSize: "12px",
+                  color: "text.primary",
+                }}
+              >
+                {params.value}
+              </Typography>
+            </Box>
+          );
+        },
         renderHeader: () => (
           <TextHeader
             label={"Comprador"}
@@ -230,6 +386,27 @@ export function useRequisitionColumns(
         width: columnWidths.tipo_faturamento,
         valueGetter: (tipoFaturamento: number) => {
           return getTypeByTipoFaturamento(tipoFaturamento);
+        },
+        renderCell: (params: GridRenderCellParams) => {
+          return (
+            <Box
+              sx={{
+                display: "flex",
+                flexDirection: "column",
+                height: "100%",
+                justifyContent: "center",
+              }}
+            >
+              <Typography
+                sx={{
+                  fontSize: "12px",
+                  color: "text.primary",
+                }}
+              >
+                {params.value}
+              </Typography>
+            </Box>
+          );
         },
         renderHeader: () => (
           <TextHeader
