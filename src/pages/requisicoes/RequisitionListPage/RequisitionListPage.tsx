@@ -42,15 +42,17 @@ import ProductsTable from "../../../components/requisicoes/ProductsTable";
 import CloseIcon from "@mui/icons-material/Close";
 import OpenWithIcon from "@mui/icons-material/OpenWith";
 import { ColumnReorderDialog } from "../../../components/shared/ColumnReorderDialog";
+import { usePersistedColumnOrder } from "../../../hooks/table/usePersistedColumnOrder";
 import NotificationBell from "../../../components/requisicoes/NotificationBell";
 import { getRequisitionUrgencyLevel } from "../../../utils";
 import { Requisition } from "../../../models/requisicoes/Requisition";
+
+const REQUISITION_TABLE_KEY = "requisition-list";
 
 const RequisitionListPage = () => {
     useRequisitionKanban();
     const [triggerFetch, setTriggerFetch] = useState(0);
     const [columnOrderDialogOpen, setColumnOrderDialogOpen] = useState(false);
-    const [columnOrder, setColumnOrder] = useState<string[] | null>(null);
     const dispatch = useDispatch();
     const theme = useTheme();
     const user = useSelector((state: RootState) => state.user.user);
@@ -97,17 +99,11 @@ const RequisitionListPage = () => {
       rows
     );
 
-    const columns = useMemo(() => {
-      if (!columnOrder) return rawColumns;
-      return [
-        ...columnOrder
-          .map((field) => rawColumns.find((col) => col.field === field))
-          .filter(Boolean),
-        ...rawColumns.filter(
-          (col) => !columnOrder.includes(col.field)
-        ),
-      ] as typeof rawColumns;
-    }, [rawColumns, columnOrder]); 
+    const { orderedColumns: columns, saveColumnOrder } = usePersistedColumnOrder(
+      REQUISITION_TABLE_KEY,
+      user!,
+      rawColumns
+    );
 
     const handleChangeKanban = React.useCallback(
       (event: SelectChangeEvent<unknown>) => {
@@ -191,7 +187,7 @@ const RequisitionListPage = () => {
     };
 
     const handleApplyColumnOrder = (orderedFields: string[]) => {
-      setColumnOrder(orderedFields);
+      saveColumnOrder(orderedFields);
     };
 
     const handleFilterConcluidos = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -204,7 +200,7 @@ const RequisitionListPage = () => {
       dispatch(setCancelledReqFilter(checked));
     };
 
-    const debouncedHandleChangeSearchTerm = useMemo(() => {
+    const debouncedHandleChangeSearchTerm = useMemo(() => { 
       return debounce(handleChangeSearchTerm, 500);
     }, [handleChangeSearchTerm]);
 
