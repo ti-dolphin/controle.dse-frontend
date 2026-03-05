@@ -156,8 +156,8 @@ const HomePage = () => {
         sx={{
           width: {
             xs: "100%",
-            sm: "90%",
-            md: "70%",
+            sm: "100%",
+            md: "90%",
           },
           mt: 2,
         }}
@@ -167,7 +167,7 @@ const HomePage = () => {
             item
             xs={12}
             sm={6}
-            md={4}
+            md={3}
             key={module.name}
             sx={{ height: 600 }}
           >
