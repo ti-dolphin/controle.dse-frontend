@@ -57,9 +57,19 @@ export const usePersistedColumnOrder = (
     }
   }
 
+  async function removeColumnOrder() {
+    try {
+      await RequisitionColumnsService.delete(tableKey, user)
+      setSavedOrder(null)
+    } catch (error) {
+      console.log('Erro ao reordenar a coluna')
+    }
+  }
+
   return {
     orderedColumns,
     saveColumnOrder,
+    removeColumnOrder,
     loading
   }
 

@@ -19,4 +19,11 @@ export default class RequisitionColumnsService {
     })
     return response.data
   }
+
+  static async delete(tableKey: string, user: ReducedUser) {
+    const response = await api.delete(API_ENDPOINT, {
+      data: { tableKey, userId: user.CODPESSOA }
+    })
+    return response.data
+  }
 }

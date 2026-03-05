@@ -99,7 +99,7 @@ const RequisitionListPage = () => {
       rows
     );
 
-    const { orderedColumns: columns, saveColumnOrder } = usePersistedColumnOrder(
+    const { orderedColumns: columns, saveColumnOrder, removeColumnOrder } = usePersistedColumnOrder(
       REQUISITION_TABLE_KEY,
       user!,
       rawColumns
@@ -189,6 +189,10 @@ const RequisitionListPage = () => {
     const handleApplyColumnOrder = (orderedFields: string[]) => {
       saveColumnOrder(orderedFields);
     };
+
+    const removeSavedColumnOrder = async () => {
+      await removeColumnOrder()
+    }
 
     const handleFilterConcluidos = (e: React.ChangeEvent<HTMLInputElement>) => {
       const checked = e.target.checked;
@@ -456,6 +460,7 @@ const RequisitionListPage = () => {
           .filter((col) => col.field !== "actions" && col.headerName)
           .map((col) => ({ field: col.field, headerName: col.headerName! }))}
         onApply={handleApplyColumnOrder}
+        onRemoveSavedOrder={removeSavedColumnOrder}
       />
 
       <Dialog

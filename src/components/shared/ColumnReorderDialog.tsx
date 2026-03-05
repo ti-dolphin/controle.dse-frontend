@@ -24,6 +24,7 @@ interface ColumnReorderDialogProps {
   onClose: () => void;
   columns: ColumnItem[];
   onApply: (orderedFields: string[]) => void;
+  onRemoveSavedOrder: () => void;
 }
 
 export function ColumnReorderDialog({
@@ -31,6 +32,7 @@ export function ColumnReorderDialog({
   onClose,
   columns,
   onApply,
+  onRemoveSavedOrder,
 }: ColumnReorderDialogProps) {
   const [items, setItems] = useState<ColumnItem[]>(columns);
   const dragIndex = useRef<number | null>(null);
@@ -42,6 +44,10 @@ export function ColumnReorderDialog({
   const handleDragStart = (index: number) => {
     dragIndex.current = index;
   };
+
+  const removeSavedOrder = () => {
+    onRemoveSavedOrder();
+  }
 
   const handleDragEnter = (index: number) => {
     if (dragIndex.current === null || dragIndex.current === index) return;
@@ -68,6 +74,13 @@ export function ColumnReorderDialog({
         }}
       >
         Ordenar Colunas
+        <Button
+          onClick={() => {
+            removeSavedOrder();
+          }}
+        >
+          Reordenar
+        </Button>
         <IconButton onClick={onClose} size="small">
           <CloseIcon fontSize="small" />
         </IconButton>
