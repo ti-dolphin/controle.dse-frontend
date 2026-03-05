@@ -192,6 +192,7 @@ const RequisitionListPage = () => {
 
     const removeSavedColumnOrder = async () => {
       await removeColumnOrder()
+      setColumnOrderDialogOpen(false)
     }
 
     const handleFilterConcluidos = (e: React.ChangeEvent<HTMLInputElement>) => {
