@@ -13,7 +13,9 @@ export default class RequisitionColumnsService {
 
   static async put(tableKey: string, user: ReducedUser, newOrder: string[]) {
     const response = await api.put(API_ENDPOINT, {
-      params: {tableKey, user, newOrder}
+      tableKey,
+      userId: user.CODPESSOA,
+      newOrder,
     })
     return response.data
   }

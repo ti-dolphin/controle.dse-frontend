@@ -33,6 +33,7 @@ export const usePersistedColumnOrder = (
     }
 
   }, [tableKey])
+  
 //apply
   const orderedColumns = useMemo(() => {
     if (!savedOrder || savedOrder.length === 0) return defaultColumns
