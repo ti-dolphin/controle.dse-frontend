@@ -18,8 +18,8 @@ export const usePersistedColumnOrder = (
     async function load() {
       try {
         const response = await RequisitionColumnsService.get(tableKey, user)
-        if (isMounted && response?.data?.columnOrder) {
-          setSavedOrder(response.data.columnOrder)
+        if (isMounted && response?.ordem?.length > 0) {
+          setSavedOrder(response.ordem)
         }
       } catch (error) {
         console.error("Error fetching column order:", error)
@@ -33,7 +33,7 @@ export const usePersistedColumnOrder = (
     }
 
   }, [tableKey])
-  
+
 //apply
   const orderedColumns = useMemo(() => {
     if (!savedOrder || savedOrder.length === 0) return defaultColumns
