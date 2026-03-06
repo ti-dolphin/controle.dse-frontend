@@ -20,6 +20,7 @@ export const calculateColumnWidth = (
   const sampledRows = rows.slice(0, sampleSize);
 
   const headerWidth = measure(headerName);
+  minWidth = headerWidth + 40
 
   const contentWidth = Math.max(
     ...sampledRows.map((row) => {
