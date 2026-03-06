@@ -861,6 +861,7 @@ const RequisitionItemsTable = ({
             hideFooter={hideFooter}
             onCellKeyDown={handleCellKeyDown}
             getRowClassName={getRowClassName}
+            showCellVerticalBorder
           />
         </Box>
       )}

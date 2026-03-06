@@ -352,21 +352,21 @@ export const useRequisitionItemColumns = (
           sx={{
             display: "flex",
             alignItems: "center",
-            justifyContent: "space-between",
+            gap: 0.5,
             height: "100%",
           }}
         >
-          <Typography fontSize="small" fontWeight="bold">
-            {params.value}
-          </Typography>
           <Tooltip title="Copiar observação">
             <IconButton
               onClick={() => navigator.clipboard.writeText(params.value)}
-              sx={{ padding: 0 }}
+              sx={{ padding: 0, flexShrink: 0 }}
             >
               <ContentCopyIcon sx={{ fontSize: 14 }} />
             </IconButton>
           </Tooltip>
+          <Typography fontSize="small" fontWeight="bold">
+            {params.value}
+          </Typography>
         </Box>
       ),
     },
