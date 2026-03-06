@@ -88,13 +88,13 @@ export function useRequisitionColumns(
           );
         },
         renderHeader: () => (
-          <TextHeader
-            label={"ID"}
-            field={"ID_REQUISICAO"}
-            filters={filters}
-            handleChangeFilters={handleChangeFilters}
-          ></TextHeader>
-        ),
+            <TextHeader
+              label={"ID"}
+              field={"ID_REQUISICAO"}
+              filters={filters}
+              handleChangeFilters={handleChangeFilters}
+            />
+          ),
       },
       {
         field: "DESCRIPTION",
@@ -123,13 +123,13 @@ export function useRequisitionColumns(
           );
         },
         renderHeader: () => (
-          <TextHeader
-            label={"Descrição"}
-            field={"DESCRIPTION"}
-            filters={filters}
-            handleChangeFilters={handleChangeFilters}
-          ></TextHeader>
-        ),
+            <TextHeader
+              label={"Descrição"}
+              field={"DESCRIPTION"}
+              filters={filters}
+              handleChangeFilters={handleChangeFilters}
+            />
+          ),
       },
       {
         field: "projeto",
@@ -160,13 +160,13 @@ export function useRequisitionColumns(
           );
         },
         renderHeader: () => (
-          <TextHeader
-            label={"Projeto"}
-            field={"projeto"}
-            filters={filters}
-            handleChangeFilters={handleChangeFilters}
-          ></TextHeader>
-        ),
+            <TextHeader
+              label={"Projeto"}
+              field={"projeto"}
+              filters={filters}
+              handleChangeFilters={handleChangeFilters}
+            />
+          ),
       },
       {
         field: "responsavel",
@@ -197,13 +197,13 @@ export function useRequisitionColumns(
           );
         },
         renderHeader: () => (
-          <TextHeader
-            label={"Requisitante"}
-            field={"responsavel"}
-            filters={filters}
-            handleChangeFilters={handleChangeFilters}
-          ></TextHeader>
-        ),
+            <TextHeader
+              label={"Requisitante"}
+              field={"responsavel"}
+              filters={filters}
+              handleChangeFilters={handleChangeFilters}
+            />
+          ),
       },
       {
         field: "status",
@@ -234,13 +234,13 @@ export function useRequisitionColumns(
           );
         },
         renderHeader: () => (
-          <TextHeader
-            label={"Status"}
-            field={"status"}
-            filters={filters}
-            handleChangeFilters={handleChangeFilters}
-          ></TextHeader>
-        ),
+            <TextHeader
+              label={"Status"}
+              field={"status"}
+              filters={filters}
+              handleChangeFilters={handleChangeFilters}
+            />
+          ),
       },
       {
         field: "custo_total",
@@ -298,13 +298,13 @@ export function useRequisitionColumns(
           );
         },
         renderHeader: () => (
-          <TextHeader
-            label={"Gerente"}
-            field={"gerente"}
-            filters={filters}
-            handleChangeFilters={handleChangeFilters}
-          ></TextHeader>
-        ),
+            <TextHeader
+              label={"Gerente"}
+              field={"gerente"}
+              filters={filters}
+              handleChangeFilters={handleChangeFilters}
+            />
+          ),
       },
       {
         field: "responsavel_projeto",
@@ -335,13 +335,13 @@ export function useRequisitionColumns(
           );
         },
         renderHeader: () => (
-          <TextHeader
-            label={"Responsável Projeto"}
-            field={"responsavel_projeto"}
-            filters={filters}
-            handleChangeFilters={handleChangeFilters}
-          ></TextHeader>
-        ),
+            <TextHeader
+              label={"Responsável Projeto"}
+              field={"responsavel_projeto"}
+              filters={filters}
+              handleChangeFilters={handleChangeFilters}
+            />
+          ),
       },
       {
         field: "comprador",
@@ -372,13 +372,13 @@ export function useRequisitionColumns(
           );
         },
         renderHeader: () => (
-          <TextHeader
-            label={"Comprador"}
-            field={"comprador"}
-            filters={filters}
-            handleChangeFilters={handleChangeFilters}
-          ></TextHeader>
-        ),
+            <TextHeader
+              label={"Comprador"}
+              field={"comprador"}
+              filters={filters}
+              handleChangeFilters={handleChangeFilters}
+            />
+          ),
       },
       {
         field: "tipo_faturamento",
@@ -409,13 +409,13 @@ export function useRequisitionColumns(
           );
         },
         renderHeader: () => (
-          <TextHeader
-            label={"Tipo"}
-            field={"tipo_faturamento"}
-            filters={filters}
-            handleChangeFilters={handleChangeFilters}
-          ></TextHeader>
-        ),
+            <TextHeader
+              label={"Tipo"}
+              field={"tipo_faturamento"}
+              filters={filters}
+              handleChangeFilters={handleChangeFilters}
+            />
+          ),
       },
       {
         field: "actions",

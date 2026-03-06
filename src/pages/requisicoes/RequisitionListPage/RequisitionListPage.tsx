@@ -16,7 +16,7 @@ import {
 } from "../../../redux/slices/requisicoes/requisitionTableSlice";
 import { setFeedback } from "../../../redux/slices/feedBackSlice";
 import RequisitionService from "../../../services/requisicoes/RequisitionService";
-import { Box, Button, Dialog, DialogContent, DialogTitle, IconButton, SelectChangeEvent, useTheme } from "@mui/material";
+import { Box, Button, Dialog, DialogContent, DialogTitle, IconButton, SelectChangeEvent, Tooltip, useTheme } from "@mui/material";
 import { useRequisitionColumns } from "../../../hooks/requisicoes/useRequisitionColumns";
 import BaseDataTable from "../../../components/shared/BaseDataTable";
 import BaseDetailModal from "../../../components/shared/BaseDetailModal";
@@ -40,13 +40,19 @@ import Inventory2Icon from "@mui/icons-material/Inventory2";
 import { setViewingProducts } from "../../../redux/slices/productSlice";
 import ProductsTable from "../../../components/requisicoes/ProductsTable";
 import CloseIcon from "@mui/icons-material/Close";
+import OpenWithIcon from "@mui/icons-material/OpenWith";
+import { ColumnReorderDialog } from "../../../components/shared/ColumnReorderDialog";
+import { usePersistedColumnOrder, ColumnPreference } from "../../../hooks/table/usePersistedColumnOrder";
 import NotificationBell from "../../../components/requisicoes/NotificationBell";
 import { getRequisitionUrgencyLevel } from "../../../utils";
 import { Requisition } from "../../../models/requisicoes/Requisition";
 
+const REQUISITION_TABLE_KEY = "requisition-list";
+
 const RequisitionListPage = () => {
     useRequisitionKanban();
     const [triggerFetch, setTriggerFetch] = useState(0);
+    const [columnOrderDialogOpen, setColumnOrderDialogOpen] = useState(false);
     const dispatch = useDispatch();
     const theme = useTheme();
     const user = useSelector((state: RootState) => state.user.user);
@@ -86,12 +92,18 @@ const RequisitionListPage = () => {
       [dispatch, filters]
     );
 
-    const { columns } = useRequisitionColumns(
+    const { columns: rawColumns } = useRequisitionColumns(
       handleChangeFilters,
       changeSelectedRow,
       gridRef,
       rows
-    ); 
+    );
+
+    const { orderedColumns: columns, columnVisibilityModel, saveColumnOrder, removeColumnOrder } = usePersistedColumnOrder(
+      REQUISITION_TABLE_KEY,
+      user!,
+      rawColumns
+    );
 
     const handleChangeKanban = React.useCallback(
       (event: SelectChangeEvent<unknown>) => {
@@ -174,6 +186,15 @@ const RequisitionListPage = () => {
       dispatch(clearfilters());
     };
 
+    const handleApplyColumnOrder = (preferences: ColumnPreference[]) => {
+      saveColumnOrder(preferences);
+    };
+
+    const removeSavedColumnOrder = async () => {
+      await removeColumnOrder()
+      setColumnOrderDialogOpen(false)
+    }
+
     const handleFilterConcluidos = (e: React.ChangeEvent<HTMLInputElement>) => {
       const checked = e.target.checked;
       dispatch(setDoneReqFilter(checked));
@@ -184,7 +205,7 @@ const RequisitionListPage = () => {
       dispatch(setCancelledReqFilter(checked));
     };
 
-    const debouncedHandleChangeSearchTerm = useMemo(() => {
+    const debouncedHandleChangeSearchTerm = useMemo(() => { 
       return debounce(handleChangeSearchTerm, 500);
     }, [handleChangeSearchTerm]);
 
@@ -293,6 +314,14 @@ const RequisitionListPage = () => {
             }}
           >
             <NotificationBell />
+            <Tooltip title="Ordenar colunas">
+              <IconButton
+                onClick={() => setColumnOrderDialogOpen(true)}
+                sx={{ color: "white", height: 26, width: 26, borderRadius: 0 }}
+              >
+                <OpenWithIcon fontSize="small" />
+              </IconButton>
+            </Tooltip>
             <Button
               sx={{
                 color: "white",
@@ -394,6 +423,7 @@ const RequisitionListPage = () => {
             disableColumnFilter
             rowHeight={40}
             columns={columns}
+            columnVisibilityModel={columnVisibilityModel}
             loading={loading}
             onCellClick={(params: { field: string }) =>
               params.field !== "actions" && navigateToRequisitionDetails(params)
@@ -423,6 +453,16 @@ const RequisitionListPage = () => {
         open={requisitionBeingDeletedId !== null}
         onConfirm={handleDeleteRequisition}
         onCancel={() => dispatch(setRequisitionBeingDeletedId(null))}
+      />
+
+      <ColumnReorderDialog
+        open={columnOrderDialogOpen}
+        onClose={() => setColumnOrderDialogOpen(false)}
+        columns={columns
+          .filter((col) => col.field !== "actions" && col.headerName)
+          .map((col) => ({ field: col.field, headerName: col.headerName!, hidden: columnVisibilityModel[col.field] === false }))}
+        onApply={handleApplyColumnOrder}
+        onRemoveSavedOrder={removeSavedColumnOrder}
       />
 
       <Dialog
