@@ -10,20 +10,23 @@ import {
   ListItemIcon,
   ListItemText,
   IconButton,
+  Checkbox,
 } from "@mui/material";
 import DragIndicatorIcon from "@mui/icons-material/DragIndicator";
 import CloseIcon from "@mui/icons-material/Close";
+import { ColumnPreference } from "../../hooks/table/usePersistedColumnOrder";
 
 export interface ColumnItem {
   field: string;
   headerName: string;
+  hidden: boolean;
 }
 
 interface ColumnReorderDialogProps {
   open: boolean;
   onClose: () => void;
   columns: ColumnItem[];
-  onApply: (orderedFields: string[]) => void;
+  onApply: (preferences: ColumnPreference[]) => void;
   onRemoveSavedOrder: () => void;
 }
 
@@ -58,8 +61,14 @@ export function ColumnReorderDialog({
     setItems(newItems);
   };
 
+  const handleToggleHidden = (field: string) => {
+    setItems(prev =>
+      prev.map(item => item.field === field ? { ...item, hidden: !item.hidden } : item)
+    );
+  };
+
   const handleApply = () => {
-    onApply(items.map((item) => item.field));
+    onApply(items.map(item => ({ field: item.field, hidden: item.hidden })));
     onClose();
   };
 
@@ -109,6 +118,10 @@ export function ColumnReorderDialog({
               <ListItemText
                 primary={col.headerName}
                 primaryTypographyProps={{ fontSize: "13px" }}
+              />
+              <Checkbox
+                checked={!col.hidden}
+                onChange={() => handleToggleHidden(col.field)}
               />
             </ListItem>
           ))}

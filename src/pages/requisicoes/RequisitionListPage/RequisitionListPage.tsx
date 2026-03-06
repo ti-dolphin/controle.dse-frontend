@@ -42,7 +42,7 @@ import ProductsTable from "../../../components/requisicoes/ProductsTable";
 import CloseIcon from "@mui/icons-material/Close";
 import OpenWithIcon from "@mui/icons-material/OpenWith";
 import { ColumnReorderDialog } from "../../../components/shared/ColumnReorderDialog";
-import { usePersistedColumnOrder } from "../../../hooks/table/usePersistedColumnOrder";
+import { usePersistedColumnOrder, ColumnPreference } from "../../../hooks/table/usePersistedColumnOrder";
 import NotificationBell from "../../../components/requisicoes/NotificationBell";
 import { getRequisitionUrgencyLevel } from "../../../utils";
 import { Requisition } from "../../../models/requisicoes/Requisition";
@@ -99,7 +99,7 @@ const RequisitionListPage = () => {
       rows
     );
 
-    const { orderedColumns: columns, saveColumnOrder, removeColumnOrder } = usePersistedColumnOrder(
+    const { orderedColumns: columns, columnVisibilityModel, saveColumnOrder, removeColumnOrder } = usePersistedColumnOrder(
       REQUISITION_TABLE_KEY,
       user!,
       rawColumns
@@ -186,8 +186,8 @@ const RequisitionListPage = () => {
       dispatch(clearfilters());
     };
 
-    const handleApplyColumnOrder = (orderedFields: string[]) => {
-      saveColumnOrder(orderedFields);
+    const handleApplyColumnOrder = (preferences: ColumnPreference[]) => {
+      saveColumnOrder(preferences);
     };
 
     const removeSavedColumnOrder = async () => {
@@ -423,6 +423,7 @@ const RequisitionListPage = () => {
             disableColumnFilter
             rowHeight={40}
             columns={columns}
+            columnVisibilityModel={columnVisibilityModel}
             loading={loading}
             onCellClick={(params: { field: string }) =>
               params.field !== "actions" && navigateToRequisitionDetails(params)
@@ -459,7 +460,7 @@ const RequisitionListPage = () => {
         onClose={() => setColumnOrderDialogOpen(false)}
         columns={columns
           .filter((col) => col.field !== "actions" && col.headerName)
-          .map((col) => ({ field: col.field, headerName: col.headerName! }))}
+          .map((col) => ({ field: col.field, headerName: col.headerName!, hidden: columnVisibilityModel[col.field] === false }))}
         onApply={handleApplyColumnOrder}
         onRemoveSavedOrder={removeSavedColumnOrder}
       />

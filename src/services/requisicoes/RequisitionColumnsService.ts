@@ -1,5 +1,6 @@
 import api from "../../api"
 import { ReducedUser } from "../../models/User"
+import { ColumnPreference } from "../../hooks/table/usePersistedColumnOrder"
 
 const API_ENDPOINT = '/tablePreferences';
 
@@ -11,7 +12,7 @@ export default class RequisitionColumnsService {
     return response.data;
   }
 
-  static async put(tableKey: string, user: ReducedUser, newOrder: string[]) {
+  static async put(tableKey: string, user: ReducedUser, newOrder: ColumnPreference[]) {
     const response = await api.put(API_ENDPOINT, {
       tableKey,
       userId: user.CODPESSOA,

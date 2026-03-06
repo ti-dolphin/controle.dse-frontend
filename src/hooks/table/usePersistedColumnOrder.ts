@@ -3,12 +3,17 @@ import { GridColDef } from "@mui/x-data-grid"
 import RequisitionColumnsService from "../../services/requisicoes/RequisitionColumnsService"
 import { ReducedUser } from "../../models/User"
 
+export interface ColumnPreference {
+  field: string
+  hidden: boolean
+}
+
 export const usePersistedColumnOrder = (
   tableKey: string,
   user: ReducedUser,
   defaultColumns: GridColDef[]
 ) => {
-  const [savedOrder, setSavedOrder] = useState<string[] | null>(null)
+  const [savedPreferences, setSavedPreferences] = useState<ColumnPreference[] | null>(null)
   const [loading, setLoading] = useState(true)
 
   //load
@@ -19,7 +24,7 @@ export const usePersistedColumnOrder = (
       try {
         const response = await RequisitionColumnsService.get(tableKey, user)
         if (isMounted && response?.ordem?.length > 0) {
-          setSavedOrder(response.ordem)
+          setSavedPreferences(response.ordem as ColumnPreference[])
         }
       } catch (error) {
         console.error("Error fetching column order:", error)
@@ -34,24 +39,33 @@ export const usePersistedColumnOrder = (
 
   }, [tableKey])
 
-//apply
+  //apply order
   const orderedColumns = useMemo(() => {
-    if (!savedOrder || savedOrder.length === 0) return defaultColumns
+    if (!savedPreferences || savedPreferences.length === 0) return defaultColumns
 
     const columnMap = new Map(
       defaultColumns.map(col => [col.field, col])
     )
 
-    return savedOrder
-    .map(field => columnMap.get(field))
-    .filter((col): col is GridColDef => Boolean(col))
-  }, [defaultColumns, savedOrder])
+    const resolved = savedPreferences.map(pref => columnMap.get(pref.field));
+    const existingColumns = resolved.filter((c): c is GridColDef => c !== undefined);
+    return existingColumns;
+  }, [defaultColumns, savedPreferences])
 
-  async function saveColumnOrder(newOrder: string[]) {
-    setSavedOrder(newOrder)
+  const columnVisibilityModel = useMemo(() => {
+    if (!savedPreferences) return {}
+    const model: Record<string, boolean> = {}
+    savedPreferences.forEach(pref => {
+      if (pref.hidden) model[pref.field] = false
+    })
+    return model
+  }, [savedPreferences])
+
+  async function saveColumnOrder(newPreferences: ColumnPreference[]) {
+    setSavedPreferences(newPreferences)
 
     try {
-      await RequisitionColumnsService.put(tableKey, user, newOrder)
+      await RequisitionColumnsService.put(tableKey, user, newPreferences)
     } catch (error) {
       console.error("Error saving column preferences", error)
     }
@@ -60,7 +74,7 @@ export const usePersistedColumnOrder = (
   async function removeColumnOrder() {
     try {
       await RequisitionColumnsService.delete(tableKey, user)
-      setSavedOrder(null)
+      setSavedPreferences(null)
     } catch (error) {
       console.log('Erro ao reordenar a coluna')
     }
@@ -68,6 +82,7 @@ export const usePersistedColumnOrder = (
 
   return {
     orderedColumns,
+    columnVisibilityModel,
     saveColumnOrder,
     removeColumnOrder,
     loading
