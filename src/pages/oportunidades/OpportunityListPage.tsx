@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useState } from "react";
-import { Box, Button, Checkbox, IconButton, Stack, Typography, useTheme } from "@mui/material";
+import { Box, Button, Checkbox, IconButton, Stack, Tooltip, Typography, useTheme } from "@mui/material";
 import UpperNavigation from "../../components/shared/UpperNavigation";
 import BaseTableToolBar from "../../components/shared/BaseTableToolBar";
 import BaseDataTable from "../../components/shared/BaseDataTable";
@@ -22,13 +22,17 @@ import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import RadioButtonUncheckedIcon from '@mui/icons-material/RadioButtonUnchecked';
 import OpportunityFormModal from "../../components/oportunidades/OpportunityFormModal";
 import { BaseAddButton } from "../../components/shared/BaseAddButton";
+import OpenWithIcon from "@mui/icons-material/OpenWith";
+import { ColumnReorderDialog } from "../../components/shared/ColumnReorderDialog";
+import { usePersistedColumnOrder, ColumnPreference } from "../../hooks/table/usePersistedColumnOrder";
+const OPPORTUNITY_TABLE_KEY='opportunity-list'
 
 const OpportunityListPage = () => {
 const dispatch = useDispatch();
 const user = useSelector((state: RootState) => state.user.user);
 const navigate = useNavigate();
 const {loading, rows, searchTerm } = useSelector((state: RootState) => state.opportunityTable);
-const { columns } = useOpportunityColumns();
+const { columns: rawColumns } = useOpportunityColumns();
 const theme=  useTheme();
 const toolbarRef = React.useRef<HTMLDivElement>(null);
 const [toolbarHeight, setToolbarHeight] = useState(0);
@@ -41,6 +45,22 @@ const gridContainerRef = React.useRef<HTMLDivElement>(null);
 const changeSearchTerm = (event: React.ChangeEvent<HTMLInputElement>) => {
   dispatch(setSearchTerm(event.target.value)); 
 };
+  const [columnOrderDialogOpen, setColumnOrderDialogOpen] = useState(false)
+
+  const { orderedColumns: columns, columnVisibilityModel, saveColumnOrder, removeColumnOrder } = usePersistedColumnOrder(
+      OPPORTUNITY_TABLE_KEY,
+      user!,
+      rawColumns
+    );
+  
+    const handleApplyColumnOrder = (preferences: ColumnPreference[]) => {
+      saveColumnOrder(preferences);
+    };
+  
+    const removeSavedColumnOrder = async () => {
+      await removeColumnOrder()
+      setColumnOrderDialogOpen(false)
+    }
 
 const handleChangeSearchTerm = debounce(changeSearchTerm, 500);
 
@@ -124,7 +144,17 @@ useEffect(()=> {
             >
               Limpar filtros
             </Button>
+            
           )}
+          
+          <Tooltip title="Ordenar colunas">
+            <IconButton
+              onClick={() => setColumnOrderDialogOpen(true)}
+              sx={{ color: "primary.main", height: 26, width: 26, borderRadius: 0 }}
+            >
+              <OpenWithIcon fontSize="small" />
+            </IconButton>
+          </Tooltip>
           <BaseAddButton 
           onClick={openFormModal}
           />
@@ -177,6 +207,7 @@ useEffect(()=> {
           <BaseDataTable
             rows={rows}
             columns={columns}
+            columnVisibilityModel={columnVisibilityModel}
             loading={loading}
             disableColumnMenu
             disableColumnFilter
@@ -195,7 +226,18 @@ useEffect(()=> {
           />
         )}
       </Box>
+      <ColumnReorderDialog
+        open={columnOrderDialogOpen}
+        onClose={(() => {setColumnOrderDialogOpen(false)})}
+        columns={columns
+          .filter((col) => col.field !== "actions" && col.headerName)
+          .map((col) => ({ field: col.field, headerName: col.headerName!, hidden: columnVisibilityModel[col.field] === false }))
+        }
+        onApply={handleApplyColumnOrder}
+        onRemoveSavedOrder={removeSavedColumnOrder}
+      />
     </Box>
+    
   );
 };
 

@@ -1,4 +1,4 @@
-import React, {  useEffect, useMemo } from "react";
+import React, {  useEffect, useMemo, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { RootState } from "../../redux/store";
 import {
@@ -21,6 +21,7 @@ import {
   DialogTitle,
   IconButton,
   Stack,
+  Tooltip,
   Typography,
 } from "@mui/material";
 import { usePatMovementationColumns } from "../../hooks/patrimonios/usePatMovementationColumns";
@@ -36,6 +37,7 @@ import UpperNavigation from "../../components/shared/UpperNavigation";
 import PatrimonyForm from "../../components/patrimonios/PatrimonyForm";
 import { BaseAddButton } from "../../components/shared/BaseAddButton";
 import CloseIcon from "@mui/icons-material/Close";
+import OpenWithIcon from "@mui/icons-material/OpenWith";
 import NotificationsIcon from "@mui/icons-material/Notifications";
 import BaseDeleteDialog from "../../components/shared/BaseDeleteDialog";
 import { PatrimonyService } from "../../services/patrimonios/PatrimonyService";
@@ -43,6 +45,9 @@ import { useChecklistNotifications } from "../../hooks/patrimonios/useChecklistN
 import { useIsMobile } from "../../hooks/useIsMobile";
 import { FixedSizeGrid } from "react-window";
 import PatrimonyCard from "../../components/patrimonios/PatrimonyCard";
+import { ColumnReorderDialog } from "../../components/shared/ColumnReorderDialog";
+import { usePersistedColumnOrder, ColumnPreference } from "../../hooks/table/usePersistedColumnOrder";
+const PATRIMONY_TABLE_KEY='patrimony-list'
 
 const PatrimonyListPage = () => {
   const dispatch = useDispatch();
@@ -53,12 +58,31 @@ const PatrimonyListPage = () => {
   const [creating, setCreating] = React.useState(false);
   const { isMobile } = useIsMobile();
   const { notifications } = useChecklistNotifications(); 
-  const { columns } = usePatMovementationColumns(rows);
+  const { columns: rawColumns } = usePatMovementationColumns(rows);
   const gridRef = useGridApiRef();
   const gridContainerRef = React.useRef<HTMLDivElement>(null);
   const handleBack = () => {
     navigate("/");
   };
+
+  const [columnOrderDialogOpen, setColumnOrderDialogOpen] = useState(false)
+
+  const { orderedColumns: columns, columnVisibilityModel, saveColumnOrder, removeColumnOrder } = usePersistedColumnOrder(
+    PATRIMONY_TABLE_KEY,
+    user!,
+    rawColumns
+  );
+
+  const handleApplyColumnOrder = (preferences: ColumnPreference[]) => {
+    saveColumnOrder(preferences);
+  };
+
+  const removeSavedColumnOrder = async () => {
+    await removeColumnOrder()
+    setColumnOrderDialogOpen(false)
+  }
+  
+
 
   const navigateToPatrimonyDetail = (params: any) => {
     if (params.field === "actions") return;
@@ -104,7 +128,6 @@ const PatrimonyListPage = () => {
   }, [handleChangeSearchTerm, filters]);
 
   const handleCleanFilter = () => {
-    // Implement filter cleaning logic here
     dispatch(cleanFilters());
   };
 
@@ -162,7 +185,16 @@ const PatrimonyListPage = () => {
               >
                 Limpar filtros
               </Button>
+              
             )}
+            <Tooltip title="Ordenar colunas">
+              <IconButton
+                onClick={() => setColumnOrderDialogOpen(true)}
+                sx={{ color: "primary.main", height: 26, width: 26, borderRadius: 0 }}
+              >
+                <OpenWithIcon fontSize="small" />
+              </IconButton>
+            </Tooltip>
             <BaseAddButton onClick={() => setCreating(true)} />
             <IconButton
               onClick={() => navigate("/patrimonios/checklists")}
@@ -208,12 +240,24 @@ const PatrimonyListPage = () => {
             disableColumnFilter
             rowHeight={40}
             columns={columns}
+            columnVisibilityModel={columnVisibilityModel}
             loading={isLoading}
             getRowId={(row: any) => row.id_movimentacao}
             theme={theme}
           />
         )}
       </Box>
+
+      <ColumnReorderDialog
+        open={columnOrderDialogOpen}
+        onClose={(() => {setColumnOrderDialogOpen(false)})}
+        columns={columns
+          .filter((col) => col.field !== "actions" && col.headerName)
+          .map((col) => ({ field: col.field, headerName: col.headerName!, hidden: columnVisibilityModel[col.field] === false }))
+        }
+        onApply={handleApplyColumnOrder}
+        onRemoveSavedOrder={removeSavedColumnOrder}
+      />
 
       <Dialog open={creating}>
         <DialogTitle>

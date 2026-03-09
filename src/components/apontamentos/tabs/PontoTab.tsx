@@ -14,13 +14,18 @@ import {
 import { setFeedback } from "../../../redux/slices/feedBackSlice";
 import { clearCommonFilters } from "../../../redux/slices/apontamentos/commonFiltersSlice";
 import NotesService from "../../../services/NotesService";
-import { Box, Button, useTheme, FormControlLabel, Checkbox } from "@mui/material";
+import { Box, Button, useTheme, FormControlLabel, Checkbox, Tooltip, IconButton } from "@mui/material";
+import OpenWithIcon from '@mui/icons-material/OpenWith'
 import { usePontoColumns } from "../../../hooks/apontamentos/usePontoColumns";
 import BaseDataTable from "../../shared/BaseDataTable";
 import BaseDetailModal from "../../shared/BaseDetailModal";
 import { useGridApiRef } from "@mui/x-data-grid";
 import { Ponto } from "../../../models/Ponto";
 import CommonFilters from "../CommonFilters";
+import { ColumnReorderDialog } from "../../shared/ColumnReorderDialog";
+import { usePersistedColumnOrder, ColumnPreference } from "../../../hooks/table/usePersistedColumnOrder";
+const TABLE_KEY='point-list'
+
 
 const PontoTab: React.FC = () => {
   const dispatch = useDispatch();
@@ -39,6 +44,7 @@ const PontoTab: React.FC = () => {
   const commonFilters = useSelector((state: RootState) => state.commonFilters.filters);
   const user = useSelector((state: RootState) => state.user.user);
   const [initialized, setInitialized] = useState(false);
+  const [columnOrderDialogOpen, setColumnOrderDialogOpen] = useState(false)
 
   const handleChangePontoFilters = useCallback(
     (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>, field: string) => {
@@ -87,11 +93,26 @@ const PontoTab: React.FC = () => {
     [dispatch, pontoRows]
   );
 
-  const { columns: pontoColumns } = usePontoColumns(
+  const { columns: rawColumns } = usePontoColumns(
     handleChangePontoFilters,
     handleTogglePontoField,
     !!(user?.PERM_APONTAMENTO_PONTO || user?.PERM_ADMINISTRADOR)
   );
+
+  const { orderedColumns: columns, columnVisibilityModel, saveColumnOrder, removeColumnOrder } = usePersistedColumnOrder(
+    TABLE_KEY,
+    user!,
+    rawColumns
+  );
+
+  const handleApplyColumnOrder = (preferences: ColumnPreference[]) => {
+    saveColumnOrder(preferences);
+  };
+
+  const removeSavedColumnOrder = async () => {
+    await removeColumnOrder()
+    setColumnOrderDialogOpen(false)
+  }
 
   const handleCleanPontoFilter = useCallback(() => {
     dispatch(clearPontoFilters());
@@ -212,6 +233,14 @@ const PontoTab: React.FC = () => {
         >
           Limpar filtros
         </Button>
+        <Tooltip title="Ordenar colunas">
+          <IconButton
+            onClick={() => setColumnOrderDialogOpen(true)}
+            sx={{ color: "primary.main", height: 26, width: 26, borderRadius: 0 }}
+          >
+            <OpenWithIcon fontSize="small" />
+          </IconButton>
+        </Tooltip>
       </Box>
 
       <BaseDataTable
@@ -220,7 +249,8 @@ const PontoTab: React.FC = () => {
         disableColumnMenu
         disableColumnFilter
         rowHeight={40}
-        columns={pontoColumns}
+        columns={columns}
+        columnVisibilityModel={columnVisibilityModel}
         loading={pontoLoading}
         getRowId={(row: any) => row.CODAPONT}
         theme={theme}
@@ -234,13 +264,15 @@ const PontoTab: React.FC = () => {
         pageSizeOptions={[25, 50, 100]}
         processRowUpdate={(newRow, oldRow) => handleProcessRowUpdate(newRow as Ponto, oldRow as Ponto)}
       />
-
-      <BaseDetailModal
-        open={pontoSelectedRow !== null}
-        onClose={() => dispatch(setPontoSelectedRow(null))}
-        columns={pontoColumns}
-        row={pontoSelectedRow}
-        ref={gridRefPonto}
+      <ColumnReorderDialog
+        open={columnOrderDialogOpen}
+        onClose={(() => {setColumnOrderDialogOpen(false)})}
+        columns={columns
+          .filter((col) => col.field !== "actions" && col.headerName)
+          .map((col) => ({ field: col.field, headerName: col.headerName!, hidden: columnVisibilityModel[col.field] === false }))
+        }
+        onApply={handleApplyColumnOrder}
+        onRemoveSavedOrder={removeSavedColumnOrder}
       />
     </>
   );

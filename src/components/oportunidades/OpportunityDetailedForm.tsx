@@ -8,6 +8,11 @@ import {
   Autocomplete,
   Stack,
   Button,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogContentText,
+  DialogActions,
 } from "@mui/material";
 import { useEffect, useState } from "react";
 import { Opportunity } from "../../models/oportunidades/Opportunity";
@@ -38,6 +43,31 @@ const OpportunityDetailedForm = () => {
   const [deletingOpp, setDeletingOpp] = useState<Partial<Opportunity> | null>(
     null
   );
+  const [finalizeConfirmOpen, setFinalizeConfirmOpen] = useState(false);
+
+  const validateBeforeSave = () => {
+    const status = formData.CODSTATUS ?? opportunity.CODSTATUS;
+    const dataInicio = formData.DATAINICIO ?? opportunity.DATAINICIO
+    const dataEntrega = formData.DATAENTREGA ?? opportunity.DATAENTREGA
+
+    if ([9, 11, 12].includes(status)) {
+      if (!dataInicio || dataInicio === '') {
+        return {
+          error: true,
+          message: 'Data de envio inicial precisa estar preenchida.'
+        }
+      }
+    } 
+    if ([11, 12, 13].includes(status)) {
+      if (!dataEntrega || dataEntrega === '') {
+        return {
+          error: true,
+          message: 'Data de Fechamento precisa estar preenchida.'
+        }
+      }
+    }
+    return { error: false, message: '' }
+  }
 
   const { CODOS } = useParams();
 
@@ -47,7 +77,7 @@ const OpportunityDetailedForm = () => {
     if (!opportunity || !opportunity.status) return false;
     
     // Permite que o vendedor da oportunidade edite mesmo quando ganha (status 11)
-    if (opportunity.responsavel?.CODPESSOA === user?.CODPESSOA) return true;
+    // if (opportunity.responsavel?.CODPESSOA === user?.CODPESSOA) return true;
     
     const declinedStatutes = [11, 12, 13]
     return !declinedStatutes.includes(opportunity.status.CODSTATUS);
@@ -55,6 +85,21 @@ const OpportunityDetailedForm = () => {
 
   const saveOpp = async () => {
     if (!CODOS) return;
+    const status = formData.CODSTATUS ?? opportunity.CODSTATUS;
+    const valid = validateBeforeSave()
+    if (valid.error) {
+      dispatch(setFeedback({ message: valid.message, type: "error" }));
+      return;
+    }
+
+    if ([11, 12, 13].includes(status)) {
+      setFinalizeConfirmOpen(true);
+      return;
+    }
+    confirmSaveOpp()
+  };
+
+  const confirmSaveOpp = async () => {
     try {
       const opp = await OpportunityService.update(
         Number(CODOS),
@@ -71,7 +116,7 @@ const OpportunityDetailedForm = () => {
     } catch (error) {
       setFeedback({ message: "Erro ao salvar oportunidade", type: "error" });
     }
-  };
+  }
 
   const handleTextFieldChange = (
     field: FieldConfig,
@@ -454,38 +499,6 @@ const OpportunityDetailedForm = () => {
               <Typography color="green" fontWeight="bold" fontSize={16}>
                 {formatCurrency(Number(opportunity.VALOR_TOTAL) || 0)}
               </Typography>
-              <Button
-                variant="contained"
-                color="success"
-                size="small"
-                sx={{ ml: 2 }}
-                onClick={async () => {
-                  const CODOS = opportunity?.CODOS;
-                  if (!CODOS) return;
-                  try {
-                    await OpportunityService.sendSoldOpportunityEmail(
-                      CODOS,
-                      { ...opportunity },
-                      user ? user : undefined
-                    );
-                    dispatch(
-                      setFeedback({
-                        message: "E-mail de ganho enviado com sucesso!",
-                        type: "success",
-                      })
-                    );
-                  } catch (e: any) {
-                    dispatch(
-                      setFeedback({
-                        message: "Erro ao enviar e-mail de ganho",
-                        type: "error",
-                      })
-                    );
-                  }
-                }}
-              >
-                Informar ganho
-              </Button>
             </Stack>
           </Grid>
         </Paper>
@@ -520,6 +533,24 @@ const OpportunityDetailedForm = () => {
         onConfirm={handleDelete}
         onCancel={() => setDeletingOpp(null)}
       ></BaseDeleteDialog>
+
+      <Dialog open={finalizeConfirmOpen} onClose={() => setFinalizeConfirmOpen(false)}>
+        <DialogTitle>Finalizar oportunidade</DialogTitle>
+        <DialogContent>
+          <DialogContentText>
+            Após finalizar a oportunidade, não será possível editá-la novamente. Deseja continuar?
+          </DialogContentText>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setFinalizeConfirmOpen(false)}>Cancelar</Button>
+          <Button
+            variant="contained"
+            onClick={() => { setFinalizeConfirmOpen(false); confirmSaveOpp(); }}
+          >
+            Confirmar
+          </Button>
+        </DialogActions>
+      </Dialog>
     </Grid>
   );
 };

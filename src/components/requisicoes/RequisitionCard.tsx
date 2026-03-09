@@ -38,7 +38,7 @@ const RequisitionCard = ({ req, style, onClickDetails }: props) => {
           gutterBottom
           sx={{ fontSize: "0.95rem", fontWeight: 600 }}
         >
-          {req.DESCRIPTION}
+          {req.ID_REQUISICAO} - {req.DESCRIPTION}
         </Typography>
         <Typography
           variant="body2"
@@ -47,9 +47,9 @@ const RequisitionCard = ({ req, style, onClickDetails }: props) => {
           sx={{ fontSize: "0.8rem" }}
         >
           <Typography component={"strong"} variant="body2" color="primary.main">
-            ID
+            Status
           </Typography>{" "}
-          {req.ID_REQUISICAO}
+          {req.status?.nome ?? "Sem status"}
         </Typography>
         <Typography
           variant="body2"

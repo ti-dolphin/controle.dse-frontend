@@ -11,10 +11,11 @@ import {
   setRefreshNotes,
   setTotalRows,
 } from "../../../redux/slices/apontamentos/notesTableSlice";
+import OpenWithIcon from '@mui/icons-material/OpenWith'
 import { setFeedback } from "../../../redux/slices/feedBackSlice";
 import { clearCommonFilters } from "../../../redux/slices/apontamentos/commonFiltersSlice";
 import NotesService from "../../../services/NotesService";
-import { Box, Button, useTheme, FormControlLabel, Checkbox, CircularProgress } from "@mui/material";
+import { Box, Button, useTheme, FormControlLabel, Checkbox, CircularProgress, Tooltip, IconButton } from "@mui/material";
 import { useNotesColumns } from "../../../hooks/apontamentos/useNotesColumns";
 import BaseDataTable from "../../shared/BaseDataTable";
 import { useGridApiRef, GridRowSelectionModel } from "@mui/x-data-grid";
@@ -22,6 +23,9 @@ import NoteCommentDialog from "../NoteCommentDialog";
 import CommonFilters from "../CommonFilters";
 import FileDownloadIcon from '@mui/icons-material/FileDownload';
 import { formatNotesForExcel, exportToExcel } from "../../../utils/excelExport";
+import { ColumnReorderDialog } from "../../shared/ColumnReorderDialog";
+import { usePersistedColumnOrder, ColumnPreference } from "../../../hooks/table/usePersistedColumnOrder";
+const TABLE_KEY='pointing-list'
 
 interface ApontamentosTabProps {
   selectedApontamentos: GridRowSelectionModel;
@@ -41,6 +45,7 @@ const ApontamentosTab: React.FC<ApontamentosTabProps> = ({
   const [commentDialogOpen, setCommentDialogOpen] = useState(false);
   const [selectedCodapont, setSelectedCodapont] = useState<number | null>(null);
   const [isExporting, setIsExporting] = useState(false);
+  const [columnOrderDialogOpen, setColumnOrderDialogOpen] = useState(false)
 
   const { rows, loading, filters, page, pageSize, totalRows, refreshNotes } = useSelector(
     (state: RootState) => state.notesTable
@@ -137,7 +142,22 @@ const ApontamentosTab: React.FC<ApontamentosTabProps> = ({
     dispatch(setRefreshNotes(!refreshNotes));
   }, [dispatch, refreshNotes]);
 
-  const { columns } = useNotesColumns(handleChangeFilters, handleCommentClick);
+  const { columns: rawColumns } = useNotesColumns(handleChangeFilters, handleCommentClick);
+
+  const { orderedColumns: columns, columnVisibilityModel, saveColumnOrder, removeColumnOrder } = usePersistedColumnOrder(
+    TABLE_KEY,
+    user!,
+    rawColumns
+  );
+
+  const handleApplyColumnOrder = (preferences: ColumnPreference[]) => {
+    saveColumnOrder(preferences);
+  };
+
+  const removeSavedColumnOrder = async () => {
+    await removeColumnOrder()
+    setColumnOrderDialogOpen(false)
+  }
 
   const handleRowClickApontamento = useCallback(
     (params: any) => {
@@ -243,6 +263,15 @@ const ApontamentosTab: React.FC<ApontamentosTabProps> = ({
           Limpar filtros
         </Button>
 
+        <Tooltip title="Ordenar colunas">
+          <IconButton
+            onClick={() => setColumnOrderDialogOpen(true)}
+            sx={{ color: "primary.main", height: 26, width: 26, borderRadius: 0 }}
+          >
+            <OpenWithIcon fontSize="small" />
+          </IconButton>
+        </Tooltip>
+
         <Button
           sx={{ height: 32, borderRadius: 0, fontSize: 12 }}
           variant="contained"
@@ -272,6 +301,7 @@ const ApontamentosTab: React.FC<ApontamentosTabProps> = ({
         disableColumnFilter
         rowHeight={40}
         columns={columns}
+        columnVisibilityModel={columnVisibilityModel}
         loading={loading}
         checkboxSelection
         rowSelectionModel={selectedApontamentos}
@@ -303,6 +333,16 @@ const ApontamentosTab: React.FC<ApontamentosTabProps> = ({
         codapont={selectedCodapont || 0}
         userName={user?.LOGIN || "SISTEMA"}
         onCommentChange={handleCommentChange}
+      />
+      <ColumnReorderDialog
+        open={columnOrderDialogOpen}
+        onClose={(() => {setColumnOrderDialogOpen(false)})}
+        columns={columns
+          .filter((col) => col.field !== "actions" && col.headerName)
+          .map((col) => ({ field: col.field, headerName: col.headerName!, hidden: columnVisibilityModel[col.field] === false }))
+        }
+        onApply={handleApplyColumnOrder}
+        onRemoveSavedOrder={removeSavedColumnOrder}
       />
     </>
   );
