@@ -8,6 +8,11 @@ import {
   Autocomplete,
   Stack,
   Button,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogContentText,
+  DialogActions,
 } from "@mui/material";
 import { useEffect, useState } from "react";
 import { Opportunity } from "../../models/oportunidades/Opportunity";
@@ -38,13 +43,12 @@ const OpportunityDetailedForm = () => {
   const [deletingOpp, setDeletingOpp] = useState<Partial<Opportunity> | null>(
     null
   );
+  const [finalizeConfirmOpen, setFinalizeConfirmOpen] = useState(false);
 
   const validateBeforeSave = () => {
     const status = formData.CODSTATUS ?? opportunity.CODSTATUS;
     const dataInicio = formData.DATAINICIO ?? opportunity.DATAINICIO
     const dataEntrega = formData.DATAENTREGA ?? opportunity.DATAENTREGA
-
-    console.log(dataEntrega, 'dataEntrega')
 
     if ([9, 11, 12].includes(status)) {
       if (!dataInicio || dataInicio === '') {
@@ -81,11 +85,21 @@ const OpportunityDetailedForm = () => {
 
   const saveOpp = async () => {
     if (!CODOS) return;
+    const status = formData.CODSTATUS ?? opportunity.CODSTATUS;
     const valid = validateBeforeSave()
     if (valid.error) {
       dispatch(setFeedback({ message: valid.message, type: "error" }));
       return;
     }
+
+    if ([11, 12, 13].includes(status)) {
+      setFinalizeConfirmOpen(true);
+      return;
+    }
+    confirmSaveOpp()
+  };
+
+  const confirmSaveOpp = async () => {
     try {
       const opp = await OpportunityService.update(
         Number(CODOS),
@@ -102,7 +116,7 @@ const OpportunityDetailedForm = () => {
     } catch (error) {
       setFeedback({ message: "Erro ao salvar oportunidade", type: "error" });
     }
-  };
+  }
 
   const handleTextFieldChange = (
     field: FieldConfig,
@@ -519,6 +533,24 @@ const OpportunityDetailedForm = () => {
         onConfirm={handleDelete}
         onCancel={() => setDeletingOpp(null)}
       ></BaseDeleteDialog>
+
+      <Dialog open={finalizeConfirmOpen} onClose={() => setFinalizeConfirmOpen(false)}>
+        <DialogTitle>Finalizar oportunidade</DialogTitle>
+        <DialogContent>
+          <DialogContentText>
+            Após finalizar a oportunidade, não será possível editá-la novamente. Deseja continuar?
+          </DialogContentText>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setFinalizeConfirmOpen(false)}>Cancelar</Button>
+          <Button
+            variant="contained"
+            onClick={() => { setFinalizeConfirmOpen(false); confirmSaveOpp(); }}
+          >
+            Confirmar
+          </Button>
+        </DialogActions>
+      </Dialog>
     </Grid>
   );
 };

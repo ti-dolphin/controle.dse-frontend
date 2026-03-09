@@ -40,12 +40,7 @@ export function parseCurrency(value: string): number {
 export const getDateStringFromISOstring = (isoDate: string | undefined | null): string => {
   if (!isoDate) return "";
   const dt = DateTime.fromISO(isoDate, { zone: "utc" });
-  // 2025-09-22T14:36:31.000Z
-  return String(dt).replace(/[TZ]/g, " ").trim().slice(0, 16);
-
-  // return dt.isValid ? dt.toFormat("dd/MM/yyyy", { 
-  //   locale: "pt-BR"
-  // }) : "";
+  return dt.isValid ? dt.toFormat("dd/MM/yyyy HH:mm") : "";
 };
 
 export function getDateStringFromDateObject(date: Date): string {

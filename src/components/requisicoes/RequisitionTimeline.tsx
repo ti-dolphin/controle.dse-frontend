@@ -122,7 +122,7 @@ const RequisitionTimeline = ({ fullScreen = false }: RequisitionTimelineProps) =
                     secondary={
                       <Box>
                         <Typography fontSize="small">
-                          { getDateStringFromISOstring(alteration.data_alteracao)}
+                          {getDateStringFromISOstring(alteration.data_alteracao)}
                         </Typography>
                         {alteration.justificativa && (
                           <Typography
