@@ -77,8 +77,8 @@ const CommonFilters: React.FC<CommonFiltersProps> = ({ onFiltersChange }) => {
     const hoje = new Date();
     const ano = hoje.getFullYear();
     const mes = hoje.getMonth();
-    const dataInicio = new Date(ano, mes, 26);
-    const dataFim = new Date(ano, mes + 1, 25);
+    const dataInicio = new Date(ano, mes, 21);
+    const dataFim = new Date(ano, mes + 1, 20);
 
     dispatch(
       setCommonFilters({
@@ -93,8 +93,8 @@ const CommonFilters: React.FC<CommonFiltersProps> = ({ onFiltersChange }) => {
     const hoje = new Date();
     const ano = hoje.getFullYear();
     const mes = hoje.getMonth();
-    const dataInicio = new Date(ano, mes - 1, 26);
-    const dataFim = new Date(ano, mes, 25);
+    const dataInicio = new Date(ano, mes - 1, 21);
+    const dataFim = new Date(ano, mes, 20);
 
     dispatch(
       setCommonFilters({

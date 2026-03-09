@@ -98,12 +98,31 @@ const PontoTab: React.FC = () => {
     dispatch(clearCommonFilters());
   }, [dispatch]);
 
-  const navigateToPontoDetails = useCallback(
-    (params: any) => {
-      if (params.field === "actions" || params.field === "VERIFICADO" || params.field === "PROBLEMA" || params.field === "AJUSTADO") return;
-      changePontoSelectedRow(params.row);
+  const handleProcessRowUpdate = useCallback(
+    async (newRow: Ponto, oldRow: Ponto): Promise<Ponto> => {
+      if (newRow.MOTIVO_PROBLEMA === oldRow.MOTIVO_PROBLEMA) return newRow;
+      try {
+        const result = await NotesService.updatePontoField(newRow.CODAPONT, "MOTIVO_PROBLEMA", newRow.MOTIVO_PROBLEMA || "");
+        const updatedRow = { ...newRow, DATA_HORA_MOTIVO: result.DATA_HORA_MOTIVO ?? newRow.DATA_HORA_MOTIVO };
+        dispatch(
+          setPontoRows(
+            pontoRows.map((row) =>
+              row.CODAPONT === newRow.CODAPONT ? updatedRow : row
+            )
+          )
+        );
+        return updatedRow;
+      } catch (e: any) {
+        dispatch(
+          setFeedback({
+            message: e.message || "Erro ao atualizar motivo",
+            type: "error",
+          })
+        );
+        return oldRow;
+      }
     },
-    [changePontoSelectedRow]
+    [dispatch, pontoRows]
   );
 
   const fetchPontoData = useCallback(async () => {
@@ -203,9 +222,6 @@ const PontoTab: React.FC = () => {
         rowHeight={40}
         columns={pontoColumns}
         loading={pontoLoading}
-        onCellClick={(params: { field: string }) =>
-          params.field !== "actions" && navigateToPontoDetails(params)
-        }
         getRowId={(row: any) => row.CODAPONT}
         theme={theme}
         paginationMode="server"
@@ -216,6 +232,7 @@ const PontoTab: React.FC = () => {
           dispatch(setPontoPageSize(model.pageSize));
         }}
         pageSizeOptions={[25, 50, 100]}
+        processRowUpdate={(newRow, oldRow) => handleProcessRowUpdate(newRow as Ponto, oldRow as Ponto)}
       />
 
       <BaseDetailModal

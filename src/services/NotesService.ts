@@ -173,7 +173,7 @@ const NotesService = {
         return response.data;
     },
 
-    updatePontoField: async (codapont: number, field: string, value: boolean) => {
+    updatePontoField: async (codapont: number, field: string, value: boolean | string) => {
         const response = await api.patch(`/notes/ponto/${codapont}`, { field, value });
         return response.data;
     },

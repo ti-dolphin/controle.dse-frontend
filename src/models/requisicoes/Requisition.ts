@@ -25,6 +25,7 @@ export interface Requisition {
   valor_aprovado_diretoria?: number;
   id_comprador?: number;
   data_ultima_alteracao_status?: string | null;
+  data_requisitado?: string | null;
 
   tipo_requisicao?: RequisitionType;
   projeto?: Project;

@@ -200,6 +200,8 @@ export const usePontoColumns = (
         headerName: "Motivo",
         width: columnWidths.MOTIVO_PROBLEMA,
         sortable: true,
+        editable: hasPermission,
+        valueGetter: (value: string) => value || "",
         renderHeader: () => (
           <TextHeader
             label="Motivo"

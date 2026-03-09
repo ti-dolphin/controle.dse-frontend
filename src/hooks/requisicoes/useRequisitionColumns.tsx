@@ -57,6 +57,8 @@ export function useRequisitionColumns(
       responsavel_projeto: calculateColumnWidth(rows, "responsavel_projeto", "Responsável Projeto", (user: ReducedUser) => user?.NOME || '', "12px Roboto"),
       comprador: calculateColumnWidth(rows, "comprador", "Comprador", (user: ReducedUser) => user?.NOME || '', "12px Roboto"),
       tipo_faturamento: calculateColumnWidth(rows, "tipo_faturamento", "Tipo", (value) => getTypeByTipoFaturamento(value), "12px Roboto"),
+      data_requisitado: calculateColumnWidth(rows, "data_requisitado", "Data Requisitado", undefined, "12px Roboto"),
+      data_ultima_alteracao_status: calculateColumnWidth(rows, "data_ultima_alteracao_status", "Data do Status", undefined, "12px Roboto"),
     };
   }, [rows]);
 
@@ -416,6 +418,28 @@ export function useRequisitionColumns(
               handleChangeFilters={handleChangeFilters}
             />
           ),
+      },
+      {
+        field: "data_requisitado",
+        headerName: "Data Requisitado",
+        width: columnWidths.data_requisitado,
+        valueGetter: (value: string) => {
+          if (!value) return "";
+          const [datePart] = String(value).split("T");
+          const [year, month, day] = datePart.split("-");
+          return `${day}/${month}/${year}`;
+        },
+      },
+      {
+        field: "data_ultima_alteracao_status",
+        headerName: "Data do Status",
+        width: columnWidths.data_ultima_alteracao_status,
+        valueGetter: (value: string) => {
+          if (!value) return "";
+          const [datePart] = String(value).split("T");
+          const [year, month, day] = datePart.split("-");
+          return `${day}/${month}/${year}`;
+        },
       },
       {
         field: "actions",
