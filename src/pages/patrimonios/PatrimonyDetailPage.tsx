@@ -25,7 +25,6 @@ const PatrimonyDetailPage = () => {
     <Box>
       <UpperNavigation handleBack={handleBack} />
       <Grid sx={{ p: 2 }} container spacing={3}>
-        {/* Área 1: Detalhes do Patrimônio */}
         <Grid item xs={12} md={4}>
           <Paper elevation={3} sx={{ p: 1 }}>
             <Stack direction="row" justifyContent="space-between" alignItems="center">
@@ -45,14 +44,12 @@ const PatrimonyDetailPage = () => {
           </Paper>
         </Grid>
 
-        {/* Área 2: Tabela de Movimentações */}
         <Grid item xs={12} md={8}>
           <Paper elevation={3} sx={{ p: 1, }}>
             <PatrimonyMovementationTable />
           </Paper>
         </Grid>
 
-        {/* Área 3: Tabela de Checklists */}
         <Grid item xs={12}>
           <Paper elevation={3} sx={{ p: 1 }}>
             <Stack direction="row" alignItems="center" gap={2}>
@@ -68,7 +65,6 @@ const PatrimonyDetailPage = () => {
         </Grid>
       </Grid>
 
-      {/* Modal de Checklists */}
       <Dialog
         fullScreen
         open={fullScreenChecklist}
@@ -93,7 +89,6 @@ const PatrimonyDetailPage = () => {
         </DialogContent>
       </Dialog>
 
-      {/* Modal de Anexos */}
       <PatrimonyAttachmentList
         open={attachmentDialogOpen}
         onClose={() => setAttachmentDialogOpen(false)}

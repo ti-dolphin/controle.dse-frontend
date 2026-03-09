@@ -39,6 +39,32 @@ const OpportunityDetailedForm = () => {
     null
   );
 
+  const validateBeforeSave = () => {
+    const status = formData.CODSTATUS ?? opportunity.CODSTATUS;
+    const dataInicio = formData.DATAINICIO ?? opportunity.DATAINICIO
+    const dataEntrega = formData.DATAENTREGA ?? opportunity.DATAENTREGA
+
+    console.log(dataEntrega, 'dataEntrega')
+
+    if ([9, 11, 12].includes(status)) {
+      if (!dataInicio || dataInicio === '') {
+        return {
+          error: true,
+          message: 'Data de envio inicial precisa estar preenchida.'
+        }
+      }
+    } 
+    if ([11, 12, 13].includes(status)) {
+      if (!dataEntrega || dataEntrega === '') {
+        return {
+          error: true,
+          message: 'Data de Fechamento precisa estar preenchida.'
+        }
+      }
+    }
+    return { error: false, message: '' }
+  }
+
   const { CODOS } = useParams();
 
   const verifyStatus = () => {
@@ -55,6 +81,11 @@ const OpportunityDetailedForm = () => {
 
   const saveOpp = async () => {
     if (!CODOS) return;
+    const valid = validateBeforeSave()
+    if (valid.error) {
+      dispatch(setFeedback({ message: valid.message, type: "error" }));
+      return;
+    }
     try {
       const opp = await OpportunityService.update(
         Number(CODOS),
@@ -454,38 +485,6 @@ const OpportunityDetailedForm = () => {
               <Typography color="green" fontWeight="bold" fontSize={16}>
                 {formatCurrency(Number(opportunity.VALOR_TOTAL) || 0)}
               </Typography>
-              <Button
-                variant="contained"
-                color="success"
-                size="small"
-                sx={{ ml: 2 }}
-                onClick={async () => {
-                  const CODOS = opportunity?.CODOS;
-                  if (!CODOS) return;
-                  try {
-                    await OpportunityService.sendSoldOpportunityEmail(
-                      CODOS,
-                      { ...opportunity },
-                      user ? user : undefined
-                    );
-                    dispatch(
-                      setFeedback({
-                        message: "E-mail de ganho enviado com sucesso!",
-                        type: "success",
-                      })
-                    );
-                  } catch (e: any) {
-                    dispatch(
-                      setFeedback({
-                        message: "Erro ao enviar e-mail de ganho",
-                        type: "error",
-                      })
-                    );
-                  }
-                }}
-              >
-                Informar ganho
-              </Button>
             </Stack>
           </Grid>
         </Paper>
