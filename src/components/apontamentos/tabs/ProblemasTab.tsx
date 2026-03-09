@@ -14,13 +14,17 @@ import {
 import { setFeedback } from "../../../redux/slices/feedBackSlice";
 import { clearCommonFilters } from "../../../redux/slices/apontamentos/commonFiltersSlice";
 import NotesService from "../../../services/NotesService";
-import { Box, Button, useTheme, FormControlLabel, Checkbox } from "@mui/material";
+import { Box, Button, useTheme, FormControlLabel, Checkbox, Tooltip, IconButton } from "@mui/material";
 import { useProblemaColumns } from "../../../hooks/apontamentos/useProblemaColumns";
 import BaseDataTable from "../../shared/BaseDataTable";
 import BaseDetailModal from "../../shared/BaseDetailModal";
 import { useGridApiRef } from "@mui/x-data-grid";
+import OpenWithIcon from '@mui/icons-material/OpenWith'
 import { Problema } from "../../../models/Problema";
 import CommonFilters from "../CommonFilters";
+import { ColumnReorderDialog } from "../../shared/ColumnReorderDialog";
+import { usePersistedColumnOrder, ColumnPreference } from "../../../hooks/table/usePersistedColumnOrder";
+const TABLE_KEY='problems-list'
 
 const ProblemasTab: React.FC = () => {
   const dispatch = useDispatch();
@@ -37,7 +41,9 @@ const ProblemasTab: React.FC = () => {
     totalRows: problemaTotalRows,
   } = useSelector((state: RootState) => state.problemaTable);
   const commonFilters = useSelector((state: RootState) => state.commonFilters.filters);
+  const user = useSelector((state: RootState) => state.user.user);
   const [initialized, setInitialized] = useState(false);
+  const [columnOrderDialogOpen, setColumnOrderDialogOpen] = useState(false)
 
   const handleChangeProblemaFilters = useCallback(
     (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>, field: string) => {
@@ -61,7 +67,22 @@ const ProblemasTab: React.FC = () => {
     [dispatch]
   );
 
-  const { columns: problemaColumns } = useProblemaColumns(handleChangeProblemaFilters);
+  const { columns: rawColumns } = useProblemaColumns(handleChangeProblemaFilters);
+
+  const { orderedColumns: columns, columnVisibilityModel, saveColumnOrder, removeColumnOrder } = usePersistedColumnOrder(
+      TABLE_KEY,
+      user!,
+      rawColumns
+    );
+  
+    const handleApplyColumnOrder = (preferences: ColumnPreference[]) => {
+      saveColumnOrder(preferences);
+    };
+  
+    const removeSavedColumnOrder = async () => {
+      await removeColumnOrder()
+      setColumnOrderDialogOpen(false)
+    }
 
   const handleCleanProblemaFilter = useCallback(() => {
     dispatch(clearProblemaFilters());
@@ -152,6 +173,14 @@ const ProblemasTab: React.FC = () => {
         >
           Limpar filtros
         </Button>
+        <Tooltip title="Ordenar colunas">
+          <IconButton
+            onClick={() => setColumnOrderDialogOpen(true)}
+            sx={{ color: "primary.main", height: 26, width: 26, borderRadius: 0 }}
+          >
+            <OpenWithIcon fontSize="small" />
+          </IconButton>
+        </Tooltip>
       </Box>
 
       <BaseDataTable
@@ -160,7 +189,8 @@ const ProblemasTab: React.FC = () => {
         disableColumnMenu
         disableColumnFilter
         rowHeight={40}
-        columns={problemaColumns}
+        columns={columns}
+        columnVisibilityModel={columnVisibilityModel}
         loading={problemaLoading}
         onCellClick={(params: { field: string }) =>
           params.field !== "actions" && navigateToProblemaDetails(params)
@@ -176,13 +206,15 @@ const ProblemasTab: React.FC = () => {
         }}
         pageSizeOptions={[25, 50, 100]}
       />
-
-      <BaseDetailModal
-        open={problemaSelectedRow !== null}
-        onClose={() => dispatch(setProblemaSelectedRow(null))}
-        columns={problemaColumns}
-        row={problemaSelectedRow}
-        ref={gridRefProblema}
+      <ColumnReorderDialog
+        open={columnOrderDialogOpen}
+        onClose={(() => {setColumnOrderDialogOpen(false)})}
+        columns={columns
+          .filter((col) => col.field !== "actions" && col.headerName)
+          .map((col) => ({ field: col.field, headerName: col.headerName!, hidden: columnVisibilityModel[col.field] === false }))
+        }
+        onApply={handleApplyColumnOrder}
+        onRemoveSavedOrder={removeSavedColumnOrder}
       />
     </>
   );
