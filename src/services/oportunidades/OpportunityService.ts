@@ -55,12 +55,12 @@ const OpportunityService = {
      * @returns Lista de propostas semelhantes (máximo 10)
      */
     getSimilarOpportunities: async (
-        projectId: number,
+        // projectId: number,
         searchTerm: string,
         excludeCodos?: number
     ): Promise<SimilarOpportunity[]> => {
         const params: Record<string, string | number> = {
-            projectId,
+            // projectId,
             searchTerm,
         };
         if (excludeCodos) {

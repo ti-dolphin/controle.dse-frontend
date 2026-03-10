@@ -9,18 +9,19 @@ export const calculateColumnWidth = (
   minWidth: number = 60,
   maxWidth: number = 500
 ) => {
-  if (!rows || rows.length === 0) {
-    return minWidth;
-  }
-
   const fontToUse = font || '12px Roboto';
-  const sampleSize = Math.min(50, rows.length)
   const measure = textMeasurer(fontToUse);
 
-  const sampledRows = rows.slice(0, sampleSize);
-
   const headerWidth = measure(headerName);
-  minWidth = headerWidth + 40
+  minWidth = Math.max(minWidth, headerWidth + 40);
+
+  if (!rows || rows.length === 0) {
+    return Math.min(minWidth, maxWidth);
+  }
+
+  const sampleSize = Math.min(50, rows.length)
+
+  const sampledRows = rows.slice(0, sampleSize);
 
   const contentWidth = Math.max(
     ...sampledRows.map((row) => {
