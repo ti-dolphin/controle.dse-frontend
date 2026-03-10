@@ -44,9 +44,9 @@ const OpportunityForm = () => {
       comercialResponsableOptions
     );
 
-    // Busca propostas semelhantes com debounce quando é adicional
+    // Busca propostas semelhantes com debounce pelo nome
     const searchSimilarOpportunities = useCallback(async () => {
-      if (!isAdicional || !opportunity?.ID_PROJETO || !opportunity?.NOME) {
+      if (!opportunity?.NOME) {
         setSimilarOpportunities([]);
         return;
       }
@@ -59,7 +59,7 @@ const OpportunityForm = () => {
 
       try {
         const similars = await OpportunityService.getSimilarOpportunities(
-          Number(opportunity.ID_PROJETO),
+          // Number(opportunity.ID_PROJETO),
           searchTerm
         );
         setSimilarOpportunities(similars);
@@ -67,7 +67,7 @@ const OpportunityForm = () => {
         console.error('Erro ao buscar propostas semelhantes:', error);
         setSimilarOpportunities([]);
       }
-    }, [isAdicional, opportunity?.ID_PROJETO, opportunity?.NOME]);
+    }, [opportunity?.NOME]);
 
     // Effect para buscar propostas semelhantes com debounce de 400ms
     useEffect(() => {
@@ -144,8 +144,8 @@ const OpportunityForm = () => {
     const handleSubmit = async (e: React.FormEvent) => {
       e.preventDefault();
       
-      // Se é adicional e tem propostas semelhantes, mostrar modal primeiro
-      if (isAdicional && similarOpportunities.length > 0 && !codosOriginal) {
+      // Se tem propostas semelhantes, mostrar modal primeiro
+      if (similarOpportunities.length > 0 && !codosOriginal) {
         setShowSimilarModal(true);
         return;
       }
