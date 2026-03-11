@@ -50,9 +50,10 @@ const CustomConnector = styled(StepConnector)(({ theme }) => ({
 const StepIconRoot = styled("div")<{
   ownerState: { active: boolean; completed: boolean };
 }>(({ theme, ownerState }) => ({
-  backgroundColor:
-    ownerState.completed || ownerState.active
+  backgroundColor: ownerState.completed
       ? theme.palette.success.main
+      : ownerState.active
+      ? theme.palette.warning.main
       : theme.palette.grey[400],
   zIndex: 1,
   color: "#fff",
@@ -65,7 +66,7 @@ const StepIconRoot = styled("div")<{
   fontWeight: 700,
   fontSize: 14,
   border: ownerState.active
-    ? `2px solid ${theme.palette.success.main}`
+    ? `2px solid ${theme.palette.warning.main}`
     : "none",
 }));
 
@@ -1000,7 +1001,7 @@ const RequisitionStatusStepper = ({
                   fontWeight={idx === currentStatusIndex ? 600 : 400}
                   color={
                     idx === currentStatusIndex
-                      ? "text.primary"
+                      ? "warning.main"
                       : "text.secondary"
                   }
                   sx={{ textAlign: "center", whiteSpace: "nowrap" }}

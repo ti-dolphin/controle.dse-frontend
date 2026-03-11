@@ -1,6 +1,7 @@
-import React, { useCallback, useEffect, useState } from "react";
+import React, { useCallback, useEffect, useRef, useState } from "react";
 import {
   Box,
+  Button,
   CircularProgress,
   Dialog,
   DialogContent,
@@ -13,6 +14,7 @@ import {
   useTheme,
 } from "@mui/material";
 import CloseIcon from "@mui/icons-material/Close";
+import PictureAsPdfIcon from "@mui/icons-material/PictureAsPdf";
 import { useSelector } from "react-redux";
 import { RootState } from "../../redux/store";
 import QuoteService from "../../services/requisicoes/QuoteService";
@@ -22,8 +24,9 @@ import { QuoteItem } from "../../models/requisicoes/QuoteItem";
 import { formatCurrency } from "../../utils";
 import BaseDataTable from "../shared/BaseDataTable";
 import { useSelectedQuoteItemColumns } from "../../hooks/requisicoes/useSelectedQuoteItemColumns";
+import { useExportToPdf } from "../../hooks/useExportToPdf";
 
-interface SelectedQuoteGroup {
+export interface SelectedQuoteGroup {
   quote: Quote;
   selectedItems: QuoteItem[];
 }
@@ -43,8 +46,19 @@ const SelectedQuoteItemsDialog: React.FC<SelectedQuoteItemsDialogProps> = ({
   const [quoteGroups, setQuoteGroups] = useState<SelectedQuoteGroup[]>([]);
 
   const theme = useTheme();
+  const dialogRef = useRef<HTMLDivElement>(null);
+  const { isExporting, exportToPdf } = useExportToPdf();
   const items = useSelector((state: RootState) => state.requisitionItem.items);
   const columns = useSelectedQuoteItemColumns();
+
+  const handleDownloadPdf = () => {
+    if (!dialogRef.current) return;
+    exportToPdf(dialogRef.current, {
+      filename: `itens-cotados-req-${idRequisicao}.pdf`,
+      orientation: "landscape",
+      selectorsToHide: ["[data-html2pdf-hide]"],
+    });
+  };
 
   const fetchSelectedItems = useCallback(async () => {
     if (!idRequisicao) return;
@@ -90,114 +104,129 @@ const SelectedQuoteItemsDialog: React.FC<SelectedQuoteItemsDialogProps> = ({
 
   return (
     <Dialog open={open} onClose={onClose} maxWidth="lg" fullWidth>
-      <DialogTitle sx={{ pb: 1 }}>
-        <Stack direction="row" alignItems="center" justifyContent="space-between">
-          <Typography variant="h6" color="primary.main" fontWeight={600}>
-            Itens Cotados Selecionados
-          </Typography>
-          <IconButton onClick={onClose} color="error" size="small">
-            <CloseIcon />
-          </IconButton>
-        </Stack>
-      </DialogTitle>
-
-      <DialogContent>
-        {loading ? (
-          <Box sx={{ display: "flex", justifyContent: "center", py: 6 }}>
-            <CircularProgress />
-          </Box>
-        ) : quoteGroups.length === 0 ? (
-          <Typography color="text.secondary" sx={{ py: 3, textAlign: "center" }}>
-            Nenhum item cotado selecionado foi encontrado para esta requisição.
-          </Typography>
-        ) : (
-          <Stack spacing={2} sx={{ pt: 1 }}>
-            {quoteGroups.map(({ quote, selectedItems }) => (
-              <Paper key={quote.id_cotacao} variant="outlined" sx={{ p: 2 }}>
-                {/* Quote header */}
-                <Stack
-                  direction={{ xs: "column", sm: "row" }}
-                  spacing={2}
-                  mb={1.5}
-                  flexWrap="wrap"
-                  alignItems={{ sm: "center" }}
+      <Box ref={dialogRef}>
+        <DialogTitle sx={{ pb: 1 }}>
+          <Stack direction="row" alignItems="center" justifyContent="space-between">
+            <Typography variant="h6" color="primary.main" fontWeight={600}>
+              Itens Cotados Selecionados
+            </Typography>
+            <Stack data-html2pdf-hide direction="row" spacing={1} alignItems="center">
+              {quoteGroups.length > 0 && (
+                <Button
+                  variant="outlined"
+                  size="small"
+                  startIcon={isExporting ? <CircularProgress size={14} /> : <PictureAsPdfIcon />}
+                  onClick={handleDownloadPdf}
+                  disabled={isExporting || loading}
                 >
-                  <Box>
-                    <Typography variant="caption" color="text.secondary">
-                      Cotação #{quote.id_cotacao}
-                    </Typography>
-                    <Typography fontWeight={600} color="primary.main" fontSize="0.95rem">
-                      {quote.fornecedor}
-                    </Typography>
-                  </Box>
-
-                  <Divider orientation="vertical" flexItem sx={{ display: { xs: "none", sm: "block" } }} />
-
-                  <Box>
-                    <Typography variant="caption" color="text.secondary" display="block">
-                      CNPJ Fornecedor
-                    </Typography>
-                    <Typography fontSize="0.85rem">{quote.cnpj_fornecedor || "—"}</Typography>
-                  </Box>
-
-                  <Divider orientation="vertical" flexItem sx={{ display: { xs: "none", sm: "block" } }} />
-
-                  <Box>
-                    <Typography variant="caption" color="text.secondary" display="block">
-                      Condição de pagamento
-                    </Typography>
-                    <Typography fontSize="0.85rem">
-                      {quote.condicao_pagamento?.nome || "—"}
-                    </Typography>
-                  </Box>
-
-                  <Divider orientation="vertical" flexItem sx={{ display: { xs: "none", sm: "block" } }} />
-
-                  <Box>
-                    <Typography variant="caption" color="text.secondary" display="block">
-                      Frete
-                    </Typography>
-                    <Typography fontSize="0.85rem">
-                      {formatCurrency(Number(quote.valor_frete))}
-                    </Typography>
-                  </Box>
-
-                  <Divider orientation="vertical" flexItem sx={{ display: { xs: "none", sm: "block" } }} />
-
-                  <Box>
-                    <Typography variant="caption" color="text.secondary" display="block">
-                      Total dos itens selecionados
-                    </Typography>
-                    <Typography fontSize="0.9rem" fontWeight={600} color="success.main">
-                      {formatCurrency(
-                        selectedItems.reduce((acc, item) => acc + Number(item.subtotal), 0)
-                      )}
-                    </Typography>
-                  </Box>
-                </Stack>
-
-                <Divider sx={{ mb: 1.5 }} />
-
-                {/* Items table */}
-                <Box sx={{ height: Math.min(60 + selectedItems.length * 52, 400) }}>
-                  <BaseDataTable
-                    rows={selectedItems}
-                    columns={columns}
-                    getRowId={(row) => row.id_item_cotacao}
-                    hideFooter={selectedItems.length < 25}
-                    disableRowSelectionOnClick
-                    isCellEditable={() => false}
-                    theme={theme}
-                    density="compact"
-                    disableColumnMenu
-                    sx={{ height: "100%" }}
-                  />
-                </Box>
-              </Paper>
-            ))}
+                  {isExporting ? "Gerando PDF..." : "Baixar PDF"}
+                </Button>
+              )}
+              <IconButton onClick={onClose} color="error" size="small">
+                <CloseIcon />
+              </IconButton>
+            </Stack>
           </Stack>
-        )}
-      </DialogContent>
+        </DialogTitle>
+
+        <DialogContent>
+          {loading ? (
+            <Box sx={{ display: "flex", justifyContent: "center", py: 6 }}>
+              <CircularProgress />
+            </Box>
+          ) : quoteGroups.length === 0 ? (
+            <Typography color="text.secondary" sx={{ py: 3, textAlign: "center" }}>
+              Nenhum item cotado selecionado foi encontrado para esta requisição.
+            </Typography>
+          ) : (
+            <Stack spacing={2} sx={{ pt: 1 }}>
+              {quoteGroups.map(({ quote, selectedItems }) => (
+                <Paper key={quote.id_cotacao} variant="outlined" sx={{ p: 2 }}>
+                  {/* Quote header */}
+                  <Stack
+                    direction={{ xs: "column", sm: "row" }}
+                    spacing={2}
+                    mb={1.5}
+                    flexWrap="wrap"
+                    alignItems={{ sm: "center" }}
+                  >
+                    <Box>
+                      <Typography variant="caption" color="text.secondary">
+                        Cotação #{quote.id_cotacao}
+                      </Typography>
+                      <Typography fontWeight={600} color="primary.main" fontSize="0.95rem">
+                        {quote.fornecedor}
+                      </Typography>
+                    </Box>
+
+                    <Divider orientation="vertical" flexItem sx={{ display: { xs: "none", sm: "block" } }} />
+
+                    <Box>
+                      <Typography variant="caption" color="text.secondary" display="block">
+                        CNPJ Fornecedor
+                      </Typography>
+                      <Typography fontSize="0.85rem">{quote.cnpj_fornecedor || "—"}</Typography>
+                    </Box>
+
+                    <Divider orientation="vertical" flexItem sx={{ display: { xs: "none", sm: "block" } }} />
+
+                    <Box>
+                      <Typography variant="caption" color="text.secondary" display="block">
+                        Condição de pagamento
+                      </Typography>
+                      <Typography fontSize="0.85rem">
+                        {quote.condicao_pagamento?.nome || "—"}
+                      </Typography>
+                    </Box>
+
+                    <Divider orientation="vertical" flexItem sx={{ display: { xs: "none", sm: "block" } }} />
+
+                    <Box>
+                      <Typography variant="caption" color="text.secondary" display="block">
+                        Frete
+                      </Typography>
+                      <Typography fontSize="0.85rem">
+                        {formatCurrency(Number(quote.valor_frete))}
+                      </Typography>
+                    </Box>
+
+                    <Divider orientation="vertical" flexItem sx={{ display: { xs: "none", sm: "block" } }} />
+
+                    <Box>
+                      <Typography variant="caption" color="text.secondary" display="block">
+                        Total dos itens selecionados
+                      </Typography>
+                      <Typography fontSize="0.9rem" fontWeight={600} color="success.main">
+                        {formatCurrency(
+                          selectedItems.reduce((acc, item) => acc + Number(item.subtotal), 0)
+                        )}
+                      </Typography>
+                    </Box>
+                  </Stack>
+
+                  <Divider sx={{ mb: 1.5 }} />
+
+                  {/* Items table */}
+                  <Box sx={{ height: Math.min(60 + selectedItems.length * 52, 400) }}>
+                    <BaseDataTable
+                      rows={selectedItems}
+                      columns={columns}
+                      getRowId={(row) => row.id_item_cotacao}
+                      hideFooter={selectedItems.length < 25}
+                      disableRowSelectionOnClick
+                      isCellEditable={() => false}
+                      theme={theme}
+                      density="compact"
+                      disableColumnMenu
+                      sx={{ height: "100%" }}
+                    />
+                  </Box>
+                </Paper>
+              ))}
+            </Stack>
+          )}
+        </DialogContent>
+      </Box>
     </Dialog>
   );
 };
