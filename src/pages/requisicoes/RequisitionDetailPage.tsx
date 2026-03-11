@@ -41,6 +41,7 @@ import UpperNavigation from "../../components/shared/UpperNavigation";
 import FullscreenIcon from "@mui/icons-material/Fullscreen";
 import RequisitionCommentList from "../../components/requisicoes/RequisitionCommentList";
 import { useIsMobile } from "../../hooks/useIsMobile";
+import SelectedQuoteItemsDialog from "../../components/requisicoes/SelectedQuoteItemsDialog";
 
 const RequisitionDetailPage = () => {
 
@@ -53,6 +54,7 @@ const RequisitionDetailPage = () => {
   const {requisition, refreshRequisition} = useSelector((state: RootState) => state.requisition);
   const [quoteListOpen, setQuoteListOpen] = useState<boolean>(false);
   const [buyerDialogOpen, setBuyerDialogOpen] = useState<boolean>(false);
+  const [selectedItemsDialogOpen, setSelectedItemsDialogOpen] = useState<boolean>(false);
   const [fullScreenItems, setFullScreenItems] = useState<boolean>(false);
   const [fullScreenTimeline, setFullScreenTimeline] = useState<boolean>(false);
   const [fullScreenAttachments, setFullScreenAttachments] = useState<boolean>(false);
@@ -171,6 +173,13 @@ const RequisitionDetailPage = () => {
 
     const statusList = ['em cotação', 'aprovação gerente', 'aprovação diretoria', 'comprar', 'oc gerada', 'concluído', 'recebimento', 'lançar nf'];
     return statusList.includes((requisition.status.nome ?? "").toLowerCase());
+  }
+
+  const shouldShowSelectedItemsButton = () => {
+    if (!requisition || !requisition.status) return false;
+    return ['recebimento', 'lançar nf'].includes(
+      (requisition.status.nome ?? "").toLowerCase()
+    );
   }
 
   const hasItemsWithoutQuote = () => {
@@ -505,6 +514,16 @@ const RequisitionDetailPage = () => {
                     Cotações
                   </Button>
                 )}
+                {shouldShowSelectedItemsButton() && (
+                  <Button
+                    onClick={() => setSelectedItemsDialogOpen(true)}
+                    variant="contained"
+                    size="small"
+                    color="secondary"
+                  >
+                    Ver Itens Cotados
+                  </Button>
+                )}
               </Stack>
 
               <Box
@@ -651,6 +670,13 @@ const RequisitionDetailPage = () => {
           </Button>
         </DialogActions>
       </Dialog>
+      {/* Dialog itens cotados selecionados */}
+      <SelectedQuoteItemsDialog
+        open={selectedItemsDialogOpen}
+        onClose={() => setSelectedItemsDialogOpen(false)}
+        idRequisicao={requisition?.ID_REQUISICAO}
+      />
+
       {/* Dialog da lista de cotações */}
       <Dialog maxWidth="md" fullWidth open={quoteListOpen}>
         <DialogTitle color="primary.main">
@@ -715,6 +741,16 @@ const RequisitionDetailPage = () => {
                   size="small"
                 >
                   Cotações
+                </Button>
+              )}
+              {shouldShowSelectedItemsButton() && (
+                <Button
+                  onClick={() => setSelectedItemsDialogOpen(true)}
+                  variant="contained"
+                  size="small"
+                  color="secondary"
+                >
+                  Ver Itens Cotados
                 </Button>
               )}
               <Box ml="auto" display="flex" alignItems="center" gap={2}>
