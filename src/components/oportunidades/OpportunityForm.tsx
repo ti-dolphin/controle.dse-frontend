@@ -59,7 +59,6 @@ const OpportunityForm = () => {
 
       try {
         const similars = await OpportunityService.getSimilarOpportunities(
-          // Number(opportunity.ID_PROJETO),
           searchTerm
         );
         setSimilarOpportunities(similars);

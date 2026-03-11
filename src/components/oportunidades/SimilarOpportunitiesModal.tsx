@@ -77,9 +77,7 @@ const SimilarOpportunitiesModal: React.FC<SimilarOpportunitiesModalProps> = ({
         </Stack>
 
         <Typography variant="body2" color="text.secondary" mb={2}>
-          Foram encontradas propostas semelhantes neste projeto. Você pode
-          vincular a nova proposta a uma existente (não contará nos totais) ou
-          criar uma nova proposta independente.
+          Foram encontradas propostas com nomes semelhantes. Deseja vincular à proposta encontrada?
         </Typography>
 
         <Divider sx={{ mb: 2 }} />
@@ -119,22 +117,6 @@ const SimilarOpportunitiesModal: React.FC<SimilarOpportunitiesModalProps> = ({
                       <Typography variant="body2" fontWeight={500}>
                         {opp.NOME}
                       </Typography>
-                    }
-                    secondary={
-                      <Stack direction="row" spacing={1} flexWrap="wrap">
-                        <Typography variant="caption" color="text.secondary">
-                          Adicional {opp.numeroAdicional}
-                        </Typography>
-                        <Typography variant="caption" color="text.secondary">
-                          • {formatDate(opp.DATASOLICITACAO)}
-                        </Typography>
-                        <Typography variant="caption" color="text.secondary">
-                          • {opp.status}
-                        </Typography>
-                        <Typography variant="caption" color="text.secondary">
-                          • {opp.cliente}
-                        </Typography>
-                      </Stack>
                     }
                   />
                 </ListItemButton>

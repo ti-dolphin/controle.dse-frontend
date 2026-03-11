@@ -60,7 +60,6 @@ const OpportunityService = {
         excludeCodos?: number
     ): Promise<SimilarOpportunity[]> => {
         const params: Record<string, string | number> = {
-            // projectId,
             searchTerm,
         };
         if (excludeCodos) {

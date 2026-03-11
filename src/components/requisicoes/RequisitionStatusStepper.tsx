@@ -151,7 +151,6 @@ const RequisitionStatusStepper = ({
 
   const checkIfItemsHaveAttachments = async (): Promise<boolean> => {
     try {
-      // Verifica anexos da requisição
       const requisitionAttachments = await RequisitionFileService.getMany({
         id_requisicao,
       });
@@ -159,7 +158,6 @@ const RequisitionStatusStepper = ({
         return true;
       }
 
-      // Verifica anexos dos itens da requisição
       const items = await RequisitionItemService.getMany({ id_requisicao });
       let hasItemAttachments = false;
 
@@ -203,7 +201,6 @@ const RequisitionStatusStepper = ({
       );
     }
 
-    // Validação para status "Requisitado"
     if (newStatus.nome === "Requisitado") {
       const missingTarget = items.some((item) => !item.target_price);
       if (missingTarget && !skipTargetValidation) {
@@ -215,7 +212,6 @@ const RequisitionStatusStepper = ({
       throw new Error("Requisição sem itens");
     }
 
-    // Validação apenas para status "Em Cotação" e avançando
     if (newStatus.nome === "Em Cotação" && advancingStatus) {
       if (!skipAttachmentValidation) {
         const hasAttachments = await checkIfItemsHaveAttachments();
@@ -228,7 +224,6 @@ const RequisitionStatusStepper = ({
       newStatus.nome === "Aprovação Gerente" ||
       (newStatus.nome === "Aprovação Diretoria" && user?.PERM_COMPRADOR === 1)
     ) {
-      // Validação de anexos (pula se usuário já confirmou)
       if (!skipAttachmentValidation) {
         const hasAttachments = await checkIfItemsHaveAttachments();
         if (!hasAttachments) {
@@ -236,7 +231,6 @@ const RequisitionStatusStepper = ({
         }
       }
 
-      // Validações de cotações (sempre executam)
       const quotes = await QuoteService.getMany({ id_requisicao });
       const noQuotes = quotes.length === 0;
       const items = await RequisitionItemService.getMany({ id_requisicao });
@@ -264,11 +258,10 @@ const RequisitionStatusStepper = ({
     confirmValidation?: boolean,
     skipTargetValidation?: boolean
   ) => {
-    // Verifica permissão específica baseada no tipo de ação
     const hasPermission =
       type === "acao_anterior"
-        ? permissionToRevertStatus // Para reverter, usa permissão de reversão
-        : permissionToChangeStatus; // Para avançar, usa permissão normal
+        ? permissionToRevertStatus
+        : permissionToChangeStatus;
 
     if (!hasPermission) {
       dispatch(
@@ -283,9 +276,7 @@ const RequisitionStatusStepper = ({
       return;
     }
 
-    // Para ação anterior (retrocesso), pula validações e vai direto para comentário
     if (type === "acao_anterior") {
-      // Verifica se é Aprovação Gerente (id 6) ou Aprovação Diretoria (id 7)
       const currentStatusId = requisition.id_status_requisicao;
       const currentStatusNome = requisition.status?.nome?.toLowerCase() || '';
       
@@ -329,7 +320,6 @@ const RequisitionStatusStepper = ({
             setJustifyingLessThenThreeQuotes(true);
             return;
           }
-          // Para qualquer outro erro de validação, exibe mensagem ao usuário
           dispatch(
             setFeedback({
               type: "error",
@@ -430,7 +420,6 @@ const RequisitionStatusStepper = ({
         criado_por: user?.CODPESSOA,
       });
 
-      // Calcula o próximo status baseado na etapa atual
       const currentStep = requisition.status?.etapa ?? 0;
       const nextStep = currentStep + 1;
       const newStatus = statusList.find((status) => status.etapa === nextStep);
@@ -463,7 +452,7 @@ const RequisitionStatusStepper = ({
       }
       dispatch(
         setFeedback({
-          type: "success", //DISPLAYS SUCCESS MESSAGE ON SCREEN
+          type: "success",
           message: "Status atualizado com sucesso!",
         })
       );
@@ -521,7 +510,7 @@ const RequisitionStatusStepper = ({
       const type = "acao_anterior";
       const currentStep = requisition.status?.etapa ?? 0;
       const nextStep = currentStep - 1;
-      const newStatus = statusList.find((status) => status.etapa === nextStep); //FINDS THE CORRESPONDING  NEW STATUS
+      const newStatus = statusList.find((status) => status.etapa === nextStep);
 
       if (!newStatus) {
         dispatch(
@@ -537,20 +526,18 @@ const RequisitionStatusStepper = ({
         {
           id_status_requisicao: newStatus.id_status_requisicao,
           alterado_por: user?.CODPESSOA,
-          is_reverting: true, // Indica que é um retrocesso
+          is_reverting: true,
         }
       );
       dispatch(setRequisition(updatedRequisition));
       dispatch(setRefresh(!refresh));
 
-      // Verifica se o usuário tem permissão para visualizar o novo status
       try {
         const newPermissions = await RequisitionStatusService.getStatusPermissions(
           user!,
           updatedRequisition
         );
 
-        // Se não tiver permissão para visualizar o novo status, navega de volta
         if (
           !newPermissions.permissionToChangeStatus &&
           !newPermissions.permissionToRevertStatus
@@ -565,16 +552,14 @@ const RequisitionStatusStepper = ({
           return;
         }
 
-        // Usuário pode visualizar o novo status - permanece na página
         dispatch(
           setFeedback({
-            type: "success", //DISPLAYS SUCCESS MESSAGE ON SCREEN
+            type: "success",
             message: "Status atualizado com sucesso!",
           })
         );
       } catch (permError) {
         console.error("Erro ao verificar permissões:", permError);
-        // Em caso de erro, mantém usuário na página por segurança
         dispatch(
           setFeedback({
             type: "success",
@@ -683,7 +668,7 @@ const RequisitionStatusStepper = ({
       dispatch(setRequisition(updatedRequisition));
       dispatch(
         setFeedback({
-          type: "success", //DISPLAYS SUCCESS MESSAGE ON SCREEN
+          type: "success", 
           message: "Requisição cancelada com sucesso!",
         })
       );
@@ -706,7 +691,7 @@ const RequisitionStatusStepper = ({
       dispatch(setRequisition(updatedRequisition));
       dispatch(
         setFeedback({
-          type: "success", //DISPLAYS SUCCESS MESSAGE ON SCREEN
+          type: "success", 
           message: "Requisição ativada com sucesso!",
         })
       );
@@ -751,21 +736,18 @@ const RequisitionStatusStepper = ({
   };
 
   const handleValueIncreaseReview = () => {
-    // Usuário escolheu rever os valores - apenas fecha o diálogo
     setShowValueIncreaseDialog(false);
     setPendingStatusChangeValueIncrease(null);
   };
 
   const handleValueIncreaseAccept = async () => {
-    // Usuário aceitou o retorno automático para aprovação
     setShowValueIncreaseDialog(false);
 
     try {
-      // Busca o status de aprovação correspondente ao escopo
       const scopeApprovalMap: { [key: number]: number } = {
-        2: 7, // Escopo 2 -> Status 7
-        3: 110, // Escopo 3 -> Status 110
-        5: 118, // Escopo 5 -> Status 118
+        2: 7,
+        3: 110,
+        5: 118,
       };
 
       const approvalStatusId =
@@ -782,7 +764,6 @@ const RequisitionStatusStepper = ({
         return;
       }
 
-      // Envia requisição para retornar ao status de aprovação
       const updatedRequisition = await RequisitionService.updateStatus(
         Number(id_requisicao),
         {
@@ -846,7 +827,6 @@ const RequisitionStatusStepper = ({
       throw new Error("Tipo de faturamento inválido.");
     }
 
-    // Separar itens válidos e inválidos
     const validItems: any[] = [];
     const invalidItems: any[] = [];
 
@@ -859,7 +839,6 @@ const RequisitionStatusStepper = ({
       }
     });
 
-    // Se todos são inválidos, não permite mudança
     if (validItems.length === 0 && items.length > 0) {
       dispatch(
         setFeedback({
@@ -870,7 +849,6 @@ const RequisitionStatusStepper = ({
       return;
     }
 
-    // Se há itens inválidos, divide a requisição
     if (invalidItems.length > 0) {
       try {
         const result = await RequisitionService.changeRequisitionTypeWithSplit(
@@ -893,7 +871,6 @@ const RequisitionStatusStepper = ({
           })
         );
 
-        // Redireciona para a lista para ver ambas requisições
         navigate("/requisicoes");
       } catch (e: any) {
         dispatch(
@@ -906,7 +883,6 @@ const RequisitionStatusStepper = ({
       return;
     }
 
-    // Se todos são válidos, muda o tipo normalmente
     try {
       const updatedRequisition = await RequisitionService.updateRequisitionType(
         Number(id_requisicao),
@@ -983,12 +959,12 @@ const RequisitionStatusStepper = ({
               xs: 2,
               sm: 0,
             },
-            minWidth: { xs: "100%", sm: 600 }, // ocupa toda largura em mobile
+            minWidth: { xs: "100%", sm: 600 },
             flexWrap: "nowrap",
             overflowX: "auto",
             "& .MuiStepLabel-label": {
               mt: 0.5,
-              fontSize: { xs: 10, sm: 12 }, // menor fonte no mobile
+              fontSize: { xs: 10, sm: 12 },
               fontWeight: 500,
             },
           }}
@@ -1146,7 +1122,6 @@ const RequisitionStatusStepper = ({
         </DialogActions>
       </Dialog>
 
-      {/* Diálogo de seleção de tipo de retrocesso */}
       <Dialog
         open={showRevertSelectionDialog}
         onClose={() => setShowRevertSelectionDialog(false)}
@@ -1195,8 +1170,6 @@ const RequisitionStatusStepper = ({
         </DialogActions>
       </Dialog>
 
-      {/* Justificar avançar requisição com menos de 3 cotações */}
-
       <Dialog
         onClose={() => setJustifyingLessThenThreeQuotes(false)}
         open={justifyingLessThenThreeQuotes}
@@ -1235,7 +1208,6 @@ const RequisitionStatusStepper = ({
         </Box>
       </Dialog>
 
-      {/* Dialog de confirmação para status Em Cotação sem anexos */}
       <Dialog
         open={showValidationDialog}
         onClose={cancelValidationStatusChange}
@@ -1267,7 +1239,6 @@ const RequisitionStatusStepper = ({
         </DialogActions>
       </Dialog>
 
-      {/* Dialog de confirmação para status Requisitado sem target_price */}
       <Dialog
         open={showMissingTargetPriceDialog}
         onClose={cancelMissingTargetPriceStatusChange}
@@ -1301,7 +1272,6 @@ const RequisitionStatusStepper = ({
         </DialogActions>
       </Dialog>
 
-      {/* Novo Dialog/modal para alterar tipo de solicitação */}
       <Dialog
         open={showChangeTypeDialog}
         onClose={() => setShowChangeTypeDialog(false)}
@@ -1346,7 +1316,6 @@ const RequisitionStatusStepper = ({
         </DialogActions>
       </Dialog>
 
-      {/* Dialog de aviso de aumento de valor acima do limite */}
       <Dialog
         open={showValueIncreaseDialog}
         onClose={() => setShowValueIncreaseDialog(false)}
