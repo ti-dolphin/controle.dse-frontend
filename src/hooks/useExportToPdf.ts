@@ -4,7 +4,6 @@ import html2pdf from "html2pdf.js";
 export interface PdfExportOptions {
   filename: string;
   orientation?: "portrait" | "landscape";
-  /** CSS selectors for elements to remove from the PDF */
   selectorsToHide?: string[];
 }
 
@@ -15,7 +14,6 @@ export const useExportToPdf = () => {
     async (element: HTMLElement, options: PdfExportOptions) => {
       setIsExporting(true);
 
-      // Find the widest scrollable child to know the real content width
       let maxScrollWidth = element.scrollWidth;
       element.querySelectorAll<HTMLElement>("*").forEach((child) => {
         if (child.scrollWidth > maxScrollWidth) {
@@ -38,16 +36,13 @@ export const useExportToPdf = () => {
               scrollY: 0,
               windowWidth: captureWidth,
               onclone: (_doc: Document, clonedEl: HTMLElement) => {
-                // Remove action buttons from clone
                 (options.selectorsToHide ?? []).forEach((selector) => {
                   clonedEl.querySelectorAll(selector).forEach((el) => el.remove());
                 });
 
-                // Expand the cloned element so all columns fit
                 clonedEl.style.width = `${captureWidth}px`;
                 clonedEl.style.maxWidth = "none";
 
-                // Fix overflow, max-width constraints, and sticky in all children
                 clonedEl.querySelectorAll<HTMLElement>("*").forEach((el) => {
                   el.style.overflow = "visible";
                   el.style.maxWidth = "none";
