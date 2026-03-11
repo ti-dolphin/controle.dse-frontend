@@ -8,6 +8,8 @@ import {
   useGridApiRef,
 } from "@mui/x-data-grid";
 import React, { useCallback, useEffect, useState, useMemo } from "react";
+import RadioButtonUncheckedIcon from "@mui/icons-material/RadioButtonUnchecked";
+import CheckCircleIcon from "@mui/icons-material/CheckCircle";
 import { useRequisitionItemColumns } from "../../hooks/requisicoes/useRequisitionItemColumns";
 import { RequisitionItem } from "../../models/requisicoes/RequisitionItem";
 import {
@@ -17,6 +19,7 @@ import {
   DialogContent,
   DialogTitle,
   IconButton,
+  Typography,
   useTheme,
 } from "@mui/material";
 import { useDispatch, useSelector } from "react-redux";
@@ -259,7 +262,7 @@ const RequisitionItemsTable = ({
 
   const toolbarRef = React.useRef<HTMLDivElement>(null);
 
-  const { columns, isDinamicField } = useRequisitionItemColumns(
+  const { columns, isDinamicField, dinamicColumns } = useRequisitionItemColumns(
     addingReqItems,
     editItemFieldsPermitted,
     handleDeleteItem,
@@ -270,6 +273,22 @@ const RequisitionItemsTable = ({
     selectionModel as number[],
     blockFields
   );
+
+  const [supplierFilter, setSupplierFilter] = useState<string | null>(null);
+
+  const filteredItems = useMemo(() => {
+    if (!supplierFilter) return items;
+    return items.filter((item: any) => {
+      const selectedQuoteItemId =
+        quoteItemsSelected.get(item.id_item_requisicao) ?? item.id_item_cotacao;
+      if (!selectedQuoteItemId) return false;
+      return item.items_cotacao?.some(
+        (qi: any) =>
+          Number(qi.id_cotacao) === Number(supplierFilter) &&
+          Number(qi.id_item_cotacao) === Number(selectedQuoteItemId)
+      );
+    });
+  }, [items, supplierFilter, quoteItemsSelected]);
 
   const exceptionForBuyer = (field: string) => {
     if (!requisition.status) return;
@@ -793,6 +812,47 @@ const RequisitionItemsTable = ({
           )}
         </Box>
       )}
+      {dinamicColumns.length > 0 && (
+        <Box sx={{ display: "flex", alignItems: "center", gap: 1, px: 1, py: 0.5, flexWrap: "wrap" }}>
+          {dinamicColumns.map((col) => {
+            const isSelected = supplierFilter === (col.field as string);
+            return (
+              <Box
+                key={col.field as string}
+                onClick={() =>
+                  setSupplierFilter(isSelected ? null : (col.field as string))
+                }
+                sx={{
+                  display: "flex",
+                  alignItems: "center",
+                  gap: 0.5,
+                  cursor: "pointer",
+                  border: "1px solid",
+                  borderColor: isSelected ? "primary.main" : "divider",
+                  borderRadius: 1,
+                  px: 1,
+                  py: 0.25,
+                  bgcolor: isSelected ? "primary.50" : "transparent",
+                  "&:hover": { bgcolor: "action.hover" },
+                }}
+              >
+                {isSelected ? (
+                  <CheckCircleIcon sx={{ fontSize: 14, color: "primary.main" }} />
+                ) : (
+                  <RadioButtonUncheckedIcon sx={{ fontSize: 14, color: "primary.main" }} />
+                )}
+                <Typography
+                  fontSize="0.7rem"
+                  color="primary.main"
+                  fontWeight={isSelected ? "bold" : "normal"}
+                >
+                  {col.headerName}
+                </Typography>
+              </Box>
+            );
+          })}
+        </Box>
+      )}
       <BaseTableToolBar
         ref={toolbarRef}
         handleChangeSearchTerm={debouncedHandleChangeSearchTerm}
@@ -848,7 +908,7 @@ const RequisitionItemsTable = ({
             theme={theme}
             disableColumnMenu
             rowHeight={60}
-            rows={items}
+            rows={filteredItems}
             checkboxSelection
             onRowSelectionModelChange={handleChangeSelection}
             rowSelectionModel={selectionModel}
