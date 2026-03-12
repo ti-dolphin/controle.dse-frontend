@@ -177,7 +177,7 @@ const RequisitionDetailPage = () => {
 
   const shouldShowSelectedItemsButton = () => {
     if (!requisition || !requisition.status) return false;
-    return ['recebimento', 'lançar nf'].includes(
+    return ['comprar', 'recebimento', 'lançar nf'].includes(
       (requisition.status.nome ?? "").toLowerCase()
     );
   }
@@ -367,7 +367,6 @@ const RequisitionDetailPage = () => {
                 </Paper>
               )}
             </Grid>
-            {/* Anexos */}
             <Grid
               item
               xs={12}
@@ -416,7 +415,6 @@ const RequisitionDetailPage = () => {
           </Grid>
         </Grid>
 
-        {/* Timeline/Histórico */}
         <Grid item xs={12} md={3}>
           {isMobile ? (
             <Accordion defaultExpanded={false}>
