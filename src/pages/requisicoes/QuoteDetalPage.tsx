@@ -159,8 +159,6 @@ const QuoteDetailPage = () => {
         >{`Requisição ${requisition.ID_REQUISICAO}`}</Typography>
       )}
 
-      {/* Header Section - Will display quotation title and metadata (e.g., ID, date) */}
-
       <Grid container spacing={2} sx={{ justifyContent: "center" }}>
         <Grid item xs={12} md={8} sx={{ padding: 2 }}>
           <Paper
@@ -181,18 +179,15 @@ const QuoteDetailPage = () => {
             )}
           </Paper>
         </Grid>
-        {/* Full Width - Attachments Area - Will load the list of attached files */}
         <Grid item xs={12} md={4}>
           <Paper sx={{ p: 2, elevation: 1, borderRadius: 2 }}>
             <Typography color="primary.main" variant="h6">
               Anexos
             </Typography>
             <QuoteAttachmentList id_cotacao={Number(id_cotacao)} allowAddLink />
-            {/* This area will display the list of attachments for the quotation */}
           </Paper>
         </Grid>
 
-        {/* Left Column - Table Area - Will load the quotation items table */}
         <Grid item xs={12}>
           <Paper sx={{ p: 2, mb: 2, elevation: 1, borderRadius: 2 }}>
             <Stack direction="row" alignItems="center" gap={2}>

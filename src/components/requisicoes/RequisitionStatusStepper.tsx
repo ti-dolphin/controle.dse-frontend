@@ -53,7 +53,7 @@ const StepIconRoot = styled("div")<{
   backgroundColor: ownerState.completed
       ? theme.palette.success.main
       : ownerState.active
-      ? theme.palette.warning.main
+      ? "#F19700"
       : theme.palette.grey[400],
   zIndex: 1,
   color: "#fff",
@@ -66,7 +66,7 @@ const StepIconRoot = styled("div")<{
   fontWeight: 700,
   fontSize: 14,
   border: ownerState.active
-    ? `2px solid ${theme.palette.warning.main}`
+    ? `2px solid #F19700`
     : "none",
 }));
 
@@ -974,10 +974,10 @@ const RequisitionStatusStepper = ({
               <StepLabel StepIconComponent={CustomStepIcon}>
                 <Typography
                   fontSize={{ xs: 10, sm: 12 }}
-                  fontWeight={idx === currentStatusIndex ? 600 : 400}
+                  fontWeight={idx === currentStatusIndex ? 700 : 400}
                   color={
                     idx === currentStatusIndex
-                      ? "warning.main"
+                      ? "text.primary"
                       : "text.secondary"
                   }
                   sx={{ textAlign: "center", whiteSpace: "nowrap" }}
