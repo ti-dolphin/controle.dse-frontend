@@ -47,6 +47,14 @@ const QuoteAttachmentList: React.FC<QuoteAttachmentListProps> = ({
   const [linkDialogOpen, setLinkDialogOpen] = useState(false);
   const [linkInput, setLinkInput] = useState<string>("");
 
+  const sortAttachments = (files: QuoteFile[]) => {
+    return [...files].sort((a, b) => {
+      const left = (a.url || a.nome_arquivo || "").toLowerCase();
+      const right = (b.url || b.nome_arquivo || "").toLowerCase();
+      return left.localeCompare(right, "pt-BR", { numeric: true });
+    });
+  };
+
   const openViewFile = (file: QuoteFile) => {
     setSelectedFile(file);
   };
@@ -82,7 +90,7 @@ const QuoteAttachmentList: React.FC<QuoteAttachmentListProps> = ({
     setLoading(true);
     try {
       const files = await QuoteFileService.getMany({ id_cotacao });
-      setAttachments(files);
+      setAttachments(sortAttachments(files));
     } catch (err: any) {
       setError("Erro ao buscar anexos.");
     } finally {
@@ -217,21 +225,34 @@ const QuoteAttachmentList: React.FC<QuoteAttachmentListProps> = ({
       {loading ? (
         <CircularProgress />
       ) : (
-        <List sx={{ maxHeight: 120, overflow: "auto" }}>
+        <List sx={{ maxHeight: 220, overflow: "auto" }}>
           {attachments.length === 0 && (
             <Typography variant="body2" color="text.secondary">
               Nenhum anexo encontrado.
             </Typography>
           )}
-          {attachments.map((file) => (
+          {attachments.map((file, index) => (
             <ListItem
               key={file.id_anexo_cotacao}
               divider
-              sx={{ maxHeight: 40 }}
+              sx={{ pr: 6 }}
             >
-              <Stack direction="row" alignItems="center" gap={1}>
+              <Stack
+                direction="row"
+                alignItems="center"
+                gap={1}
+                sx={{ width: "100%", minWidth: 0 }}
+              >
+                <Typography
+                  fontSize="12px"
+                  color="text.secondary"
+                  sx={{ flexShrink: 0 }}
+                >
+                  {`${index + 1}-`}
+                </Typography>
                 <StyledLink
                   link={file.url}
+                  maxWidth="100%"
                   onClick={() => {
                     const fileExtensions = [
                       ".pdf",
@@ -256,8 +277,6 @@ const QuoteAttachmentList: React.FC<QuoteAttachmentListProps> = ({
                     }
                   }}
                 />
-                <Typography fontSize="12px" color="text.secondary">
-                </Typography>
               </Stack>
 
               <ListItemSecondaryAction>
