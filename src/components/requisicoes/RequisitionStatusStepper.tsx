@@ -5,10 +5,7 @@ import { useRequisitionStatus } from "../../hooks/requisicoes/useRequisitionStat
 import ArrowCircleLeftIcon from "@mui/icons-material/ArrowCircleLeft";
 import ArrowCircleRightIcon from "@mui/icons-material/ArrowCircleRight";
 import SwapHorizIcon from "@mui/icons-material/SwapHoriz";
-import { Stepper, 
-  Step, 
-  StepLabel, 
-  StepConnector, stepConnectorClasses, styled, Box, Typography, Stack, Button, Dialog, DialogTitle, DialogContent, DialogActions, Radio, RadioGroup, FormControlLabel, FormLabel } from "@mui/material";
+import { Stepper, Step, StepLabel, StepConnector, stepConnectorClasses, styled, Box, Typography, Stack, Button, Dialog, DialogTitle, DialogContent, DialogActions, Radio, RadioGroup, FormControlLabel, FormLabel } from "@mui/material";
 import CheckIcon from "@mui/icons-material/Check";
 import RequisitionService from "../../services/requisicoes/RequisitionService";
 import RequisitionStatusService from "../../services/requisicoes/RequisitionStatusService";
