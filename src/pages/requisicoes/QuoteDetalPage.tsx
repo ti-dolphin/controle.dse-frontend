@@ -179,8 +179,18 @@ const QuoteDetailPage = () => {
             )}
           </Paper>
         </Grid>
-        <Grid item xs={12} md={4}>
-          <Paper sx={{ p: 2, elevation: 1, borderRadius: 2 }}>
+        <Grid item xs={12} md={4} sx={{ display: "flex" }}>
+          <Paper
+            sx={{
+              p: 2,
+              elevation: 1,
+              borderRadius: 2,
+              width: "100%",
+              height: "100%",
+              display: "flex",
+              flexDirection: "column",
+            }}
+          >
             <Typography color="primary.main" variant="h6">
               Anexos
             </Typography>

@@ -4,9 +4,10 @@ interface StyledLinkProps{
     link: string
     onClick: () => void;
     fullScreen?: boolean;
+    maxWidth?: number | string;
 }
 
-const StyledLink = ({ link, onClick, fullScreen = false }: StyledLinkProps) => {
+const StyledLink = ({ link, onClick, fullScreen = false, maxWidth }: StyledLinkProps) => {
   return (
     <Typography
         sx={{
@@ -18,7 +19,7 @@ const StyledLink = ({ link, onClick, fullScreen = false }: StyledLinkProps) => {
             '&:hover': {
                 textDecoration: 'underline',
             },
-            maxWidth: fullScreen ? 'none' : 150,
+            maxWidth: maxWidth ?? (fullScreen ? 'none' : 150),
             overflow: 'hidden',
             textOverflow: fullScreen ? 'unset' : 'ellipsis',
             whiteSpace: fullScreen ? 'normal' : 'nowrap',
