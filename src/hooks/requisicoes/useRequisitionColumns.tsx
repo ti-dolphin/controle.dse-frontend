@@ -47,7 +47,7 @@ export function useRequisitionColumns(
 
   const columnWidths = useMemo(() => {
     return {
-      ID_REQUISICAO: calculateColumnWidth(rows, "ID_REQUISICAO", "ID", undefined, "12px Roboto"),
+      ID_REQUISICAO: calculateColumnWidth(rows, "ID_REQUISICAO", "ID", undefined, "12px Roboto", 80),
       DESCRIPTION: calculateColumnWidth(rows, "DESCRIPTION", "Descrição", undefined, "bold 12px Roboto"),
       projeto: calculateColumnWidth(rows, "projeto", "Projeto", (project: Project) => project?.DESCRICAO || '', "12px Roboto"),
       responsavel: calculateColumnWidth(rows, "responsavel", "Requisitante", (user: ReducedUser) => user?.NOME || '', "12px Roboto"),
