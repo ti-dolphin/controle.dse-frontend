@@ -231,9 +231,10 @@ const RequisitionStatusStepper = ({
       const quotes = await QuoteService.getMany({ id_requisicao });
       const noQuotes = quotes.length === 0;
       const items = await RequisitionItemService.getMany({ id_requisicao });
-      const allItemsHaveSelectedSupplier = items.every(
-        (item) => !!item.id_item_cotacao
-      );
+      const allItemsHaveSelectedSupplier = items.every((item) => {
+        const hasPositiveQuantity = Number(item.quantidade) > 0;
+        return !hasPositiveQuantity || !!item.id_item_cotacao;
+      });
       if (!allItemsHaveSelectedSupplier) {
         throw new Error(
           "Todos os itens devem estar selecionados em algum fornecedor."
