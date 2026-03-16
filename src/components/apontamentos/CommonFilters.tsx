@@ -8,7 +8,7 @@ import {
   setCommonAtivos,
   setCommonFilters,
 } from "../../redux/slices/apontamentos/commonFiltersSlice";
-import { Box, Button, TextField, InputAdornment, FormControlLabel, Checkbox } from "@mui/material";
+import { Button, TextField, InputAdornment, FormControlLabel, Checkbox } from "@mui/material";
 import { debounce } from "lodash";
 import SearchIcon from "@mui/icons-material/Search";
 
@@ -20,17 +20,38 @@ const CommonFilters: React.FC<CommonFiltersProps> = ({ onFiltersChange }) => {
   const dispatch = useDispatch();
   const { filters } = useSelector((state: RootState) => state.commonFilters);
   const [initialized, setInitialized] = useState(false);
+  const [searchInput, setSearchInput] = useState(filters.searchTerm);
 
-  const handleSearchChange = useCallback(
-    (event: React.ChangeEvent<HTMLInputElement>) => {
-      dispatch(setCommonSearchTerm(event.target.value));
+  const dispatchSearchTerm = useCallback(
+    (value: string) => {
+      dispatch(setCommonSearchTerm(value));
     },
     [dispatch]
   );
 
   const debouncedHandleSearchChange = useMemo(
-    () => debounce(handleSearchChange, 500),
-    [handleSearchChange]
+    () => debounce(dispatchSearchTerm, 500),
+    [dispatchSearchTerm]
+  );
+
+  const handleSearchInputChange = useCallback(
+    (event: React.ChangeEvent<HTMLInputElement>) => {
+      const value = event.target.value;
+      setSearchInput(value);
+      debouncedHandleSearchChange(value);
+    },
+    [debouncedHandleSearchChange]
+  );
+
+  const handleSearchInputKeyDown = useCallback(
+    (event: React.KeyboardEvent<HTMLInputElement>) => {
+      if (event.key === "Enter") {
+        event.preventDefault();
+        debouncedHandleSearchChange.cancel();
+        dispatchSearchTerm(searchInput);
+      }
+    },
+    [debouncedHandleSearchChange, dispatchSearchTerm, searchInput]
   );
 
   useEffect(() => {
@@ -38,6 +59,10 @@ const CommonFilters: React.FC<CommonFiltersProps> = ({ onFiltersChange }) => {
       debouncedHandleSearchChange.cancel();
     };
   }, [debouncedHandleSearchChange]);
+
+  useEffect(() => {
+    setSearchInput(filters.searchTerm);
+  }, [filters.searchTerm]);
 
   const handleDateFromChange = useCallback(
     (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -130,7 +155,9 @@ const CommonFilters: React.FC<CommonFiltersProps> = ({ onFiltersChange }) => {
       <TextField
         size="small"
         placeholder="Buscar..."
-        onChange={debouncedHandleSearchChange}
+        value={searchInput}
+        onChange={handleSearchInputChange}
+        onKeyDown={handleSearchInputKeyDown}
         sx={{
           width: 200,
           "& .MuiOutlinedInput-root": {

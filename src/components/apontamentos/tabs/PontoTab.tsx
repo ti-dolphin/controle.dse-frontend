@@ -121,7 +121,7 @@ const PontoTab: React.FC = () => {
 
   const handleProcessRowUpdate = useCallback(
     async (newRow: Ponto, oldRow: Ponto): Promise<Ponto> => {
-      if (newRow.MOTIVO_PROBLEMA === oldRow.MOTIVO_PROBLEMA || newRow.MOTIVO_PROBLEMA === "") return newRow;
+      if (newRow.MOTIVO_PROBLEMA === oldRow.MOTIVO_PROBLEMA) return newRow;
       try {
         const result = await NotesService.updatePontoField(newRow.CODAPONT, "MOTIVO_PROBLEMA", newRow.MOTIVO_PROBLEMA || "");
         const updatedRow = { ...newRow, DATA_HORA_MOTIVO: result.DATA_HORA_MOTIVO ?? newRow.DATA_HORA_MOTIVO };
