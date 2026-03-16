@@ -47,9 +47,14 @@ export const usePersistedColumnOrder = (
       defaultColumns.map(col => [col.field, col])
     )
 
-    const resolved = savedPreferences.map(pref => columnMap.get(pref.field));
-    const existingColumns = resolved.filter((c): c is GridColDef => c !== undefined);
-    return existingColumns;
+    const resolved = savedPreferences.map(pref => columnMap.get(pref.field))
+    const existingColumns = resolved.filter((c): c is GridColDef => c !== undefined)
+
+    // Keep columns that are not in saved preferences (e.g. action columns excluded from dialog).
+    const existingFields = new Set(existingColumns.map(col => col.field))
+    const missingColumns = defaultColumns.filter(col => !existingFields.has(col.field))
+
+    return [...existingColumns, ...missingColumns]
   }, [defaultColumns, savedPreferences])
 
   const columnVisibilityModel = useMemo(() => {
@@ -62,10 +67,30 @@ export const usePersistedColumnOrder = (
   }, [savedPreferences])
 
   async function saveColumnOrder(newPreferences: ColumnPreference[]) {
-    setSavedPreferences(newPreferences)
+    const persistedMap = new Map(newPreferences.map(pref => [pref.field, pref]))
+
+    // Preserve existing saved columns that were not part of the dialog payload.
+    if (savedPreferences) {
+      savedPreferences.forEach(pref => {
+        if (!persistedMap.has(pref.field)) {
+          persistedMap.set(pref.field, pref)
+        }
+      })
+    }
+
+    // Guarantee all current table columns exist in persisted preferences.
+    defaultColumns.forEach(col => {
+      if (!persistedMap.has(col.field)) {
+        persistedMap.set(col.field, { field: col.field, hidden: false })
+      }
+    })
+
+    const mergedPreferences = Array.from(persistedMap.values())
+
+    setSavedPreferences(mergedPreferences)
 
     try {
-      await RequisitionColumnsService.put(tableKey, user, newPreferences)
+      await RequisitionColumnsService.put(tableKey, user, mergedPreferences)
     } catch (error) {
       console.error("Error saving column preferences", error)
     }

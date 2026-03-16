@@ -230,7 +230,7 @@ const ApontamentosTab: React.FC<ApontamentosTabProps> = ({
           marginTop: "5px",
         }}
       >
-        <CommonFilters />
+        <CommonFilters disabled={loading} />
 
         <FormControlLabel
           control={
@@ -238,6 +238,7 @@ const ApontamentosTab: React.FC<ApontamentosTabProps> = ({
               checked={filters.COMENTADOS}
               onChange={(e) => handleChangeCheckbox("COMENTADOS", e.target.checked)}
               size="small"
+              disabled={loading}
             />
           }
           label="Comentados"
@@ -249,6 +250,7 @@ const ApontamentosTab: React.FC<ApontamentosTabProps> = ({
               checked={filters.SEM_ASSIDUIDADE}
               onChange={(e) => handleChangeCheckbox("SEM_ASSIDUIDADE", e.target.checked)}
               size="small"
+              disabled={loading}
             />
           }
           label="Sem Assiduidade"
@@ -259,6 +261,7 @@ const ApontamentosTab: React.FC<ApontamentosTabProps> = ({
           sx={{ height: 32, borderRadius: 0, fontSize: 12 }}
           variant="contained"
           onClick={handleCleanFilter}
+          disabled={loading}
         >
           Limpar filtros
         </Button>
@@ -338,7 +341,7 @@ const ApontamentosTab: React.FC<ApontamentosTabProps> = ({
         open={columnOrderDialogOpen}
         onClose={(() => {setColumnOrderDialogOpen(false)})}
         columns={columns
-          .filter((col) => col.field !== "actions" && col.headerName)
+          .filter((col) => col.headerName)
           .map((col) => ({ field: col.field, headerName: col.headerName!, hidden: columnVisibilityModel[col.field] === false }))
         }
         onApply={handleApplyColumnOrder}

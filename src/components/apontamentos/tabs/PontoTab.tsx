@@ -69,14 +69,19 @@ const PontoTab: React.FC = () => {
   );
 
   const handleTogglePontoField = useCallback(
-    async (codapont: number, field: string, currentValue: boolean) => {
+    async (codapont: number, field: string, nextValue: boolean) => {
       try {
-        await NotesService.updatePontoField(codapont, field, !currentValue);
+        const result = await NotesService.updatePontoField(codapont, field, nextValue);
         dispatch(
           setPontoRows(
             pontoRows.map((row) =>
               row.CODAPONT === codapont
-                ? { ...row, [field]: !currentValue }
+                ? {
+                    ...row,
+                    ...result,
+                    [field]: nextValue,
+                    ...(field === "AJUSTADO" && nextValue ? { PROBLEMA: false } : {}),
+                  }
                 : row
             )
           )
@@ -201,7 +206,7 @@ const PontoTab: React.FC = () => {
           marginTop: "5px",
         }}
       >
-        <CommonFilters />
+        <CommonFilters disabled={pontoLoading} />
 
         <FormControlLabel
           control={
@@ -209,6 +214,7 @@ const PontoTab: React.FC = () => {
               checked={pontoFilters.PROBLEMA}
               onChange={(e) => handleChangePontoCheckbox("PROBLEMA", e.target.checked)}
               size="small"
+              disabled={pontoLoading}
             />
           }
           label="Com Problema"
@@ -220,6 +226,7 @@ const PontoTab: React.FC = () => {
               checked={pontoFilters.AJUSTADO}
               onChange={(e) => handleChangePontoCheckbox("AJUSTADO", e.target.checked)}
               size="small"
+              disabled={pontoLoading}
             />
           }
           label="Ajustado"
@@ -230,6 +237,7 @@ const PontoTab: React.FC = () => {
           sx={{ height: 32, borderRadius: 0, fontSize: 12 }}
           variant="contained"
           onClick={handleCleanPontoFilter}
+          disabled={pontoLoading}
         >
           Limpar filtros
         </Button>

@@ -42,7 +42,7 @@ const formatDateTime = (value: string | null) => {
 
 export const usePontoColumns = (
   handleChangeFilters: (event: React.ChangeEvent<HTMLInputElement>, field: string) => void,
-  onToggleField?: (codapont: number, field: string, currentValue: boolean) => void,
+  onToggleField?: (codapont: number, field: string, nextValue: boolean) => void,
   hasPermission?: boolean
 ) => {
   const { filters, rows } = useSelector((state: RootState) => state.pontoTable);
@@ -150,10 +150,10 @@ export const usePontoColumns = (
             checked={!!params.value}
             size="small"
             disabled={!hasPermission}
-            onClick={(e) => {
+            onChange={(e, checked) => {
               e.stopPropagation();
               if (hasPermission) {
-                onToggleField?.(params.row.CODAPONT, "VERIFICADO", !!params.value);
+                onToggleField?.(params.row.CODAPONT, "VERIFICADO", checked);
               }
             }}
             sx={{ padding: 0 }}
@@ -173,10 +173,10 @@ export const usePontoColumns = (
             checked={!!params.value}
             size="small"
             disabled={!hasPermission}
-            onClick={(e) => {
+            onChange={(e, checked) => {
               e.stopPropagation();
               if (hasPermission) {
-                onToggleField?.(params.row.CODAPONT, "PROBLEMA", !!params.value);
+                onToggleField?.(params.row.CODAPONT, "PROBLEMA", checked);
               }
             }}
             sx={{ padding: 0 }}
@@ -196,10 +196,10 @@ export const usePontoColumns = (
             checked={!!params.value}
             size="small"
             disabled={!hasPermission}
-            onClick={(e) => {
+            onChange={(e, checked) => {
               e.stopPropagation();
               if (hasPermission) {
-                onToggleField?.(params.row.CODAPONT, "AJUSTADO", !!params.value);
+                onToggleField?.(params.row.CODAPONT, "AJUSTADO", checked);
               }
             }}
             sx={{ padding: 0 }}
