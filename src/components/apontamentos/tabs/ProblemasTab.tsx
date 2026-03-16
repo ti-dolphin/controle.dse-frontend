@@ -152,7 +152,7 @@ const ProblemasTab: React.FC = () => {
           marginTop: "5px",
         }}
       >
-        <CommonFilters />
+        <CommonFilters disabled={problemaLoading} />
 
         <FormControlLabel
           control={
@@ -160,6 +160,7 @@ const ProblemasTab: React.FC = () => {
               checked={problemaFilters.COMENTADO}
               onChange={(e) => handleChangeProblemaCheckbox("COMENTADO", e.target.checked)}
               size="small"
+              disabled={problemaLoading}
             />
           }
           label="Comentados"
@@ -170,6 +171,7 @@ const ProblemasTab: React.FC = () => {
           sx={{ height: 32, borderRadius: 0, fontSize: 12 }}
           variant="contained"
           onClick={handleCleanProblemaFilter}
+          disabled={problemaLoading}
         >
           Limpar filtros
         </Button>

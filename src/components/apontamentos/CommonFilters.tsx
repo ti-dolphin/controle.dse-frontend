@@ -14,9 +14,10 @@ import SearchIcon from "@mui/icons-material/Search";
 
 interface CommonFiltersProps {
   onFiltersChange?: () => void;
+  disabled?: boolean;
 }
 
-const CommonFilters: React.FC<CommonFiltersProps> = ({ onFiltersChange }) => {
+const CommonFilters: React.FC<CommonFiltersProps> = ({ onFiltersChange, disabled = false }) => {
   const dispatch = useDispatch();
   const { filters } = useSelector((state: RootState) => state.commonFilters);
   const [initialized, setInitialized] = useState(false);
@@ -156,6 +157,7 @@ const CommonFilters: React.FC<CommonFiltersProps> = ({ onFiltersChange }) => {
         size="small"
         placeholder="Buscar..."
         value={searchInput}
+        disabled={disabled}
         onChange={handleSearchInputChange}
         onKeyDown={handleSearchInputKeyDown}
         sx={{
@@ -179,6 +181,7 @@ const CommonFilters: React.FC<CommonFiltersProps> = ({ onFiltersChange }) => {
         label="De"
         type="date"
         value={filters.DATA_DE}
+        disabled={disabled}
         onChange={handleDateFromChange}
         InputLabelProps={{ shrink: true }}
         sx={{
@@ -197,6 +200,7 @@ const CommonFilters: React.FC<CommonFiltersProps> = ({ onFiltersChange }) => {
         label="Até"
         type="date"
         value={filters.DATA_ATE}
+        disabled={disabled}
         onChange={handleDateToChange}
         InputLabelProps={{ shrink: true }}
         sx={{
@@ -215,6 +219,7 @@ const CommonFilters: React.FC<CommonFiltersProps> = ({ onFiltersChange }) => {
         sx={{ height: 32, borderRadius: 0, fontSize: 11 }}
         variant="outlined"
         onClick={handleHoje}
+        disabled={disabled}
       >
         Hoje
       </Button>
@@ -222,6 +227,7 @@ const CommonFilters: React.FC<CommonFiltersProps> = ({ onFiltersChange }) => {
         sx={{ height: 32, borderRadius: 0, fontSize: 11 }}
         variant="outlined"
         onClick={handlePeriodoAtual}
+        disabled={disabled}
       >
         Período atual
       </Button>
@@ -229,6 +235,7 @@ const CommonFilters: React.FC<CommonFiltersProps> = ({ onFiltersChange }) => {
         sx={{ height: 32, borderRadius: 0, fontSize: 11 }}
         variant="outlined"
         onClick={handlePeriodoAnterior}
+        disabled={disabled}
       >
         Período anterior
       </Button>
@@ -239,6 +246,7 @@ const CommonFilters: React.FC<CommonFiltersProps> = ({ onFiltersChange }) => {
             checked={filters.ATIVOS}
             onChange={handleAtivosChange}
             size="small"
+            disabled={disabled}
           />
         }
         label="Ativos"
