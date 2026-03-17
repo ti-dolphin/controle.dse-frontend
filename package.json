@@ -31,6 +31,8 @@
     "firebase": "^11.10.0",
     "framer-motion": "^11.2.6",
     "html2pdf.js": "^0.14.0",
+    "jspdf": "^2.5.2",
+    "jspdf-autotable": "^3.8.4",
     "localforage": "^1.10.0",
     "lodash": "^4.17.21",
     "lorem-ipsum": "^2.0.8",

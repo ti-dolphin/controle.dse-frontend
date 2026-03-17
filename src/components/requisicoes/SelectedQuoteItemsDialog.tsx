@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useRef, useState } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import {
   Box,
   Button,
@@ -16,6 +16,8 @@ import {
 import CloseIcon from "@mui/icons-material/Close";
 import PictureAsPdfIcon from "@mui/icons-material/PictureAsPdf";
 import { useSelector } from "react-redux";
+import jsPDF from "jspdf";
+import autoTable from "jspdf-autotable";
 import { RootState } from "../../redux/store";
 import QuoteService from "../../services/requisicoes/QuoteService";
 import { QuoteItemService } from "../../services/requisicoes/QuoteItemService";
@@ -24,7 +26,6 @@ import { QuoteItem } from "../../models/requisicoes/QuoteItem";
 import { formatCurrency } from "../../utils";
 import BaseDataTable from "../shared/BaseDataTable";
 import { useSelectedQuoteItemColumns } from "../../hooks/requisicoes/useSelectedQuoteItemColumns";
-import { useExportToPdf } from "../../hooks/useExportToPdf";
 
 export interface SelectedQuoteGroup {
   quote: Quote;
@@ -44,21 +45,108 @@ const SelectedQuoteItemsDialog: React.FC<SelectedQuoteItemsDialogProps> = ({
 }) => {
   const [loading, setLoading] = useState(false);
   const [quoteGroups, setQuoteGroups] = useState<SelectedQuoteGroup[]>([]);
+  const [isExportingPdf, setIsExportingPdf] = useState(false);
 
   const theme = useTheme();
-  const dialogRef = useRef<HTMLDivElement>(null);
-  const { isExporting, exportToPdf } = useExportToPdf();
   const items = useSelector((state: RootState) => state.requisitionItem.items);
   const columns = useSelectedQuoteItemColumns();
 
-  const handleDownloadPdf = () => {
-    if (!dialogRef.current) return;
-    exportToPdf(dialogRef.current, {
-      filename: `itens-cotados-req-${idRequisicao}.pdf`,
-      orientation: "landscape",
-      selectorsToHide: ["[data-html2pdf-hide]"],
-    });
-  };
+  const handleDownloadPdf = useCallback(async () => {
+    if (quoteGroups.length === 0) return;
+
+    setIsExportingPdf(true);
+    try {
+      const doc = new jsPDF({ orientation: "landscape", unit: "mm", format: "a4" });
+
+      quoteGroups.forEach(({ quote, selectedItems }, groupIndex) => {
+        if (groupIndex > 0) {
+          doc.addPage();
+        }
+
+        const selectedTotal = selectedItems.reduce(
+          (acc, item) => acc + Number(item.subtotal || 0),
+          0
+        );
+
+        doc.setFontSize(14);
+        doc.setTextColor(25, 118, 210);
+        doc.text("Itens Cotados Selecionados", 14, 12);
+
+        doc.setFontSize(10);
+        doc.setTextColor(80, 80, 80);
+        doc.text(`Requisição ${idRequisicao}`, 14, 18);
+
+        doc.setFontSize(10);
+        doc.setTextColor(0, 0, 0);
+        doc.text(`Cotação #${quote.id_cotacao}`, 14, 25);
+        doc.text(`Fornecedor: ${quote.fornecedor || "-"}`, 14, 30);
+        doc.text(`CNPJ: ${quote.cnpj_fornecedor || "-"}`, 14, 35);
+        doc.text(
+          `Condição de pagamento: ${quote.condicao_pagamento?.nome || "-"}`,
+          14,
+          40
+        );
+        doc.text(`Frete: ${formatCurrency(Number(quote.valor_frete || 0))}`, 14, 45);
+        doc.text(`Total dos itens selecionados: ${formatCurrency(selectedTotal)}`, 14, 50);
+
+        autoTable(doc, {
+          startY: 56,
+          head: [
+            [
+              "Descrição do Produto",
+              "Unidade",
+              "Qtd. Solicitada",
+              "Qtd. Cotada",
+              "Preço Unitário",
+              "ICMS %",
+              "IPI %",
+              "ST %",
+              "Subtotal",
+            ],
+          ],
+          body: selectedItems.map((item) => [
+            item.produto_descricao || item.descricao_item || "-",
+            item.produto_unidade || "-",
+            Number(item.quantidade_solicitada || 0).toString(),
+            Number(item.quantidade_cotada || 0).toString(),
+            formatCurrency(Number(item.preco_unitario || 0)),
+            `${Number(item.ICMS || 0)}%`,
+            `${Number(item.IPI || 0)}%`,
+            `${Number(item.ST || 0)}%`,
+            formatCurrency(Number(item.subtotal || 0)),
+          ]),
+          theme: "grid",
+          styles: {
+            fontSize: 8,
+            cellPadding: 1.6,
+            valign: "middle",
+            overflow: "linebreak",
+          },
+          headStyles: {
+            fillColor: [25, 118, 210],
+            textColor: 255,
+            fontStyle: "bold",
+          },
+          columnStyles: {
+            0: { cellWidth: 82 },
+            1: { cellWidth: 16, halign: "center" },
+            2: { cellWidth: 18, halign: "right" },
+            3: { cellWidth: 16, halign: "right" },
+            4: { cellWidth: 23, halign: "right" },
+            5: { cellWidth: 12, halign: "right" },
+            6: { cellWidth: 12, halign: "right" },
+            7: { cellWidth: 12, halign: "right" },
+            8: { cellWidth: 23, halign: "right" },
+          },
+          margin: { left: 14, right: 14 },
+        });
+      });
+
+      doc.save(`itens-cotados-req-${idRequisicao}.pdf`);
+    } finally {
+      setIsExportingPdf(false);
+    }
+  }, [idRequisicao, quoteGroups]);
 
   const fetchSelectedItems = useCallback(async () => {
     if (!idRequisicao) return;
@@ -104,7 +192,7 @@ const SelectedQuoteItemsDialog: React.FC<SelectedQuoteItemsDialogProps> = ({
 
   return (
     <Dialog open={open} onClose={onClose} maxWidth="lg" fullWidth>
-      <Box ref={dialogRef}>
+      <Box>
         <DialogTitle sx={{ pb: 1 }}>
           <Stack direction="row" alignItems="center" justifyContent="space-between">
             <Typography variant="h6" color="primary.main" fontWeight={600}>
@@ -115,11 +203,11 @@ const SelectedQuoteItemsDialog: React.FC<SelectedQuoteItemsDialogProps> = ({
                 <Button
                   variant="outlined"
                   size="small"
-                  startIcon={isExporting ? <CircularProgress size={14} /> : <PictureAsPdfIcon />}
+                  startIcon={isExportingPdf ? <CircularProgress size={14} /> : <PictureAsPdfIcon />}
                   onClick={handleDownloadPdf}
-                  disabled={isExporting || loading}
+                  disabled={isExportingPdf || loading}
                 >
-                  {isExporting ? "Gerando PDF..." : "Baixar PDF"}
+                  {isExportingPdf ? "Gerando PDF..." : "Baixar PDF"}
                 </Button>
               )}
               <IconButton onClick={onClose} color="error" size="small">
