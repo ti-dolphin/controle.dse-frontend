@@ -812,47 +812,6 @@ const RequisitionItemsTable = ({
           )}
         </Box>
       )}
-      {dinamicColumns.length > 0 && (
-        <Box sx={{ display: "flex", alignItems: "center", gap: 1, px: 1, py: 0.5, flexWrap: "wrap" }}>
-          {dinamicColumns.map((col) => {
-            const isSelected = supplierFilter === (col.field as string);
-            return (
-              <Box
-                key={col.field as string}
-                onClick={() =>
-                  setSupplierFilter(isSelected ? null : (col.field as string))
-                }
-                sx={{
-                  display: "flex",
-                  alignItems: "center",
-                  gap: 0.5,
-                  cursor: "pointer",
-                  border: "1px solid",
-                  borderColor: isSelected ? "primary.main" : "divider",
-                  borderRadius: 1,
-                  px: 1,
-                  py: 0.25,
-                  bgcolor: isSelected ? "primary.50" : "transparent",
-                  "&:hover": { bgcolor: "action.hover" },
-                }}
-              >
-                {isSelected ? (
-                  <CheckCircleIcon sx={{ fontSize: 14, color: "primary.main" }} />
-                ) : (
-                  <RadioButtonUncheckedIcon sx={{ fontSize: 14, color: "primary.main" }} />
-                )}
-                <Typography
-                  fontSize="0.7rem"
-                  color="primary.main"
-                  fontWeight={isSelected ? "bold" : "normal"}
-                >
-                  {col.headerName}
-                </Typography>
-              </Box>
-            );
-          })}
-        </Box>
-      )}
       <BaseTableToolBar
         ref={toolbarRef}
         handleChangeSearchTerm={debouncedHandleChangeSearchTerm}
@@ -891,7 +850,7 @@ const RequisitionItemsTable = ({
         <Box
           sx={{
             height: tableMaxHeight ? tableMaxHeight : "auto",
-            overFlow: "scroll",
+            overflow: "auto",
             '& .item-without-quote': {
               backgroundColor: '#ffebee !important',
               '&:hover': {
@@ -900,6 +859,62 @@ const RequisitionItemsTable = ({
             },
           }}
         >
+          {dinamicColumns.length > 0 && (
+            <Box
+              sx={{
+                display: "flex",
+                alignItems: "center",
+                gap: 1,
+                px: 1,
+                py: 0.5,
+                flexWrap: "wrap",
+                position: "sticky",
+                top: 0,
+                zIndex: 2,
+                bgcolor: "background.paper",
+                borderBottom: "1px solid",
+                borderColor: "divider",
+              }}
+            >
+              {dinamicColumns.map((col) => {
+                const isSelected = supplierFilter === (col.field as string);
+                return (
+                  <Box
+                    key={col.field as string}
+                    onClick={() =>
+                      setSupplierFilter(isSelected ? null : (col.field as string))
+                    }
+                    sx={{
+                      display: "flex",
+                      alignItems: "center",
+                      gap: 0.5,
+                      cursor: "pointer",
+                      border: "1px solid",
+                      borderColor: isSelected ? "primary.main" : "divider",
+                      borderRadius: 1,
+                      px: 1,
+                      py: 0.25,
+                      bgcolor: isSelected ? "primary.50" : "transparent",
+                      "&:hover": { bgcolor: "action.hover" },
+                    }}
+                  >
+                    {isSelected ? (
+                      <CheckCircleIcon sx={{ fontSize: 14, color: "primary.main" }} />
+                    ) : (
+                      <RadioButtonUncheckedIcon sx={{ fontSize: 14, color: "primary.main" }} />
+                    )}
+                    <Typography
+                      fontSize="0.7rem"
+                      color="primary.main"
+                      fontWeight={isSelected ? "bold" : "normal"}
+                    >
+                      {col.headerName}
+                    </Typography>
+                  </Box>
+                );
+              })}
+            </Box>
+          )}
           <BaseDataTable
             apiRef={gridApiRef}
             density="compact"
