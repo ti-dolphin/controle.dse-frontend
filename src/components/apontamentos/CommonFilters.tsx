@@ -22,6 +22,8 @@ const CommonFilters: React.FC<CommonFiltersProps> = ({ onFiltersChange, disabled
   const { filters } = useSelector((state: RootState) => state.commonFilters);
   const [initialized, setInitialized] = useState(false);
   const [searchInput, setSearchInput] = useState(filters.searchTerm);
+  const [dateFromInput, setDateFromInput] = useState(filters.DATA_DE);
+  const [dateToInput, setDateToInput] = useState(filters.DATA_ATE);
 
   const dispatchSearchTerm = useCallback(
     (value: string) => {
@@ -33,6 +35,20 @@ const CommonFilters: React.FC<CommonFiltersProps> = ({ onFiltersChange, disabled
   const debouncedHandleSearchChange = useMemo(
     () => debounce(dispatchSearchTerm, 500),
     [dispatchSearchTerm]
+  );
+
+  const dispatchDateFrom = useCallback(
+    (value: string) => {
+      dispatch(setCommonDateFrom(value));
+    },
+    [dispatch]
+  );
+
+  const dispatchDateTo = useCallback(
+    (value: string) => {
+      dispatch(setCommonDateTo(value));
+    },
+    [dispatch]
   );
 
   const handleSearchInputChange = useCallback(
@@ -65,18 +81,60 @@ const CommonFilters: React.FC<CommonFiltersProps> = ({ onFiltersChange, disabled
     setSearchInput(filters.searchTerm);
   }, [filters.searchTerm]);
 
+  useEffect(() => {
+    setDateFromInput(filters.DATA_DE);
+  }, [filters.DATA_DE]);
+
+  useEffect(() => {
+    setDateToInput(filters.DATA_ATE);
+  }, [filters.DATA_ATE]);
+
   const handleDateFromChange = useCallback(
     (e: React.ChangeEvent<HTMLInputElement>) => {
-      dispatch(setCommonDateFrom(e.target.value));
+      const value = e.target.value;
+      setDateFromInput(value);
     },
-    [dispatch]
+    []
   );
 
   const handleDateToChange = useCallback(
     (e: React.ChangeEvent<HTMLInputElement>) => {
-      dispatch(setCommonDateTo(e.target.value));
+      const value = e.target.value;
+      setDateToInput(value);
     },
-    [dispatch]
+    []
+  );
+
+  const commitDateFrom = useCallback(() => {
+    if ((dateFromInput === "" || dateFromInput.length === 10) && dateFromInput !== filters.DATA_DE) {
+      dispatchDateFrom(dateFromInput);
+    }
+  }, [dateFromInput, dispatchDateFrom, filters.DATA_DE]);
+
+  const commitDateTo = useCallback(() => {
+    if ((dateToInput === "" || dateToInput.length === 10) && dateToInput !== filters.DATA_ATE) {
+      dispatchDateTo(dateToInput);
+    }
+  }, [dateToInput, dispatchDateTo, filters.DATA_ATE]);
+
+  const handleDateFromKeyDown = useCallback(
+    (event: React.KeyboardEvent<HTMLInputElement>) => {
+      if (event.key === "Enter") {
+        event.preventDefault();
+        commitDateFrom();
+      }
+    },
+    [commitDateFrom]
+  );
+
+  const handleDateToKeyDown = useCallback(
+    (event: React.KeyboardEvent<HTMLInputElement>) => {
+      if (event.key === "Enter") {
+        event.preventDefault();
+        commitDateTo();
+      }
+    },
+    [commitDateTo]
   );
 
   const handleAtivosChange = useCallback(
@@ -180,9 +238,11 @@ const CommonFilters: React.FC<CommonFiltersProps> = ({ onFiltersChange, disabled
         size="small"
         label="De"
         type="date"
-        value={filters.DATA_DE}
+        value={dateFromInput}
         disabled={disabled}
         onChange={handleDateFromChange}
+        onBlur={commitDateFrom}
+        onKeyDown={handleDateFromKeyDown}
         InputLabelProps={{ shrink: true }}
         sx={{
           width: 150,
@@ -199,9 +259,11 @@ const CommonFilters: React.FC<CommonFiltersProps> = ({ onFiltersChange, disabled
         size="small"
         label="Até"
         type="date"
-        value={filters.DATA_ATE}
+        value={dateToInput}
         disabled={disabled}
         onChange={handleDateToChange}
+        onBlur={commitDateTo}
+        onKeyDown={handleDateToKeyDown}
         InputLabelProps={{ shrink: true }}
         sx={{
           width: 150,
