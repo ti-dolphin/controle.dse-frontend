@@ -45,6 +45,15 @@ const OpportunityDetailedForm = () => {
   );
   const [finalizeConfirmOpen, setFinalizeConfirmOpen] = useState(false);
 
+  const getNumericValue = (value: unknown) => {
+    const numericValue = Number(value);
+    return Number.isFinite(numericValue) ? numericValue : 0;
+  };
+
+  const liveTotalValue =
+    getNumericValue(formData.VALORFATDIRETO ?? opportunity.VALORFATDIRETO) +
+    getNumericValue(formData.VALORFATDOLPHIN ?? opportunity.VALORFATDOLPHIN);
+
   const validateBeforeSave = () => {
     const status = formData.CODSTATUS ?? opportunity.CODSTATUS;
     const dataInicio = formData.DATAINICIO ?? opportunity.DATAINICIO
@@ -497,7 +506,7 @@ const OpportunityDetailedForm = () => {
                 Valor Total:
               </Typography>
               <Typography color="green" fontWeight="bold" fontSize={16}>
-                {formatCurrency(Number(opportunity.VALOR_TOTAL) || 0)}
+                {formatCurrency(liveTotalValue)}
               </Typography>
             </Stack>
           </Grid>
