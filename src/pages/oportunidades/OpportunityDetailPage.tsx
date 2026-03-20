@@ -56,23 +56,23 @@ const OpportunityDetailPage = () => {
 }
 
   useEffect(() => {
-      const fetchOpportunity = async () => {
-        if (!CODOS) return;
-        try {
-          const opportunity : Opportunity = await OpportunityService.getById(Number(CODOS));
-          setOpportunity(opportunity);
-          setObservation(opportunity.observacoes);
-        } catch (e) {
-          dispatch(
-            setFeedback({
-              message: "Erro ao buscar oportunidade",
-              type: "error",
-            })
-          );
-        }
-      };
-      fetchOpportunity();
-    }, [CODOS, dispatch]);
+    const fetchOpportunity = async () => {
+      if (!CODOS) return;
+      try {
+        const opportunity : Opportunity = await OpportunityService.getById(Number(CODOS));
+        setOpportunity(opportunity);
+        setObservation(opportunity.observacoes);
+      } catch (e) {
+        dispatch(
+          setFeedback({
+            message: "Erro ao buscar oportunidade",
+            type: "error",
+          })
+        );
+      }
+    };
+    fetchOpportunity();
+  }, [CODOS, dispatch]);
 
   return (
     <Box

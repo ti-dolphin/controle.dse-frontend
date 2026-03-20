@@ -302,38 +302,40 @@ const RequisitionListPage = () => {
               ))
             )}
           </Box>
-          <RequisitionFormModal />
-
           <Box
             sx={{
-              position: "absolute",
-              right: 10,
+              marginLeft: "auto",
               display: "flex",
               alignItems: "center",
               gap: 1,
             }}
           >
+            <RequisitionFormModal />
             <NotificationBell />
-            <Tooltip title="Ordenar colunas">
-              <IconButton
-                onClick={() => setColumnOrderDialogOpen(true)}
-                sx={{ color: "white", height: 26, width: 26, borderRadius: 0 }}
+            {!isMobile && (
+              <Tooltip title="Ordenar colunas">
+                <IconButton
+                  onClick={() => setColumnOrderDialogOpen(true)}
+                  sx={{ color: "white", height: 26, width: 26, borderRadius: 0 }}
+                >
+                  <OpenWithIcon fontSize="small" />
+                </IconButton>
+              </Tooltip>
+            )}
+            {!isMobile && (
+              <Button
+                sx={{
+                  color: "white",
+                  textTransform: "capitalize",
+                  borderRadius: 0,
+                  height: 26,
+                }}
+                startIcon={<Inventory2Icon />}
+                onClick={() => dispatch(setViewingProducts(true))}
               >
-                <OpenWithIcon fontSize="small" />
-              </IconButton>
-            </Tooltip>
-            <Button
-              sx={{
-                color: "white",
-                textTransform: "capitalize",
-                borderRadius: 0,
-                height: 26,
-              }}
-              startIcon={<Inventory2Icon />}
-              onClick={() => dispatch(setViewingProducts(true))}
-            >
-              Produtos
-            </Button>
+                Produtos
+              </Button>
+            )}
           </Box>
         </BaseToolBar>
         <BaseTableToolBar
