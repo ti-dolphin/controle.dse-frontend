@@ -2,6 +2,7 @@ import { Box, Checkbox, IconButton, Typography } from "@mui/material";
 import { GridColDef } from "@mui/x-data-grid";
 import { ChangeEvent } from "react";
 import AttachFileIcon from "@mui/icons-material/AttachFile";
+import { parseMonetaryInput } from "../../utils/parseMonetaryInput";
 
 export const useQuoteItemColumns = (
   handleUpdateUnavailable: (params: ChangeEvent<HTMLInputElement>, itemId : number) => void,
@@ -63,13 +64,17 @@ export const useQuoteItemColumns = (
       flex: 0.6,
       editable: true,
       valueParser: (value: any) => {
-        if (value === '' || value === null || value === undefined) return 0;
-        return parseFloat(value);
+        return parseMonetaryInput(value);
       },
       renderCell: (params: any) => (
         <Box sx={{ display: "flex", alignItems: "center", height: "100%" }}>
           <Typography fontSize="small" fontWeight="bold" color="black">
-            {params.value != null ? parseFloat(params.value) : ''}
+            {params.value != null
+              ? Number(params.value).toLocaleString("pt-BR", {
+                  minimumFractionDigits: 2,
+                  maximumFractionDigits: 2,
+                })
+              : ""}
           </Typography>
         </Box>
       ),
