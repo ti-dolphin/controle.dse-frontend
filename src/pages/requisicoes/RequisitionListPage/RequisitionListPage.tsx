@@ -59,6 +59,7 @@ const RequisitionListPage = () => {
     const { rows } = useSelector((state: RootState) => state.requisitionTable);
     const navigate = useNavigate();
     const gridContainerRef = React.useRef<HTMLDivElement>(null);
+    const latestRequestIdRef = React.useRef(0);
     const {
       searchTerm,
       filters,
@@ -210,7 +211,9 @@ const RequisitionListPage = () => {
     }, [handleChangeSearchTerm]);
 
     const fetchData = React.useCallback(async () => {
+      const requestId = ++latestRequestIdRef.current;
       dispatch(setLoading(true));
+
       try {
         const data = await RequisitionService.getMany(user as User, {
           id_kanban_requisicao: selectedKanban?.id_kanban_requisicao,
@@ -220,16 +223,27 @@ const RequisitionListPage = () => {
           cancelledReqFilter,
           removeAdmView: true,
         });
+
+        if (requestId !== latestRequestIdRef.current) {
+          return;
+        }
+
         dispatch(setRows(data));
-        dispatch(setLoading(false));
       } catch (e: any) {
-        dispatch(setLoading(false));
+        if (requestId !== latestRequestIdRef.current) {
+          return;
+        }
+
         dispatch(
           setFeedback({
             message: "Houve um erro ao buscar requisições",
             type: "error",
           })
         );
+      } finally {
+        if (requestId === latestRequestIdRef.current) {
+          dispatch(setLoading(false));
+        }
       }
     }, [
       dispatch,
