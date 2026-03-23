@@ -22,6 +22,7 @@ import { setAddingReqItems, setQuoteItems, setSingleQuoteItem, setViewingItemAtt
 import { useParams } from "react-router-dom";
 import { useIsMobile } from "../../hooks/useIsMobile";
 import QuoteItemAttachmentViewList from "./QuoteItemAttachmentViewList";
+import { parseMonetaryInput } from "../../utils/parseMonetaryInput";
 
 
 interface QuoteItemsTableProps {
@@ -270,8 +271,9 @@ const QuoteItemsTable = ({
 
   const processRowUpdate = useCallback(
     async (newRow: GridRowModel, oldRow: GridRowModel) => {
+      const normalizedPrecoUnitario = parseMonetaryInput(newRow.preco_unitario);
 
-      if(newRow.preco_unitario < 0){
+      if(normalizedPrecoUnitario < 0){
         dispatch(
           setFeedback({
             message: `Preco unitario nao pode ser menor que zero`,
@@ -307,13 +309,16 @@ const QuoteItemsTable = ({
         IPI: Number(newRow.IPI),
         ST: Number(newRow.ST),
         observacao: newRow.observacao,
-        preco_unitario: newRow.preco_unitario,
+        preco_unitario: normalizedPrecoUnitario,
         id_cotacao: Number(newRow.id_cotacao),
         id_item_requisicao: Number(newRow.id_item_requisicao),
       };
       try {
         debouncedSave(payload, newRow.id_item_cotacao, oldRow);
-        return newRow;
+        return {
+          ...newRow,
+          preco_unitario: normalizedPrecoUnitario,
+        };
       } catch (e: any) {
         dispatch(
           setFeedback({
