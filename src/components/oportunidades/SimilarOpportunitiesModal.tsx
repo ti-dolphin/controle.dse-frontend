@@ -35,7 +35,7 @@ const modalStyle = {
   },
   maxWidth: 600,
   maxHeight: "80vh",
-  zIndex: 1400, // Acima do modal de formulário
+  zIndex: 1400,
 };
 
 interface SimilarOpportunitiesModalProps {
@@ -53,11 +53,6 @@ const SimilarOpportunitiesModal: React.FC<SimilarOpportunitiesModalProps> = ({
   onCreateNew,
   onLinkTo,
 }) => {
-  const formatDate = (dateString: string) => {
-    if (!dateString) return "N/A";
-    const date = new Date(dateString);
-    return date.toLocaleDateString("pt-BR");
-  };
 
   return (
     <Modal open={open} onClose={onClose}>
