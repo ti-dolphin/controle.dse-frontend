@@ -59,6 +59,31 @@ export function useNotesColumns(
   const columns: GridColDef[] = useMemo(
     () => [
       {
+        field: "actions",
+        headerName: "Ações",
+        width: 80,
+        align: "center",
+        headerAlign: "center",
+        sortable: false,
+        filterable: false,
+        renderCell: (params: GridRenderCellParams) => (
+          <Tooltip title="Comentários">
+            <IconButton
+              size="small"
+              onClick={(e) => {
+                e.stopPropagation();
+                onCommentClick?.(params.row.CODAPONT);
+              }}
+              sx={{ 
+                color: params.row.COMENTADO ? "primary.main" : "text.secondary",
+              }}
+            >
+              <CommentIcon fontSize="small" />
+            </IconButton>
+          </Tooltip>
+        ),
+      },
+      {
         field: "PONTO",
         headerName: "Ponto",
         width: 70,
@@ -228,31 +253,6 @@ export function useNotesColumns(
         field: "MODIFICADOPOR",
         headerName: "Modificado",
         width: columnWidths.MODIFICADOPOR,
-      },
-      {
-        field: "actions",
-        headerName: "Ações",
-        width: 80,
-        align: "center",
-        headerAlign: "center",
-        sortable: false,
-        filterable: false,
-        renderCell: (params: GridRenderCellParams) => (
-          <Tooltip title="Comentários">
-            <IconButton
-              size="small"
-              onClick={(e) => {
-                e.stopPropagation();
-                onCommentClick?.(params.row.CODAPONT);
-              }}
-              sx={{ 
-                color: params.row.COMENTADO ? "primary.main" : "text.secondary",
-              }}
-            >
-              <CommentIcon fontSize="small" />
-            </IconButton>
-          </Tooltip>
-        ),
       },
     ],
     [filters, handleChangeFilters, onCommentClick, columnWidths]
