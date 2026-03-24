@@ -74,6 +74,19 @@ const ApontamentosTab: React.FC<ApontamentosTabProps> = ({
     dispatch(clearCommonFilters());
   }, [dispatch]);
 
+  const handleCommentClick = useCallback((codapont: number) => {
+    setSelectedCodapont(codapont);
+    setCommentDialogOpen(true);
+  }, []);
+
+  const { columns: rawColumns } = useNotesColumns(handleChangeFilters, handleCommentClick);
+
+  const { orderedColumns: columns, columnVisibilityModel, saveColumnOrder, removeColumnOrder } = usePersistedColumnOrder(
+    TABLE_KEY,
+    user!,
+    rawColumns
+  );
+
   const handleExportExcel = useCallback(async () => {
     setIsExporting(true);
     try {
@@ -98,8 +111,8 @@ const ApontamentosTab: React.FC<ApontamentosTabProps> = ({
         return;
       }
 
-      // Formatar dados para Excel
-      const formattedData = formatNotesForExcel(response.data);
+      // Formatar dados para Excel respeitando colunas visíveis da tabela
+      const formattedData = formatNotesForExcel(response.data, columns, columnVisibilityModel);
 
       // Gerar nome do arquivo com data atual
       const today = new Date();
@@ -125,12 +138,7 @@ const ApontamentosTab: React.FC<ApontamentosTabProps> = ({
     } finally {
       setIsExporting(false);
     }
-  }, [dispatch, filters, commonFilters]);
-
-  const handleCommentClick = useCallback((codapont: number) => {
-    setSelectedCodapont(codapont);
-    setCommentDialogOpen(true);
-  }, []);
+  }, [dispatch, filters, commonFilters, columns, columnVisibilityModel]);
 
   const handleCloseCommentDialog = useCallback(() => {
     setCommentDialogOpen(false);
@@ -141,14 +149,6 @@ const ApontamentosTab: React.FC<ApontamentosTabProps> = ({
     // Disparar refresh da tabela de apontamentos
     dispatch(setRefreshNotes(!refreshNotes));
   }, [dispatch, refreshNotes]);
-
-  const { columns: rawColumns } = useNotesColumns(handleChangeFilters, handleCommentClick);
-
-  const { orderedColumns: columns, columnVisibilityModel, saveColumnOrder, removeColumnOrder } = usePersistedColumnOrder(
-    TABLE_KEY,
-    user!,
-    rawColumns
-  );
 
   const handleApplyColumnOrder = (preferences: ColumnPreference[]) => {
     saveColumnOrder(preferences);

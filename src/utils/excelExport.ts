@@ -1,4 +1,5 @@
 import * as XLSX from 'xlsx';
+import { GridColDef, GridColumnVisibilityModel } from '@mui/x-data-grid';
 
 /**
  * Exporta dados para arquivo Excel (.xlsx)
@@ -33,41 +34,55 @@ export const exportToExcel = (
  * Formata dados de apontamentos para exportação Excel
  * @param notes Array de apontamentos
  */
-export const formatNotesForExcel = (notes: any[]): any[] => {
-  return notes.map((note) => ({
-    'Assiduidade': note.ASSIDUIDADE ? 'Sim' : 'Não',
-    'Comentado': note.COMENTADO ? 'Sim' : 'Não',
-    'Chapa': note.CHAPA || '',
-    'Funcionário': note.NOME_FUNCIONARIO || '',
-    'Função': note.NOME_FUNCAO || '',
-    'Data': note.DATA ? formatDateForExcel(note.DATA) : '',
-    'Gerente': note.NOME_GERENTE || '',
-    'Centro de Custo': note.NOME_CENTRO_CUSTO || '',
-    'Status': note.DESCRICAO_STATUS || '',
-    'Líder': note.NOME_LIDER || '',
-    'Atividade': note.ATIVIDADE || '',
-    'Situação': getSituacaoLabel(note.CODSITUACAO),
-  }));
+export const formatNotesForExcel = (
+  notes: any[],
+  columns: GridColDef[],
+  columnVisibilityModel: GridColumnVisibilityModel = {}
+): any[] => {
+  const exportableColumns = columns.filter((column) => {
+    if (column.field === 'actions') return false;
+    if (columnVisibilityModel[column.field] === false) return false;
+    return Boolean(column.headerName);
+  });
+
+  return notes.map((note) => {
+    const row: Record<string, any> = {};
+
+    exportableColumns.forEach((column) => {
+      const header = column.headerName as string;
+      const rawValue = note[column.field];
+      const valueGetter = column.valueGetter as
+        | ((value: any, row: any, colDef: GridColDef, apiRef: any) => any)
+        | undefined;
+
+      const value = valueGetter
+        ? valueGetter(rawValue, note, column, null)
+        : rawValue;
+
+      row[header] = normalizeExcelValue(column.field, value);
+    });
+
+    return row;
+  });
 };
 
 /**
- * Retorna o dia da semana a partir de uma data ISO
+ * Normaliza valores exportados para um formato legível em Excel
  */
-const getWeekDay = (dateString: string): string => {
-  if (!dateString) return '';
-  const [year, month, day] = String(dateString).split('T')[0].split('-').map(Number);
-  const date = new Date(year, month - 1, day);
-  const days = ['Domingo', 'Segunda-feira', 'Terça-feira', 'Quarta-feira', 'Quinta-feira', 'Sexta-feira', 'Sábado'];
-  return days[date.getDay()];
-};
+const normalizeExcelValue = (field: string, value: any): string | number => {
+  if (field === 'CODSITUACAO') {
+    return getSituacaoLabel(value);
+  }
 
-/**
- * Formata data ISO para formato brasileiro
- */
-const formatDateForExcel = (dateString: string): string => {
-  if (!dateString) return '';
-  const [year, month, day] = String(dateString).split('T')[0].split('-');
-  return `${day}/${month}/${year}`;
+  if (typeof value === 'boolean') {
+    return value ? 'Sim' : 'Não';
+  }
+
+  if (value === null || value === undefined) {
+    return '';
+  }
+
+  return String(value);
 };
 
 /**
