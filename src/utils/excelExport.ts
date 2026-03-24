@@ -51,9 +51,12 @@ export const formatNotesForExcel = (
     exportableColumns.forEach((column) => {
       const header = column.headerName as string;
       const rawValue = note[column.field];
+      const valueGetter = column.valueGetter as
+        | ((value: any, row: any, colDef: GridColDef, apiRef: any) => any)
+        | undefined;
 
-      const value = column.valueGetter
-        ? column.valueGetter(rawValue, note, column, null as any)
+      const value = valueGetter
+        ? valueGetter(rawValue, note, column, null)
         : rawValue;
 
       row[header] = normalizeExcelValue(column.field, value);
