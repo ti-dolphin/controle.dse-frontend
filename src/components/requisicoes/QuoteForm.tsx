@@ -1,11 +1,10 @@
-import React, { ChangeEvent, useEffect } from "react";
+import React, { ChangeEvent } from "react";
 import { TextField, Box, Button, Grid, Autocomplete } from "@mui/material";
 import { useDispatch, useSelector } from "react-redux";
 import { RootState } from "../../redux/store";
 import { isNumeric } from "../../utils";
 import { useQuoteFieldOptions } from "../../hooks/requisicoes/QuoteFieldOptionsHook";
 import {
-  setAccesType,
   setQuote,
 } from "../../redux/slices/requisicoes/quoteSlice";
 import { Quote } from "../../models/requisicoes/Quote";
@@ -23,9 +22,7 @@ const QuoteForm = ({ onSubmit }: QuoteFormProps) => {
   const dispatch = useDispatch();
   const user = useSelector((state: RootState) => state.user.user);
   const { quote, accessType } = useSelector((state: RootState) => state.quote);
-  const [isSupplierRoute, setIsSupplierRoute] = React.useState(
-    accessType === "supplier"
-  );
+  const isSupplierRoute = accessType === "supplier" || Boolean(window.localStorage.getItem("token"));
 
   const {
     taxClassificationOptions,
@@ -87,17 +84,6 @@ const QuoteForm = ({ onSubmit }: QuoteFormProps) => {
       );
     }
   };
-
-  useEffect(() => {
-    if (user) {
-      setIsSupplierRoute(false);
-      return;
-    }
-    if (window.localStorage.getItem("token")) {
-      setIsSupplierRoute(true);
-      setAccesType("supplier");
-    }
-  }, []);
 
   return (
     <Box
