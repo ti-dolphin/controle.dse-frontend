@@ -9,6 +9,9 @@ import {
   Box,
   IconButton,
   Typography,
+  List,
+  ListItemButton,
+  ListItemText,
 } from "@mui/material";
 import CloseIcon from "@mui/icons-material/Close";
 import { DataGrid, GridColDef, GridRowSelectionModel } from "@mui/x-data-grid";
@@ -27,6 +30,13 @@ interface NoteCommentDialogProps {
   onCommentChange?: () => void;
 }
 
+const PRESET_COMMENTS = [
+  "Treinamento - (informar qual treinamento e qual o local do mesmo).",
+  "Esqueceu de bater o ponto - (preencher formulário de ocorrência).",
+  "Entrada em atraso - não abater da ocorrência.",
+  "Saída antecipada - não abater do banco.",
+];
+
 const NoteCommentDialog: React.FC<NoteCommentDialogProps> = ({
   open,
   onClose,
@@ -40,6 +50,7 @@ const NoteCommentDialog: React.FC<NoteCommentDialogProps> = ({
   const [loading, setLoading] = useState(false);
   const [newComment, setNewComment] = useState("");
   const [selectedComments, setSelectedComments] = useState<GridRowSelectionModel>([]);
+  const [presetDialogOpen, setPresetDialogOpen] = useState(false);
 
   const fetchComments = useCallback(async () => {
     if (!codapont) return;
@@ -149,6 +160,11 @@ const NoteCommentDialog: React.FC<NoteCommentDialogProps> = ({
     }
   };
 
+  const handleSelectPresetComment = (comment: string) => {
+    setNewComment(comment);
+    setPresetDialogOpen(false);
+  };
+
   const columns: GridColDef[] = [
     {
       field: "CODCOMENTARIO",
@@ -228,7 +244,16 @@ const NoteCommentDialog: React.FC<NoteCommentDialogProps> = ({
 
           {/* Botões de ação */}
           <Box sx={{ display: "flex", gap: 1, flexWrap: "wrap" }}>
-            
+            <Button
+              variant="outlined"
+              size="small"
+              onClick={() => setPresetDialogOpen(true)}
+              disabled={loading}
+              sx={{ fontSize: 11 }}
+            >
+              Comentários padrão
+            </Button>
+
             <Button
               variant="outlined"
               size="small"
@@ -285,6 +310,36 @@ const NoteCommentDialog: React.FC<NoteCommentDialogProps> = ({
           Fechar
         </Button>
       </DialogActions>
+
+      <Dialog
+        open={presetDialogOpen}
+        onClose={() => setPresetDialogOpen(false)}
+        maxWidth="sm"
+        fullWidth
+      >
+        <DialogTitle>Comentários padrão</DialogTitle>
+        <DialogContent dividers>
+          <List disablePadding>
+            {PRESET_COMMENTS.map((comment) => (
+              <ListItemButton
+                key={comment}
+                onClick={() => handleSelectPresetComment(comment)}
+                sx={{ alignItems: "flex-start", py: 1.25 }}
+              >
+                <ListItemText
+                  primary={comment}
+                  primaryTypographyProps={{ fontSize: 13 }}
+                />
+              </ListItemButton>
+            ))}
+          </List>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setPresetDialogOpen(false)} variant="outlined">
+            Fechar
+          </Button>
+        </DialogActions>
+      </Dialog>
     </Dialog>
   );
 };
