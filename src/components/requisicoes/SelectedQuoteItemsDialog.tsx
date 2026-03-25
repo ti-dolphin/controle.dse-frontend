@@ -93,6 +93,7 @@ const SelectedQuoteItemsDialog: React.FC<SelectedQuoteItemsDialogProps> = ({
           startY: 56,
           head: [
             [
+              "Código",
               "Descrição do Produto",
               "Unidade",
               "Qtd. Solicitada",
@@ -105,6 +106,7 @@ const SelectedQuoteItemsDialog: React.FC<SelectedQuoteItemsDialogProps> = ({
             ],
           ],
           body: selectedItems.map((item) => [
+            item.produto_codigo || "-",
             item.produto_descricao || item.descricao_item || "-",
             item.produto_unidade || "-",
             Number(item.quantidade_solicitada || 0).toString(),
@@ -128,15 +130,16 @@ const SelectedQuoteItemsDialog: React.FC<SelectedQuoteItemsDialogProps> = ({
             fontStyle: "bold",
           },
           columnStyles: {
-            0: { cellWidth: 82 },
-            1: { cellWidth: 16, halign: "center" },
-            2: { cellWidth: 18, halign: "right" },
-            3: { cellWidth: 16, halign: "right" },
-            4: { cellWidth: 23, halign: "right" },
-            5: { cellWidth: 12, halign: "right" },
+            0: { cellWidth: 20, halign: "left" },
+            1: { cellWidth: 62 },
+            2: { cellWidth: 14, halign: "center" },
+            3: { cellWidth: 18, halign: "right" },
+            4: { cellWidth: 16, halign: "right" },
+            5: { cellWidth: 23, halign: "right" },
             6: { cellWidth: 12, halign: "right" },
             7: { cellWidth: 12, halign: "right" },
-            8: { cellWidth: 23, halign: "right" },
+            8: { cellWidth: 12, halign: "right" },
+            9: { cellWidth: 23, halign: "right" },
           },
           margin: { left: 14, right: 14 },
         });
@@ -295,7 +298,13 @@ const SelectedQuoteItemsDialog: React.FC<SelectedQuoteItemsDialogProps> = ({
                   <Divider sx={{ mb: 1.5 }} />
 
                   {/* Items table */}
-                  <Box sx={{ height: Math.min(60 + selectedItems.length * 52, 400) }}>
+                  <Box
+                    sx={{
+                      height: Math.min(60 + selectedItems.length * 52, 400),
+                      width: "100%",
+                      overflowX: "hidden",
+                    }}
+                  >
                     <BaseDataTable
                       rows={selectedItems}
                       columns={columns}
@@ -306,7 +315,16 @@ const SelectedQuoteItemsDialog: React.FC<SelectedQuoteItemsDialogProps> = ({
                       theme={theme}
                       density="compact"
                       disableColumnMenu
-                      sx={{ height: "100%" }}
+                      sx={{
+                        height: "100%",
+                        width: "100%",
+                        "& .MuiDataGrid-virtualScroller": {
+                          overflowX: "hidden !important",
+                        },
+                        "& .MuiDataGrid-main": {
+                          overflowX: "hidden",
+                        },
+                      }}
                     />
                   </Box>
                 </Paper>

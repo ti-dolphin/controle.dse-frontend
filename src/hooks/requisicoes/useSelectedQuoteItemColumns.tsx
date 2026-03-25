@@ -5,14 +5,29 @@ import { formatCurrency } from "../../utils";
 export const useSelectedQuoteItemColumns = (): GridColDef[] => {
   const columns: GridColDef[] = [
     {
+      field: "produto_codigo",
+      headerName: "Código",
+      flex: 0.7,
+      minWidth: 100,
+      editable: false,
+      renderCell: (params) => (
+        <Box sx={{ display: "flex", alignItems: "center", height: "100%" }}>
+          <Typography fontSize="12px" fontWeight="bold" color="text.secondary">
+            {params.value || "-"}
+          </Typography>
+        </Box>
+      ),
+    },
+    {
       field: "produto_descricao",
       headerName: "Descrição do Produto",
-      flex: 3.5,
+      flex: 2.6,
+      minWidth: 200,
       editable: false,
       renderCell: (params) => (
         <Box sx={{ display: "flex", alignItems: "center", height: "100%" }}>
           <Typography fontSize="12px" fontWeight="bold" color="black">
-            {params.value}
+            {params.value || "-"}
           </Typography>
         </Box>
       ),
@@ -20,27 +35,31 @@ export const useSelectedQuoteItemColumns = (): GridColDef[] => {
     {
       field: "produto_unidade",
       headerName: "Unidade",
-      flex: 0.5,
+      flex: 0.45,
+      minWidth: 70,
       editable: false,
     },
     {
       field: "quantidade_solicitada",
       headerName: "Qtd. Solicitada",
-      flex: 0.8,
+      flex: 0.7,
+      minWidth: 100,
       editable: false,
       type: "number",
     },
     {
       field: "quantidade_cotada",
       headerName: "Qtd. Cotada",
-      flex: 0.8,
+      flex: 0.65,
+      minWidth: 90,
       editable: false,
       type: "number",
     },
     {
       field: "preco_unitario",
       headerName: "Preço Unitário",
-      flex: 1,
+      flex: 0.8,
+      minWidth: 110,
       editable: false,
       renderCell: (params) => (
         <Box sx={{ display: "flex", alignItems: "center", height: "100%" }}>
@@ -51,7 +70,8 @@ export const useSelectedQuoteItemColumns = (): GridColDef[] => {
     {
       field: "ICMS",
       headerName: "ICMS %",
-      flex: 0.6,
+      flex: 0.45,
+      minWidth: 70,
       editable: false,
       renderCell: (params) => (
         <Box sx={{ display: "flex", alignItems: "center", height: "100%" }}>
@@ -62,7 +82,8 @@ export const useSelectedQuoteItemColumns = (): GridColDef[] => {
     {
       field: "IPI",
       headerName: "IPI %",
-      flex: 0.6,
+      flex: 0.45,
+      minWidth: 65,
       editable: false,
       renderCell: (params) => (
         <Box sx={{ display: "flex", alignItems: "center", height: "100%" }}>
@@ -73,7 +94,8 @@ export const useSelectedQuoteItemColumns = (): GridColDef[] => {
     {
       field: "ST",
       headerName: "ST %",
-      flex: 0.6,
+      flex: 0.45,
+      minWidth: 65,
       editable: false,
       renderCell: (params) => (
         <Box sx={{ display: "flex", alignItems: "center", height: "100%" }}>
@@ -84,7 +106,8 @@ export const useSelectedQuoteItemColumns = (): GridColDef[] => {
     {
       field: "subtotal",
       headerName: "Subtotal",
-      flex: 1,
+      flex: 0.85,
+      minWidth: 110,
       editable: false,
       renderCell: (params) => (
         <Box sx={{ display: "flex", alignItems: "center", height: "100%" }}>
