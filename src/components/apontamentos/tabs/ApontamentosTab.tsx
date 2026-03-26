@@ -27,6 +27,11 @@ import { ColumnReorderDialog } from "../../shared/ColumnReorderDialog";
 import { usePersistedColumnOrder, ColumnPreference } from "../../../hooks/table/usePersistedColumnOrder";
 const TABLE_KEY='pointing-list'
 
+interface AppliedNotesQuery {
+  filters: any;
+  searchTerm: string;
+}
+
 interface ApontamentosTabProps {
   selectedApontamentos: GridRowSelectionModel;
   onSelectionChange: (selection: GridRowSelectionModel) => void;
@@ -53,6 +58,7 @@ const ApontamentosTab: React.FC<ApontamentosTabProps> = ({
   const commonFilters = useSelector((state: RootState) => state.commonFilters.filters);
   const user = useSelector((state: RootState) => state.user.user);
   const [initialized, setInitialized] = useState(false);
+  const [appliedQuery, setAppliedQuery] = useState<AppliedNotesQuery | null>(null);
 
   const handleChangeFilters = useCallback(
     (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>, field: string) => {
@@ -150,6 +156,19 @@ const ApontamentosTab: React.FC<ApontamentosTabProps> = ({
     dispatch(setRefreshNotes(!refreshNotes));
   }, [dispatch, refreshNotes]);
 
+  const handleSearch = useCallback(() => {
+    dispatch(setPage(0));
+    setAppliedQuery({
+      filters: {
+        ...filters,
+        DATA_DE: commonFilters.DATA_DE,
+        DATA_ATE: commonFilters.DATA_ATE,
+        ATIVOS: commonFilters.ATIVOS,
+      },
+      searchTerm: commonFilters.searchTerm,
+    });
+  }, [dispatch, filters, commonFilters]);
+
   const handleApplyColumnOrder = (preferences: ColumnPreference[]) => {
     saveColumnOrder(preferences);
   };
@@ -176,16 +195,12 @@ const ApontamentosTab: React.FC<ApontamentosTabProps> = ({
   );
 
   const fetchData = useCallback(async () => {
+    if (!appliedQuery) return;
     dispatch(setLoading(true));
     try {
       const response = await NotesService.getMany({
-        filters: {
-          ...filters,
-          DATA_DE: commonFilters.DATA_DE,
-          DATA_ATE: commonFilters.DATA_ATE,
-          ATIVOS: commonFilters.ATIVOS,
-        },
-        searchTerm: commonFilters.searchTerm,
+        filters: appliedQuery.filters,
+        searchTerm: appliedQuery.searchTerm,
         page,
         pageSize,
       });
@@ -201,17 +216,17 @@ const ApontamentosTab: React.FC<ApontamentosTabProps> = ({
     } finally {
       dispatch(setLoading(false));
     }
-  }, [dispatch, filters, commonFilters, page, pageSize, refreshNotes]);
+  }, [dispatch, appliedQuery, page, pageSize, refreshNotes]);
 
   useEffect(() => {
     setInitialized(true);
   }, []);
 
   useEffect(() => {
-    if (initialized) {
+    if (initialized && appliedQuery) {
       fetchData();
     }
-  }, [fetchData, initialized]);
+  }, [fetchData, initialized, appliedQuery]);
 
   return (
     <>
@@ -230,7 +245,7 @@ const ApontamentosTab: React.FC<ApontamentosTabProps> = ({
           marginTop: "5px",
         }}
       >
-        <CommonFilters disabled={loading} />
+        <CommonFilters disabled={loading} onSearch={handleSearch} />
 
         <FormControlLabel
           control={

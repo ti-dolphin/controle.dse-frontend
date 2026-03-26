@@ -26,6 +26,11 @@ import { ColumnReorderDialog } from "../../shared/ColumnReorderDialog";
 import { usePersistedColumnOrder, ColumnPreference } from "../../../hooks/table/usePersistedColumnOrder";
 const TABLE_KEY='point-list'
 
+interface AppliedPontoQuery {
+  filters: any;
+  searchTerm: string;
+}
+
 
 const PontoTab: React.FC = () => {
   const dispatch = useDispatch();
@@ -45,6 +50,7 @@ const PontoTab: React.FC = () => {
   const user = useSelector((state: RootState) => state.user.user);
   const [initialized, setInitialized] = useState(false);
   const [columnOrderDialogOpen, setColumnOrderDialogOpen] = useState(false)
+  const [appliedQuery, setAppliedQuery] = useState<AppliedPontoQuery | null>(null);
 
   const handleChangePontoFilters = useCallback(
     (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>, field: string) => {
@@ -124,6 +130,19 @@ const PontoTab: React.FC = () => {
     dispatch(clearCommonFilters());
   }, [dispatch]);
 
+  const handleSearch = useCallback(() => {
+    dispatch(setPontoPage(0));
+    setAppliedQuery({
+      filters: {
+        ...pontoFilters,
+        DATA_DE: commonFilters.DATA_DE,
+        DATA_ATE: commonFilters.DATA_ATE,
+        ATIVOS: commonFilters.ATIVOS,
+      },
+      searchTerm: commonFilters.searchTerm,
+    });
+  }, [dispatch, pontoFilters, commonFilters]);
+
   const handleProcessRowUpdate = useCallback(
     async (newRow: Ponto, oldRow: Ponto): Promise<Ponto> => {
       if (newRow.MOTIVO_PROBLEMA === oldRow.MOTIVO_PROBLEMA) return newRow;
@@ -152,16 +171,12 @@ const PontoTab: React.FC = () => {
   );
 
   const fetchPontoData = useCallback(async () => {
+    if (!appliedQuery) return;
     dispatch(setPontoLoading(true));
     try {
       const response = await NotesService.getManyPonto({
-        filters: {
-          ...pontoFilters,
-          DATA_DE: commonFilters.DATA_DE,
-          DATA_ATE: commonFilters.DATA_ATE,
-          ATIVOS: commonFilters.ATIVOS,
-        },
-        searchTerm: commonFilters.searchTerm,
+        filters: appliedQuery.filters,
+        searchTerm: appliedQuery.searchTerm,
         page: pontoPage,
         pageSize: pontoPageSize,
       });
@@ -177,17 +192,17 @@ const PontoTab: React.FC = () => {
     } finally {
       dispatch(setPontoLoading(false));
     }
-  }, [dispatch, pontoFilters, commonFilters, pontoPage, pontoPageSize]);
+  }, [dispatch, appliedQuery, pontoPage, pontoPageSize]);
 
   useEffect(() => {
     setInitialized(true);
   }, []);
 
   useEffect(() => {
-    if (initialized) {
+    if (initialized && appliedQuery) {
       fetchPontoData();
     }
-  }, [fetchPontoData, initialized]);
+  }, [fetchPontoData, initialized, appliedQuery]);
 
   return (
     <>
@@ -206,7 +221,7 @@ const PontoTab: React.FC = () => {
           marginTop: "5px",
         }}
       >
-        <CommonFilters disabled={pontoLoading} />
+        <CommonFilters disabled={pontoLoading} onSearch={handleSearch} />
 
         <FormControlLabel
           control={

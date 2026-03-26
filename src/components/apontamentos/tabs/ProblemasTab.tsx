@@ -26,6 +26,11 @@ import { ColumnReorderDialog } from "../../shared/ColumnReorderDialog";
 import { usePersistedColumnOrder, ColumnPreference } from "../../../hooks/table/usePersistedColumnOrder";
 const TABLE_KEY='problems-list'
 
+interface AppliedProblemaQuery {
+  filters: any;
+  searchTerm: string;
+}
+
 const ProblemasTab: React.FC = () => {
   const dispatch = useDispatch();
   const theme = useTheme();
@@ -44,6 +49,7 @@ const ProblemasTab: React.FC = () => {
   const user = useSelector((state: RootState) => state.user.user);
   const [initialized, setInitialized] = useState(false);
   const [columnOrderDialogOpen, setColumnOrderDialogOpen] = useState(false)
+  const [appliedQuery, setAppliedQuery] = useState<AppliedProblemaQuery | null>(null);
 
   const handleChangeProblemaFilters = useCallback(
     (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>, field: string) => {
@@ -89,6 +95,19 @@ const ProblemasTab: React.FC = () => {
     dispatch(clearCommonFilters());
   }, [dispatch]);
 
+  const handleSearch = useCallback(() => {
+    dispatch(setProblemaPage(0));
+    setAppliedQuery({
+      filters: {
+        ...problemaFilters,
+        DATA_DE: commonFilters.DATA_DE,
+        DATA_ATE: commonFilters.DATA_ATE,
+        ATIVOS: commonFilters.ATIVOS,
+      },
+      searchTerm: commonFilters.searchTerm,
+    });
+  }, [dispatch, problemaFilters, commonFilters]);
+
   const navigateToProblemaDetails = useCallback(
     (params: any) => {
       if (params.field === "actions") return;
@@ -98,16 +117,12 @@ const ProblemasTab: React.FC = () => {
   );
 
   const fetchProblemaData = useCallback(async () => {
+    if (!appliedQuery) return;
     dispatch(setProblemaLoading(true));
     try {
       const response = await NotesService.getManyProblema({
-        filters: {
-          ...problemaFilters,
-          DATA_DE: commonFilters.DATA_DE,
-          DATA_ATE: commonFilters.DATA_ATE,
-          ATIVOS: commonFilters.ATIVOS,
-        },
-        searchTerm: commonFilters.searchTerm,
+        filters: appliedQuery.filters,
+        searchTerm: appliedQuery.searchTerm,
         page: problemaPage,
         pageSize: problemaPageSize,
       });
@@ -123,17 +138,17 @@ const ProblemasTab: React.FC = () => {
     } finally {
       dispatch(setProblemaLoading(false));
     }
-  }, [dispatch, problemaFilters, commonFilters, problemaPage, problemaPageSize]);
+  }, [dispatch, appliedQuery, problemaPage, problemaPageSize]);
 
   useEffect(() => {
     setInitialized(true);
   }, []);
 
   useEffect(() => {
-    if (initialized) {
+    if (initialized && appliedQuery) {
       fetchProblemaData();
     }
-  }, [fetchProblemaData, initialized]);
+  }, [fetchProblemaData, initialized, appliedQuery]);
 
   return (
     <>
@@ -152,7 +167,7 @@ const ProblemasTab: React.FC = () => {
           marginTop: "5px",
         }}
       >
-        <CommonFilters disabled={problemaLoading} />
+        <CommonFilters disabled={problemaLoading} onSearch={handleSearch} />
 
         <FormControlLabel
           control={
