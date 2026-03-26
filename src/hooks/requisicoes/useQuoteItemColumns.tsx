@@ -2,7 +2,6 @@ import { Box, Checkbox, IconButton, Typography } from "@mui/material";
 import { GridColDef } from "@mui/x-data-grid";
 import { ChangeEvent } from "react";
 import AttachFileIcon from "@mui/icons-material/AttachFile";
-import { parseMonetaryInput } from "../../utils/parseMonetaryInput";
 
 export const useQuoteItemColumns = (
   handleUpdateUnavailable: (params: ChangeEvent<HTMLInputElement>, itemId : number) => void,
@@ -60,19 +59,15 @@ export const useQuoteItemColumns = (
     {
       field: "preco_unitario",
       headerName: "Preço Unitário",
-      type: "number",
       flex: 0.6,
       editable: true,
-      valueParser: (value: any) => {
-        return parseMonetaryInput(value);
-      },
       renderCell: (params: any) => (
         <Box sx={{ display: "flex", alignItems: "center", height: "100%" }}>
           <Typography fontSize="small" fontWeight="bold" color="black">
             {params.value != null
               ? Number(params.value).toLocaleString("pt-BR", {
                   minimumFractionDigits: 2,
-                  maximumFractionDigits: 2,
+                  maximumFractionDigits: 3,
                 })
               : ""}
           </Typography>
@@ -119,13 +114,32 @@ export const useQuoteItemColumns = (
       headerName: "Subtotal",
       flex: 0.5,
       editable: false,
-      renderCell: (params: any) => (
-        <Box sx={{ display: "flex", alignItems: "center", height: "100%" }}>
-          <Typography fontSize="small" fontWeight="bold" color="black">
-            {params.value}
-          </Typography>
-        </Box>
-      ),
+      renderCell: (params: any) => {
+        const precoUnitario = Number(params.row?.preco_unitario || 0);
+        const quantidadeCotada = Number(params.row?.quantidade_cotada || 0);
+        const ipi = Number(params.row?.IPI || 0) / 100;
+        const st = Number(params.row?.ST || 0) / 100;
+
+        const calculatedSubtotal = Number(
+          (precoUnitario * quantidadeCotada * (1 + ipi + st)).toFixed(3)
+        );
+
+        const subtotalToDisplay =
+          quantidadeCotada > 0 && Number.isFinite(calculatedSubtotal)
+            ? calculatedSubtotal
+            : Number(params.value || 0);
+
+        return (
+          <Box sx={{ display: "flex", alignItems: "center", height: "100%" }}>
+            <Typography fontSize="small" fontWeight="bold" color="black">
+              {subtotalToDisplay.toLocaleString("pt-BR", {
+                minimumFractionDigits: 2,
+                maximumFractionDigits: 3,
+              })}
+            </Typography>
+          </Box>
+        );
+      },
     },
     {
       field: "observacao",

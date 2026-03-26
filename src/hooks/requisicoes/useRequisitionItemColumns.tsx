@@ -399,7 +399,9 @@ export const useRequisitionItemColumns = (
           <Typography fontSize="small" fontWeight="bold" color="success.main">
             {new Intl.NumberFormat('pt-BR', {
               style: 'currency',
-              currency: 'BRL'
+              currency: 'BRL',
+              minimumFractionDigits: 2,
+              maximumFractionDigits: 3,
             }).format(price)}
           </Typography>
         );
@@ -545,7 +547,10 @@ export const useRequisitionItemColumns = (
           return (
             <Box sx={{ display: "flex", alignItems: "center" }}>
               {hasquoteItem &&
-                formatCurrency(Number(quoteItem?.preco_unitario) || 0)}
+                formatCurrency(Number(quoteItem?.preco_unitario) || 0, {
+                  minimumFractionDigits: 2,
+                  maximumFractionDigits: 3,
+                })}
               {hasquoteItem && (
                 <Checkbox
                   disabled={blockFields || !editItemFieldsPermitted}

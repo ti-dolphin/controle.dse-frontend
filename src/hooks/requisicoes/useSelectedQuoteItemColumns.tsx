@@ -63,7 +63,12 @@ export const useSelectedQuoteItemColumns = (): GridColDef[] => {
       editable: false,
       renderCell: (params) => (
         <Box sx={{ display: "flex", alignItems: "center", height: "100%" }}>
-          <Typography fontSize="12px">{formatCurrency(Number(params.value))}</Typography>
+          <Typography fontSize="12px">
+            {formatCurrency(Number(params.value), {
+              minimumFractionDigits: 2,
+              maximumFractionDigits: 3,
+            })}
+          </Typography>
         </Box>
       ),
     },
@@ -112,7 +117,10 @@ export const useSelectedQuoteItemColumns = (): GridColDef[] => {
       renderCell: (params) => (
         <Box sx={{ display: "flex", alignItems: "center", height: "100%" }}>
           <Typography fontSize="12px" fontWeight="bold" color="success.main">
-            {formatCurrency(Number(params.value))}
+            {formatCurrency(Number(params.value), {
+              minimumFractionDigits: 2,
+              maximumFractionDigits: 3,
+            })}
           </Typography>
         </Box>
       ),

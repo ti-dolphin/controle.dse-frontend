@@ -86,8 +86,22 @@ const SelectedQuoteItemsDialog: React.FC<SelectedQuoteItemsDialogProps> = ({
           14,
           40
         );
-        doc.text(`Frete: ${formatCurrency(Number(quote.valor_frete || 0))}`, 14, 45);
-        doc.text(`Total dos itens selecionados: ${formatCurrency(selectedTotal)}`, 14, 50);
+        doc.text(
+          `Frete: ${formatCurrency(Number(quote.valor_frete || 0), {
+            minimumFractionDigits: 2,
+            maximumFractionDigits: 3,
+          })}`,
+          14,
+          45
+        );
+        doc.text(
+          `Total dos itens selecionados: ${formatCurrency(selectedTotal, {
+            minimumFractionDigits: 2,
+            maximumFractionDigits: 3,
+          })}`,
+          14,
+          50
+        );
 
         autoTable(doc, {
           startY: 56,
@@ -111,11 +125,17 @@ const SelectedQuoteItemsDialog: React.FC<SelectedQuoteItemsDialogProps> = ({
             item.produto_unidade || "-",
             Number(item.quantidade_solicitada || 0).toString(),
             Number(item.quantidade_cotada || 0).toString(),
-            formatCurrency(Number(item.preco_unitario || 0)),
+            formatCurrency(Number(item.preco_unitario || 0), {
+              minimumFractionDigits: 2,
+              maximumFractionDigits: 3,
+            }),
             `${Number(item.ICMS || 0)}%`,
             `${Number(item.IPI || 0)}%`,
             `${Number(item.ST || 0)}%`,
-            formatCurrency(Number(item.subtotal || 0)),
+            formatCurrency(Number(item.subtotal || 0), {
+              minimumFractionDigits: 2,
+              maximumFractionDigits: 3,
+            }),
           ]),
           theme: "grid",
           styles: {
@@ -277,7 +297,10 @@ const SelectedQuoteItemsDialog: React.FC<SelectedQuoteItemsDialogProps> = ({
                         Frete
                       </Typography>
                       <Typography fontSize="0.85rem">
-                        {formatCurrency(Number(quote.valor_frete))}
+                        {formatCurrency(Number(quote.valor_frete), {
+                          minimumFractionDigits: 2,
+                          maximumFractionDigits: 3,
+                        })}
                       </Typography>
                     </Box>
 
@@ -289,7 +312,11 @@ const SelectedQuoteItemsDialog: React.FC<SelectedQuoteItemsDialogProps> = ({
                       </Typography>
                       <Typography fontSize="0.9rem" fontWeight={600} color="success.main">
                         {formatCurrency(
-                          selectedItems.reduce((acc, item) => acc + Number(item.subtotal), 0)
+                          selectedItems.reduce((acc, item) => acc + Number(item.subtotal), 0),
+                          {
+                            minimumFractionDigits: 2,
+                            maximumFractionDigits: 3,
+                          }
                         )}
                       </Typography>
                     </Box>

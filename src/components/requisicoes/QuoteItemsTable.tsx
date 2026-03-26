@@ -271,7 +271,27 @@ const QuoteItemsTable = ({
 
   const processRowUpdate = useCallback(
     async (newRow: GridRowModel, oldRow: GridRowModel) => {
-      const normalizedPrecoUnitario = parseMonetaryInput(newRow.preco_unitario);
+      const oldPrecoUnitario = Number(oldRow.preco_unitario || 0);
+      const rawPrecoUnitario = newRow.preco_unitario;
+
+      let normalizedPrecoUnitario: number;
+
+      if (typeof rawPrecoUnitario === "number") {
+        normalizedPrecoUnitario = Number(rawPrecoUnitario.toFixed(3));
+      } else {
+        const rawString = String(rawPrecoUnitario ?? "").trim();
+        const dotDecimalCandidate = Number(rawString.replace(/\s+/g, "").replace(/,/g, "."));
+
+        const isGridReEditWithoutUserChange =
+          rawString.includes(".") &&
+          !rawString.includes(",") &&
+          Number.isFinite(dotDecimalCandidate) &&
+          Math.abs(dotDecimalCandidate - oldPrecoUnitario) < 0.0005;
+
+        normalizedPrecoUnitario = isGridReEditWithoutUserChange
+          ? Number(oldPrecoUnitario.toFixed(3))
+          : Number(parseMonetaryInput(rawPrecoUnitario).toFixed(3));
+      }
 
       if(normalizedPrecoUnitario < 0){
         dispatch(

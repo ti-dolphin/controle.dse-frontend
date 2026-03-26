@@ -21,8 +21,21 @@ export function isNumeric(value: any): boolean {
   return !isNaN(parseFloat(value)) && isFinite(value);
 }
 
-export function formatCurrency(value: number): string {
-  return value.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
+type CurrencyFormatOptions = {
+  minimumFractionDigits?: number;
+  maximumFractionDigits?: number;
+};
+
+export function formatCurrency(
+  value: number,
+  options?: CurrencyFormatOptions
+): string {
+  return value.toLocaleString("pt-BR", {
+    style: "currency",
+    currency: "BRL",
+    minimumFractionDigits: options?.minimumFractionDigits ?? 2,
+    maximumFractionDigits: options?.maximumFractionDigits ?? 2,
+  });
 }
 
 export function parseCurrency(value: string): number {
