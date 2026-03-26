@@ -22,7 +22,7 @@ const QuoteForm = ({ onSubmit }: QuoteFormProps) => {
   const dispatch = useDispatch();
   const user = useSelector((state: RootState) => state.user.user);
   const { quote, accessType } = useSelector((state: RootState) => state.quote);
-  const isSupplierRoute = accessType === "supplier" || Boolean(window.localStorage.getItem("token"));
+  const isSupplierRoute = accessType === "supplier";
 
   const {
     taxClassificationOptions,
