@@ -42,7 +42,7 @@ export const useOppDetailedFields = (user: User | null, opportunity: Partial<Opp
           type: "autocomplete",
           required: true,
           options: projectOptions,
-          disabled: false,
+          disabled: true,
           defaultValue: opportunity.ID_PROJETO != null ? String(opportunity.ID_PROJETO) : "",
         },
         {
