@@ -14,10 +14,11 @@ import SearchIcon from "@mui/icons-material/Search";
 
 interface CommonFiltersProps {
   onFiltersChange?: () => void;
+  onSearch?: () => void;
   disabled?: boolean;
 }
 
-const CommonFilters: React.FC<CommonFiltersProps> = ({ onFiltersChange, disabled = false }) => {
+const CommonFilters: React.FC<CommonFiltersProps> = ({ onFiltersChange, onSearch, disabled = false }) => {
   const dispatch = useDispatch();
   const { filters } = useSelector((state: RootState) => state.commonFilters);
   const [initialized, setInitialized] = useState(false);
@@ -143,6 +144,32 @@ const CommonFilters: React.FC<CommonFiltersProps> = ({ onFiltersChange, disabled
     },
     [dispatch]
   );
+
+  const handleSearchClick = useCallback(() => {
+    debouncedHandleSearchChange.cancel();
+    if (searchInput !== filters.searchTerm) {
+      dispatchSearchTerm(searchInput);
+    }
+    if ((dateFromInput === "" || dateFromInput.length === 10) && dateFromInput !== filters.DATA_DE) {
+      dispatchDateFrom(dateFromInput);
+    }
+    if ((dateToInput === "" || dateToInput.length === 10) && dateToInput !== filters.DATA_ATE) {
+      dispatchDateTo(dateToInput);
+    }
+    onSearch?.();
+  }, [
+    debouncedHandleSearchChange,
+    searchInput,
+    filters.searchTerm,
+    filters.DATA_DE,
+    filters.DATA_ATE,
+    dateFromInput,
+    dateToInput,
+    dispatchSearchTerm,
+    dispatchDateFrom,
+    dispatchDateTo,
+    onSearch,
+  ]);
 
   const formatDate = (date: Date) => date.toISOString().split("T")[0];
 
@@ -300,6 +327,15 @@ const CommonFilters: React.FC<CommonFiltersProps> = ({ onFiltersChange, disabled
         disabled={disabled}
       >
         Período anterior
+      </Button>
+
+      <Button
+        sx={{ height: 32, borderRadius: 0, fontSize: 11 }}
+        variant="contained"
+        onClick={handleSearchClick}
+        disabled={disabled}
+      >
+        Pesquisar
       </Button>
 
       <FormControlLabel

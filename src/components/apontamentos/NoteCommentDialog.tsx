@@ -51,6 +51,7 @@ const NoteCommentDialog: React.FC<NoteCommentDialogProps> = ({
   const [newComment, setNewComment] = useState("");
   const [selectedComments, setSelectedComments] = useState<GridRowSelectionModel>([]);
   const [presetDialogOpen, setPresetDialogOpen] = useState(false);
+  const [editingCommentId, setEditingCommentId] = useState<number | null>(null);
 
   const fetchComments = useCallback(async () => {
     if (!codapont) return;
@@ -77,6 +78,11 @@ const NoteCommentDialog: React.FC<NoteCommentDialogProps> = ({
     }
   }, [open, fetchComments]);
 
+  const clearEditingState = () => {
+    setEditingCommentId(null);
+    setNewComment("");
+  };
+
   const handleCreateComment = async () => {
     if (!newComment.trim()) {
       dispatch(
@@ -90,20 +96,28 @@ const NoteCommentDialog: React.FC<NoteCommentDialogProps> = ({
 
     setLoading(true);
     try {
-      await NoteCommentService.create({
-        CODAPONT: codapont,
-        DESCRICAO: newComment,
-        RECCREATEDBY: userName,
-        EMAIL: false,
-      });
+      if (editingCommentId) {
+        await NoteCommentService.update(editingCommentId, {
+          DESCRICAO: newComment,
+        });
+      } else {
+        await NoteCommentService.create({
+          CODAPONT: codapont,
+          DESCRICAO: newComment,
+          RECCREATEDBY: userName,
+          EMAIL: false,
+        });
+      }
 
-      setNewComment("");
+      clearEditingState();
       await fetchComments();
       onCommentChange?.();
 
       dispatch(
         setFeedback({
-          message: "Comentário criado com sucesso",
+          message: editingCommentId
+            ? "Comentário atualizado com sucesso"
+            : "Comentário criado com sucesso",
           type: "success",
         })
       );
@@ -163,6 +177,15 @@ const NoteCommentDialog: React.FC<NoteCommentDialogProps> = ({
   const handleSelectPresetComment = (comment: string) => {
     setNewComment(comment);
     setPresetDialogOpen(false);
+  };
+
+  const handlePresetFolga = () => {
+    setNewComment("Folga programada - abater do banco de horas")
+  }
+
+  const handleStartEditComment = (row: NoteComment) => {
+    setEditingCommentId(row.CODCOMENTARIO);
+    setNewComment(row.DESCRICAO || "");
   };
 
   const columns: GridColDef[] = [
@@ -229,7 +252,7 @@ const NoteCommentDialog: React.FC<NoteCommentDialogProps> = ({
           {/* Campo de novo comentário */}
           <Box>
             <Typography variant="subtitle2" gutterBottom>
-              Comentário
+              {editingCommentId ? "Editar comentário" : "Comentário"}
             </Typography>
             <TextField
               multiline
@@ -253,6 +276,15 @@ const NoteCommentDialog: React.FC<NoteCommentDialogProps> = ({
             >
               Comentários padrão
             </Button>
+            <Button
+              variant="outlined"
+              size="small"
+              onClick={() => handlePresetFolga()}
+              disabled={loading}
+              sx={{ fontSize: 11 }}
+            >
+              Programar folga
+            </Button>
 
             <Button
               variant="outlined"
@@ -264,6 +296,17 @@ const NoteCommentDialog: React.FC<NoteCommentDialogProps> = ({
             >
               Excluir
             </Button>
+            {editingCommentId && (
+              <Button
+                variant="outlined"
+                size="small"
+                onClick={clearEditingState}
+                disabled={loading}
+                sx={{ fontSize: 11 }}
+              >
+                Cancelar edição
+              </Button>
+            )}
             <Button
               variant="contained"
               size="small"
@@ -272,7 +315,7 @@ const NoteCommentDialog: React.FC<NoteCommentDialogProps> = ({
               title={(!user?.PERM_COMENT_APONT && !user?.PERM_ADMINISTRADOR) ? "Você não tem permissão para criar comentários" : ""}
               sx={{ fontSize: 11 }}
             >
-              Comentar
+              {editingCommentId ? "Salvar edição" : "Comentar"}
             </Button>
           </Box>
 
@@ -286,6 +329,7 @@ const NoteCommentDialog: React.FC<NoteCommentDialogProps> = ({
               disableRowSelectionOnClick
               rowSelectionModel={selectedComments}
               onRowSelectionModelChange={setSelectedComments}
+              onRowClick={(params) => handleStartEditComment(params.row as NoteComment)}
               getRowId={(row) => row.CODCOMENTARIO}
               pageSizeOptions={[10, 25, 50]}
               initialState={{

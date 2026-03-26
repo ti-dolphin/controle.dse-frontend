@@ -221,6 +221,9 @@ export const usePontoColumns = (
         sortable: true,
         editable: hasPermission,
         valueGetter: (value: string) => value || "",
+        renderCell: (params: any) => (
+          <span style={{ color: "#d32f2f" }}>{params.value || ""}</span>
+        ),
         renderHeader: () => (
           <TextHeader
             label="Motivo"
