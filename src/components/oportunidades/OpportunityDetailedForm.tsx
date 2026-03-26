@@ -238,6 +238,7 @@ const OpportunityDetailedForm = () => {
                       options={field.options}
                       getOptionLabel={(option) => option?.name || ""}
                       getOptionKey={(option) => option?.id || ""}
+                      disabled={field.disabled}
                       aria-required={field.required}
                       slotProps={{
                         popper: { sx: { fontSize: 13 } },
@@ -406,6 +407,7 @@ const OpportunityDetailedForm = () => {
                       options={field.options}
                       getOptionLabel={(option) => option?.name || ""}
                       getOptionKey={(option) => option?.id || ""}
+                      disabled={field.disabled}
                       aria-required={field.required}
                       slotProps={{
                         popper: { sx: { fontSize: 13 } },
