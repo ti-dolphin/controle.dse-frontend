@@ -36,7 +36,7 @@ import ProductsTable from "../../components/requisicoes/ProductsTable";
 import RequisitionItemService from "../../services/requisicoes/RequisitionItemService";
 import QuoteList from "../../components/requisicoes/QuoteList";
 import CloseIcon from '@mui/icons-material/Close';
-import { formatCurrency } from "../../utils";
+import { formatCurrency2To3 } from "../../utils";
 import UpperNavigation from "../../components/shared/UpperNavigation";
 import FullscreenIcon from "@mui/icons-material/Fullscreen";
 import RequisitionCommentList from "../../components/requisicoes/RequisitionCommentList";
@@ -561,24 +561,15 @@ const RequisitionDetailPage = () => {
               >
                 <Typography variant="subtitle2" color="primary.main">
                   Itens:{" "}
-                  {formatCurrency(Number(displayItemsTotal || 0), {
-                    minimumFractionDigits: 2,
-                    maximumFractionDigits: 3,
-                  })}
+                  {formatCurrency2To3(Number(displayItemsTotal || 0))}
                 </Typography>
                 <Typography variant="subtitle2" color="primary.main">
                   Fretes:{" "}
-                  {formatCurrency(Number(displayShippingTotal || 0), {
-                    minimumFractionDigits: 2,
-                    maximumFractionDigits: 3,
-                  })}
+                  {formatCurrency2To3(Number(displayShippingTotal || 0))}
                 </Typography>
                 <Typography variant="subtitle2" color="success.main">
                   Custo total:{" "}
-                  {formatCurrency(Number(displayGrandTotal || 0), {
-                    minimumFractionDigits: 2,
-                    maximumFractionDigits: 3,
-                  })}
+                  {formatCurrency2To3(Number(displayGrandTotal || 0))}
                 </Typography>
               </Box>
               {/* Legenda */}
@@ -790,10 +781,7 @@ const RequisitionDetailPage = () => {
               <Box ml="auto" display="flex" alignItems="center" gap={2}>
                 <Typography variant="subtitle2" color="success.main">
                   Custo total:{" "}
-                  {formatCurrency(Number(displayGrandTotal || 0), {
-                    minimumFractionDigits: 2,
-                    maximumFractionDigits: 3,
-                  })}
+                  {formatCurrency2To3(Number(displayGrandTotal || 0))}
                 </Typography>
                 {hasItemsWithoutQuote() && (
                   <Box display="flex" alignItems="center" gap={1}>

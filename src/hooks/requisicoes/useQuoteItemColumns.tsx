@@ -2,6 +2,7 @@ import { Box, Checkbox, IconButton, Typography } from "@mui/material";
 import { GridColDef } from "@mui/x-data-grid";
 import { ChangeEvent } from "react";
 import AttachFileIcon from "@mui/icons-material/AttachFile";
+import { calculateQuoteSubtotal, formatDecimalPtBr2To3 } from "../../utils";
 
 export const useQuoteItemColumns = (
   handleUpdateUnavailable: (params: ChangeEvent<HTMLInputElement>, itemId : number) => void,
@@ -65,10 +66,7 @@ export const useQuoteItemColumns = (
         <Box sx={{ display: "flex", alignItems: "center", height: "100%" }}>
           <Typography fontSize="small" fontWeight="bold" color="black">
             {params.value != null
-              ? Number(params.value).toLocaleString("pt-BR", {
-                  minimumFractionDigits: 2,
-                  maximumFractionDigits: 3,
-                })
+              ? formatDecimalPtBr2To3(Number(params.value))
               : ""}
           </Typography>
         </Box>
@@ -117,11 +115,14 @@ export const useQuoteItemColumns = (
       renderCell: (params: any) => {
         const precoUnitario = Number(params.row?.preco_unitario || 0);
         const quantidadeCotada = Number(params.row?.quantidade_cotada || 0);
-        const ipi = Number(params.row?.IPI || 0) / 100;
-        const st = Number(params.row?.ST || 0) / 100;
+        const ipi = Number(params.row?.IPI || 0);
+        const st = Number(params.row?.ST || 0);
 
-        const calculatedSubtotal = Number(
-          (precoUnitario * quantidadeCotada * (1 + ipi + st)).toFixed(3)
+        const calculatedSubtotal = calculateQuoteSubtotal(
+          precoUnitario,
+          quantidadeCotada,
+          ipi,
+          st
         );
 
         const subtotalToDisplay =
@@ -132,10 +133,7 @@ export const useQuoteItemColumns = (
         return (
           <Box sx={{ display: "flex", alignItems: "center", height: "100%" }}>
             <Typography fontSize="small" fontWeight="bold" color="black">
-              {subtotalToDisplay.toLocaleString("pt-BR", {
-                minimumFractionDigits: 2,
-                maximumFractionDigits: 3,
-              })}
+              {formatDecimalPtBr2To3(subtotalToDisplay)}
             </Typography>
           </Box>
         );
