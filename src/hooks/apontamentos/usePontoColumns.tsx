@@ -221,9 +221,14 @@ export const usePontoColumns = (
         sortable: true,
         editable: hasPermission,
         valueGetter: (value: string) => value || "",
-        renderCell: (params: any) => (
-          <span style={{ color: "#d32f2f" }}>{params.value || ""}</span>
-        ),
+        renderCell: (params: any) => {
+          const shouldHighlight = !!params.row?.PROBLEMA && !params.row?.AJUSTADO;
+          return (
+            <span style={{ color: shouldHighlight ? "#d32f2f" : "inherit" }}>
+              {params.value || ""}
+            </span>
+          );
+        },
         renderHeader: () => (
           <TextHeader
             label="Motivo"
