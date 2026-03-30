@@ -11,6 +11,7 @@ import {
   setRefreshNotes,
   setTotalRows,
 } from "../../../redux/slices/apontamentos/notesTableSlice";
+import { CommonFilters as CommonFilterValues } from "../../../redux/slices/apontamentos/commonFiltersSlice";
 import OpenWithIcon from '@mui/icons-material/OpenWith'
 import { setFeedback } from "../../../redux/slices/feedBackSlice";
 import { clearCommonFilters } from "../../../redux/slices/apontamentos/commonFiltersSlice";
@@ -156,16 +157,17 @@ const ApontamentosTab: React.FC<ApontamentosTabProps> = ({
     dispatch(setRefreshNotes(!refreshNotes));
   }, [dispatch, refreshNotes]);
 
-  const handleSearch = useCallback(() => {
+  const handleSearch = useCallback((nextCommonFilters?: CommonFilterValues) => {
+    const sourceFilters = nextCommonFilters ?? commonFilters;
     dispatch(setPage(0));
     setAppliedQuery({
       filters: {
         ...filters,
-        DATA_DE: commonFilters.DATA_DE,
-        DATA_ATE: commonFilters.DATA_ATE,
-        ATIVOS: commonFilters.ATIVOS,
+        DATA_DE: sourceFilters.DATA_DE,
+        DATA_ATE: sourceFilters.DATA_ATE,
+        ATIVOS: sourceFilters.ATIVOS,
       },
-      searchTerm: commonFilters.searchTerm,
+      searchTerm: sourceFilters.searchTerm,
     });
   }, [dispatch, filters, commonFilters]);
 
