@@ -23,7 +23,7 @@ import QuoteService from "../../services/requisicoes/QuoteService";
 import { QuoteItemService } from "../../services/requisicoes/QuoteItemService";
 import { Quote } from "../../models/requisicoes/Quote";
 import { QuoteItem } from "../../models/requisicoes/QuoteItem";
-import { formatCurrency } from "../../utils";
+import { formatCurrency2To3 } from "../../utils";
 import BaseDataTable from "../shared/BaseDataTable";
 import { useSelectedQuoteItemColumns } from "../../hooks/requisicoes/useSelectedQuoteItemColumns";
 
@@ -86,8 +86,16 @@ const SelectedQuoteItemsDialog: React.FC<SelectedQuoteItemsDialogProps> = ({
           14,
           40
         );
-        doc.text(`Frete: ${formatCurrency(Number(quote.valor_frete || 0))}`, 14, 45);
-        doc.text(`Total dos itens selecionados: ${formatCurrency(selectedTotal)}`, 14, 50);
+        doc.text(
+          `Frete: ${formatCurrency2To3(Number(quote.valor_frete || 0))}`,
+          14,
+          45
+        );
+        doc.text(
+          `Total dos itens selecionados: ${formatCurrency2To3(selectedTotal)}`,
+          14,
+          50
+        );
 
         autoTable(doc, {
           startY: 56,
@@ -111,11 +119,11 @@ const SelectedQuoteItemsDialog: React.FC<SelectedQuoteItemsDialogProps> = ({
             item.produto_unidade || "-",
             Number(item.quantidade_solicitada || 0).toString(),
             Number(item.quantidade_cotada || 0).toString(),
-            formatCurrency(Number(item.preco_unitario || 0)),
+            formatCurrency2To3(Number(item.preco_unitario || 0)),
             `${Number(item.ICMS || 0)}%`,
             `${Number(item.IPI || 0)}%`,
             `${Number(item.ST || 0)}%`,
-            formatCurrency(Number(item.subtotal || 0)),
+            formatCurrency2To3(Number(item.subtotal || 0)),
           ]),
           theme: "grid",
           styles: {
@@ -277,7 +285,7 @@ const SelectedQuoteItemsDialog: React.FC<SelectedQuoteItemsDialogProps> = ({
                         Frete
                       </Typography>
                       <Typography fontSize="0.85rem">
-                        {formatCurrency(Number(quote.valor_frete))}
+                        {formatCurrency2To3(Number(quote.valor_frete))}
                       </Typography>
                     </Box>
 
@@ -288,7 +296,7 @@ const SelectedQuoteItemsDialog: React.FC<SelectedQuoteItemsDialogProps> = ({
                         Total dos itens selecionados
                       </Typography>
                       <Typography fontSize="0.9rem" fontWeight={600} color="success.main">
-                        {formatCurrency(
+                        {formatCurrency2To3(
                           selectedItems.reduce((acc, item) => acc + Number(item.subtotal), 0)
                         )}
                       </Typography>

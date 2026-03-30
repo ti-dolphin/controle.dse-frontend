@@ -16,7 +16,7 @@ import {
   IconButton,
 } from "@mui/material";
 import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import RequisitionService from "../../services/requisicoes/RequisitionService";
 import { clearRequisition, setRequisition } from "../../redux/slices/requisicoes/requisitionSlice";
@@ -36,7 +36,7 @@ import ProductsTable from "../../components/requisicoes/ProductsTable";
 import RequisitionItemService from "../../services/requisicoes/RequisitionItemService";
 import QuoteList from "../../components/requisicoes/QuoteList";
 import CloseIcon from '@mui/icons-material/Close';
-import { formatCurrency } from "../../utils";
+import { formatCurrency2To3 } from "../../utils";
 import UpperNavigation from "../../components/shared/UpperNavigation";
 import FullscreenIcon from "@mui/icons-material/Fullscreen";
 import RequisitionCommentList from "../../components/requisicoes/RequisitionCommentList";
@@ -64,6 +64,33 @@ const RequisitionDetailPage = () => {
   const fullScreenAttachmentsContainer = useRef<HTMLDivElement>(null);
   const fullScreenCommentsContainer = useRef<HTMLDivElement>(null);
   const { isMobile } = useIsMobile();
+
+  const displayItemsTotal = useMemo(() => {
+    return items.reduce((acc, item: any) => {
+      if (!item?.id_item_cotacao || !item?.items_cotacao?.length) return acc;
+
+      const selectedQuoteItem = item.items_cotacao.find(
+        (quoteItem: any) =>
+          Number(quoteItem.id_item_cotacao) === Number(item.id_item_cotacao)
+      );
+
+      if (!selectedQuoteItem || Number(selectedQuoteItem.indisponivel) > 0) return acc;
+
+      const unitPrice = Number(selectedQuoteItem.preco_unitario || 0);
+      const quantity = Number(item.quantidade || 0);
+      return acc + unitPrice * quantity;
+    }, 0);
+  }, [items]);
+
+  const displayShippingTotal = useMemo(
+    () => Number(requisition.custo_total_frete || 0),
+    [requisition.custo_total_frete]
+  );
+
+  const displayGrandTotal = useMemo(
+    () => displayItemsTotal + displayShippingTotal,
+    [displayItemsTotal, displayShippingTotal]
+  );
   
   const fetchData = useCallback(async () => { 
     const requisition = await RequisitionService.getById(Number(id_requisicao));
@@ -534,15 +561,15 @@ const RequisitionDetailPage = () => {
               >
                 <Typography variant="subtitle2" color="primary.main">
                   Itens:{" "}
-                  {formatCurrency(Number(requisition.custo_total_itens || 0))}
+                  {formatCurrency2To3(Number(displayItemsTotal || 0))}
                 </Typography>
                 <Typography variant="subtitle2" color="primary.main">
                   Fretes:{" "}
-                  {formatCurrency(Number(requisition.custo_total_frete || 0))}
+                  {formatCurrency2To3(Number(displayShippingTotal || 0))}
                 </Typography>
                 <Typography variant="subtitle2" color="success.main">
                   Custo total:{" "}
-                  {formatCurrency(Number(requisition.custo_total || 0))}
+                  {formatCurrency2To3(Number(displayGrandTotal || 0))}
                 </Typography>
               </Box>
               {/* Legenda */}
@@ -754,7 +781,7 @@ const RequisitionDetailPage = () => {
               <Box ml="auto" display="flex" alignItems="center" gap={2}>
                 <Typography variant="subtitle2" color="success.main">
                   Custo total:{" "}
-                  {formatCurrency(Number(requisition.custo_total || 0))}
+                  {formatCurrency2To3(Number(displayGrandTotal || 0))}
                 </Typography>
                 {hasItemsWithoutQuote() && (
                   <Box display="flex" alignItems="center" gap={1}>

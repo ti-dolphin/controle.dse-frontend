@@ -22,7 +22,7 @@ import { setAddingReqItems, setQuoteItems, setSingleQuoteItem, setViewingItemAtt
 import { useParams } from "react-router-dom";
 import { useIsMobile } from "../../hooks/useIsMobile";
 import QuoteItemAttachmentViewList from "./QuoteItemAttachmentViewList";
-import { parseMonetaryInput } from "../../utils/parseMonetaryInput";
+import { normalizeMonetaryInput } from "../../utils/parseMonetaryInput";
 
 
 interface QuoteItemsTableProps {
@@ -76,19 +76,8 @@ const QuoteItemsTable = ({
         subtotal: e.target.checked ? 0 : item.subtotal,
       };
       if (!e.target.checked) {
-        //caso o item seja desmarcado, precisa ser enviado ao backend e depois atualizado para que o novo subtotal seja calculado
-        if (token) {
-          //se tiver token na url, enviar ao backend
-          const updatedItem = await QuoteItemService.update(
-            itemId,
-            payload,
-            token
-          );
-          dispatch(setSingleQuoteItem(updatedItem));
-          setBlockFields(false);
-          return;
-        }
-        const updatedItem = await QuoteItemService.update(itemId, payload);
+        // Caso o item seja desmarcado, o backend recalcula subtotal e totais.
+        const updatedItem = await updateQuoteItem(itemId, payload);
         dispatch(setSingleQuoteItem(updatedItem));
         setBlockFields(false);
         return;
@@ -131,6 +120,16 @@ const QuoteItemsTable = ({
 
   const { permissionToEditItems, permissionToAddItems } =
     useQuoteItemPermissions(user, isSupplierRoute);
+
+  const updateQuoteItem = useCallback(
+    (id_item_cotacao: number, payload: any) => {
+      if (token) {
+        return QuoteItemService.update(id_item_cotacao, payload, token);
+      }
+      return QuoteItemService.update(id_item_cotacao, payload);
+    },
+    [token]
+  );
 
   const handleCellClick = useCallback(
     (params: GridCellParams, event: React.MouseEvent) => {
@@ -218,7 +217,7 @@ const QuoteItemsTable = ({
    * @param {number} id_item_cotacao - ID do item da cota o.
    * @param {Object} previousItem - Item da cotacaoo anterior para restaurar se houver erros.
    */
-  const sendUpdate = async (
+  const sendUpdate = useCallback(async (
     payload: any,
     id_item_cotacao: number,
     previousItem: any
@@ -239,19 +238,7 @@ const QuoteItemsTable = ({
           throw new Error(validation.message);
         }
       });
-      if (token) {
-        const updatedItem = await QuoteItemService.update(
-          id_item_cotacao,
-          payload,
-          token
-        );
-        dispatch(setSingleQuoteItem(updatedItem));
-        return;
-      }
-      const updatedItem = await QuoteItemService.update(
-        id_item_cotacao,
-        payload
-      );
+      const updatedItem = await updateQuoteItem(id_item_cotacao, payload);
       dispatch(setSingleQuoteItem(updatedItem));
     } catch (e: any) {
       dispatch(setSingleQuoteItem({ ...previousItem }));
@@ -265,13 +252,20 @@ const QuoteItemsTable = ({
     } finally {
       setBlockFields(false);
     }
-  };
+  }, [dispatch, updateQuoteItem]);
 
-  const debouncedSave = useMemo(() => debounce(sendUpdate, 300), []);
+  const debouncedSave = useMemo(() => debounce(sendUpdate, 300), [sendUpdate]);
+
+  useEffect(() => {
+    return () => debouncedSave.cancel();
+  }, [debouncedSave]);
 
   const processRowUpdate = useCallback(
     async (newRow: GridRowModel, oldRow: GridRowModel) => {
-      const normalizedPrecoUnitario = parseMonetaryInput(newRow.preco_unitario);
+      const normalizedPrecoUnitario = normalizeMonetaryInput(
+        newRow.preco_unitario,
+        Number(oldRow.preco_unitario || 0)
+      );
 
       if(normalizedPrecoUnitario < 0){
         dispatch(
@@ -363,7 +357,7 @@ const QuoteItemsTable = ({
     } finally {
       setLoading(false);
     }
-  }, [dispatch, quote?.id_cotacao, searchTerm]);
+  }, [dispatch, quote?.id_cotacao, searchTerm, token]);
 
   useEffect(() => {
     if (quote?.id_cotacao) {

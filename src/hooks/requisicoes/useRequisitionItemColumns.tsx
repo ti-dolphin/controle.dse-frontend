@@ -1,6 +1,6 @@
 import React, { ChangeEvent, useCallback, useEffect, useState, useMemo } from "react";
 import { GridColDef } from "@mui/x-data-grid";
-import { formatCurrency, getDateFromISOstring } from "../../utils";
+import { formatCurrency2To3, getDateFromISOstring } from "../../utils";
 import { useDispatch, useSelector } from "react-redux";
 import { RootState } from "../../redux/store";
 import DeleteIcon from "@mui/icons-material/Delete";
@@ -397,10 +397,7 @@ export const useRequisitionItemColumns = (
         }
         return (
           <Typography fontSize="small" fontWeight="bold" color="success.main">
-            {new Intl.NumberFormat('pt-BR', {
-              style: 'currency',
-              currency: 'BRL'
-            }).format(price)}
+            {formatCurrency2To3(Number(price || 0))}
           </Typography>
         );
       },
@@ -545,7 +542,7 @@ export const useRequisitionItemColumns = (
           return (
             <Box sx={{ display: "flex", alignItems: "center" }}>
               {hasquoteItem &&
-                formatCurrency(Number(quoteItem?.preco_unitario) || 0)}
+                formatCurrency2To3(Number(quoteItem?.preco_unitario) || 0)}
               {hasquoteItem && (
                 <Checkbox
                   disabled={blockFields || !editItemFieldsPermitted}

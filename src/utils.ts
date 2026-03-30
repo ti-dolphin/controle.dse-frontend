@@ -15,14 +15,72 @@ export function getDateFromDateString(dateString: string | null): Date | null {
 
   if (!dt.isValid || dt.year <= 2000) return null;
 
-  return dt.toUTC().toJSDate(); // always UTC midnight: 2024-08-27T00:00:00.000Z
+  return dt.toUTC().toJSDate(); 
 }
 export function isNumeric(value: any): boolean {
   return !isNaN(parseFloat(value)) && isFinite(value);
 }
 
-export function formatCurrency(value: number): string {
-  return value.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
+type CurrencyFormatOptions = {
+  minimumFractionDigits?: number;
+  maximumFractionDigits?: number;
+};
+
+type DecimalFormatOptions = {
+  minimumFractionDigits?: number;
+  maximumFractionDigits?: number;
+};
+
+export const MONEY_SCALE = 3;
+
+export const MONEY_2_TO_3_FORMAT: Required<CurrencyFormatOptions> = {
+  minimumFractionDigits: 2,
+  maximumFractionDigits: 3,
+};
+
+export function roundToScale(value: number, scale = MONEY_SCALE): number {
+  if (!Number.isFinite(value)) return 0;
+  return Number(value.toFixed(scale));
+}
+
+export function formatCurrency(
+  value: number,
+  options?: CurrencyFormatOptions
+): string {
+  return value.toLocaleString("pt-BR", {
+    style: "currency",
+    currency: "BRL",
+    minimumFractionDigits: options?.minimumFractionDigits ?? 2,
+    maximumFractionDigits: options?.maximumFractionDigits ?? 2,
+  });
+}
+
+export function formatCurrency2To3(value: number): string {
+  return formatCurrency(value, MONEY_2_TO_3_FORMAT);
+}
+
+export function formatDecimalPtBr(
+  value: number,
+  options?: DecimalFormatOptions
+): string {
+  return value.toLocaleString("pt-BR", {
+    minimumFractionDigits: options?.minimumFractionDigits ?? 2,
+    maximumFractionDigits: options?.maximumFractionDigits ?? 2,
+  });
+}
+
+export function formatDecimalPtBr2To3(value: number): string {
+  return formatDecimalPtBr(value, MONEY_2_TO_3_FORMAT);
+}
+
+export function calculateQuoteSubtotal(
+  precoUnitario: number,
+  quantidadeCotada: number,
+  ipiPercent: number,
+  stPercent: number
+): number {
+  const subtotal = precoUnitario * quantidadeCotada * (1 + ipiPercent / 100 + stPercent / 100);
+  return roundToScale(subtotal, MONEY_SCALE);
 }
 
 export function parseCurrency(value: string): number {
