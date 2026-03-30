@@ -11,6 +11,7 @@ import {
   setPageSize as setProblemaPageSize,
   setTotalRows as setProblemaRowCount,
 } from "../../../redux/slices/apontamentos/problemaTableSlice";
+import { CommonFilters as CommonFilterValues } from "../../../redux/slices/apontamentos/commonFiltersSlice";
 import { setFeedback } from "../../../redux/slices/feedBackSlice";
 import { clearCommonFilters } from "../../../redux/slices/apontamentos/commonFiltersSlice";
 import NotesService from "../../../services/NotesService";
@@ -95,16 +96,17 @@ const ProblemasTab: React.FC = () => {
     dispatch(clearCommonFilters());
   }, [dispatch]);
 
-  const handleSearch = useCallback(() => {
+  const handleSearch = useCallback((nextCommonFilters?: CommonFilterValues) => {
+    const sourceFilters = nextCommonFilters ?? commonFilters;
     dispatch(setProblemaPage(0));
     setAppliedQuery({
       filters: {
         ...problemaFilters,
-        DATA_DE: commonFilters.DATA_DE,
-        DATA_ATE: commonFilters.DATA_ATE,
-        ATIVOS: commonFilters.ATIVOS,
+        DATA_DE: sourceFilters.DATA_DE,
+        DATA_ATE: sourceFilters.DATA_ATE,
+        ATIVOS: sourceFilters.ATIVOS,
       },
-      searchTerm: commonFilters.searchTerm,
+      searchTerm: sourceFilters.searchTerm,
     });
   }, [dispatch, problemaFilters, commonFilters]);
 

@@ -7,6 +7,7 @@ import {
   setCommonDateTo,
   setCommonAtivos,
   setCommonFilters,
+  CommonFilters as CommonFilterValues,
 } from "../../redux/slices/apontamentos/commonFiltersSlice";
 import { Button, TextField, InputAdornment, FormControlLabel, Checkbox } from "@mui/material";
 import { debounce } from "lodash";
@@ -14,7 +15,7 @@ import SearchIcon from "@mui/icons-material/Search";
 
 interface CommonFiltersProps {
   onFiltersChange?: () => void;
-  onSearch?: () => void;
+  onSearch?: (filters: CommonFilterValues) => void;
   disabled?: boolean;
 }
 
@@ -61,15 +62,50 @@ const CommonFilters: React.FC<CommonFiltersProps> = ({ onFiltersChange, onSearch
     [debouncedHandleSearchChange]
   );
 
+  const triggerSearch = useCallback(() => {
+    const nextDateFrom = (dateFromInput === "" || dateFromInput.length === 10) ? dateFromInput : filters.DATA_DE;
+    const nextDateTo = (dateToInput === "" || dateToInput.length === 10) ? dateToInput : filters.DATA_ATE;
+    const nextFilters: CommonFilterValues = {
+      searchTerm: searchInput,
+      DATA_DE: nextDateFrom,
+      DATA_ATE: nextDateTo,
+      ATIVOS: filters.ATIVOS,
+    };
+
+    debouncedHandleSearchChange.cancel();
+    if (searchInput !== filters.searchTerm) {
+      dispatchSearchTerm(searchInput);
+    }
+    if (nextDateFrom !== filters.DATA_DE) {
+      dispatchDateFrom(nextDateFrom);
+    }
+    if (nextDateTo !== filters.DATA_ATE) {
+      dispatchDateTo(nextDateTo);
+    }
+    onSearch?.(nextFilters);
+  }, [
+    debouncedHandleSearchChange,
+    searchInput,
+    filters.searchTerm,
+    filters.DATA_DE,
+    filters.DATA_ATE,
+    filters.ATIVOS,
+    dateFromInput,
+    dateToInput,
+    dispatchSearchTerm,
+    dispatchDateFrom,
+    dispatchDateTo,
+    onSearch,
+  ]);
+
   const handleSearchInputKeyDown = useCallback(
     (event: React.KeyboardEvent<HTMLInputElement>) => {
       if (event.key === "Enter") {
         event.preventDefault();
-        debouncedHandleSearchChange.cancel();
-        dispatchSearchTerm(searchInput);
+        triggerSearch();
       }
     },
-    [debouncedHandleSearchChange, dispatchSearchTerm, searchInput]
+    [triggerSearch]
   );
 
   useEffect(() => {
@@ -122,20 +158,20 @@ const CommonFilters: React.FC<CommonFiltersProps> = ({ onFiltersChange, onSearch
     (event: React.KeyboardEvent<HTMLInputElement>) => {
       if (event.key === "Enter") {
         event.preventDefault();
-        commitDateFrom();
+        triggerSearch();
       }
     },
-    [commitDateFrom]
+    [triggerSearch]
   );
 
   const handleDateToKeyDown = useCallback(
     (event: React.KeyboardEvent<HTMLInputElement>) => {
       if (event.key === "Enter") {
         event.preventDefault();
-        commitDateTo();
+        triggerSearch();
       }
     },
-    [commitDateTo]
+    [triggerSearch]
   );
 
   const handleAtivosChange = useCallback(
@@ -146,30 +182,8 @@ const CommonFilters: React.FC<CommonFiltersProps> = ({ onFiltersChange, onSearch
   );
 
   const handleSearchClick = useCallback(() => {
-    debouncedHandleSearchChange.cancel();
-    if (searchInput !== filters.searchTerm) {
-      dispatchSearchTerm(searchInput);
-    }
-    if ((dateFromInput === "" || dateFromInput.length === 10) && dateFromInput !== filters.DATA_DE) {
-      dispatchDateFrom(dateFromInput);
-    }
-    if ((dateToInput === "" || dateToInput.length === 10) && dateToInput !== filters.DATA_ATE) {
-      dispatchDateTo(dateToInput);
-    }
-    onSearch?.();
-  }, [
-    debouncedHandleSearchChange,
-    searchInput,
-    filters.searchTerm,
-    filters.DATA_DE,
-    filters.DATA_ATE,
-    dateFromInput,
-    dateToInput,
-    dispatchSearchTerm,
-    dispatchDateFrom,
-    dispatchDateTo,
-    onSearch,
-  ]);
+    triggerSearch();
+  }, [triggerSearch]);
 
   const formatDate = (date: Date) => date.toISOString().split("T")[0];
 
