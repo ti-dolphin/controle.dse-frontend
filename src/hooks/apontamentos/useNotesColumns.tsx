@@ -23,6 +23,9 @@ const formatDate = (dateString: string): string => {
   return `${day}/${month}/${year}`;
 };
 
+const FOLGA_CAMPO_TOOLTIP =
+  "Registrar a primeira data para a folga ou a data do primeiro dia de retorno da folga";
+
 const toDateInputValue = (dateValue: unknown): string => {
   if (!dateValue) return "";
 
@@ -33,6 +36,17 @@ const toDateInputValue = (dateValue: unknown): string => {
   const asString = String(dateValue).trim();
   if (!asString) return "";
   return asString.split("T")[0];
+};
+
+const getNextFolgaDate = (dateValue: unknown): string | null => {
+  const baseDate = toDateInputValue(dateValue);
+  if (!baseDate) return null;
+
+  const parsedDate = new Date(`${baseDate}T00:00:00`);
+  if (Number.isNaN(parsedDate.getTime())) return null;
+
+  parsedDate.setDate(parsedDate.getDate() + 60);
+  return parsedDate.toISOString().split("T")[0];
 };
 
 const getSituacaoLabel = (situacao: string): string => {
@@ -185,35 +199,6 @@ export function useNotesColumns(
         valueGetter: (value: string) => formatDate(value),
       },
       {
-        field: "DATA_ULTIMA_FOLGA_DE_CAMPO",
-        headerName: "Data última folga de campo",
-        width: 185,
-        type: "date",
-        editable: hasPermission,
-        valueGetter: (value: unknown) => {
-          const formatted = toDateInputValue(value);
-          return formatted ? new Date(`${formatted}T00:00:00`) : null;
-        },
-        valueFormatter: (value: unknown) => formatDate(toDateInputValue(value) || ""),
-        valueSetter: (value: unknown, row: any) => ({
-          ...row,
-          DATA_ULTIMA_FOLGA_DE_CAMPO: toDateInputValue(value) || null,
-        }),
-        preProcessEditCellProps: ({ props }: any) => {
-          const rawValue = props.value;
-          const normalizedValue = toDateInputValue(rawValue);
-          if (!normalizedValue) {
-            return { ...props, error: false };
-          }
-
-          const selectedDate = new Date(`${normalizedValue}T00:00:00`);
-          const today = new Date();
-          today.setHours(0, 0, 0, 0);
-          const hasError = Number.isNaN(selectedDate.getTime()) || selectedDate > today;
-          return { ...props, error: hasError };
-        },
-      },
-      {
         field: "DIA_SEMANA",
         headerName: "Dia da Semana",
         width: 120,
@@ -275,6 +260,57 @@ export function useNotesColumns(
             handleChangeFilters={handleChangeFilters}
           />
         ),
+      },
+      {
+        field: "DATA_ULTIMA_FOLGA_DE_CAMPO",
+        headerName: "Retorno folga de campo",
+        width: 185,
+        type: "date",
+        editable: hasPermission,
+        renderHeader: () => (
+          <Tooltip title={FOLGA_CAMPO_TOOLTIP} arrow>
+            <Box component="span" sx={{ fontWeight: "bold", fontSize: 12 }}>
+              Retorno folga de campo
+            </Box>
+          </Tooltip>
+        ),
+        valueGetter: (value: unknown) => {
+          const formatted = toDateInputValue(value);
+          return formatted ? new Date(`${formatted}T00:00:00`) : null;
+        },
+        valueFormatter: (value: unknown) => formatDate(toDateInputValue(value) || ""),
+        valueSetter: (value: unknown, row: any) => ({
+          ...row,
+          DATA_ULTIMA_FOLGA_DE_CAMPO: toDateInputValue(value) || null,
+        }),
+        preProcessEditCellProps: ({ props }: any) => {
+          const rawValue = props.value;
+          const normalizedValue = toDateInputValue(rawValue);
+          if (!normalizedValue) {
+            return { ...props, error: false };
+          }
+
+          const selectedDate = new Date(`${normalizedValue}T00:00:00`);
+          const today = new Date();
+          today.setHours(0, 0, 0, 0);
+          const hasError = Number.isNaN(selectedDate.getTime()) || selectedDate > today;
+          return { ...props, error: hasError };
+        },
+      },
+      {
+        field: "PROXIMA_FOLGA_DE_CAMPO",
+        headerName: "Próxima folga de campo",
+        width: 185,
+        sortable: false,
+        filterable: false,
+        valueGetter: (_value: unknown, row: any) => {
+          const nextDate = getNextFolgaDate(row.DATA_ULTIMA_FOLGA_DE_CAMPO);
+          return nextDate ? new Date(`${nextDate}T00:00:00`) : null;
+        },
+        valueFormatter: (value: unknown) => {
+          const formatted = toDateInputValue(value);
+          return formatted ? formatDate(formatted) : "-";
+        },
       },
       {
         field: "CODSITUACAO",
