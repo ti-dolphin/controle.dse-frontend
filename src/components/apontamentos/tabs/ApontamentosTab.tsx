@@ -33,6 +33,18 @@ interface AppliedNotesQuery {
   searchTerm: string;
 }
 
+const normalizeDateValue = (value: unknown): string | null => {
+  if (!value) return null;
+
+  if (value instanceof Date && !Number.isNaN(value.getTime())) {
+    return value.toISOString().split("T")[0];
+  }
+
+  const asString = String(value).trim();
+  if (!asString) return null;
+  return asString.split("T")[0] || null;
+};
+
 interface ApontamentosTabProps {
   selectedApontamentos: GridRowSelectionModel;
   onSelectionChange: (selection: GridRowSelectionModel) => void;
@@ -86,7 +98,8 @@ const ApontamentosTab: React.FC<ApontamentosTabProps> = ({
     setCommentDialogOpen(true);
   }, []);
 
-  const { columns: rawColumns } = useNotesColumns(handleChangeFilters, handleCommentClick);
+  const canEditFolgaCampo = !!(user?.PERM_APONT || user?.PERM_ADMINISTRADOR);
+  const { columns: rawColumns } = useNotesColumns(handleChangeFilters, handleCommentClick, canEditFolgaCampo);
 
   const { orderedColumns: columns, columnVisibilityModel, saveColumnOrder, removeColumnOrder } = usePersistedColumnOrder(
     TABLE_KEY,
@@ -220,6 +233,52 @@ const ApontamentosTab: React.FC<ApontamentosTabProps> = ({
     }
   }, [dispatch, appliedQuery, page, pageSize, refreshNotes]);
 
+  const handleProcessRowUpdate = useCallback(
+    async (newRow: any, oldRow: any) => {
+      const oldValue = normalizeDateValue(oldRow.DATA_ULTIMA_FOLGA_DE_CAMPO);
+      const newValue = normalizeDateValue(newRow.DATA_ULTIMA_FOLGA_DE_CAMPO);
+
+      if (oldValue === newValue) {
+        return newRow;
+      }
+
+      try {
+        const result = await NotesService.updateFolgaCampoByFuncionario(
+          String(newRow.CHAPA),
+          newValue
+        );
+
+        const updatedValue = normalizeDateValue(result.DATA_ULTIMA_FOLGA_DE_CAMPO);
+        const updatedRows = rows.map((row: any) => {
+          if (String(row.CHAPA) === String(newRow.CHAPA)) {
+            return {
+              ...row,
+              DATA_ULTIMA_FOLGA_DE_CAMPO: updatedValue,
+            };
+          }
+          return row;
+        });
+
+        dispatch(setRows(updatedRows));
+
+        return {
+          ...newRow,
+          DATA_ULTIMA_FOLGA_DE_CAMPO: updatedValue,
+        };
+      } catch (e: any) {
+        dispatch(
+          setFeedback({
+            message: e.message || "Houve um erro ao atualizar a data da última folga de campo",
+            type: "error",
+          })
+        );
+
+        return oldRow;
+      }
+    },
+    [dispatch, rows]
+  );
+
   useEffect(() => {
     setInitialized(true);
   }, []);
@@ -336,6 +395,7 @@ const ApontamentosTab: React.FC<ApontamentosTabProps> = ({
           dispatch(setPage(model.page));
           dispatch(setPageSize(model.pageSize));
         }}
+        processRowUpdate={handleProcessRowUpdate}
         pageSizeOptions={[25, 50, 100]}
         sx={{
           "& .MuiDataGrid-row.Mui-selected": {

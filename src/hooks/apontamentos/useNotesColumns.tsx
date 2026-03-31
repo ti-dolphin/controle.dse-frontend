@@ -23,6 +23,18 @@ const formatDate = (dateString: string): string => {
   return `${day}/${month}/${year}`;
 };
 
+const toDateInputValue = (dateValue: unknown): string => {
+  if (!dateValue) return "";
+
+  if (dateValue instanceof Date && !Number.isNaN(dateValue.getTime())) {
+    return dateValue.toISOString().split("T")[0];
+  }
+
+  const asString = String(dateValue).trim();
+  if (!asString) return "";
+  return asString.split("T")[0];
+};
+
 const getSituacaoLabel = (situacao: string): string => {
   switch (situacao) {
     case "A":
@@ -40,7 +52,8 @@ const getSituacaoLabel = (situacao: string): string => {
 
 export function useNotesColumns(
   handleChangeFilters: (event: React.ChangeEvent<HTMLInputElement>, field: string) => void,
-  onCommentClick?: (codapont: number) => void
+  onCommentClick?: (codapont: number) => void,
+  hasPermission: boolean = false
 ) {
   const { filters, rows } = useSelector((state: RootState) => state.notesTable);
 
@@ -172,6 +185,35 @@ export function useNotesColumns(
         valueGetter: (value: string) => formatDate(value),
       },
       {
+        field: "DATA_ULTIMA_FOLGA_DE_CAMPO",
+        headerName: "Data última folga de campo",
+        width: 185,
+        type: "date",
+        editable: hasPermission,
+        valueGetter: (value: unknown) => {
+          const formatted = toDateInputValue(value);
+          return formatted ? new Date(`${formatted}T00:00:00`) : null;
+        },
+        valueFormatter: (value: unknown) => formatDate(toDateInputValue(value) || ""),
+        valueSetter: (value: unknown, row: any) => ({
+          ...row,
+          DATA_ULTIMA_FOLGA_DE_CAMPO: toDateInputValue(value) || null,
+        }),
+        preProcessEditCellProps: ({ props }: any) => {
+          const rawValue = props.value;
+          const normalizedValue = toDateInputValue(rawValue);
+          if (!normalizedValue) {
+            return { ...props, error: false };
+          }
+
+          const selectedDate = new Date(`${normalizedValue}T00:00:00`);
+          const today = new Date();
+          today.setHours(0, 0, 0, 0);
+          const hasError = Number.isNaN(selectedDate.getTime()) || selectedDate > today;
+          return { ...props, error: hasError };
+        },
+      },
+      {
         field: "DIA_SEMANA",
         headerName: "Dia da Semana",
         width: 120,
@@ -255,7 +297,7 @@ export function useNotesColumns(
         width: columnWidths.MODIFICADOPOR,
       },
     ],
-    [filters, handleChangeFilters, onCommentClick, columnWidths]
+    [filters, handleChangeFilters, onCommentClick, columnWidths, hasPermission]
   );
 
   return { columns };
