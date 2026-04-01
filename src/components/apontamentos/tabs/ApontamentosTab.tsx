@@ -45,6 +45,30 @@ const normalizeDateValue = (value: unknown): string | null => {
   return asString.split("T")[0] || null;
 };
 
+const getNextFolgaDate = (value: unknown): Date | null => {
+  const normalized = normalizeDateValue(value);
+  if (!normalized) return null;
+
+  const lastFolgaDate = new Date(`${normalized}T00:00:00`);
+  if (Number.isNaN(lastFolgaDate.getTime())) return null;
+
+  lastFolgaDate.setDate(lastFolgaDate.getDate() + 60);
+  return lastFolgaDate;
+};
+
+const isWithinNextTwoWeeks = (value: unknown): boolean => {
+  const nextFolgaDate = getNextFolgaDate(value);
+  if (!nextFolgaDate) return false;
+
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+
+  const twoWeeksFromNow = new Date(today);
+  twoWeeksFromNow.setDate(today.getDate() + 14);
+
+  return nextFolgaDate >= today && nextFolgaDate <= twoWeeksFromNow;
+};
+
 interface ApontamentosTabProps {
   selectedApontamentos: GridRowSelectionModel;
   onSelectionChange: (selection: GridRowSelectionModel) => void;
@@ -202,6 +226,14 @@ const ApontamentosTab: React.FC<ApontamentosTabProps> = ({
       }
     },
     [selectedApontamentos, onSelectionChange]
+  );
+
+  const getRowClassName = useCallback(
+    (params: any) => {
+      if (!canEditFolgaCampo) return "";
+      return isWithinNextTwoWeeks(params.row.DATA_ULTIMA_FOLGA_DE_CAMPO) ? "folga-warning" : "";
+    },
+    [canEditFolgaCampo]
   );
 
   const fetchData = useCallback(async () => {
@@ -392,6 +424,7 @@ const ApontamentosTab: React.FC<ApontamentosTabProps> = ({
         rowSelectionModel={selectedApontamentos}
         onRowSelectionModelChange={onSelectionChange}
         onCellClick={handleRowClickApontamento}
+        getRowClassName={getRowClassName}
         getRowId={(row: any) => row.CODAPONT}
         theme={theme}
         paginationMode="server"
@@ -404,6 +437,18 @@ const ApontamentosTab: React.FC<ApontamentosTabProps> = ({
         processRowUpdate={handleProcessRowUpdate}
         pageSizeOptions={[25, 50, 100]}
         sx={{
+          "& .folga-warning": {
+            backgroundColor: "#fff3cc !important",
+          },
+          "& .folga-warning:hover": {
+            backgroundColor: "#ffe79a !important",
+          },
+          "& .folga-warning.Mui-selected": {
+            backgroundColor: "#ffe08a !important",
+          },
+          "& .folga-warning.Mui-selected:hover": {
+            backgroundColor: "#ffd866 !important",
+          },
           "& .MuiDataGrid-row.Mui-selected": {
             backgroundColor: theme.palette.primary.main + "30 !important",
           },
