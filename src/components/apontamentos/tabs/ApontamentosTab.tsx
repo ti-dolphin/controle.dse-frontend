@@ -70,7 +70,7 @@ const ApontamentosTab: React.FC<ApontamentosTabProps> = ({
   );
   const commonFilters = useSelector((state: RootState) => state.commonFilters.filters);
   const user = useSelector((state: RootState) => state.user.user);
-  const [initialized, setInitialized] = useState(false);
+  const [hasBootstrappedQuery, setHasBootstrappedQuery] = useState(false);
   const [appliedQuery, setAppliedQuery] = useState<AppliedNotesQuery | null>(null);
 
   const handleChangeFilters = useCallback(
@@ -110,7 +110,6 @@ const ApontamentosTab: React.FC<ApontamentosTabProps> = ({
   const handleExportExcel = useCallback(async () => {
     setIsExporting(true);
     try {
-      // Buscar todos os dados com os filtros aplicados
       const response = await NotesService.getAllForExport({
         filters: {
           ...filters,
@@ -131,15 +130,12 @@ const ApontamentosTab: React.FC<ApontamentosTabProps> = ({
         return;
       }
 
-      // Formatar dados para Excel respeitando colunas visíveis da tabela
       const formattedData = formatNotesForExcel(response.data, columns, columnVisibilityModel);
 
-      // Gerar nome do arquivo com data atual
       const today = new Date();
       const dateStr = `${today.getDate().toString().padStart(2, '0')}-${(today.getMonth() + 1).toString().padStart(2, '0')}-${today.getFullYear()}`;
       const fileName = `Apontamentos_${dateStr}`;
 
-      // Exportar para Excel
       exportToExcel(formattedData, fileName, 'Apontamentos');
 
       dispatch(
@@ -166,7 +162,6 @@ const ApontamentosTab: React.FC<ApontamentosTabProps> = ({
   }, []);
 
   const handleCommentChange = useCallback(() => {
-    // Disparar refresh da tabela de apontamentos
     dispatch(setRefreshNotes(!refreshNotes));
   }, [dispatch, refreshNotes]);
 
@@ -280,14 +275,25 @@ const ApontamentosTab: React.FC<ApontamentosTabProps> = ({
   );
 
   useEffect(() => {
-    setInitialized(true);
-  }, []);
+    if (hasBootstrappedQuery) return;
+
+    setHasBootstrappedQuery(true);
+    setAppliedQuery({
+      filters: {
+        ...filters,
+        DATA_DE: commonFilters.DATA_DE,
+        DATA_ATE: commonFilters.DATA_ATE,
+        ATIVOS: commonFilters.ATIVOS,
+      },
+      searchTerm: commonFilters.searchTerm,
+    });
+  }, [hasBootstrappedQuery, filters, commonFilters]);
 
   useEffect(() => {
-    if (initialized && appliedQuery) {
+    if (appliedQuery) {
       fetchData();
     }
-  }, [fetchData, initialized, appliedQuery]);
+  }, [fetchData, appliedQuery]);
 
   return (
     <>
