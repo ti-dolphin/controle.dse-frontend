@@ -49,7 +49,7 @@ const PontoTab: React.FC = () => {
   } = useSelector((state: RootState) => state.pontoTable);
   const commonFilters = useSelector((state: RootState) => state.commonFilters.filters);
   const user = useSelector((state: RootState) => state.user.user);
-  const [initialized, setInitialized] = useState(false);
+  const [hasBootstrappedQuery, setHasBootstrappedQuery] = useState(false);
   const [columnOrderDialogOpen, setColumnOrderDialogOpen] = useState(false)
   const [appliedQuery, setAppliedQuery] = useState<AppliedPontoQuery | null>(null);
 
@@ -197,14 +197,25 @@ const PontoTab: React.FC = () => {
   }, [dispatch, appliedQuery, pontoPage, pontoPageSize]);
 
   useEffect(() => {
-    setInitialized(true);
-  }, []);
+    if (hasBootstrappedQuery) return;
+
+    setHasBootstrappedQuery(true);
+    setAppliedQuery({
+      filters: {
+        ...pontoFilters,
+        DATA_DE: commonFilters.DATA_DE,
+        DATA_ATE: commonFilters.DATA_ATE,
+        ATIVOS: commonFilters.ATIVOS,
+      },
+      searchTerm: commonFilters.searchTerm,
+    });
+  }, [hasBootstrappedQuery, pontoFilters, commonFilters]);
 
   useEffect(() => {
-    if (initialized && appliedQuery) {
+    if (appliedQuery) {
       fetchPontoData();
     }
-  }, [fetchPontoData, initialized, appliedQuery]);
+  }, [fetchPontoData, appliedQuery]);
 
   return (
     <>

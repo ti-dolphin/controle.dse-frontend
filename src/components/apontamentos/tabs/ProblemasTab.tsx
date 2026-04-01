@@ -48,7 +48,7 @@ const ProblemasTab: React.FC = () => {
   } = useSelector((state: RootState) => state.problemaTable);
   const commonFilters = useSelector((state: RootState) => state.commonFilters.filters);
   const user = useSelector((state: RootState) => state.user.user);
-  const [initialized, setInitialized] = useState(false);
+  const [hasBootstrappedQuery, setHasBootstrappedQuery] = useState(false);
   const [columnOrderDialogOpen, setColumnOrderDialogOpen] = useState(false)
   const [appliedQuery, setAppliedQuery] = useState<AppliedProblemaQuery | null>(null);
 
@@ -143,14 +143,25 @@ const ProblemasTab: React.FC = () => {
   }, [dispatch, appliedQuery, problemaPage, problemaPageSize]);
 
   useEffect(() => {
-    setInitialized(true);
-  }, []);
+    if (hasBootstrappedQuery) return;
+
+    setHasBootstrappedQuery(true);
+    setAppliedQuery({
+      filters: {
+        ...problemaFilters,
+        DATA_DE: commonFilters.DATA_DE,
+        DATA_ATE: commonFilters.DATA_ATE,
+        ATIVOS: commonFilters.ATIVOS,
+      },
+      searchTerm: commonFilters.searchTerm,
+    });
+  }, [hasBootstrappedQuery, problemaFilters, commonFilters]);
 
   useEffect(() => {
-    if (initialized && appliedQuery) {
+    if (appliedQuery) {
       fetchProblemaData();
     }
-  }, [fetchProblemaData, initialized, appliedQuery]);
+  }, [fetchProblemaData, appliedQuery]);
 
   return (
     <>
