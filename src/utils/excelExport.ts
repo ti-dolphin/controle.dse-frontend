@@ -54,10 +54,16 @@ export const formatNotesForExcel = (
       const valueGetter = column.valueGetter as
         | ((value: any, row: any, colDef: GridColDef, apiRef: any) => any)
         | undefined;
+      const valueFormatter = column.valueFormatter as
+        | ((value: any, row: any, colDef: GridColDef, apiRef: any) => any)
+        | undefined;
 
-      const value = valueGetter
+      const valueFromGetter = valueGetter
         ? valueGetter(rawValue, note, column, null)
         : rawValue;
+      const value = valueFormatter
+        ? valueFormatter(valueFromGetter, note, column, null)
+        : valueFromGetter;
 
       row[header] = normalizeExcelValue(column.field, value);
     });

@@ -178,6 +178,14 @@ const NotesService = {
         return response.data;
     },
 
+    updateFolgaCampoByFuncionario: async (chapa: string, dataUltimaFolgaDeCampo: string | null) => {
+        const response = await api.patch('/notes/folga-campo/funcionario', {
+            chapa,
+            dataUltimaFolgaDeCampo,
+        });
+        return response.data;
+    },
+
     /**
      * Busca todos os apontamentos com filtros aplicados (sem paginação)
      * Usado para exportação de dados

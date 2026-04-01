@@ -4,6 +4,7 @@ export interface Note {
   CODAPONT: number;
   CHAPA: string;
   NOME_FUNCIONARIO: string;
+  DATA_ULTIMA_FOLGA_DE_CAMPO: string | null;
   BANCO_HORAS: number;
   CODFUNCAO: string;
   NOME_FUNCAO: string;
