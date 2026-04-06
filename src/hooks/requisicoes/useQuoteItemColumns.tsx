@@ -1,7 +1,8 @@
-import { Box, Checkbox, IconButton, Typography } from "@mui/material";
+import { Box, Checkbox, IconButton, Tooltip, Typography } from "@mui/material";
 import { GridColDef } from "@mui/x-data-grid";
 import { ChangeEvent } from "react";
 import AttachFileIcon from "@mui/icons-material/AttachFile";
+import ContentCopyIcon from "@mui/icons-material/ContentCopy";
 import { calculateQuoteSubtotal, formatDecimalPtBr2To3 } from "../../utils";
 
 export const useQuoteItemColumns = (
@@ -144,6 +145,29 @@ export const useQuoteItemColumns = (
       headerName: "Observação",
       flex: 1,
       editable: true,
+      valueGetter: (observacao: string) => observacao || "N/A",
+      renderCell: (params: any) => (
+        <Box
+          sx={{
+            display: "flex",
+            alignItems: "center",
+            gap: 0.5,
+            height: "100%",
+          }}
+        >
+          <Tooltip title="Copiar observação">
+            <IconButton
+              onClick={() => navigator.clipboard.writeText(String(params.value || ""))}
+              sx={{ padding: 0, flexShrink: 0 }}
+            >
+              <ContentCopyIcon sx={{ fontSize: 14 }} />
+            </IconButton>
+          </Tooltip>
+          <Typography fontSize="small" fontWeight="bold">
+            {params.value}
+          </Typography>
+        </Box>
+      ),
     },
     {
       field: "indisponivel",
