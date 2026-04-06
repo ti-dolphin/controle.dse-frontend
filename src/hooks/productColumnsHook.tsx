@@ -86,7 +86,6 @@ export const useProductColumns = () => {
     {
       field: "quantidade_disponivel",
       headerName: "Disponivel",
-
       type: "number",
       flex: 0.2,
       editable: false,
