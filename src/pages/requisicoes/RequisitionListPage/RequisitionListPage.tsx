@@ -177,12 +177,6 @@ const RequisitionListPage = () => {
       navigate("/");
     };
 
-    const navigateToRequisitionDetails = (params: any) => {
-      if (params.field === "actions") return;
-      const { id } = params;
-      navigate(`/requisicoes/${id}`);
-    };
-
     const handleCleanFilter = () => { 
       dispatch(clearfilters());
     };
@@ -209,6 +203,21 @@ const RequisitionListPage = () => {
     const debouncedHandleChangeSearchTerm = useMemo(() => { 
       return debounce(handleChangeSearchTerm, 500);
     }, [handleChangeSearchTerm]);
+
+    const goToRequisitionDetails = React.useCallback(
+      (id: number) => {
+        debouncedHandleChangeSearchTerm.cancel();
+        dispatch(setSearchTerm(""));
+        navigate(`/requisicoes/${id}`);
+      },
+      [debouncedHandleChangeSearchTerm, dispatch, navigate]
+    );
+
+    const navigateToRequisitionDetails = (params: any) => {
+      if (params.field === "actions") return;
+      const { id } = params;
+      goToRequisitionDetails(Number(id));
+    };
 
     const fetchData = React.useCallback(async () => {
       const requestId = ++latestRequestIdRef.current;
@@ -424,7 +433,7 @@ const RequisitionListPage = () => {
                     req={requisition}
                     style={style}
                     onClickDetails={() =>
-                      navigate(`/requisicoes/${requisition.ID_REQUISICAO}`)
+                      goToRequisitionDetails(requisition.ID_REQUISICAO)
                     }
                   />
                 )
