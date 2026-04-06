@@ -130,6 +130,11 @@ const HomePage = () => {
         <MenuItem onClick={() => { handleClose(); navigate('/perfil'); }}>
           Perfil
         </MenuItem>
+        {isAdmin && (
+          <MenuItem onClick={() => { handleClose(); navigate('/admin/usuarios/novo'); }}>
+            Cadastrar usuário
+          </MenuItem>
+        )}
         <MenuItem onClick={( ) => navigate('/auth')}>
           Logout
         </MenuItem>
