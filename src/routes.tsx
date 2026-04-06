@@ -12,6 +12,7 @@ import PatrimonyDetailPage from "./pages/patrimonios/PatrimonyDetailPage";
 import ChecklistListPage from "./pages/patrimonios/ChecklistListListPage";
 import NotesHomePage from "./pages/apontamentos/NotesHomePage";
 import AdminPage from "./pages/AdminPage";
+import UserCreationPage from "./pages/admin/UserCreationPage";
 // Exemplo de páginas
 const AppRoutes = () => { 
   return (
@@ -21,6 +22,7 @@ const AppRoutes = () => {
       <Route path="/perfil" element={<ProfilePage />} />
 
       <Route path="/admin" element={<AdminPage />} />
+      <Route path="/admin/usuarios/novo" element={<UserCreationPage />} />
 
       <Route path="/requisicoes" element={<RequisitionHomePage />} />
       {/* <Route path="/requisicoes/lista" element={<RequisitionListPage />} /> */}

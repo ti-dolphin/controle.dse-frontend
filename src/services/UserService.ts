@@ -39,6 +39,11 @@ export class UserService {
     return data;
   }
 
+  static async createByAdmin(payload: Partial<User> & { SENHA: string }): Promise<User> {
+    const { data } = await api.post<User>(`${API_URL}/admin/register`, payload);
+    return data;
+  }
+
   static async update(CODPESSOA: number, payload: Partial<User>): Promise<User> {
     const { data } = await api.put<User>(`${API_URL}/${CODPESSOA}`, payload);
     return data;
