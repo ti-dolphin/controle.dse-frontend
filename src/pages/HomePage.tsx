@@ -27,7 +27,7 @@ const modules = [
     name: "CRM",
     image: crm,
     path: "/oportunidades",
-    description: "Gerenciamneto e acompanhamento de Projetos",
+    description: "Gerenciamento e acompanhamento de Projetos",
   },
   {
     name: "Gestão de Pessoas",

@@ -1,5 +1,5 @@
 import api from '../api';
-import { Product } from '../models/Product';
+import { Product, ProductPatrimonyType } from '../models/Product';
 
 const API_ENDPOINT = '/produtos';
 
@@ -11,6 +11,11 @@ export const ProductService = {
 
     async getById(id: number): Promise<Product> {
         const response = await api.get<Product>(`${API_ENDPOINT}/${id}`);
+        return response.data;
+    },
+
+    async getPatrimonyTypes(): Promise<ProductPatrimonyType[]> {
+        const response = await api.get<ProductPatrimonyType[]>(`${API_ENDPOINT}/tipos-patrimonio`);
         return response.data;
     },
 

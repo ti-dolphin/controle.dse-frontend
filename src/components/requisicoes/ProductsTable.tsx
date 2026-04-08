@@ -7,7 +7,7 @@ import {
   GridRowSelectionModel,
 } from "@mui/x-data-grid";
 import React, { useCallback, useEffect, useState } from "react";
-import { Product } from "../../models/Product";
+import { Product, ProductPatrimonyType } from "../../models/Product";
 import { Box, Button, Dialog, DialogActions, DialogContent, DialogTitle, IconButton, Stack, TextField, Typography, useTheme } from "@mui/material";
 import { useDispatch, useSelector } from "react-redux";
 import { RootState } from "../../redux/store";
@@ -49,7 +49,33 @@ const ProductsTable = ({ tipoFaturamento, fromReq }: ProductsTableProps) => {
   const [loading, setLoading] = useState(false);
   const [rowSelectionModel, setRowSelectionModel] = React.useState<GridRowSelectionModel>([]);
   const { isMobile } = useIsMobile();
-  const { columns } = useProductColumns();
+  const [patrimonyTypes, setPatrimonyTypes] = useState<ProductPatrimonyType[]>([]);
+  const handleUpdatePatrimonyType = useCallback(async (productId: number, patrimonyTypeId: number) => {
+    try {
+      const updatedProduct = await ProductService.update(productId, {
+        tipo_produto_patrimonio: patrimonyTypeId,
+      });
+
+      dispatch(
+        setProducts(
+          products.map((product) =>
+            product.ID === updatedProduct.ID ? updatedProduct : product
+          )
+        )
+      );
+    } catch (e) {
+      dispatch(
+        setFeedback({
+          message: "Erro ao atualizar tipo de patrimônio",
+          type: "error",
+        })
+      );
+    }
+  }, [dispatch, products]);
+  const { columns } = useProductColumns({
+    patrimonyTypes,
+    onUpdatePatrimonyType: handleUpdatePatrimonyType,
+  });
   const [productBeingEdited, setProductBeingEdited] = useState<Product | null>(null);
   const [quantity, setQuantity] = useState<number>(0);
   const gridContainerRef = React.useRef<HTMLDivElement>(null);
@@ -277,9 +303,28 @@ const ProductsTable = ({ tipoFaturamento, fromReq }: ProductsTableProps) => {
     }
   }, [dispatch, searchTerm, tipoFaturamento]);
 
+  const fetchPatrimonyTypes = useCallback(async () => {
+    try {
+      const data = await ProductService.getPatrimonyTypes();
+      setPatrimonyTypes(data);
+    } catch (e) {
+      dispatch(
+        setFeedback({
+          message: "Erro ao buscar tipos de patrimônio",
+          type: "error",
+        })
+      );
+    }
+  }, [dispatch]);
+
   useEffect(() => {
     fetchData();
   }, [fetchData]);
+
+  useEffect(() => {
+    if (!viewingProducts) return;
+    fetchPatrimonyTypes();
+  }, [viewingProducts, fetchPatrimonyTypes]);
 
 
   return (

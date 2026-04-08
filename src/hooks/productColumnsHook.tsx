@@ -1,7 +1,7 @@
 import { GridColDef, GridRenderCellParams } from "@mui/x-data-grid";
 import { useDispatch, useSelector } from "react-redux";
 import { RootState } from "../redux/store";
-import { Badge, BadgeProps, Box, IconButton, styled, Tooltip, Typography } from "@mui/material";
+import { Badge, BadgeProps, Box, IconButton, Radio, RadioGroup, FormControlLabel, styled, Tooltip, Typography } from "@mui/material";
 import { blue, green, red } from "@mui/material/colors";
 import { useEffect, useState } from "react";
 import { set } from "lodash";
@@ -12,6 +12,7 @@ import { setFeedback } from "../redux/slices/feedBackSlice";
 import { ProductService } from "../services/ProductService";
 import CircleIcon from '@mui/icons-material/Circle';
 import { useProductPermissions } from "./productPermissionsHook";
+import { ProductPatrimonyType } from "../models/Product";
 
 const StyledBadge = styled(Badge)<BadgeProps>(({ theme }) => ({
   "& .MuiBadge-badge": {
@@ -21,7 +22,12 @@ const StyledBadge = styled(Badge)<BadgeProps>(({ theme }) => ({
   },
 }));
 
-export const useProductColumns = () => {
+interface UseProductColumnsParams {
+  patrimonyTypes: ProductPatrimonyType[];
+  onUpdatePatrimonyType: (productId: number, patrimonyTypeId: number) => Promise<void>;
+}
+
+export const useProductColumns = ({ patrimonyTypes, onUpdatePatrimonyType }: UseProductColumnsParams) => {
   const dispatch = useDispatch();
   const {
     addingProducts,
@@ -324,6 +330,44 @@ export const useProductColumns = () => {
       },
     },
     {
+      field: "tipo_produto_patrimonio",
+      headerName: "Patrimonio",
+      flex: 0.5,
+      editable: false,
+      sortable: false,
+      filterable: false,
+      renderCell: (params: GridRenderCellParams) => {
+        const rowValue = Number(params.row?.tipo_produto_patrimonio || 0);
+        const canEditPatrimony = !!(editProductFieldsPermitted || user?.PERM_ADMINISTRADOR === 1);
+
+        return (
+          <Box sx={{ display: "flex", alignItems: "center", height: "100%" }}>
+            <RadioGroup
+              row
+              value={rowValue > 0 ? String(rowValue) : ""}
+              onClick={(e) => e.stopPropagation()}
+              onChange={async (e) => {
+                const nextValue = Number(e.target.value);
+                if (!Number.isInteger(nextValue) || nextValue <= 0 || nextValue === rowValue) return;
+
+                await onUpdatePatrimonyType(Number(params.row.ID), nextValue);
+              }}
+            >
+              {patrimonyTypes.map((type) => (
+                <FormControlLabel
+                  key={type.id}
+                  value={String(type.id)}
+                  control={<Radio size="small" disabled={!canEditPatrimony} />}
+                  label={type.nome || `Tipo ${type.id}`}
+                  sx={{ mr: 1.5, '& .MuiFormControlLabel-label': { fontSize: 12 } }}
+                />
+              ))}
+            </RadioGroup>
+          </Box>
+        );
+      },
+    },
+    {
       field: "anexos",
       headerName: "anexos",
       flex: 0.15,
@@ -471,6 +515,16 @@ export const useProductColumns = () => {
       return;
     }
 
-  }, []);
+  }, [
+    isMobile,
+    addingProducts,
+    replacingItemProduct,
+    viewingProducts,
+    user?.PERM_ADMINISTRADOR,
+    editProductFieldsPermitted,
+    hasStockPermission,
+    patrimonyTypes,
+    dispatch,
+  ]);
   return { columns };
 }
