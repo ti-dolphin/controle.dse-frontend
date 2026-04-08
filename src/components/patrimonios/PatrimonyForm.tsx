@@ -19,9 +19,20 @@ interface FormData {
   nserie: string;
   tipo: number;
   valor_compra: number;
+  calibracao: number;
+  data_proxima_calibracao: string;
   responsavel?: number;
   projeto?: number;
 }
+
+const formatDateForInput = (value?: string | null) => {
+  if (!value) {
+    return "";
+  }
+
+  return value.slice(0, 10);
+};
+
 const PatrimonyForm = () => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
@@ -33,6 +44,8 @@ const PatrimonyForm = () => {
     nserie: "",
     tipo: 0,
     valor_compra: 0,
+    calibracao: 0,
+    data_proxima_calibracao: "",
   });
 
   //mode
@@ -58,6 +71,10 @@ const PatrimonyForm = () => {
         nserie: data.nserie,
         tipo: data.tipo,
         valor_compra: data.valor_compra,
+        calibracao: data.calibracao ?? 0,
+        data_proxima_calibracao: formatDateForInput(
+          data.data_proxima_calibracao
+        ),
       });
     } catch (e) {
       dispatch(
@@ -72,6 +89,16 @@ const PatrimonyForm = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
+      if (formData.calibracao === 1 && !formData.data_proxima_calibracao) {
+        dispatch(
+          setFeedback({
+            message: "Preencha a data da próxima calibração.",
+            type: "error",
+          })
+        );
+        return;
+      }
+
       //criar novo patrimônio
       if (!id_patrimonio) {
         if (
@@ -81,6 +108,12 @@ const PatrimonyForm = () => {
           !formData.responsavel ||
           !formData.projeto
         ){ 
+          dispatch(
+            setFeedback({
+              message: "Preencha nome, descrição, tipo, projeto e responsável para criar o patrimônio.",
+              type: "error",
+            })
+          );
           return;
         }
         const newPatrymony = await PatrimonyService.create({
@@ -89,6 +122,11 @@ const PatrimonyForm = () => {
           nserie: formData.nserie,
           valor_compra: formData.valor_compra,
           tipo: formData.tipo,
+          calibracao: formData.calibracao,
+          data_proxima_calibracao:
+            formData.calibracao === 1
+              ? formData.data_proxima_calibracao
+              : null,
         });
         if (newPatrymony) {
           const firstMovementation = await MovementationService.create({
@@ -111,7 +149,13 @@ const PatrimonyForm = () => {
       //atualizar patrimônio
       const updatedPatrimony = await PatrimonyService.update(
         Number(id_patrimonio),
-        formData
+        {
+          ...formData,
+          data_proxima_calibracao:
+            formData.calibracao === 1
+              ? formData.data_proxima_calibracao
+              : null,
+        }
       );
       if (updatedPatrimony) {
         setPatrimony(updatedPatrimony);
@@ -224,6 +268,47 @@ const PatrimonyForm = () => {
           setFormData({ ...formData, responsavel: Number(optionIdSelected) }) }
         />
         </>
+      )}
+
+      <div className="flex w-full items-center gap-2">
+        <input
+          id="calibracao"
+          type="checkbox"
+          className="h-5 w-5 cursor-pointer accent-blue-700"
+          checked={formData.calibracao === 1}
+          onChange={(e) =>
+            setFormData({
+              ...formData,
+              calibracao: e.target.checked ? 1 : 0,
+              data_proxima_calibracao: e.target.checked
+                ? formData.data_proxima_calibracao
+                : "",
+            })
+          }
+          onFocus={handleFocus}
+          disabled={!permissionToEdit}
+        />
+        <label htmlFor="calibracao" className="text-xs font-medium text-gray-700">
+          Calibração
+        </label>
+      </div>
+
+      {formData.calibracao === 1 && (
+        <ElegantInput
+          label="Data da próxima calibração"
+          type="date"
+          fullWidth
+          required
+          value={formData.data_proxima_calibracao}
+          onChange={(e) =>
+            setFormData({
+              ...formData,
+              data_proxima_calibracao: e.target.value,
+            })
+          }
+          onFocus={handleFocus}
+          disabled={!permissionToEdit}
+        />
       )}
 
       <Button type="submit" variant="contained">
