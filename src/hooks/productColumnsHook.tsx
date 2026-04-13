@@ -11,6 +11,7 @@ import { setViewingProductAttachment, setViewingStandardGuide, setProducts } fro
 import { setFeedback } from "../redux/slices/feedBackSlice";
 import { ProductService } from "../services/ProductService";
 import CircleIcon from '@mui/icons-material/Circle';
+import ClearIcon from '@mui/icons-material/Clear';
 import { useProductPermissions } from "./productPermissionsHook";
 import { ProductPatrimonyType } from "../models/Product";
 
@@ -24,10 +25,11 @@ const StyledBadge = styled(Badge)<BadgeProps>(({ theme }) => ({
 
 interface UseProductColumnsParams {
   patrimonyTypes: ProductPatrimonyType[];
-  onUpdatePatrimonyType: (productId: number, patrimonyTypeId: number) => Promise<void>;
+  onUpdatePatrimonyType: (productId: number, patrimonyTypeId: number | null) => Promise<void>;
+  disablePatrimonyActions?: boolean;
 }
 
-export const useProductColumns = ({ patrimonyTypes, onUpdatePatrimonyType }: UseProductColumnsParams) => {
+export const useProductColumns = ({ patrimonyTypes, onUpdatePatrimonyType, disablePatrimonyActions = false }: UseProductColumnsParams) => {
   const dispatch = useDispatch();
   const {
     addingProducts,
@@ -134,7 +136,7 @@ export const useProductColumns = ({ patrimonyTypes, onUpdatePatrimonyType }: Use
             <IconButton onClick={() => { dispatch(setViewingProductAttachment(params.row.ID)) }}>
               <StyledBadge
                 variant="standard"
-                badgeContent={params.row.anexos.length}
+                badgeContent={Array.isArray(params.row.anexos) ? params.row.anexos.length : 0}
                 color="primary"
               >
                 <FileIcon sx={{ fontSize: 14 }} />
@@ -163,7 +165,7 @@ export const useProductColumns = ({ patrimonyTypes, onUpdatePatrimonyType }: Use
             <IconButton onClick={() => { dispatch(setViewingStandardGuide(params.row.ID)) }}>
               <StyledBadge
                 variant="standard"
-                badgeContent={params.row.anexos?.filter((a: any) => a.is_produto_padrao === true).length}
+                badgeContent={(params.row.anexos || []).filter((a: any) => a.is_produto_padrao === true).length}
                 color="secondary"
               >
                 <FileIcon sx={{ fontSize: 14 }} />
@@ -342,6 +344,21 @@ export const useProductColumns = ({ patrimonyTypes, onUpdatePatrimonyType }: Use
 
         return (
           <Box sx={{ display: "flex", alignItems: "center", height: "100%" }}>
+            <Tooltip title="Desmarcar patrimônio">
+              <span>
+                <IconButton
+                  size="small"
+                  onClick={async (e) => {
+                    e.stopPropagation();
+                    if (!canEditPatrimony || disablePatrimonyActions || rowValue === 0) return;
+                    await onUpdatePatrimonyType(Number(params.row.ID), null);
+                  }}
+                  disabled={!canEditPatrimony || disablePatrimonyActions || rowValue === 0}
+                >
+                  <ClearIcon sx={{ fontSize: 14 }} />
+                </IconButton>
+              </span>
+            </Tooltip>
             <RadioGroup
               row
               value={rowValue > 0 ? String(rowValue) : ""}
@@ -357,7 +374,7 @@ export const useProductColumns = ({ patrimonyTypes, onUpdatePatrimonyType }: Use
                 <FormControlLabel
                   key={type.id}
                   value={String(type.id)}
-                  control={<Radio size="small" disabled={!canEditPatrimony} />}
+                  control={<Radio size="small" disabled={!canEditPatrimony || disablePatrimonyActions} />}
                   label={type.nome || `Tipo ${type.id}`}
                   sx={{ mr: 1.5, '& .MuiFormControlLabel-label': { fontSize: 12 } }}
                 />
@@ -386,7 +403,7 @@ export const useProductColumns = ({ patrimonyTypes, onUpdatePatrimonyType }: Use
             <IconButton onClick={() => { dispatch(setViewingProductAttachment(params.row.ID)) }}>
               <StyledBadge
                 variant="standard"
-                badgeContent={params.row.anexos.length}
+                badgeContent={Array.isArray(params.row.anexos) ? params.row.anexos.length : 0}
                 color="primary"
               >
                 <FileIcon sx={{ fontSize: 14 }} />
@@ -415,7 +432,7 @@ export const useProductColumns = ({ patrimonyTypes, onUpdatePatrimonyType }: Use
             <IconButton onClick={() => { dispatch(setViewingStandardGuide(params.row.ID)) }}>
               <StyledBadge
                 variant="standard"
-                badgeContent={params.row.anexos?.filter((a: any) => a.is_produto_padrao === true).length}
+                badgeContent={(params.row.anexos || []).filter((a: any) => a.is_produto_padrao === true).length}
                 color="secondary"
               >
                 <FileIcon sx={{ fontSize: 14 }} />

@@ -8,7 +8,7 @@ import {
 } from "@mui/x-data-grid";
 import React, { useCallback, useEffect, useState } from "react";
 import { Product, ProductPatrimonyType } from "../../models/Product";
-import { Box, Button, Dialog, DialogActions, DialogContent, DialogTitle, IconButton, Stack, TextField, Typography, useTheme } from "@mui/material";
+import { Backdrop, Box, Button, CircularProgress, Dialog, DialogActions, DialogContent, DialogTitle, IconButton, Stack, TextField, Typography, useTheme } from "@mui/material";
 import { useDispatch, useSelector } from "react-redux";
 import { RootState } from "../../redux/store";
 import BaseDataTable from "../shared/BaseDataTable";
@@ -46,23 +46,40 @@ const ProductsTable = ({ tipoFaturamento, fromReq }: ProductsTableProps) => {
   const [searchTerm, setSearchTerm] = useState("");
 
   const [cellModesModel, setCellModesModel]  = React.useState<GridCellModesModel>({});
-  const [loading, setLoading] = useState(false);
+  const [isFetching, setIsFetching] = useState(false);
+  const [isUpdating, setIsUpdating] = useState(false);
   const [rowSelectionModel, setRowSelectionModel] = React.useState<GridRowSelectionModel>([]);
   const { isMobile } = useIsMobile();
   const [patrimonyTypes, setPatrimonyTypes] = useState<ProductPatrimonyType[]>([]);
-  const handleUpdatePatrimonyType = useCallback(async (productId: number, patrimonyTypeId: number) => {
+
+  const refreshProducts = useCallback(async () => {
+    const params: any = { searchTerm };
+
+    if (fromReq && (!tipoFaturamento || tipoFaturamento === 0)) {
+      dispatch(setProducts([]));
+      return;
+    }
+
+    params.tipoFaturamento = tipoFaturamento;
+
+    const data = await ProductService.getMany(params);
+    const sortedData = [...data].sort((a, b) => {
+      const qtyA = a.quantidade_disponivel || 0;
+      const qtyB = b.quantidade_disponivel || 0;
+      return qtyB - qtyA;
+    });
+
+    dispatch(setProducts(sortedData));
+  }, [dispatch, searchTerm, fromReq, tipoFaturamento]);
+
+  const handleUpdatePatrimonyType = useCallback(async (productId: number, patrimonyTypeId: number | null) => {
+    setIsUpdating(true);
     try {
-      const updatedProduct = await ProductService.update(productId, {
+      await ProductService.update(productId, {
         tipo_produto_patrimonio: patrimonyTypeId,
       });
 
-      dispatch(
-        setProducts(
-          products.map((product) =>
-            product.ID === updatedProduct.ID ? updatedProduct : product
-          )
-        )
-      );
+      await refreshProducts();
     } catch (e) {
       dispatch(
         setFeedback({
@@ -70,11 +87,14 @@ const ProductsTable = ({ tipoFaturamento, fromReq }: ProductsTableProps) => {
           type: "error",
         })
       );
+    } finally {
+      setIsUpdating(false);
     }
-  }, [dispatch, products]);
+  }, [dispatch, refreshProducts]);
   const { columns } = useProductColumns({
     patrimonyTypes,
     onUpdatePatrimonyType: handleUpdatePatrimonyType,
+    disablePatrimonyActions: isUpdating,
   });
   const [productBeingEdited, setProductBeingEdited] = useState<Product | null>(null);
   const [quantity, setQuantity] = useState<number>(0);
@@ -82,6 +102,7 @@ const ProductsTable = ({ tipoFaturamento, fromReq }: ProductsTableProps) => {
 
   const handleCellClick = React.useCallback(
     (params: GridCellParams, event: React.MouseEvent) => {
+      if (isUpdating) return;
       if (params.field === "__check__") return;
       if(params.field === 'anexos') return;
       
@@ -179,7 +200,7 @@ const ProductsTable = ({ tipoFaturamento, fromReq }: ProductsTableProps) => {
         };
       });
     },
-    [dispatch, editProductFieldsPermitted, hasStockPermission, addingProducts]
+    [dispatch, editProductFieldsPermitted, hasStockPermission, addingProducts, isUpdating]
   );
 
   const handleChangeSelection = async (
@@ -225,11 +246,11 @@ const ProductsTable = ({ tipoFaturamento, fromReq }: ProductsTableProps) => {
       }
       
       try {
+        setIsUpdating(true);
         const updatedProduct = await ProductService.update(newRow.ID, payload);
-        setProducts(products.map((product) => product.ID === updatedProduct.ID ? updatedProduct : product ));
-        return updatedProduct;
+        await refreshProducts();
+        return { ...newRow, ...updatedProduct };
       } catch (error) {
-        setLoading(false);
         dispatch(
           setFeedback({
             message: "Erro ao atualizar produto",
@@ -237,9 +258,11 @@ const ProductsTable = ({ tipoFaturamento, fromReq }: ProductsTableProps) => {
           })
         );
         return oldRow;
+      } finally {
+        setIsUpdating(false);
       }
     },
-    [dispatch, viewingProducts, products]
+    [dispatch, viewingProducts, refreshProducts]
   );
   //muda o termo de busca
   const changeSearchTerm = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -252,12 +275,13 @@ const ProductsTable = ({ tipoFaturamento, fromReq }: ProductsTableProps) => {
   //método para dar update na quantidade em estoque no mobile
   const saveProductQuantity = async (newQuantity: number) => {
     if (!productBeingEdited) return;
+    setIsUpdating(true);
     try {
-      const updatedProduct = await ProductService.update(
+      await ProductService.update(
         productBeingEdited.ID,
         { quantidade_estoque: newQuantity }
       );
-      dispatch(setProducts(products.map((product : Product) => product.ID === updatedProduct.ID ? updatedProduct : product)))
+      await refreshProducts();
       setProductBeingEdited(null);
       setQuantity(0);
     } catch (e) {
@@ -267,41 +291,34 @@ const ProductsTable = ({ tipoFaturamento, fromReq }: ProductsTableProps) => {
           type: "error",
         })
       );
+    } finally {
+      setIsUpdating(false);
     }
   };
   //faz debounce na mudançda da busca
   const debouncedHandleChangeSearchTerm = debounce(changeSearchTerm, 500);
 
   const fetchData = useCallback(async () => {
-    setLoading(true);
+    setIsFetching(true);
     try {
-      const params: any = { searchTerm };
       // Usa o tipoFaturamento passado como prop
+      if (fromReq && (!tipoFaturamento || tipoFaturamento === 0)) {
+        dispatch(setProducts([]));
+        return;
+      }
 
-      if (fromReq && (!tipoFaturamento || tipoFaturamento === 0)) return;
-
-      params.tipoFaturamento = tipoFaturamento;
-
-      const data = await ProductService.getMany(params);
-
-      const sortedData = [...data].sort((a, b) => {
-        const qtyA = a.quantidade_disponivel || 0;
-        const qtyB = b.quantidade_disponivel || 0;
-        return qtyB - qtyA;
-      });
-
-      dispatch(setProducts(sortedData));
-      setLoading(false);
+      await refreshProducts();
     } catch (e) {
-      setLoading(false);
       dispatch(
         setFeedback({
           message: "Erro ao buscar produtos",
           type: "error",
         })
       );
+    } finally {
+      setIsFetching(false);
     }
-  }, [dispatch, searchTerm, tipoFaturamento]);
+  }, [dispatch, searchTerm, tipoFaturamento, refreshProducts, fromReq]);
 
   const fetchPatrimonyTypes = useCallback(async () => {
     try {
@@ -332,6 +349,7 @@ const ProductsTable = ({ tipoFaturamento, fromReq }: ProductsTableProps) => {
       <BaseTableToolBar
         handleChangeSearchTerm={debouncedHandleChangeSearchTerm}
       />
+      <Box sx={{ position: "relative", flexGrow: 1 }}>
       {isMobile ? (
         <Box
           ref={gridContainerRef}
@@ -384,7 +402,7 @@ const ProductsTable = ({ tipoFaturamento, fromReq }: ProductsTableProps) => {
           onRowSelectionModelChange={handleChangeSelection}
           checkboxSelection={addingProducts || replacingItemProduct}
           getRowId={(row: any) => row.ID}
-          loading={loading}
+          loading={isFetching}
           theme={theme}
           rows={products}
           columns={columns}
@@ -398,6 +416,20 @@ const ProductsTable = ({ tipoFaturamento, fromReq }: ProductsTableProps) => {
           processRowUpdate={processRowUpdate}
         />
       )}
+      {isUpdating && (
+        <Backdrop
+          open={true}
+          sx={{
+            position: "absolute",
+            zIndex: 10,
+            color: "#fff",
+            backgroundColor: "rgba(255,255,255,0.45)",
+          }}
+        >
+          <CircularProgress color="primary" />
+        </Backdrop>
+      )}
+      </Box>
 
       <Dialog
         open={viewingProductAttachment !== null}
