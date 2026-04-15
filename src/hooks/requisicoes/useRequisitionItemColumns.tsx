@@ -467,6 +467,46 @@ export const useRequisitionItemColumns = (
       },
     },
     {
+      field: "total_linha",
+      headerName: "Total da linha",
+      type: "number",
+      minWidth: 140,
+      sortable: true,
+      valueGetter: (_value: any, row: any) => {
+        const selectedQuoteItemId = Number(row?.id_item_cotacao || 0);
+        if (!selectedQuoteItemId) {
+          return null;
+        }
+
+        const selectedQuoteItem = row.items_cotacao?.find(
+          (item: any) => Number(item.id_item_cotacao) === selectedQuoteItemId
+        );
+
+        if (!selectedQuoteItem || Number(selectedQuoteItem.indisponivel) > 0) {
+          return null;
+        }
+
+        const unitPrice = Number(selectedQuoteItem.preco_unitario || 0);
+        const quantity = Number(row.quantidade || 0);
+        return unitPrice * quantity;
+      },
+      renderCell: (params: any) => {
+        if (params.value === null || params.value === undefined) {
+          return (
+            <Typography fontSize="small" color="text.secondary">
+              -
+            </Typography>
+          );
+        }
+
+        return (
+          <Typography fontSize="small" fontWeight="bold" color="success.main">
+            {formatCurrency2To3(Number(params.value || 0))}
+          </Typography>
+        );
+      },
+    },
+    {
       field: "actions",
       headerName: "Ações",
       type: "actions",

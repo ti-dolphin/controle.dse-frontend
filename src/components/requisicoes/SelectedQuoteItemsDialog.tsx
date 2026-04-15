@@ -70,10 +70,11 @@ const SelectedQuoteItemsDialog: React.FC<SelectedQuoteItemsDialogProps> = ({
           doc.addPage();
         }
 
-        const selectedTotal = selectedItems.reduce(
-          (acc, item) => acc + Number(item.subtotal || 0),
-          0
-        );
+        const selectedTotal = selectedItems.reduce((acc, item) => {
+          const unitPrice = Number(item.preco_unitario || 0);
+          const requestedQuantity = Number(item.quantidade_solicitada || 0);
+          return acc + unitPrice * requestedQuantity;
+        }, 0);
 
         doc.setFontSize(14);
         doc.setTextColor(25, 118, 210);
@@ -112,7 +113,6 @@ const SelectedQuoteItemsDialog: React.FC<SelectedQuoteItemsDialogProps> = ({
               "Descrição do Produto",
               "Unidade",
               "Qtd. Solicitada",
-              "Qtd. Cotada",
               "Preço Unitário",
               "ICMS %",
               "IPI %",
@@ -125,12 +125,13 @@ const SelectedQuoteItemsDialog: React.FC<SelectedQuoteItemsDialogProps> = ({
             item.produto_descricao || item.descricao_item || "-",
             item.produto_unidade || "-",
             Number(item.quantidade_solicitada || 0).toString(),
-            Number(item.quantidade_cotada || 0).toString(),
             formatCurrency2To3(Number(item.preco_unitario || 0)),
             `${Number(item.ICMS || 0)}%`,
             `${Number(item.IPI || 0)}%`,
             `${Number(item.ST || 0)}%`,
-            formatCurrency2To3(Number(item.subtotal || 0)),
+            formatCurrency2To3(
+              Number(item.preco_unitario || 0) * Number(item.quantidade_solicitada || 0)
+            ),
           ]),
           theme: "grid",
           styles: {
@@ -149,12 +150,11 @@ const SelectedQuoteItemsDialog: React.FC<SelectedQuoteItemsDialogProps> = ({
             1: { cellWidth: 62 },
             2: { cellWidth: 14, halign: "center" },
             3: { cellWidth: 18, halign: "right" },
-            4: { cellWidth: 16, halign: "right" },
-            5: { cellWidth: 23, halign: "right" },
+            4: { cellWidth: 23, halign: "right" },
+            5: { cellWidth: 12, halign: "right" },
             6: { cellWidth: 12, halign: "right" },
             7: { cellWidth: 12, halign: "right" },
-            8: { cellWidth: 12, halign: "right" },
-            9: { cellWidth: 23, halign: "right" },
+            8: { cellWidth: 23, halign: "right" },
           },
           margin: { left: 14, right: 14 },
         });
@@ -332,7 +332,13 @@ const SelectedQuoteItemsDialog: React.FC<SelectedQuoteItemsDialogProps> = ({
                       </Typography>
                       <Typography fontSize="0.9rem" fontWeight={600} color="success.main">
                         {formatCurrency2To3(
-                          selectedItems.reduce((acc, item) => acc + Number(item.subtotal), 0)
+                          selectedItems.reduce(
+                            (acc, item) =>
+                              acc +
+                              Number(item.preco_unitario || 0) *
+                                Number(item.quantidade_solicitada || 0),
+                            0
+                          )
                         )}
                       </Typography>
                     </Box>

@@ -39,6 +39,9 @@ const NotesService = {
             if (params.filters.CHAPA) queryParams.CHAPA = params.filters.CHAPA;
             if (params.filters.COMPETENCIA) queryParams.COMPETENCIA = params.filters.COMPETENCIA;
             if (params.filters.CODSITUACAO) queryParams.CODSITUACAO = params.filters.CODSITUACAO;
+            if (params.filters.CODSTATUSAPONT_IN?.length) {
+                queryParams.CODSTATUSAPONT_IN = params.filters.CODSTATUSAPONT_IN.join(',');
+            }
             if (params.filters.NOME_FUNCIONARIO) queryParams.NOME_FUNCIONARIO = params.filters.NOME_FUNCIONARIO;
             if (params.filters.NOME_FUNCAO) queryParams.NOME_FUNCAO = params.filters.NOME_FUNCAO;
             if (params.filters.NOME_CENTRO_CUSTO) queryParams.NOME_CENTRO_CUSTO = params.filters.NOME_CENTRO_CUSTO;
@@ -198,6 +201,9 @@ const NotesService = {
             if (params.filters.CHAPA) queryParams.CHAPA = params.filters.CHAPA;
             if (params.filters.COMPETENCIA) queryParams.COMPETENCIA = params.filters.COMPETENCIA;
             if (params.filters.CODSITUACAO) queryParams.CODSITUACAO = params.filters.CODSITUACAO;
+            if (params.filters.CODSTATUSAPONT_IN?.length) {
+                queryParams.CODSTATUSAPONT_IN = params.filters.CODSTATUSAPONT_IN.join(',');
+            }
             if (params.filters.NOME_FUNCIONARIO) queryParams.NOME_FUNCIONARIO = params.filters.NOME_FUNCIONARIO;
             if (params.filters.NOME_FUNCAO) queryParams.NOME_FUNCAO = params.filters.NOME_FUNCAO;
             if (params.filters.NOME_CENTRO_CUSTO) queryParams.NOME_CENTRO_CUSTO = params.filters.NOME_CENTRO_CUSTO;

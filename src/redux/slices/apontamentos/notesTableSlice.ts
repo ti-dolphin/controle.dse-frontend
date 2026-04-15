@@ -12,6 +12,7 @@ export interface NotesFilters {
   NOME_GERENTE: string;
   COMPETENCIA: number | null;
   CODSITUACAO: string;
+  CODSTATUSAPONT_IN: string[];
   DATA_DE: string;
   DATA_ATE: string;
   ATIVOS: boolean;
@@ -49,6 +50,7 @@ const initialState: NotesTableState = {
     NOME_GERENTE: "",
     COMPETENCIA: null,
     CODSITUACAO: "",
+    CODSTATUSAPONT_IN: [],
     DATA_DE: "",
     DATA_ATE: "",
     ATIVOS: true,
@@ -104,6 +106,7 @@ const notesTableSlice = createSlice({
         NOME_GERENTE: "",
         COMPETENCIA: null,
         CODSITUACAO: "",
+        CODSTATUSAPONT_IN: [],
         DATA_DE: "",
         DATA_ATE: "",
         ATIVOS: true,

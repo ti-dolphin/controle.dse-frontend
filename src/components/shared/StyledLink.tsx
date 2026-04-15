@@ -5,9 +5,10 @@ interface StyledLinkProps{
     onClick: () => void;
     fullScreen?: boolean;
     maxWidth?: number | string;
+    label?: string;
 }
 
-const StyledLink = ({ link, onClick, fullScreen = false, maxWidth }: StyledLinkProps) => {
+const StyledLink = ({ link, onClick, fullScreen = false, maxWidth, label }: StyledLinkProps) => {
   return (
     <Typography
         sx={{
@@ -28,7 +29,7 @@ const StyledLink = ({ link, onClick, fullScreen = false, maxWidth }: StyledLinkP
         onClick={onClick}
         title={link}
     >
-        {link}
+                {label || link}
     </Typography>
   )
 }
