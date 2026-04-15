@@ -13,4 +13,10 @@ export interface Product {
     perm_operacional?: number;
     perm_faturamento_direto?: number;
     perm_faturamento_dse?: number;
+        tipo_produto_patrimonio?: number | null;
+}
+
+export interface ProductPatrimonyType {
+    id: number;
+    nome: string | null;
 }

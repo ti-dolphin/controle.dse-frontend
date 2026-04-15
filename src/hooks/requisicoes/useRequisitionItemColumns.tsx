@@ -57,6 +57,13 @@ export const useRequisitionItemColumns = (
   const attendingItems = useSelector((state: RootState) => state.attendingItemsSlice.attendingItems);
   const items = useSelector((state: RootState) => state.requisitionItem.items);
   const requisition = useSelector((state: RootState) => state.requisition.requisition);
+  const hasStockToPurchaseSplit = useMemo(
+    () =>
+      items.some(
+        (item) => item.quantidade_solicitada != null || item.quantidade_estoque != null
+      ),
+    [items]
+  );
 
   const StyledBadge = styled(Badge)<BadgeProps>(({ theme }) => ({
     "& .MuiBadge-badge": {
@@ -177,7 +184,11 @@ export const useRequisitionItemColumns = (
     },
     {
       field: "quantidade",
-      headerName: attendingItems ? "Quantidade solicitada" : "QTD",
+      headerName: attendingItems
+        ? "Quantidade solicitada"
+        : hasStockToPurchaseSplit
+          ? "Comprar"
+          : "QTD",
       type: "number",
       editable: attendingItems ? false : true,
       width: attendingItems ? 200 : 100,
@@ -241,6 +252,59 @@ export const useRequisitionItemColumns = (
           </Box>
         );
       },
+    },
+    {
+      field: "quantidade_solicitada",
+      headerName: "Solicitado",
+      type: "number",
+      width: 120,
+      editable: false,
+      valueGetter: (value: any, row: any) => {
+        if (value !== null && value !== undefined) {
+          return value;
+        }
+        if (row?.quantidade_estoque !== null && row?.quantidade_estoque !== undefined) {
+          return Number(row.quantidade || 0) + Number(row.quantidade_estoque || 0);
+        }
+        return row?.quantidade || 0;
+      },
+      renderCell: (params: any) => (
+        <Box
+          sx={{
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "end",
+            height: "100%",
+          }}
+        >
+          <Typography fontSize="small" fontWeight="bold">
+            {params.value ?? 0}
+          </Typography>
+        </Box>
+      ),
+    },
+    {
+      field: "quantidade_estoque",
+      headerName: "Estoque",
+      type: "number",
+      width: 110,
+      editable: false,
+      valueGetter: (value: any) => Number(value || 0),
+      renderCell: (params: any) => (
+        <Box
+          sx={{
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "end",
+            height: "100%",
+            width: "100%",
+          }}
+        >
+          <Typography fontSize="small" fontWeight="bold" color="success.main">
+            {params.value || 0}
+          </Typography>
+        </Box>
+      ),
     },
     {
       field: "data_entrega",
@@ -471,8 +535,29 @@ export const useRequisitionItemColumns = (
   ];
 
   // Definindo filteredColumns para sempre executar hooks depois
-  const nonDefaultColumns = ["produto_quantidade_disponivel", "quantidade_atendida", "quantidade_disponivel"];
+  const nonDefaultColumns = [
+    "produto_quantidade_disponivel",
+    "quantidade_atendida",
+    "quantidade_disponivel",
+    "quantidade_solicitada",
+    "quantidade_estoque",
+  ];
   let filteredColumns = columns.filter((col) => !nonDefaultColumns.includes(col.field));
+
+  if (hasStockToPurchaseSplit && !updatingRecentProductsQuantity && !addingReqItems && !attendingItems) {
+    const fieldsToShow = ["quantidade_solicitada", "quantidade_estoque"];
+    const stockFlowColumns = columns.filter((col) => fieldsToShow.includes(col.field));
+    filteredColumns = [...filteredColumns, ...stockFlowColumns];
+
+    const quantityFlowOrder = ["quantidade_solicitada", "quantidade", "quantidade_estoque"];
+    const quantityFlowColumns = quantityFlowOrder
+      .map((field) => filteredColumns.find((col) => col.field === field))
+      .filter(Boolean) as GridColDef[];
+    const remainingColumns = filteredColumns.filter(
+      (col) => !quantityFlowOrder.includes(col.field)
+    );
+    filteredColumns = [...quantityFlowColumns, ...remainingColumns];
+  }
 
   // Se a requisição está no escopo de estoque (id_escopo_requisicao = 1), incluir coluna de estoque
   const isStockScope = requisition?.id_escopo_requisicao === 1;

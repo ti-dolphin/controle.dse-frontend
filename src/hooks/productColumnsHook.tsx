@@ -1,7 +1,7 @@
 import { GridColDef, GridRenderCellParams } from "@mui/x-data-grid";
 import { useDispatch, useSelector } from "react-redux";
 import { RootState } from "../redux/store";
-import { Badge, BadgeProps, Box, IconButton, styled, Tooltip, Typography } from "@mui/material";
+import { Badge, BadgeProps, Box, IconButton, Radio, RadioGroup, FormControlLabel, styled, Tooltip, Typography } from "@mui/material";
 import { blue, green, red } from "@mui/material/colors";
 import { useEffect, useState } from "react";
 import { set } from "lodash";
@@ -11,7 +11,9 @@ import { setViewingProductAttachment, setViewingStandardGuide, setProducts } fro
 import { setFeedback } from "../redux/slices/feedBackSlice";
 import { ProductService } from "../services/ProductService";
 import CircleIcon from '@mui/icons-material/Circle';
+import ClearIcon from '@mui/icons-material/Clear';
 import { useProductPermissions } from "./productPermissionsHook";
+import { ProductPatrimonyType } from "../models/Product";
 
 const StyledBadge = styled(Badge)<BadgeProps>(({ theme }) => ({
   "& .MuiBadge-badge": {
@@ -21,7 +23,13 @@ const StyledBadge = styled(Badge)<BadgeProps>(({ theme }) => ({
   },
 }));
 
-export const useProductColumns = () => {
+interface UseProductColumnsParams {
+  patrimonyTypes: ProductPatrimonyType[];
+  onUpdatePatrimonyType: (productId: number, patrimonyTypeId: number | null) => Promise<void>;
+  disablePatrimonyActions?: boolean;
+}
+
+export const useProductColumns = ({ patrimonyTypes, onUpdatePatrimonyType, disablePatrimonyActions = false }: UseProductColumnsParams) => {
   const dispatch = useDispatch();
   const {
     addingProducts,
@@ -128,7 +136,7 @@ export const useProductColumns = () => {
             <IconButton onClick={() => { dispatch(setViewingProductAttachment(params.row.ID)) }}>
               <StyledBadge
                 variant="standard"
-                badgeContent={params.row.anexos.length}
+                badgeContent={Array.isArray(params.row.anexos) ? params.row.anexos.length : 0}
                 color="primary"
               >
                 <FileIcon sx={{ fontSize: 14 }} />
@@ -157,7 +165,7 @@ export const useProductColumns = () => {
             <IconButton onClick={() => { dispatch(setViewingStandardGuide(params.row.ID)) }}>
               <StyledBadge
                 variant="standard"
-                badgeContent={params.row.anexos?.filter((a: any) => a.is_produto_padrao === true).length}
+                badgeContent={(params.row.anexos || []).filter((a: any) => a.is_produto_padrao === true).length}
                 color="secondary"
               >
                 <FileIcon sx={{ fontSize: 14 }} />
@@ -324,6 +332,59 @@ export const useProductColumns = () => {
       },
     },
     {
+      field: "tipo_produto_patrimonio",
+      headerName: "Patrimonio",
+      flex: 0.5,
+      editable: false,
+      sortable: false,
+      filterable: false,
+      renderCell: (params: GridRenderCellParams) => {
+        const rowValue = Number(params.row?.tipo_produto_patrimonio || 0);
+        const canEditPatrimony = !!(editProductFieldsPermitted || user?.PERM_ADMINISTRADOR === 1);
+
+        return (
+          <Box sx={{ display: "flex", alignItems: "center", height: "100%" }}>
+            <Tooltip title="Desmarcar patrimônio">
+              <span>
+                <IconButton
+                  size="small"
+                  onClick={async (e) => {
+                    e.stopPropagation();
+                    if (!canEditPatrimony || disablePatrimonyActions || rowValue === 0) return;
+                    await onUpdatePatrimonyType(Number(params.row.ID), null);
+                  }}
+                  disabled={!canEditPatrimony || disablePatrimonyActions || rowValue === 0}
+                >
+                  <ClearIcon sx={{ fontSize: 14 }} />
+                </IconButton>
+              </span>
+            </Tooltip>
+            <RadioGroup
+              row
+              value={rowValue > 0 ? String(rowValue) : ""}
+              onClick={(e) => e.stopPropagation()}
+              onChange={async (e) => {
+                const nextValue = Number(e.target.value);
+                if (!Number.isInteger(nextValue) || nextValue <= 0 || nextValue === rowValue) return;
+
+                await onUpdatePatrimonyType(Number(params.row.ID), nextValue);
+              }}
+            >
+              {patrimonyTypes.map((type) => (
+                <FormControlLabel
+                  key={type.id}
+                  value={String(type.id)}
+                  control={<Radio size="small" disabled={!canEditPatrimony || disablePatrimonyActions} />}
+                  label={type.nome || `Tipo ${type.id}`}
+                  sx={{ mr: 1.5, '& .MuiFormControlLabel-label': { fontSize: 12 } }}
+                />
+              ))}
+            </RadioGroup>
+          </Box>
+        );
+      },
+    },
+    {
       field: "anexos",
       headerName: "anexos",
       flex: 0.15,
@@ -342,7 +403,7 @@ export const useProductColumns = () => {
             <IconButton onClick={() => { dispatch(setViewingProductAttachment(params.row.ID)) }}>
               <StyledBadge
                 variant="standard"
-                badgeContent={params.row.anexos.length}
+                badgeContent={Array.isArray(params.row.anexos) ? params.row.anexos.length : 0}
                 color="primary"
               >
                 <FileIcon sx={{ fontSize: 14 }} />
@@ -371,7 +432,7 @@ export const useProductColumns = () => {
             <IconButton onClick={() => { dispatch(setViewingStandardGuide(params.row.ID)) }}>
               <StyledBadge
                 variant="standard"
-                badgeContent={params.row.anexos?.filter((a: any) => a.is_produto_padrao === true).length}
+                badgeContent={(params.row.anexos || []).filter((a: any) => a.is_produto_padrao === true).length}
                 color="secondary"
               >
                 <FileIcon sx={{ fontSize: 14 }} />
@@ -471,6 +532,16 @@ export const useProductColumns = () => {
       return;
     }
 
-  }, []);
+  }, [
+    isMobile,
+    addingProducts,
+    replacingItemProduct,
+    viewingProducts,
+    user?.PERM_ADMINISTRADOR,
+    editProductFieldsPermitted,
+    hasStockPermission,
+    patrimonyTypes,
+    dispatch,
+  ]);
   return { columns };
 }

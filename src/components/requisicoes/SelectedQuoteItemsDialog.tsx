@@ -2,11 +2,14 @@ import React, { useCallback, useEffect, useState } from "react";
 import {
   Box,
   Button,
+  Checkbox,
   CircularProgress,
   Dialog,
+  DialogActions,
   DialogContent,
   DialogTitle,
   Divider,
+  FormControlLabel,
   IconButton,
   Paper,
   Stack,
@@ -36,29 +39,33 @@ interface SelectedQuoteItemsDialogProps {
   open: boolean;
   onClose: () => void;
   idRequisicao: number;
+  requisitionTitle?: string;
 }
 
 const SelectedQuoteItemsDialog: React.FC<SelectedQuoteItemsDialogProps> = ({
   open,
   onClose,
   idRequisicao,
+  requisitionTitle,
 }) => {
   const [loading, setLoading] = useState(false);
   const [quoteGroups, setQuoteGroups] = useState<SelectedQuoteGroup[]>([]);
   const [isExportingPdf, setIsExportingPdf] = useState(false);
+  const [supplierDialogOpen, setSupplierDialogOpen] = useState(false);
+  const [selectedQuoteIds, setSelectedQuoteIds] = useState<number[]>([]);
 
   const theme = useTheme();
   const items = useSelector((state: RootState) => state.requisitionItem.items);
   const columns = useSelectedQuoteItemColumns();
 
-  const handleDownloadPdf = useCallback(async () => {
-    if (quoteGroups.length === 0) return;
+  const exportPdf = useCallback(async (groupsToExport: SelectedQuoteGroup[]) => {
+    if (groupsToExport.length === 0) return;
 
     setIsExportingPdf(true);
     try {
       const doc = new jsPDF({ orientation: "landscape", unit: "mm", format: "a4" });
 
-      quoteGroups.forEach(({ quote, selectedItems }, groupIndex) => {
+      groupsToExport.forEach(({ quote, selectedItems }, groupIndex) => {
         if (groupIndex > 0) {
           doc.addPage();
         }
@@ -74,7 +81,7 @@ const SelectedQuoteItemsDialog: React.FC<SelectedQuoteItemsDialogProps> = ({
 
         doc.setFontSize(10);
         doc.setTextColor(80, 80, 80);
-        doc.text(`Requisição ${idRequisicao}`, 14, 18);
+        doc.text(requisitionTitle || `Requisição ${idRequisicao}`, 14, 18);
 
         doc.setFontSize(10);
         doc.setTextColor(0, 0, 0);
@@ -157,7 +164,35 @@ const SelectedQuoteItemsDialog: React.FC<SelectedQuoteItemsDialogProps> = ({
     } finally {
       setIsExportingPdf(false);
     }
-  }, [idRequisicao, quoteGroups]);
+  }, [idRequisicao]);
+
+  const handleOpenSupplierDialog = useCallback(() => {
+    if (quoteGroups.length === 0) return;
+    setSelectedQuoteIds(quoteGroups.map(({ quote }) => quote.id_cotacao));
+    setSupplierDialogOpen(true);
+  }, [quoteGroups]);
+
+  const toggleQuoteSelection = useCallback((quoteId: number, checked: boolean) => {
+    setSelectedQuoteIds((prev) => {
+      if (checked) {
+        return prev.includes(quoteId) ? prev : [...prev, quoteId];
+      }
+      return prev.filter((id) => id !== quoteId);
+    });
+  }, []);
+
+  const handleConfirmSupplierSelection = useCallback(async () => {
+    const groupsToExport = quoteGroups.filter(({ quote }) =>
+      selectedQuoteIds.includes(quote.id_cotacao)
+    );
+
+    if (groupsToExport.length === 0) {
+      return;
+    }
+
+    setSupplierDialogOpen(false);
+    await exportPdf(groupsToExport);
+  }, [exportPdf, quoteGroups, selectedQuoteIds]);
 
   const fetchSelectedItems = useCallback(async () => {
     if (!idRequisicao) return;
@@ -215,7 +250,7 @@ const SelectedQuoteItemsDialog: React.FC<SelectedQuoteItemsDialogProps> = ({
                   variant="outlined"
                   size="small"
                   startIcon={isExportingPdf ? <CircularProgress size={14} /> : <PictureAsPdfIcon />}
-                  onClick={handleDownloadPdf}
+                  onClick={handleOpenSupplierDialog}
                   disabled={isExportingPdf || loading}
                 >
                   {isExportingPdf ? "Gerando PDF..." : "Baixar PDF"}
@@ -341,6 +376,45 @@ const SelectedQuoteItemsDialog: React.FC<SelectedQuoteItemsDialogProps> = ({
           )}
         </DialogContent>
       </Box>
+
+      <Dialog
+        open={supplierDialogOpen}
+        onClose={() => setSupplierDialogOpen(false)}
+        maxWidth="sm"
+        fullWidth
+      >
+        <DialogTitle>Selecionar fornecedores para o PDF</DialogTitle>
+        <DialogContent dividers>
+          <Stack spacing={0.5}>
+            {quoteGroups.map(({ quote, selectedItems }) => (
+              <FormControlLabel
+                key={quote.id_cotacao}
+                control={
+                  <Checkbox
+                    checked={selectedQuoteIds.includes(quote.id_cotacao)}
+                    onChange={(event) =>
+                      toggleQuoteSelection(quote.id_cotacao, event.target.checked)
+                    }
+                  />
+                }
+                label={`${quote.fornecedor || "Fornecedor"} | Cotação #${quote.id_cotacao} | ${selectedItems.length} item(ns)`}
+              />
+            ))}
+          </Stack>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setSupplierDialogOpen(false)} disabled={isExportingPdf}>
+            Cancelar
+          </Button>
+          <Button
+            onClick={handleConfirmSupplierSelection}
+            variant="contained"
+            disabled={isExportingPdf || selectedQuoteIds.length === 0}
+          >
+            Gerar PDF
+          </Button>
+        </DialogActions>
+      </Dialog>
     </Dialog>
   );
 };

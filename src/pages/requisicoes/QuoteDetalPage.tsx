@@ -44,39 +44,38 @@ const QuoteDetailPage = () => {
   };
 
   const handleSubmitQuote  = async (e : React.FormEvent<HTMLFormElement>, data : Quote) =>  { 
-      e.preventDefault();
-      const isSupplierAccess = accesType === "supplier";
-      const missingCnpjFornecedor = !String(data?.cnpj_fornecedor || "").trim();
-      const missingCondicaoPagamento = !Number(data?.id_condicao_pagamento || 0);
+    e.preventDefault();
+    const missingCnpjFornecedor = !String(data?.cnpj_fornecedor || "").trim();
+    const missingCondicaoPagamento = !Number(data?.id_condicao_pagamento || 0);
 
-      if (isSupplierAccess && (missingCnpjFornecedor || missingCondicaoPagamento)) {
-        dispatch(
-          setFeedback({
-            message: "Para enviar a cotação, CNPJ Fornecedor e Condição Pagamento são obrigatórios.",
-            type: "error",
-          })
-        );
-        return;
-      }
+    if (missingCnpjFornecedor || missingCondicaoPagamento) {
+      dispatch(
+        setFeedback({
+          message: "Para enviar a cotação, CNPJ Fornecedor e Condição Pagamento são obrigatórios.",
+          type: "error",
+        })
+      );
+      return;
+    }
 
-      try {  
-        const updatedQuote = await QuoteService.update(data.id_cotacao, {
-          descricao  : data.descricao,
-          observacao : data.observacao,
-          id_classificacao_fiscal : data.id_classificacao_fiscal,
-          id_condicao_pagamento : data.id_condicao_pagamento,
-          id_tipo_frete : data.id_tipo_frete,
-          fornecedor : data.fornecedor,
-          valor_frete : data.valor_frete,
-          valor_total : data.valor_total,
-          cnpj_faturamento: data.cnpj_faturamento,
-          cnpj_fornecedor : data.cnpj_fornecedor,
-        });
-        dispatch(setQuote(updatedQuote));
-        dispatch(setFeedback({ message: `Cotação atualizada com sucesso!`, type: 'success' }));
-      } catch(e : any) {  
-        dispatch(setFeedback({ message: `Erro ao atualizar cotação : ${e.message}`, type: 'error' }));
-      }
+    try {  
+      const updatedQuote = await QuoteService.update(data.id_cotacao, {
+        descricao  : data.descricao,
+        observacao : data.observacao,
+        id_classificacao_fiscal : data.id_classificacao_fiscal,
+        id_condicao_pagamento : data.id_condicao_pagamento,
+        id_tipo_frete : data.id_tipo_frete,
+        fornecedor : data.fornecedor,
+        valor_frete : data.valor_frete,
+        valor_total : data.valor_total,
+        cnpj_faturamento: data.cnpj_faturamento,
+        cnpj_fornecedor : data.cnpj_fornecedor,
+      });
+      dispatch(setQuote(updatedQuote));
+      dispatch(setFeedback({ message: `Cotação atualizada com sucesso!`, type: 'success' }));
+    } catch(e : any) {  
+      dispatch(setFeedback({ message: `Erro ao atualizar cotação : ${e.message}`, type: 'error' }));
+    }
   }
 
   const handleBack = async () => {
@@ -103,18 +102,17 @@ const QuoteDetailPage = () => {
   };
 
   const hanldeCreateSupplierAccess = async ( ) => { 
-      try{ 
+      try { 
         const supplierUrl = await UserService.getSupplierAcces(Number(id_cotacao), Number(requisition.ID_REQUISICAO));
         navigator.clipboard.writeText(`${domain}/${supplierUrl}`);
         dispatch(setFeedback({ message: `Acesso ao fornecedor copiado para a rea de transferência!`, type: 'success' }));
         return;
-      }catch(e: any){ 
+      } catch(e: any){ 
         dispatch(setFeedback({ 
           message: `Erro ao criar acesso ao fornecedor : ${e.message}`, 
           type: 'error'
         }))
       }
-
   };
 
   const fetchData = useCallback(async () => {

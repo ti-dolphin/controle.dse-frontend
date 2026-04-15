@@ -5,6 +5,8 @@ import { RequisitionItemAttachment } from "./RequisitionItemAttachment";
 export interface RequisitionItem {
     id_item_requisicao: number;
     quantidade: number;
+    quantidade_solicitada?: number | null;
+    quantidade_estoque?: number | null;
     target_price: number | null;
     id_requisicao: number;
     id_produto: number;
