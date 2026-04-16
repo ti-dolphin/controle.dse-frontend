@@ -11,6 +11,7 @@ export interface Requisition {
   ID_RESPONSAVEL: number; 
   TIPO: number; 
   id_requisicao_original: number;
+  id_req_original?: number;
   data_alteracao: string;
 
   data_criacao: string; 

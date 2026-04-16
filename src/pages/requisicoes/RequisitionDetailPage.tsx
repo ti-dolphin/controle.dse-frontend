@@ -3,17 +3,22 @@ import {
   AccordionDetails,
   AccordionSummary,
   Box,
-  Grid,
-  Paper,
-  Typography,
-  Divider,
-  Stack,
-  Button,
-  DialogTitle,
+  CircularProgress,
   Dialog,
   DialogActions,
   DialogContent,
+  DialogTitle,
+  Divider,
+  Grid,
   IconButton,
+  List,
+  ListItem,
+  ListItemButton,
+  ListItemText,
+  Paper,
+  Stack,
+  Button,
+  Typography,
 } from "@mui/material";
 import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
 import { useEffect, useMemo, useRef, useState } from "react";
@@ -42,6 +47,7 @@ import FullscreenIcon from "@mui/icons-material/Fullscreen";
 import RequisitionCommentList from "../../components/requisicoes/RequisitionCommentList";
 import { useIsMobile } from "../../hooks/useIsMobile";
 import SelectedQuoteItemsDialog from "../../components/requisicoes/SelectedQuoteItemsDialog";
+import { Requisition } from "../../models/requisicoes/Requisition";
 
 const RequisitionDetailPage = () => {
 
@@ -55,6 +61,9 @@ const RequisitionDetailPage = () => {
   const [quoteListOpen, setQuoteListOpen] = useState<boolean>(false);
   const [buyerDialogOpen, setBuyerDialogOpen] = useState<boolean>(false);
   const [selectedItemsDialogOpen, setSelectedItemsDialogOpen] = useState<boolean>(false);
+  const [linkedReqDialogOpen, setLinkedReqDialogOpen] = useState<boolean>(false);
+  const [linkedRequisitions, setLinkedRequisitions] = useState<Requisition[]>([]);
+  const [loadingLinkedRequisitions, setLoadingLinkedRequisitions] = useState<boolean>(false);
   const [fullScreenItems, setFullScreenItems] = useState<boolean>(false);
   const [fullScreenTimeline, setFullScreenTimeline] = useState<boolean>(false);
   const [fullScreenAttachments, setFullScreenAttachments] = useState<boolean>(false);
@@ -159,6 +168,35 @@ const RequisitionDetailPage = () => {
 
   const handleCloseBuyerDialog = () => {
     setBuyerDialogOpen(false);
+  };
+
+  const handleOpenLinkedRequisitions = async () => {
+    if (!requisition?.ID_REQUISICAO) return;
+
+    setLinkedReqDialogOpen(true);
+    setLoadingLinkedRequisitions(true);
+
+    try {
+      const linkedReqs = await RequisitionService.getLinkedRequisitions(
+        requisition.ID_REQUISICAO
+      );
+      setLinkedRequisitions(linkedReqs || []);
+    } catch (e) {
+      dispatch(
+        setFeedback({
+          message: "Erro ao buscar requisições vinculadas",
+          type: "error",
+        })
+      );
+      setLinkedRequisitions([]);
+    } finally {
+      setLoadingLinkedRequisitions(false);
+    }
+  };
+
+  const openLinkedRequisition = (linkedReqId: number) => {
+    setLinkedReqDialogOpen(false);
+    navigate(`/requisicoes/${linkedReqId}`);
   };
 
   const handleConfirmBuyerChange = async (buyerId: number | null) => {
@@ -549,6 +587,13 @@ const RequisitionDetailPage = () => {
                     Ver Itens Cotados
                   </Button>
                 )}
+                <Button
+                  onClick={handleOpenLinkedRequisitions}
+                  variant="outlined"
+                  size="small"
+                >
+                  Requisições Vinculadas
+                </Button>
               </Stack>
 
               <Box
@@ -724,6 +769,50 @@ const RequisitionDetailPage = () => {
         </DialogContent>
       </Dialog>
 
+      <Dialog
+        maxWidth="sm"
+        fullWidth
+        open={linkedReqDialogOpen}
+        onClose={() => setLinkedReqDialogOpen(false)}
+      >
+        <DialogTitle color="primary.main">Requisições Vinculadas</DialogTitle>
+        <DialogContent dividers>
+          {loadingLinkedRequisitions ? (
+            <Stack alignItems="center" justifyContent="center" py={4}>
+              <CircularProgress size={26} />
+            </Stack>
+          ) : linkedRequisitions.length === 0 ? (
+            <Typography color="text.secondary">
+              Nenhuma requisição vinculada encontrada.
+            </Typography>
+          ) : (
+            <List sx={{ py: 0 }}>
+              {linkedRequisitions.map((linkedReq) => {
+                const isCurrent =
+                  Number(linkedReq.ID_REQUISICAO) === Number(requisition.ID_REQUISICAO);
+                const parentId = Number(linkedReq.id_req_original || 0);
+
+                return (
+                  <ListItem key={linkedReq.ID_REQUISICAO} disablePadding divider>
+                    <ListItemButton
+                      onClick={() => openLinkedRequisition(linkedReq.ID_REQUISICAO)}
+                    >
+                      <ListItemText
+                        primary={`REQ ${linkedReq.ID_REQUISICAO}${isCurrent ? " (Atual)" : ""}`}
+                        secondary={`Origem: ${parentId ? `REQ ${parentId}` : "Requisição raiz"} | ${linkedReq.DESCRIPTION || "Sem descrição"}`}
+                      />
+                    </ListItemButton>
+                  </ListItem>
+                );
+              })}
+            </List>
+          )}
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setLinkedReqDialogOpen(false)}>Fechar</Button>
+        </DialogActions>
+      </Dialog>
+
       {/* Dialog tela cheia items */}
       <Dialog
         fullScreen
@@ -779,6 +868,13 @@ const RequisitionDetailPage = () => {
                   Ver Itens Cotados
                 </Button>
               )}
+              <Button
+                onClick={handleOpenLinkedRequisitions}
+                variant="outlined"
+                size="small"
+              >
+                Requisições Vinculadas
+              </Button>
               <Box ml="auto" display="flex" alignItems="center" gap={2}>
                 <Typography variant="subtitle2" color="success.main">
                   Custo total:{" "}

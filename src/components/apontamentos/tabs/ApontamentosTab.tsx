@@ -16,7 +16,7 @@ import OpenWithIcon from '@mui/icons-material/OpenWith'
 import { setFeedback } from "../../../redux/slices/feedBackSlice";
 import { clearCommonFilters } from "../../../redux/slices/apontamentos/commonFiltersSlice";
 import NotesService from "../../../services/NotesService";
-import { Box, Button, useTheme, FormControlLabel, Checkbox, CircularProgress, Tooltip, IconButton } from "@mui/material";
+import { Box, Button, useTheme, FormControlLabel, Checkbox, CircularProgress, Tooltip, IconButton, Menu, MenuItem, ListItemText } from "@mui/material";
 import { useNotesColumns } from "../../../hooks/apontamentos/useNotesColumns";
 import BaseDataTable from "../../shared/BaseDataTable";
 import { useGridApiRef, GridRowSelectionModel } from "@mui/x-data-grid";
@@ -31,6 +31,11 @@ const TABLE_KEY='pointing-list'
 interface AppliedNotesQuery {
   filters: any;
   searchTerm: string;
+}
+
+interface StatusApontamentoOption {
+  CODSTATUSAPONT: string;
+  DESCRICAO: string;
 }
 
 const normalizeDateValue = (value: unknown): string | null => {
@@ -88,6 +93,8 @@ const ApontamentosTab: React.FC<ApontamentosTabProps> = ({
   const [selectedCodapont, setSelectedCodapont] = useState<number | null>(null);
   const [isExporting, setIsExporting] = useState(false);
   const [columnOrderDialogOpen, setColumnOrderDialogOpen] = useState(false)
+  const [statusMenuAnchorEl, setStatusMenuAnchorEl] = useState<null | HTMLElement>(null);
+  const [statusOptions, setStatusOptions] = useState<StatusApontamentoOption[]>([]);
 
   const { rows, loading, filters, page, pageSize, totalRows, refreshNotes } = useSelector(
     (state: RootState) => state.notesTable
@@ -116,6 +123,38 @@ const ApontamentosTab: React.FC<ApontamentosTabProps> = ({
     dispatch(clearFilters());
     dispatch(clearCommonFilters());
   }, [dispatch]);
+
+  const openStatusMenu = (event: React.MouseEvent<HTMLElement>) => {
+    setStatusMenuAnchorEl(event.currentTarget);
+  };
+
+  const closeStatusMenu = () => {
+    setStatusMenuAnchorEl(null);
+  };
+
+  const toggleStatusFilter = useCallback((statusCode: string, checked: boolean) => {
+    const currentCodes = filters.CODSTATUSAPONT_IN || [];
+    const nextCodes = checked
+      ? [...currentCodes, statusCode]
+      : currentCodes.filter((code) => code !== statusCode);
+
+    const nextFilters = {
+      ...filters,
+      CODSTATUSAPONT_IN: Array.from(new Set(nextCodes)),
+    };
+
+    dispatch(setFilters(nextFilters));
+    dispatch(setPage(0));
+    setAppliedQuery({
+      filters: {
+        ...nextFilters,
+        DATA_DE: commonFilters.DATA_DE,
+        DATA_ATE: commonFilters.DATA_ATE,
+        ATIVOS: commonFilters.ATIVOS,
+      },
+      searchTerm: commonFilters.searchTerm,
+    });
+  }, [dispatch, filters, commonFilters]);
 
   const handleCommentClick = useCallback((codapont: number) => {
     setSelectedCodapont(codapont);
@@ -260,6 +299,20 @@ const ApontamentosTab: React.FC<ApontamentosTabProps> = ({
     }
   }, [dispatch, appliedQuery, page, pageSize, refreshNotes]);
 
+  const fetchStatusOptions = useCallback(async () => {
+    try {
+      const statuses = await NotesService.getStatusApontamento();
+      setStatusOptions(Array.isArray(statuses) ? statuses : []);
+    } catch (e: any) {
+      dispatch(
+        setFeedback({
+          message: e.message || "Houve um erro ao buscar os status de apontamento",
+          type: "error",
+        })
+      );
+    }
+  }, [dispatch]);
+
   const handleProcessRowUpdate = useCallback(
     async (newRow: any, oldRow: any) => {
       const oldValue = normalizeDateValue(oldRow.DATA_ULTIMA_FOLGA_DE_CAMPO);
@@ -327,6 +380,10 @@ const ApontamentosTab: React.FC<ApontamentosTabProps> = ({
     }
   }, [fetchData, appliedQuery]);
 
+  useEffect(() => {
+    fetchStatusOptions();
+  }, [fetchStatusOptions]);
+
   return (
     <>
       <Box
@@ -380,6 +437,38 @@ const ApontamentosTab: React.FC<ApontamentosTabProps> = ({
           Limpar filtros
         </Button>
 
+        <Button
+          sx={{ height: 32, borderRadius: 0, fontSize: 12 }}
+          variant="outlined"
+          onClick={openStatusMenu}
+          disabled={loading || statusOptions.length === 0}
+        >
+          {filters.CODSTATUSAPONT_IN.length > 0
+            ? `Status (${filters.CODSTATUSAPONT_IN.length})`
+            : "Status"}
+        </Button>
+
+        <Menu
+          anchorEl={statusMenuAnchorEl}
+          open={Boolean(statusMenuAnchorEl)}
+          onClose={closeStatusMenu}
+          PaperProps={{ style: { maxHeight: 320, width: 280 } }}
+        >
+          {statusOptions.map((status) => {
+            const checked = (filters.CODSTATUSAPONT_IN || []).includes(status.CODSTATUSAPONT);
+            return (
+              <MenuItem
+                key={status.CODSTATUSAPONT}
+                dense
+                onClick={() => toggleStatusFilter(status.CODSTATUSAPONT, !checked)}
+              >
+                <Checkbox checked={checked} size="small" />
+                <ListItemText primary={status.DESCRICAO} />
+              </MenuItem>
+            );
+          })}
+        </Menu>
+
         <Tooltip title="Ordenar colunas">
           <IconButton
             onClick={() => setColumnOrderDialogOpen(true)}
@@ -416,7 +505,7 @@ const ApontamentosTab: React.FC<ApontamentosTabProps> = ({
         rows={rows}
         disableColumnMenu
         disableColumnFilter
-        rowHeight={40}
+        rowHeight={26}
         columns={columns}
         columnVisibilityModel={columnVisibilityModel}
         loading={loading}
@@ -437,6 +526,10 @@ const ApontamentosTab: React.FC<ApontamentosTabProps> = ({
         processRowUpdate={handleProcessRowUpdate}
         pageSizeOptions={[25, 50, 100]}
         sx={{
+          "& .MuiDataGrid-cell": {
+            fontSize: "9.5px",
+            px: 0.375,
+          },
           "& .folga-warning": {
             backgroundColor: "#fff3cc !important",
           },

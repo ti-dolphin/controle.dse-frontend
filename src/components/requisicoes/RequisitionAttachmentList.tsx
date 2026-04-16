@@ -50,6 +50,29 @@ const RequisitionAttachmentList = ({
   const [linkDialogOpen, setLinkDialogOpen] = useState(false);
   const [linkInput, setLinkInput] = useState("");
 
+  const getAttachmentLabel = (file: RequisitionFile) => {
+    if (file.nome_arquivo?.trim()) {
+      return file.nome_arquivo.trim();
+    }
+
+    const isUrl =
+      typeof file.arquivo === "string" &&
+      (file.arquivo.startsWith("http://") || file.arquivo.startsWith("https://"));
+
+    if (!isUrl) {
+      return "Arquivo sem nome";
+    }
+
+    try {
+      const url = new URL(file.arquivo);
+      const pathnameParts = url.pathname.split("/").filter(Boolean);
+      const lastSegment = pathnameParts[pathnameParts.length - 1] || "";
+      return decodeURIComponent(lastSegment) || "Abrir arquivo";
+    } catch {
+      return "Abrir arquivo";
+    }
+  };
+
   const openViewFile = (file: RequisitionFile) => {
     setSelectedFile(file);
   };
@@ -242,6 +265,7 @@ const RequisitionAttachmentList = ({
               <Stack direction="column" alignItems="start" gap={0.2}>
                 <StyledLink
                   link={file.arquivo}
+                  label={getAttachmentLabel(file)}
                   fullScreen={fullScreen}
                   onClick={() => {
                     const fileExtensions = [
