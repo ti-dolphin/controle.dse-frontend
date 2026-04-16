@@ -505,7 +505,7 @@ const ApontamentosTab: React.FC<ApontamentosTabProps> = ({
         rows={rows}
         disableColumnMenu
         disableColumnFilter
-        rowHeight={40}
+        rowHeight={26}
         columns={columns}
         columnVisibilityModel={columnVisibilityModel}
         loading={loading}
@@ -526,6 +526,10 @@ const ApontamentosTab: React.FC<ApontamentosTabProps> = ({
         processRowUpdate={handleProcessRowUpdate}
         pageSizeOptions={[25, 50, 100]}
         sx={{
+          "& .MuiDataGrid-cell": {
+            fontSize: "9.5px",
+            px: 0.375,
+          },
           "& .folga-warning": {
             backgroundColor: "#fff3cc !important",
           },
