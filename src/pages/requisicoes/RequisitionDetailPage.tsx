@@ -196,7 +196,8 @@ const RequisitionDetailPage = () => {
 
   const openLinkedRequisition = (linkedReqId: number) => {
     setLinkedReqDialogOpen(false);
-    navigate(`/requisicoes/${linkedReqId}`);
+    const linkedReqPath = `/requisicoes/${linkedReqId}`;
+    window.open(linkedReqPath, "_blank", "noopener,noreferrer");
   };
 
   const handleConfirmBuyerChange = async (buyerId: number | null) => {
