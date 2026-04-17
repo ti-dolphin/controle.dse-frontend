@@ -51,6 +51,33 @@ const RequisitionTimeline = ({ fullScreen = false }: RequisitionTimelineProps) =
     }
   }, [requisition]);
 
+  const getBuyerChangeData = (alteration: RequisitionStatusAlteration) => {
+    if (alteration.transicao?.nome_transicao === "alterou comprador") {
+      return {
+        from: alteration.pessoa_origem?.NOME || "Não atribuído",
+        to: alteration.pessoa_destino?.NOME || "Não atribuído",
+      };
+    }
+
+    if (!alteration.justificativa) {
+      return null;
+    }
+
+    try {
+      const metadata = JSON.parse(alteration.justificativa);
+      if (metadata?.tipo !== "troca_comprador") {
+        return null;
+      }
+
+      return {
+        from: metadata.comprador_anterior?.nome || "Não atribuído",
+        to: metadata.comprador_novo?.nome || "Não atribuído",
+      };
+    } catch (_error) {
+      return null;
+    }
+  };
+
   return (
     <Box sx={{ 
       maxWidth: fullScreen ? 'none' : 600, 
@@ -62,7 +89,10 @@ const RequisitionTimeline = ({ fullScreen = false }: RequisitionTimelineProps) =
       <List sx={{ display: "flex", flexDirection: "column", gap: 1.5 }}>
         {alterations.length > 0 ? (
           alterations.map(
-            (alteration: RequisitionStatusAlteration, index: number) => (
+            (alteration: RequisitionStatusAlteration, index: number) => {
+              const buyerChangeData = getBuyerChangeData(alteration);
+
+              return (
               <React.Fragment key={alteration.id_alteracao}>
                 <ListItem
                   sx={{
@@ -106,13 +136,15 @@ const RequisitionTimeline = ({ fullScreen = false }: RequisitionTimelineProps) =
                   <ListItemText
                     primary={
                       <Typography fontSize="small">
-                        {`${alteration.pessoa_alterado_por?.NOME} ${alteration.transicao?.nome_transicao}`}
-                        {alteration.pessoa_destino && (
+                        {buyerChangeData
+                          ? `Troca de comprador ${buyerChangeData.from} -> ${buyerChangeData.to}`
+                          : `${alteration.pessoa_alterado_por?.NOME} ${alteration.transicao?.nome_transicao}`}
+                        {!buyerChangeData && alteration.pessoa_destino && (
                           <Typography component="span" fontSize="small" color="text.secondary">
                             {` → ${alteration.pessoa_destino.NOME}`}
                           </Typography>
                         )}
-                        {!alteration.pessoa_destino && alteration.perfil_destino && (
+                        {!buyerChangeData && !alteration.pessoa_destino && alteration.perfil_destino && (
                           <Typography component="span" fontSize="small" color="text.secondary">
                             {` → ${alteration.perfil_destino}`}
                           </Typography>
@@ -124,7 +156,7 @@ const RequisitionTimeline = ({ fullScreen = false }: RequisitionTimelineProps) =
                         <Typography fontSize="small">
                           {getDateStringFromISOstring(alteration.data_alteracao)}
                         </Typography>
-                        {alteration.justificativa && (
+                        {!buyerChangeData && alteration.justificativa && (
                           <Typography
                             variant="body2"
                             color="text.secondary"
@@ -139,7 +171,7 @@ const RequisitionTimeline = ({ fullScreen = false }: RequisitionTimelineProps) =
                 </ListItem>
                 {index < alterations.length - 1 && <Divider />}
               </React.Fragment>
-            )
+            )}
           )
         ) : (
           <ListItem>

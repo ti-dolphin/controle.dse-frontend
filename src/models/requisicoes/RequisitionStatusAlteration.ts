@@ -10,6 +10,7 @@ export interface RequisitionStatusAlteration {
     justificativa: string;
     id_status_anterior: number;
     pessoa_alterado_por? : ReducedUser;
+    pessoa_origem?: ReducedUser | null;
     transicao?: RequisitionStatusTransition;
     pessoa_destino?: ReducedUser;
     perfil_destino?: string;

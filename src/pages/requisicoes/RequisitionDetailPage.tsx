@@ -209,7 +209,7 @@ const RequisitionDetailPage = () => {
         message: 'Comprador atualizado com sucesso',
         type: 'success'
       }));
-      fetchData(); // Recarrega os dados da requisição
+      fetchData();
     } catch (error) {
       dispatch(setFeedback({
         message: 'Erro ao atualizar comprador',
@@ -218,12 +218,12 @@ const RequisitionDetailPage = () => {
     }
   };
 
-  const handleBack =( ) => {
+  const handleBack = () => {
     navigate("/requisicoes");
     dispatch(clearRequisition());
   };
 
-  const shouldShowAddItemsButton = ( ) => { 
+  const shouldShowAddItemsButton = () => { 
     return (
       user?.PERM_COMPRADOR ||
       (Number(requisition?.ID_RESPONSAVEL) === Number(user?.CODPESSOA) &&
@@ -231,8 +231,7 @@ const RequisitionDetailPage = () => {
     );
   }
 
-  const shouldShowQuoteListButton = ( ) => { 
-    // Se a requisição ainda não foi carregada, não mostra o botão
+  const shouldShowQuoteListButton = () => { 
     if (!requisition || !requisition.status) {
       return false;
     }
