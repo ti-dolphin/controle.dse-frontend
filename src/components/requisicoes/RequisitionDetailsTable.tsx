@@ -42,10 +42,8 @@ const DetailRow: React.FC<DetailRowProps> = ({ label, value, onDoubleClick, clic
   <TableRow
     sx={{
       height: 20,
-      cursor: clickable ? "pointer" : "default",
-      "&:hover": clickable ? { backgroundColor: "action.hover" } : {},
+      cursor: "default",
     }}
-    onDoubleClick={onDoubleClick}
   >
     <TableCell
       sx={{
@@ -72,7 +70,13 @@ const DetailRow: React.FC<DetailRowProps> = ({ label, value, onDoubleClick, clic
       <Typography
         fontSize={12}
         color="text.primary"
-        sx={{ lineHeight: "1.2", fontWeight: 400 }}
+        sx={{
+          lineHeight: "1.2",
+          fontWeight: 400,
+          cursor: clickable ? "pointer" : "default",
+          "&:hover": clickable ? { textDecoration: "underline" } : {},
+        }}
+        onDoubleClick={onDoubleClick}
       >
         {value || "-"}
       </Typography>
