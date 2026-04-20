@@ -26,6 +26,7 @@ import FileDownloadIcon from '@mui/icons-material/FileDownload';
 import { formatNotesForExcel, exportToExcel } from "../../../utils/excelExport";
 import { ColumnReorderDialog } from "../../shared/ColumnReorderDialog";
 import { usePersistedColumnOrder, ColumnPreference } from "../../../hooks/table/usePersistedColumnOrder";
+import TomadoresDialog from "../TomadoresDialog";
 const TABLE_KEY='pointing-list'
 
 interface AppliedNotesQuery {
@@ -92,6 +93,7 @@ const ApontamentosTab: React.FC<ApontamentosTabProps> = ({
   const [commentDialogOpen, setCommentDialogOpen] = useState(false);
   const [selectedCodapont, setSelectedCodapont] = useState<number | null>(null);
   const [isExporting, setIsExporting] = useState(false);
+  const [tomadoresDialogOpen, setTomadoresDialogOpen] = useState(false);
   const [columnOrderDialogOpen, setColumnOrderDialogOpen] = useState(false)
   const [statusMenuAnchorEl, setStatusMenuAnchorEl] = useState<null | HTMLElement>(null);
   const [statusOptions, setStatusOptions] = useState<StatusApontamentoOption[]>([]);
@@ -162,6 +164,7 @@ const ApontamentosTab: React.FC<ApontamentosTabProps> = ({
   }, []);
 
   const canEditFolgaCampo = !!(user?.PERM_APONT || user?.PERM_ADMINISTRADOR);
+  const canAccessTomadoresReport = !!(user?.PERM_GESTAO_PESSOAS || user?.PERM_ADMINISTRADOR);
   const { columns: rawColumns } = useNotesColumns(handleChangeFilters, handleCommentClick, canEditFolgaCampo);
 
   const { orderedColumns: columns, columnVisibilityModel, saveColumnOrder, removeColumnOrder } = usePersistedColumnOrder(
@@ -492,6 +495,17 @@ const ApontamentosTab: React.FC<ApontamentosTabProps> = ({
           sx={{ height: 32, borderRadius: 0, fontSize: 12, marginLeft: "auto" }}
           variant="contained"
           color="primary"
+          disabled={!canAccessTomadoresReport}
+          onClick={() => setTomadoresDialogOpen(true)}
+          title={!canAccessTomadoresReport ? "Você não tem permissão para acessar relatório de tomadores" : ""}
+        >
+          Relatório de Tomadores
+        </Button>
+
+        <Button
+          sx={{ height: 32, borderRadius: 0, fontSize: 12 }}
+          variant="contained"
+          color="primary"
           disabled={selectedApontamentos.length === 0 || (!user?.PERM_APONT && !user?.PERM_ADMINISTRADOR)}
           onClick={onApontarClick}
           title={(!user?.PERM_APONT && !user?.PERM_ADMINISTRADOR) ? "Você não tem permissão para apontar" : ""}
@@ -567,6 +581,10 @@ const ApontamentosTab: React.FC<ApontamentosTabProps> = ({
         }
         onApply={handleApplyColumnOrder}
         onRemoveSavedOrder={removeSavedColumnOrder}
+      />
+      <TomadoresDialog
+        open={tomadoresDialogOpen}
+        onClose={() => setTomadoresDialogOpen(false)}
       />
     </>
   );

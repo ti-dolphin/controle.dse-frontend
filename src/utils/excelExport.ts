@@ -72,6 +72,17 @@ export const formatNotesForExcel = (
   });
 };
 
+export const formatTomadoresForExcel = (tomadores: any[]): any[] => {
+  return tomadores.map((tomador) => ({
+    Chapa: tomador.CHAPA ?? '',
+    Funcionário: tomador.NOME_FUNCIONARIO ?? '',
+    'Centro de Custo': tomador.NOME_CENTRO_CUSTO ?? '',
+    'Código Reduzido': tomador.CODREDUZIDO ?? '',
+    'Quantidade de Dias': Number(tomador.QUANTIDADE_DIAS ?? 0),
+    'Percentual de Dias (%)': Number(tomador.PERCENTUAL_DIAS ?? 0),
+  }));
+};
+
 /**
  * Normaliza valores exportados para um formato legível em Excel
  */

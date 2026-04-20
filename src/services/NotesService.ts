@@ -24,6 +24,24 @@ export interface ProblemaQueryParams {
   pageSize?: number;
 }
 
+export interface TomadoresFilters {
+    NOME_FUNCIONARIO?: string;
+    NOME_CENTRO_CUSTO?: string;
+    CODCCUSTO?: string;
+    CODLIDER?: string;
+    DATA_DE?: string;
+    DATA_ATE?: string;
+    ATIVOS?: boolean;
+}
+
+export interface TomadoresQueryParams {
+    searchTerm?: string;
+    filters?: TomadoresFilters;
+    page?: number;
+    pageSize?: number;
+    all?: boolean;
+}
+
 export interface PaginatedResponse<T> {
   data: T[];
   total: number;
@@ -145,6 +163,39 @@ const NotesService = {
         }
         
         const response = await api.get('/notes/problema', { params: queryParams });
+        return response.data;
+    },
+
+    getTomadores: async (params?: TomadoresQueryParams) => {
+        const queryParams: Record<string, any> = {};
+
+        if (params?.filters) {
+            if (params.filters.NOME_FUNCIONARIO) queryParams.NOME_FUNCIONARIO = params.filters.NOME_FUNCIONARIO;
+            if (params.filters.NOME_CENTRO_CUSTO) queryParams.NOME_CENTRO_CUSTO = params.filters.NOME_CENTRO_CUSTO;
+            if (params.filters.CODCCUSTO) queryParams.CODCCUSTO = params.filters.CODCCUSTO;
+            if (params.filters.CODLIDER) queryParams.CODLIDER = params.filters.CODLIDER;
+            if (params.filters.DATA_DE) queryParams.DATA_DE = params.filters.DATA_DE;
+            if (params.filters.DATA_ATE) queryParams.DATA_ATE = params.filters.DATA_ATE;
+            if (params.filters.ATIVOS !== undefined) queryParams.ATIVOS = params.filters.ATIVOS;
+        }
+
+        if (params?.searchTerm) {
+            queryParams.searchTerm = params.searchTerm;
+        }
+
+        if (params?.page !== undefined) {
+            queryParams.page = params.page;
+        }
+
+        if (params?.pageSize !== undefined) {
+            queryParams.pageSize = params.pageSize;
+        }
+
+        if (params?.all) {
+            queryParams.all = true;
+        }
+
+        const response = await api.get('/notes/tomadores', { params: queryParams });
         return response.data;
     },
 
