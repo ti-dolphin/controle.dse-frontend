@@ -27,6 +27,7 @@ import RequisitionItemsTable from "./RequisitionItemsTable";
 import { set } from "lodash";
 import { RequisitionItemAttachmentService } from "../../services/requisicoes/RequisitionItemAttachmentService";
 import { RequisitionFileService } from "../../services/requisicoes/RequisitionFileService";
+import { PatrimonyService } from "../../services/patrimonios/PatrimonyService";
 
 interface RequisitionStatusStepperProps {
   id_requisicao: number;
@@ -79,6 +80,15 @@ function CustomStepIcon(props: any) {
 const RequisitionStatusStepper = ({
   id_requisicao,
 }: RequisitionStatusStepperProps) => {
+  const normalizeStatusName = (value?: string | null) => {
+    if (!value) return "";
+    return value
+      .normalize("NFD")
+      .replace(/[\u0300-\u036f]/g, "")
+      .toLowerCase()
+      .trim();
+  };
+
   const user = useSelector((state: RootState) => state.user.user);
   const dispatch = useDispatch();
   const navigate = useNavigate();
@@ -207,6 +217,36 @@ const RequisitionStatusStepper = ({
     const noItems = items.length === 0;
     if (noItems) {
       throw new Error("Requisição sem itens");
+    }
+
+    const currentStatusName = normalizeStatusName(requisition.status?.nome);
+    const isAdvancingFromCadastroPatrimonio =
+      advancingStatus && currentStatusName === "cadastrar patrimonio";
+
+    if (isAdvancingFromCadastroPatrimonio) {
+      const requiredPatrimonyItems = items.filter((item) => {
+        const patrimonyType = Number(item?.produto?.tipo_produto_patrimonio ?? 0);
+        return patrimonyType === 1 || patrimonyType === 2;
+      });
+
+      if (requiredPatrimonyItems.length > 0) {
+        const patrimonies = await PatrimonyService.getMany();
+        const registeredItemIds = new Set<number>(
+          patrimonies
+            .map((patrimony: any) => Number(patrimony?.id_item || 0))
+            .filter((idItem: number) => idItem > 0)
+        );
+
+        const pendingItems = requiredPatrimonyItems.filter(
+          (item) => !registeredItemIds.has(Number(item.id_item_requisicao))
+        );
+
+        if (pendingItems.length > 0) {
+          throw new Error(
+            "Cadastre patrimônio para todos os itens obrigatórios antes de avançar a etapa."
+          );
+        }
+      }
     }
 
     if (newStatus.nome === "Em Cotação" && advancingStatus) {

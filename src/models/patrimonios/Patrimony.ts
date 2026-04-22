@@ -14,6 +14,7 @@ export interface Patrimony {
     fabricante: string | null;
     valor_compra: number;
     id_produto: number;
+    id_item?: number | null;
     calibracao: number;
     data_proxima_calibracao: string | null;
 }
