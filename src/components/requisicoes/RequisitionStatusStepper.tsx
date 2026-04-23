@@ -18,7 +18,7 @@ import { gridColumnLookupSelector } from "@mui/x-data-grid";
 import { setRefresh } from "../../redux/slices/requisicoes/requisitionItemSlice";
 import QuoteService from "../../services/requisicoes/QuoteService";
 import { useNavigate } from "react-router-dom";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import ElegantInput from "../shared/ui/Input";
 import RequisitionCommentService from "../../services/requisicoes/RequisitionCommentService";
 import { addComment } from "../../redux/slices/requisicoes/requisitionCommentSlice";
@@ -105,7 +105,6 @@ const RequisitionStatusStepper = ({
     permissionToActivate,
     permissionToRevertStatus,
   } = useRequisitionStatusPermissions(user, requisition);
-  const currentStatusIndex = requisition.status?.etapa ?? 0;
   const { statusList } = useRequisitionStatus(id_requisicao);
   const { refresh } = useSelector((state: RootState) => state.requisitionItem);
   const [fillingComment, setFillingComment] = useState<boolean>(false);
@@ -145,6 +144,63 @@ const RequisitionStatusStepper = ({
   const [showRevertSelectionDialog, setShowRevertSelectionDialog] =
     useState<boolean>(false);
   const [revertOption, setRevertOption] = useState<"previous" | "initial">("previous");
+
+  const hasPatrimonyItems = useMemo(
+    () =>
+      items.some((item) => {
+        const patrimonyType = Number(item?.produto?.tipo_produto_patrimonio ?? 0);
+        return patrimonyType === 1 || patrimonyType === 2;
+      }),
+    [items]
+  );
+
+  const visibleStatusList = useMemo(() => {
+    if (hasPatrimonyItems) {
+      return statusList;
+    }
+
+    return statusList.filter(
+      (status) => normalizeStatusName(status.nome) !== "cadastrar patrimonio"
+    );
+  }, [statusList, hasPatrimonyItems]);
+
+  const currentStatusIndex = useMemo(() => {
+    const currentStatusId = Number(requisition.id_status_requisicao || 0);
+    const index = visibleStatusList.findIndex(
+      (status) => Number(status.id_status_requisicao) === currentStatusId
+    );
+
+    return index >= 0 ? index : 0;
+  }, [visibleStatusList, requisition.id_status_requisicao]);
+
+  const getAdjacentVisibleStatus = (
+    direction: "previous" | "next"
+  ): RequisitionStatus | undefined => {
+    if (!visibleStatusList.length) return undefined;
+
+    const currentStatusId = Number(requisition.id_status_requisicao || 0);
+    const currentVisibleIndex = visibleStatusList.findIndex(
+      (status) => Number(status.id_status_requisicao) === currentStatusId
+    );
+
+    if (currentVisibleIndex >= 0) {
+      const targetIndex =
+        direction === "next" ? currentVisibleIndex + 1 : currentVisibleIndex - 1;
+      return visibleStatusList[targetIndex];
+    }
+
+    const currentStatusEtapa = Number(requisition.status?.etapa ?? 0);
+    if (direction === "next") {
+      return visibleStatusList.find(
+        (status) => Number(status.etapa) > currentStatusEtapa
+      );
+    }
+
+    const previousStatuses = visibleStatusList.filter(
+      (status) => Number(status.etapa) < currentStatusEtapa
+    );
+    return previousStatuses[previousStatuses.length - 1];
+  };
 
   useEffect(() => {
     RequisitionService.getAllFaturamentosTypes({ visible: 1 }).then((data) => {
@@ -331,9 +387,7 @@ const RequisitionStatusStepper = ({
     }
 
     if (type === "acao_posterior") {
-      const currentStep = requisition.status?.etapa ?? 0;
-      const nextStep = currentStep + 1;
-      const newStatus = statusList.find((status) => status.etapa === nextStep);
+      const newStatus = getAdjacentVisibleStatus("next");
       console.log("newStatus", newStatus);
 
       if (newStatus) {
@@ -459,8 +513,7 @@ const RequisitionStatusStepper = ({
       });
 
       const currentStep = requisition.status?.etapa ?? 0;
-      const nextStep = currentStep + 1;
-      const newStatus = statusList.find((status) => status.etapa === nextStep);
+      const newStatus = getAdjacentVisibleStatus("next");
 
       if (!newStatus) {
         dispatch(
@@ -546,9 +599,7 @@ const RequisitionStatusStepper = ({
     if (createdComment) {
       dispatch(addComment(createdComment));
       const type = "acao_anterior";
-      const currentStep = requisition.status?.etapa ?? 0;
-      const nextStep = currentStep - 1;
-      const newStatus = statusList.find((status) => status.etapa === nextStep);
+      const newStatus = getAdjacentVisibleStatus("previous");
 
       if (!newStatus) {
         dispatch(
@@ -1007,7 +1058,7 @@ const RequisitionStatusStepper = ({
             },
           }}
         >
-          {statusList.map((status, idx) => (
+          {visibleStatusList.map((status, idx) => (
             <Step key={status.id_status_requisicao}>
               <StepLabel StepIconComponent={CustomStepIcon}>
                 <Typography
