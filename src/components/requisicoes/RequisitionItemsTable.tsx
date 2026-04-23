@@ -16,6 +16,7 @@ import {
   Box,
   Button,
   Dialog,
+  DialogActions,
   DialogContent,
   DialogTitle,
   IconButton,
@@ -66,15 +67,43 @@ import {
   setItemsToAttend,
   setNotAttendedItems,
 } from "../../redux/slices/requisicoes/attenItemsSlice";
+import { useUserOptions } from "../../hooks/useUserOptions";
+import { useProjectOptions } from "../../hooks/projectOptionsHook";
+import { usePatrimonyTypeOptions } from "../../hooks/patrimonios/usePatrimonyTypeOptions";
+import { PatrimonyService } from "../../services/patrimonios/PatrimonyService";
+import MovementationService from "../../services/patrimonios/MovementationService";
+import ElegantInput from "../shared/ui/Input";
+import OptionsField from "../shared/ui/OptionsField";
 
 interface RequisitionItemsTable {
   tableMaxHeight?: number;
   hideFooter: boolean;
 }
+
+interface PatrimonyFormData {
+  nome: string;
+  descricao: string;
+  nserie: string;
+  tipo: number;
+  valor_compra: number;
+  calibracao: number;
+  data_proxima_calibracao: string;
+  responsavel?: number;
+  projeto?: number;
+}
 const RequisitionItemsTable = ({
   tableMaxHeight,
   hideFooter,
 }: RequisitionItemsTable) => {
+  const normalizeStatusName = (value?: string | null) => {
+    if (!value) return "";
+    return value
+      .normalize("NFD")
+      .replace(/[\u0300-\u036f]/g, "")
+      .toLowerCase()
+      .trim();
+  };
+
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const theme = useTheme();
@@ -216,6 +245,27 @@ const RequisitionItemsTable = ({
   const [loading, setLoading] = useState(false);
   const [blockFields, setBlockFields] = useState(false);
   const [quoteListOpen, setQuoteListOpen] = useState<boolean>(false);
+  const [patrimonyDialogOpen, setPatrimonyDialogOpen] = useState(false);
+  const [selectedPatrimonyItem, setSelectedPatrimonyItem] =
+    useState<RequisitionItem | null>(null);
+  const [savingPatrimony, setSavingPatrimony] = useState(false);
+  const [createdPatrimonyItemIds, setCreatedPatrimonyItemIds] = useState<
+    Set<number>
+  >(new Set());
+  const [patrimonyFormData, setPatrimonyFormData] = useState<PatrimonyFormData>({
+    nome: "",
+    descricao: "",
+    nserie: "",
+    tipo: 0,
+    valor_compra: 0,
+    calibracao: 0,
+    data_proxima_calibracao: "",
+    responsavel: undefined,
+    projeto: undefined,
+  });
+  const { userOptions } = useUserOptions();
+  const { projectOptions } = useProjectOptions();
+  const { patirmonyTypeOptions } = usePatrimonyTypeOptions();
 
   const handleChangeQuoteItemsSelected = useCallback(
     async (
@@ -530,23 +580,198 @@ const RequisitionItemsTable = ({
     setQuotesTotal(quotes);
   }
 
+  const syncCreatedPatrimonyItems = useCallback(
+    async (currentItems: RequisitionItem[]) => {
+      if (!currentItems || currentItems.length === 0) {
+        setCreatedPatrimonyItemIds(new Set());
+        return;
+      }
+
+      try {
+        const patrimonies = await PatrimonyService.getMany();
+        const currentItemIds = new Set<number>(
+          currentItems.map((item) => Number(item.id_item_requisicao))
+        );
+
+        const createdIds = new Set<number>(
+          patrimonies
+            .map((patrimony: any) => Number(patrimony?.id_item || 0))
+            .filter((itemId: number) => itemId > 0 && currentItemIds.has(itemId))
+        );
+
+        setCreatedPatrimonyItemIds(createdIds);
+      } catch (_error) {
+        // Não bloqueia tela em caso de falha de sincronização.
+      }
+    },
+    []
+  );
+
+  const isPatrimonyItemCreated = useCallback(
+    (item: any) => {
+      const itemId = Number(item?.id_item_requisicao || 0);
+
+      return createdPatrimonyItemIds.has(itemId);
+    },
+    [createdPatrimonyItemIds]
+  );
+
+  const handleOpenPatrimonyDialog = useCallback(
+    (item: RequisitionItem) => {
+      setSelectedPatrimonyItem(item);
+      setPatrimonyFormData({
+        nome: item.produto_descricao || "",
+        descricao: item.observacao || item.produto_descricao || "",
+        nserie: "",
+        tipo: 0,
+        valor_compra: 0,
+        calibracao: 0,
+        data_proxima_calibracao: "",
+        responsavel: undefined,
+        projeto: requisition?.ID_PROJETO ? Number(requisition.ID_PROJETO) : undefined,
+      });
+      setPatrimonyDialogOpen(true);
+    },
+    [requisition?.ID_PROJETO]
+  );
+
+  const handleClosePatrimonyDialog = () => {
+    setPatrimonyDialogOpen(false);
+    setSelectedPatrimonyItem(null);
+  };
+
+  const handleCreatePatrimony = async () => {
+    if (!selectedPatrimonyItem) {
+      return;
+    }
+
+    if (
+      !patrimonyFormData.nome ||
+      !patrimonyFormData.descricao ||
+      !patrimonyFormData.tipo ||
+      !patrimonyFormData.projeto ||
+      !patrimonyFormData.responsavel
+    ) {
+      dispatch(
+        setFeedback({
+          type: "error",
+          message: "Preencha nome, descrição, tipo, projeto e responsável.",
+        })
+      );
+      return;
+    }
+
+    if (
+      patrimonyFormData.calibracao === 1 &&
+      !patrimonyFormData.data_proxima_calibracao
+    ) {
+      dispatch(
+        setFeedback({
+          type: "error",
+          message: "Preencha a data da próxima calibração.",
+        })
+      );
+      return;
+    }
+
+    setSavingPatrimony(true);
+
+    try {
+      const createdPatrimony = await PatrimonyService.create({
+        nome: patrimonyFormData.nome,
+        descricao: patrimonyFormData.descricao,
+        nserie: patrimonyFormData.nserie,
+        valor_compra: patrimonyFormData.valor_compra,
+        tipo: patrimonyFormData.tipo,
+        calibracao: patrimonyFormData.calibracao,
+        data_proxima_calibracao:
+          patrimonyFormData.calibracao === 1
+            ? patrimonyFormData.data_proxima_calibracao
+            : null,
+        id_produto: Number(selectedPatrimonyItem.id_produto),
+        id_item: Number(selectedPatrimonyItem.id_item_requisicao),
+      });
+
+      await MovementationService.create({
+        id_patrimonio: createdPatrimony.id_patrimonio,
+        id_responsavel: Number(patrimonyFormData.responsavel),
+        id_projeto: Number(patrimonyFormData.projeto),
+      });
+
+      setCreatedPatrimonyItemIds((previous) => {
+        const next = new Set(previous);
+        next.add(Number(selectedPatrimonyItem.id_item_requisicao));
+        return next;
+      });
+
+      dispatch(
+        setFeedback({
+          type: "success",
+          message: "Patrimônio criado com sucesso.",
+        })
+      );
+      handleClosePatrimonyDialog();
+    } catch (_error) {
+      dispatch(
+        setFeedback({
+          type: "error",
+          message: "Erro ao criar patrimônio.",
+        })
+      );
+    } finally {
+      setSavingPatrimony(false);
+    }
+  };
+
   const getRowClassName = useCallback((params: any) => {
     const item = params.row;
+    const classes: string[] = [];
+    const currentStatus = normalizeStatusName(requisition.status?.nome);
+    const isCadPatrimonioStep = currentStatus === "cadastrar patrimonio";
+    const patrimonyType = Number(item?.produto?.tipo_produto_patrimonio ?? 0);
+    const isPatrimonyItem = patrimonyType === 1 || patrimonyType === 2;
+    const patrimonyCreated = isPatrimonyItemCreated(item);
+
+    if (isCadPatrimonioStep && isPatrimonyItem) {
+      classes.push(patrimonyCreated ? "item-patrimonio-green" : "item-patrimonio-blue");
+    }
     
     if (quotesTotal.length === 0) {
-      return '';
+      return classes.join(" ");
     }
 
     if (!item.items_cotacao || item.items_cotacao.length === 0) {
-      return '';
+      return classes.join(" ");
     }
 
     const hasAnyPrice = item.items_cotacao.some(
       (quoteItem: any) => quoteItem && quoteItem.preco_unitario > 0 && !quoteItem.indisponivel
     );
 
-    return !hasAnyPrice ? 'item-without-quote' : '';
-  }, [quotesTotal]);
+    if (!hasAnyPrice) {
+      classes.push("item-without-quote");
+    }
+
+    return classes.join(" ");
+  }, [quotesTotal, requisition.status?.nome, isPatrimonyItemCreated]);
+
+  const handleRowClick = (params: any) => {
+    const row = params?.row as RequisitionItem;
+    const currentStatus = normalizeStatusName(requisition.status?.nome);
+    const isCadPatrimonioStep = currentStatus === "cadastrar patrimonio";
+    const patrimonyType = Number(row?.produto?.tipo_produto_patrimonio ?? 0);
+    const isPatrimonyItem = patrimonyType === 1 || patrimonyType === 2;
+
+    if (!(isCadPatrimonioStep && isPatrimonyItem)) {
+      return;
+    }
+
+    if (isPatrimonyItemCreated(row)) {
+      return;
+    }
+
+    handleOpenPatrimonyDialog(row);
+  };
 
   const createQuoteFromSelectedItems = async () => {
     const quote: Quote = await QuoteService.create({
@@ -780,6 +1005,10 @@ const RequisitionItemsTable = ({
     }
   }, [id_requisicao]);
 
+  useEffect(() => {
+    syncCreatedPatrimonyItems(items);
+  }, [items, syncCreatedPatrimonyItems]);
+
   return (
     <Box>
       {selectionModel.length > 0 && (
@@ -855,6 +1084,18 @@ const RequisitionItemsTable = ({
               backgroundColor: '#ffebee !important',
               '&:hover': {
                 backgroundColor: '#ffcdd2 !important',
+              },
+            },
+            '& .item-patrimonio-blue': {
+              backgroundColor: '#cfe8ff !important',
+              '&:hover': {
+                backgroundColor: '#b7dcff !important',
+              },
+            },
+            '& .item-patrimonio-green': {
+              backgroundColor: '#d8f5d0 !important',
+              '&:hover': {
+                backgroundColor: '#c5ecb9 !important',
               },
             },
           }}
@@ -936,6 +1177,7 @@ const RequisitionItemsTable = ({
             hideFooter={hideFooter}
             onCellKeyDown={handleCellKeyDown}
             getRowClassName={getRowClassName}
+            onRowClick={handleRowClick}
             showCellVerticalBorder
           />
         </Box>
@@ -984,6 +1226,147 @@ const RequisitionItemsTable = ({
         <DialogContent>
           <RequisitionItemAttachmentList />
         </DialogContent>
+      </Dialog>
+
+      <Dialog
+        open={patrimonyDialogOpen}
+        onClose={handleClosePatrimonyDialog}
+        fullWidth
+        maxWidth="sm"
+      >
+        <DialogTitle>
+          Cadastrar Patrimônio
+          {selectedPatrimonyItem?.produto_descricao
+            ? ` - ${selectedPatrimonyItem.produto_descricao}`
+            : ""}
+        </DialogTitle>
+        <DialogContent>
+          <Box sx={{ mt: 1, display: "flex", flexDirection: "column", gap: 1 }}>
+            <ElegantInput
+              label="Nome"
+              required
+              value={patrimonyFormData.nome}
+              onChange={(event) =>
+                setPatrimonyFormData((previous) => ({
+                  ...previous,
+                  nome: event.target.value,
+                }))
+              }
+            />
+            <ElegantInput
+              label="Descrição"
+              required
+              value={patrimonyFormData.descricao}
+              onChange={(event) =>
+                setPatrimonyFormData((previous) => ({
+                  ...previous,
+                  descricao: event.target.value,
+                }))
+              }
+            />
+            <ElegantInput
+              label="Nº de série"
+              value={patrimonyFormData.nserie}
+              onChange={(event) =>
+                setPatrimonyFormData((previous) => ({
+                  ...previous,
+                  nserie: event.target.value,
+                }))
+              }
+            />
+            <ElegantInput
+              label="Valor de compra"
+              type="number"
+              value={patrimonyFormData.valor_compra}
+              onChange={(event) =>
+                setPatrimonyFormData((previous) => ({
+                  ...previous,
+                  valor_compra: Number(event.target.value || 0),
+                }))
+              }
+            />
+            <OptionsField
+              label="Tipo"
+              required
+              options={patirmonyTypeOptions}
+              value={patrimonyFormData.tipo}
+              onChange={(optionIdSelected) =>
+                setPatrimonyFormData((previous) => ({
+                  ...previous,
+                  tipo: Number(optionIdSelected),
+                }))
+              }
+            />
+            <OptionsField
+              label="Projeto"
+              required
+              options={projectOptions}
+              value={patrimonyFormData.projeto}
+              optionHeight={60}
+              onChange={(optionIdSelected) =>
+                setPatrimonyFormData((previous) => ({
+                  ...previous,
+                  projeto: Number(optionIdSelected),
+                }))
+              }
+            />
+            <OptionsField
+              label="Responsável"
+              required
+              options={userOptions}
+              value={patrimonyFormData.responsavel}
+              onChange={(optionIdSelected) =>
+                setPatrimonyFormData((previous) => ({
+                  ...previous,
+                  responsavel: Number(optionIdSelected),
+                }))
+              }
+            />
+            <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+              <input
+                id="cadastro-patrimonio-calibracao"
+                type="checkbox"
+                checked={patrimonyFormData.calibracao === 1}
+                onChange={(event) =>
+                  setPatrimonyFormData((previous) => ({
+                    ...previous,
+                    calibracao: event.target.checked ? 1 : 0,
+                    data_proxima_calibracao: event.target.checked
+                      ? previous.data_proxima_calibracao
+                      : "",
+                  }))
+                }
+              />
+              <label htmlFor="cadastro-patrimonio-calibracao">Calibração</label>
+            </Box>
+            {patrimonyFormData.calibracao === 1 && (
+              <ElegantInput
+                label="Data da próxima calibração"
+                type="date"
+                required
+                value={patrimonyFormData.data_proxima_calibracao}
+                onChange={(event) =>
+                  setPatrimonyFormData((previous) => ({
+                    ...previous,
+                    data_proxima_calibracao: event.target.value,
+                  }))
+                }
+              />
+            )}
+          </Box>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={handleClosePatrimonyDialog} color="inherit">
+            Cancelar
+          </Button>
+          <Button
+            onClick={handleCreatePatrimony}
+            variant="contained"
+            disabled={savingPatrimony}
+          >
+            {savingPatrimony ? "Salvando..." : "Criar Patrimônio"}
+          </Button>
+        </DialogActions>
       </Dialog>
     </Box>
   );

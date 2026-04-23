@@ -334,7 +334,8 @@ export const useProductColumns = ({ patrimonyTypes, onUpdatePatrimonyType, disab
     {
       field: "tipo_produto_patrimonio",
       headerName: "Patrimonio",
-      flex: 0.5,
+      flex: 0.35,
+      minWidth: 210,
       editable: false,
       sortable: false,
       filterable: false,
@@ -343,7 +344,15 @@ export const useProductColumns = ({ patrimonyTypes, onUpdatePatrimonyType, disab
         const canEditPatrimony = !!(editProductFieldsPermitted || user?.PERM_ADMINISTRADOR === 1);
 
         return (
-          <Box sx={{ display: "flex", alignItems: "center", height: "100%" }}>
+          <Box
+            sx={{
+              display: "flex",
+              alignItems: "center",
+              height: "100%",
+              minWidth: 0,
+              overflow: "hidden",
+            }}
+          >
             <Tooltip title="Desmarcar patrimônio">
               <span>
                 <IconButton
@@ -363,6 +372,7 @@ export const useProductColumns = ({ patrimonyTypes, onUpdatePatrimonyType, disab
               row
               value={rowValue > 0 ? String(rowValue) : ""}
               onClick={(e) => e.stopPropagation()}
+              sx={{ flexWrap: "nowrap", minWidth: 0 }}
               onChange={async (e) => {
                 const nextValue = Number(e.target.value);
                 if (!Number.isInteger(nextValue) || nextValue <= 0 || nextValue === rowValue) return;
@@ -376,7 +386,11 @@ export const useProductColumns = ({ patrimonyTypes, onUpdatePatrimonyType, disab
                   value={String(type.id)}
                   control={<Radio size="small" disabled={!canEditPatrimony || disablePatrimonyActions} />}
                   label={type.nome || `Tipo ${type.id}`}
-                  sx={{ mr: 1.5, '& .MuiFormControlLabel-label': { fontSize: 12 } }}
+                  sx={{
+                    mr: 1,
+                    whiteSpace: "nowrap",
+                    '& .MuiFormControlLabel-label': { fontSize: 12 },
+                  }}
                 />
               ))}
             </RadioGroup>
