@@ -293,7 +293,7 @@ const TomadoresDialog: React.FC<TomadoresDialogProps> = ({ open, onClose }) => {
             rowHeight={34}
             columns={columns}
             loading={loading}
-            getRowId={(row: Tomador) => `${row.CHAPA}-${row.CODREDUZIDO}-${row.NOME_CENTRO_CUSTO}`}
+            getRowId={(row: any) => `${row.CHAPA}-${row.CODREDUZIDO}-${row.NOME_CENTRO_CUSTO}`}
             theme={theme}
             paginationMode="server"
             rowCount={totalRows}
