@@ -95,6 +95,8 @@ const RequisitionItemsTable = ({
   tableMaxHeight,
   hideFooter,
 }: RequisitionItemsTable) => {
+  const shouldUseAutoHeight = tableMaxHeight === undefined;
+
   const normalizeStatusName = (value?: string | null) => {
     if (!value) return "";
     return value
@@ -1079,7 +1081,8 @@ const RequisitionItemsTable = ({
         <Box
           sx={{
             height: tableMaxHeight ? tableMaxHeight : "auto",
-            overflow: "auto",
+            overflowX: "auto",
+            overflowY: shouldUseAutoHeight ? "visible" : "auto",
             '& .item-without-quote': {
               backgroundColor: '#ffebee !important',
               '&:hover': {
@@ -1175,6 +1178,7 @@ const RequisitionItemsTable = ({
             onCellClick={handleCellClick}
             processRowUpdate={processRowUpdate}
             hideFooter={hideFooter}
+            autoHeight={shouldUseAutoHeight}
             onCellKeyDown={handleCellKeyDown}
             getRowClassName={getRowClassName}
             onRowClick={handleRowClick}

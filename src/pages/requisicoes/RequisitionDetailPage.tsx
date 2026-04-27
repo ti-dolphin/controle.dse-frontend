@@ -652,7 +652,7 @@ const RequisitionDetailPage = () => {
 
             <Divider sx={{ mb: 1 }} />
             <Box>
-              <RequisitionItemsTable hideFooter={false} tableMaxHeight={400} />
+              <RequisitionItemsTable hideFooter={false} />
             </Box>
           </Paper>
         </Grid>
