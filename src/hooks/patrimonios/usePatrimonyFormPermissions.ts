@@ -14,9 +14,7 @@ export const usePatrimonyFormPermissions = (mode : string, patrimony : Partial<P
       }
       if (user && patrimony) {
         setPermissionToEdit(false);
-        const responsableForType =
-          Number(user?.CODPESSOA) ===
-          Number(patrimony?.tipo_patrimonio?.responsavel_tipo);
+        const responsableForType = Number(user?.CODPESSOA) === Number(patrimony?.tipo_patrimonio?.responsavel_tipo);
         const canEdit = Number(user?.PERM_ADMINISTRADOR) === 1 || Number(user?.PERM_ESTOQUE) === 1
         if ((responsableForType && mode === "edit") || canEdit) {
           setPermissionToEdit(true);
