@@ -282,10 +282,10 @@ const PatrimonyAccessoryList: React.FC<PatrimonyAccessoryListProps> = ({
 
       <BaseDeleteDialog
         open={!!accessoryBeingDeleted}
-        onClose={() => setAccessoryBeingDeleted(null)}
+        onCancel={() => setAccessoryBeingDeleted(null)}
         onConfirm={handleDelete}
         title="Deletar Acessório"
-        content={`Tem certeza que deseja deletar o acessório "${accessoryBeingDeleted?.nome}"?`}
+        message={`Tem certeza que deseja deletar o acessório "${accessoryBeingDeleted?.nome}"?`}
       />
 
       {selectedAccessory && (

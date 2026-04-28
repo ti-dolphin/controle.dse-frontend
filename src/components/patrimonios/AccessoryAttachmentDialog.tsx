@@ -315,17 +315,17 @@ const AccessoryAttachmentDialog: React.FC<AccessoryAttachmentDialogProps> = ({
         onClose={closeLinkDialog}
         onConfirm={handleAddLink}
         title="Adicionar Link"
-        value={linkInput}
-        onChange={setLinkInput}
-        placeholder="Cole o link aqui"
+        inputLabel="Link"
+        inputValue={linkInput}
+        onInputChange={(e) => setLinkInput(e.target.value)}
       />
 
       <BaseDeleteDialog
         open={!!attachmentBeingDeleted}
-        onClose={() => setAttachmentBeingDeleted(null)}
+        onCancel={() => setAttachmentBeingDeleted(null)}
         onConfirm={handleDelete}
         title="Deletar Anexo"
-        content={`Tem certeza que deseja deletar o anexo "${attachmentBeingDeleted?.nome}"?`}
+        message={`Tem certeza que deseja deletar o anexo "${attachmentBeingDeleted?.nome}"?`}
       />
 
       {selectedFile && (
@@ -333,7 +333,7 @@ const AccessoryAttachmentDialog: React.FC<AccessoryAttachmentDialogProps> = ({
           open={!!selectedFile}
           onClose={() => setSelectedFile(null)}
           fileUrl={selectedFile.arquivo || ''}
-          fileName={selectedFile.nome}
+          title={selectedFile.nome}
         />
       )}
     </>
