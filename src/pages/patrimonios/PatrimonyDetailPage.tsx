@@ -8,6 +8,7 @@ import UpperNavigation from '../../components/shared/UpperNavigation';
 import FullscreenIcon from "@mui/icons-material/Fullscreen";
 import AttachFileIcon from "@mui/icons-material/AttachFile";
 import PatrimonyAttachmentList from '../../components/patrimonios/PatrimonyAttachmentList';
+import PatrimonyAccessoryList from '../../components/patrimonios/PatrimonyAccessoryList';
 
 const PatrimonyDetailPage = () => {
 
@@ -16,6 +17,7 @@ const PatrimonyDetailPage = () => {
   const patrimonyNumber = params.id || params.idPatrimonio || params.numero || Object.values(params)[0];
   const [fullScreenChecklist, setFullScreenChecklist] = React.useState(false);
   const [attachmentDialogOpen, setAttachmentDialogOpen] = React.useState(false);
+  const [accessoryDialogOpen, setAccessoryDialogOpen] = React.useState(false);
 
   const handleBack = () => {
     navigate("/patrimonios");
@@ -39,6 +41,15 @@ const PatrimonyDetailPage = () => {
               >
                 Anexo
               </Button>
+              <Button
+                variant="outlined"
+                startIcon={<AttachFileIcon />}
+                size="small"
+                onClick={() => setAccessoryDialogOpen(true)}
+              >
+                Acessórios
+              </Button>
+
             </Stack>
             <PatrimonyForm />
           </Paper>
@@ -93,6 +104,12 @@ const PatrimonyDetailPage = () => {
         open={attachmentDialogOpen}
         onClose={() => setAttachmentDialogOpen(false)}
       />
+
+      <PatrimonyAccessoryList
+        open={accessoryDialogOpen}
+        onClose={() => setAccessoryDialogOpen(false)}
+      />
+
     </Box>
   );
 }
