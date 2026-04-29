@@ -524,7 +524,7 @@ const ApontamentosTab: React.FC<ApontamentosTabProps> = ({
           dispatch(setPageSize(model.pageSize));
         }}
         processRowUpdate={handleProcessRowUpdate}
-        pageSizeOptions={[25, 50, 100]}
+        pageSizeOptions={[25, 50, 100, 1000]}
         sx={{
           "& .MuiDataGrid-cell": {
             fontSize: "9.5px",

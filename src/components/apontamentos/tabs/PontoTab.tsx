@@ -297,7 +297,7 @@ const PontoTab: React.FC = () => {
           dispatch(setPontoPage(model.page));
           dispatch(setPontoPageSize(model.pageSize));
         }}
-        pageSizeOptions={[25, 50, 100]}
+        pageSizeOptions={[25, 50, 100, 1000]}
         processRowUpdate={(newRow, oldRow) => handleProcessRowUpdate(newRow as Ponto, oldRow as Ponto)}
       />
       <ColumnReorderDialog

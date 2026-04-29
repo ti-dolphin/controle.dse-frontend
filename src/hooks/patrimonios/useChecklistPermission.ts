@@ -18,10 +18,11 @@ export const useChecklistPermission = (checklist: Partial<Checklist>) => {
       Number(user?.CODPESSOA) === Number(checklist.responsavel?.CODPESSOA);
     const waitingAproval = checklist.realizado && !checklist.aprovado;
     const adm = Number(user?.PERM_ADMINISTRADOR) === 1;
+    const stockUser = Number(user?.PERM_ESTOQUE) === 1;
     const finished = checklist.realizado && checklist.aprovado;
 
     //apenas o responsável do tipo ou adm podem aprovar ou reprovar
-    if ((responsableForType && waitingAproval) || (adm && waitingAproval)) {
+    if ((responsableForType && waitingAproval) || ((adm || stockUser) && waitingAproval)) {
       setPermissionToAprove(true);
     }
     //o checklist deve estar aguardando aprovação para poder ser concluído
@@ -31,7 +32,7 @@ export const useChecklistPermission = (checklist: Partial<Checklist>) => {
     ) {
       setPermissionToFullfill(true);
     }
-  }, [checklist]);
+  }, [checklist, user]);
 
   return { permissionToFullfill, permissionToAprove };
 };

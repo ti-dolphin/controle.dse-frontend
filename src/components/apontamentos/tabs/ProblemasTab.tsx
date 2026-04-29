@@ -234,7 +234,7 @@ const ProblemasTab: React.FC = () => {
           dispatch(setProblemaPage(model.page));
           dispatch(setProblemaPageSize(model.pageSize));
         }}
-        pageSizeOptions={[25, 50, 100]}
+        pageSizeOptions={[25, 50, 100, 1000]}
       />
       <ColumnReorderDialog
         open={columnOrderDialogOpen}
