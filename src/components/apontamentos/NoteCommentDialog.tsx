@@ -331,7 +331,7 @@ const NoteCommentDialog: React.FC<NoteCommentDialogProps> = ({
               onRowSelectionModelChange={setSelectedComments}
               onRowClick={(params) => handleStartEditComment(params.row as NoteComment)}
               getRowId={(row) => row.CODCOMENTARIO}
-              pageSizeOptions={[10, 25, 50]}
+              pageSizeOptions={[10, 25, 50, 1000]}
               initialState={{
                 pagination: { paginationModel: { pageSize: 10 } },
               }}
