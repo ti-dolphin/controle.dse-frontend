@@ -25,20 +25,9 @@ import CloseIcon from '@mui/icons-material/Close';
 import { setFeedback } from '../../redux/slices/feedBackSlice';
 import { PatrimonyAccessoryService } from '../../services/patrimonios/PatrimonyAccessoryService';
 import AccessoryAttachmentService from '../../services/AccessoryAttachmentService';
+import { PatrimonyAccessory, PatrimonyAccessoryListProps } from '../../models/patrimonios/Accessory';
 import BaseDeleteDialog from '../shared/BaseDeleteDialog';
 import AccessoryAttachmentDialog from './AccessoryAttachmentDialog';
-
-interface PatrimonyAccessoryListProps {
-  open: boolean
-  onClose: () => void
-}
-
-interface PatrimonyAccessory {
-  id_acessorio_patrimonio: number;
-  nome: string;
-  id_patrimonio: number;
-  descricao?: string
-}
 
 const PatrimonyAccessoryList: React.FC<PatrimonyAccessoryListProps> = ({
   open,

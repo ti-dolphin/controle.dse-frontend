@@ -21,19 +21,12 @@ import LinkIcon from '@mui/icons-material/Link';
 import CloseIcon from '@mui/icons-material/Close';
 import { setFeedback } from '../../redux/slices/feedBackSlice';
 import FirebaseService from '../../services/FireBaseService';
-import AccessoryAttachmentService, { AccessoryAttachment } from '../../services/AccessoryAttachmentService';
+import AccessoryAttachmentService from '../../services/AccessoryAttachmentService';
+import { AccessoryAttachment, AccessoryAttachmentDialogProps } from '../../models/patrimonios/AccessoryAttachment';
 import BaseDeleteDialog from '../shared/BaseDeleteDialog';
 import BaseInputDialog from '../shared/BaseInputDialog';
+import BaseVIewFileDialog from '../shared/BaseVIewFileDialog';
 import StyledLink from '../shared/StyledLink';
-
-interface AccessoryAttachmentDialogProps {
-  open: boolean
-  onClose: () => void
-  accessory: {
-    id_acessorio_patrimonio: number
-    nome: string
-  }
-}
 
 const AccessoryAttachmentDialog: React.FC<AccessoryAttachmentDialogProps> = ({
   open,
@@ -329,7 +322,7 @@ const AccessoryAttachmentDialog: React.FC<AccessoryAttachmentDialogProps> = ({
       />
 
       {selectedFile && (
-        <BaseViewFileDialog
+        <BaseVIewFileDialog
           open={!!selectedFile}
           onClose={() => setSelectedFile(null)}
           fileUrl={selectedFile.arquivo || ''}

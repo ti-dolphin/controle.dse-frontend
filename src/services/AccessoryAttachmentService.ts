@@ -1,17 +1,5 @@
 import api from '../api';
-
-export interface AccessoryAttachment {
-  id_anexo_acessorio_patrimonio: number;
-  id_acessorio_patrimonio: number;
-  nome: string;
-  arquivo: string;
-}
-
-export interface CreateAccessoryAttachmentPayload {
-  id_acessorio_patrimonio: number;
-  nome: string;
-  arquivo: string;
-}
+import { AccessoryAttachment, CreateAccessoryAttachmentPayload } from '../models/patrimonios/AccessoryAttachment';
 
 class AccessoryAttachmentService {
   static async create(payload: CreateAccessoryAttachmentPayload): Promise<AccessoryAttachment> {
