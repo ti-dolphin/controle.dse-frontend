@@ -1,6 +1,11 @@
 import React, { ChangeEvent, useCallback, useEffect, useState, useMemo } from "react";
 import { GridColDef } from "@mui/x-data-grid";
-import { formatCurrency2To3, getDateFromISOstring } from "../../utils";
+import {
+  calculateLineTotalWithIpi,
+  calculateUnitPriceWithIpi,
+  formatCurrency2To3,
+  getDateFromISOstring,
+} from "../../utils";
 import { useDispatch, useSelector } from "react-redux";
 import { RootState } from "../../redux/store";
 import DeleteIcon from "@mui/icons-material/Delete";
@@ -446,7 +451,12 @@ export const useRequisitionItemColumns = (
         }
         const prices = row.items_cotacao
           .filter((item: any) => item && item.preco_unitario > 0 && !item.indisponivel)
-          .map((item: any) => Number(item.preco_unitario));
+          .map((item: any) =>
+            calculateUnitPriceWithIpi(
+              Number(item.preco_unitario || 0),
+              Number(item.IPI || 0)
+            )
+          );
         
         return prices.length > 0 ? Math.min(...prices) : null;
       },
@@ -488,7 +498,11 @@ export const useRequisitionItemColumns = (
 
         const unitPrice = Number(selectedQuoteItem.preco_unitario || 0);
         const quantity = Number(row.quantidade || 0);
-        return unitPrice * quantity;
+        return calculateLineTotalWithIpi(
+          unitPrice,
+          quantity,
+          Number(selectedQuoteItem.IPI || 0)
+        );
       },
       renderCell: (params: any) => {
         if (params.value === null || params.value === undefined) {
@@ -650,7 +664,12 @@ export const useRequisitionItemColumns = (
           const quoteItem = row.items_cotacao?.find(
             (item: QuoteItem) => Number(item.id_cotacao) === Number(col.field)
           );
-          return quoteItem && !quoteItem.indisponivel ? Number(quoteItem.preco_unitario) : null;
+          return quoteItem && !quoteItem.indisponivel
+            ? calculateUnitPriceWithIpi(
+                Number(quoteItem.preco_unitario || 0),
+                Number(quoteItem.IPI || 0)
+              )
+            : null;
         },
         renderCell: (params: any) => {
           const { id_item_requisicao } = params.row;
@@ -663,11 +682,17 @@ export const useRequisitionItemColumns = (
             ? Number(quoteItem.quantidade_cotada) <
               Number(quoteItem.quantidade_solicitada)
             : false;
+          const priceWithIpi = hasquoteItem
+            ? calculateUnitPriceWithIpi(
+                Number(quoteItem?.preco_unitario || 0),
+                Number(quoteItem?.IPI || 0)
+              )
+            : null;
 
           return (
             <Box sx={{ display: "flex", alignItems: "center" }}>
-              {hasquoteItem &&
-                formatCurrency2To3(Number(quoteItem?.preco_unitario) || 0)}
+              {hasquoteItem && priceWithIpi !== null &&
+                formatCurrency2To3(Number(priceWithIpi) || 0)}
               {hasquoteItem && (
                 <Checkbox
                   disabled={blockFields || !editItemFieldsPermitted}

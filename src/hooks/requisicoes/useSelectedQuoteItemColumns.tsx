@@ -1,6 +1,6 @@
 import { Box, Typography } from "@mui/material";
 import { GridColDef } from "@mui/x-data-grid";
-import { formatCurrency2To3 } from "../../utils";
+import { calculateLineTotalWithIpi, formatCurrency2To3 } from "../../utils";
 
 export const useSelectedQuoteItemColumns = (): GridColDef[] => {
   const columns: GridColDef[] = [
@@ -103,6 +103,26 @@ export const useSelectedQuoteItemColumns = (): GridColDef[] => {
       editable: false,
       valueGetter: (_value, row) =>
         Number(row.preco_unitario || 0) * Number(row.quantidade_solicitada || 0),
+      renderCell: (params) => (
+        <Box sx={{ display: "flex", alignItems: "center", height: "100%" }}>
+          <Typography fontSize="12px" fontWeight="bold" color="success.main">
+            {formatCurrency2To3(Number(params.value))}
+          </Typography>
+        </Box>
+      ),
+    },
+    {
+      field: "total",
+      headerName: "Total",
+      flex: 0.85,
+      minWidth: 110,
+      editable: false,
+      valueGetter: (_value, row) =>
+        calculateLineTotalWithIpi(
+          Number(row.preco_unitario || 0),
+          Number(row.quantidade_solicitada || 0),
+          Number(row.IPI || 0)
+        ),
       renderCell: (params) => (
         <Box sx={{ display: "flex", alignItems: "center", height: "100%" }}>
           <Typography fontSize="12px" fontWeight="bold" color="success.main">

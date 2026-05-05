@@ -26,7 +26,7 @@ import QuoteService from "../../services/requisicoes/QuoteService";
 import { QuoteItemService } from "../../services/requisicoes/QuoteItemService";
 import { Quote } from "../../models/requisicoes/Quote";
 import { QuoteItem } from "../../models/requisicoes/QuoteItem";
-import { formatCurrency2To3 } from "../../utils";
+import { calculateLineTotalWithIpi, formatCurrency2To3 } from "../../utils";
 import BaseDataTable from "../shared/BaseDataTable";
 import { useSelectedQuoteItemColumns } from "../../hooks/requisicoes/useSelectedQuoteItemColumns";
 
@@ -70,11 +70,14 @@ const SelectedQuoteItemsDialog: React.FC<SelectedQuoteItemsDialogProps> = ({
           doc.addPage();
         }
 
-        const selectedTotal = selectedItems.reduce((acc, item) => {
-          const unitPrice = Number(item.preco_unitario || 0);
-          const requestedQuantity = Number(item.quantidade_solicitada || 0);
-          return acc + unitPrice * requestedQuantity;
-        }, 0);
+        const selectedTotal = selectedItems.reduce((acc, item) =>
+          acc +
+          calculateLineTotalWithIpi(
+            Number(item.preco_unitario || 0),
+            Number(item.quantidade_solicitada || 0),
+            Number(item.IPI || 0)
+          ),
+        0);
 
         doc.setFontSize(14);
         doc.setTextColor(25, 118, 210);
@@ -118,21 +121,33 @@ const SelectedQuoteItemsDialog: React.FC<SelectedQuoteItemsDialogProps> = ({
               "IPI %",
               "ST %",
               "Subtotal",
+              "Total",
             ],
           ],
-          body: selectedItems.map((item) => [
-            item.produto_codigo || "-",
-            item.produto_descricao || item.descricao_item || "-",
-            item.produto_unidade || "-",
-            Number(item.quantidade_solicitada || 0).toString(),
-            formatCurrency2To3(Number(item.preco_unitario || 0)),
-            `${Number(item.ICMS || 0)}%`,
-            `${Number(item.IPI || 0)}%`,
-            `${Number(item.ST || 0)}%`,
-            formatCurrency2To3(
-              Number(item.preco_unitario || 0) * Number(item.quantidade_solicitada || 0)
-            ),
-          ]),
+          body: selectedItems.map((item) => {
+            const unitPrice = Number(item.preco_unitario || 0);
+            const requestedQuantity = Number(item.quantidade_solicitada || 0);
+            const ipiPercent = Number(item.IPI || 0);
+            const subtotal = unitPrice * requestedQuantity;
+            const totalWithIpi = calculateLineTotalWithIpi(
+              unitPrice,
+              requestedQuantity,
+              ipiPercent
+            );
+
+            return [
+              item.produto_codigo || "-",
+              item.produto_descricao || item.descricao_item || "-",
+              item.produto_unidade || "-",
+              requestedQuantity.toString(),
+              formatCurrency2To3(unitPrice),
+              `${Number(item.ICMS || 0)}%`,
+              `${ipiPercent}%`,
+              `${Number(item.ST || 0)}%`,
+              formatCurrency2To3(subtotal),
+              formatCurrency2To3(totalWithIpi),
+            ];
+          }),
           theme: "grid",
           styles: {
             fontSize: 8,
@@ -146,15 +161,16 @@ const SelectedQuoteItemsDialog: React.FC<SelectedQuoteItemsDialogProps> = ({
             fontStyle: "bold",
           },
           columnStyles: {
-            0: { cellWidth: 20, halign: "left" },
-            1: { cellWidth: 62 },
+            0: { cellWidth: 18, halign: "left" },
+            1: { cellWidth: 58 },
             2: { cellWidth: 14, halign: "center" },
             3: { cellWidth: 18, halign: "right" },
-            4: { cellWidth: 23, halign: "right" },
+            4: { cellWidth: 22, halign: "right" },
             5: { cellWidth: 12, halign: "right" },
             6: { cellWidth: 12, halign: "right" },
             7: { cellWidth: 12, halign: "right" },
-            8: { cellWidth: 23, halign: "right" },
+            8: { cellWidth: 22, halign: "right" },
+            9: { cellWidth: 22, halign: "right" },
           },
           margin: { left: 14, right: 14 },
         });
@@ -335,8 +351,11 @@ const SelectedQuoteItemsDialog: React.FC<SelectedQuoteItemsDialogProps> = ({
                           selectedItems.reduce(
                             (acc, item) =>
                               acc +
-                              Number(item.preco_unitario || 0) *
+                              calculateLineTotalWithIpi(
+                                Number(item.preco_unitario || 0),
                                 Number(item.quantidade_solicitada || 0),
+                                Number(item.IPI || 0)
+                              ),
                             0
                           )
                         )}

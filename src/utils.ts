@@ -83,6 +83,23 @@ export function calculateQuoteSubtotal(
   return roundToScale(subtotal, MONEY_SCALE);
 }
 
+export function calculateUnitPriceWithIpi(
+  precoUnitario: number,
+  ipiPercent: number
+): number {
+  const priceWithIpi = precoUnitario * (1 + ipiPercent / 100);
+  return roundToScale(priceWithIpi, MONEY_SCALE);
+}
+
+export function calculateLineTotalWithIpi(
+  precoUnitario: number,
+  quantidade: number,
+  ipiPercent: number
+): number {
+  const totalWithIpi = precoUnitario * quantidade * (1 + ipiPercent / 100);
+  return roundToScale(totalWithIpi, MONEY_SCALE);
+}
+
 export function parseCurrency(value: string): number {
   if (!value) return 0;
   // Remove R$, pontos (separador de milhar) e substitui vírgula por ponto
