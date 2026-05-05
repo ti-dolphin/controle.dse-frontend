@@ -43,6 +43,12 @@ const RequisitionForm: React.FC = () => {
   >([]);
   const [tipoFaturamentoSelecionado, setTipoFaturamentoSelecionado] = useState<number | null>(null);
 
+  const normalizeText = (value: string) =>
+    value
+      .normalize("NFD")
+      .replace(/[\u0300-\u036f]/g, "")
+      .toLowerCase();
+
   // Buscar tipos de faturamento ao montar
   useEffect(() => {
     RequisitionService.getAllFaturamentosTypes({ visible: 1 }).then((data) => {
@@ -220,6 +226,9 @@ const RequisitionForm: React.FC = () => {
         optionHeight={60}
         required={true}
         onChange={(id) => handleChangeOptionField("ID_PROJETO", Number(id))}
+        filterOption={(option, search) =>
+          normalizeText(option.name).includes(normalizeText(search))
+        }
         disabled={isReadOnly}
       />
       {/* Radios de tipos de faturamento - entre Projeto e Responsável */}

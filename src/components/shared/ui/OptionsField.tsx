@@ -11,6 +11,7 @@ export interface OptionsFieldProps {
   options: Option[];
   value?: string | number;
   onChange: (value: string | number) => void;
+  filterOption?: (option: Option, search: string) => boolean;
   helperText?: string;
   error?: boolean;
   fullWidth?: boolean;
@@ -24,6 +25,7 @@ const OptionsField: React.FC<OptionsFieldProps> = ({
   options,
   value,
   onChange,
+  filterOption,
   helperText,
   error = false,
   fullWidth = true,
@@ -39,9 +41,13 @@ const OptionsField: React.FC<OptionsFieldProps> = ({
     (opt) => Number(opt.id) === Number(value)
   );
 
+  const defaultFilterOption = (option: Option, query: string) =>
+    option.name.toLowerCase().includes(query.toLowerCase());
+  const shouldIncludeOption = filterOption || defaultFilterOption;
+
   // filtra opções
   const filteredOptions = options.filter((opt) =>
-    opt.name.toLowerCase().includes(search.toLowerCase())
+    shouldIncludeOption(opt, search)
   );
 
   // fechar dropdown se clicar fora
