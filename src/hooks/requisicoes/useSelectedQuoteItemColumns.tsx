@@ -1,6 +1,6 @@
 import { Box, Typography } from "@mui/material";
 import { GridColDef } from "@mui/x-data-grid";
-import { calculateLineTotalWithIpi, formatCurrency2To3 } from "../../utils";
+import { calculateQuoteSubtotal, formatCurrency2To3 } from "../../utils";
 
 export const useSelectedQuoteItemColumns = (): GridColDef[] => {
   const columns: GridColDef[] = [
@@ -118,10 +118,11 @@ export const useSelectedQuoteItemColumns = (): GridColDef[] => {
       minWidth: 110,
       editable: false,
       valueGetter: (_value, row) =>
-        calculateLineTotalWithIpi(
+        calculateQuoteSubtotal(
           Number(row.preco_unitario || 0),
           Number(row.quantidade_solicitada || 0),
-          Number(row.IPI || 0)
+          Number(row.IPI || 0),
+          Number(row.ST || 0)
         ),
       renderCell: (params) => (
         <Box sx={{ display: "flex", alignItems: "center", height: "100%" }}>

@@ -41,7 +41,7 @@ import ProductsTable from "../../components/requisicoes/ProductsTable";
 import RequisitionItemService from "../../services/requisicoes/RequisitionItemService";
 import QuoteList from "../../components/requisicoes/QuoteList";
 import CloseIcon from '@mui/icons-material/Close';
-import { formatCurrency2To3 } from "../../utils";
+import { calculateQuoteSubtotal, formatCurrency2To3 } from "../../utils";
 import UpperNavigation from "../../components/shared/UpperNavigation";
 import FullscreenIcon from "@mui/icons-material/Fullscreen";
 import RequisitionCommentList from "../../components/requisicoes/RequisitionCommentList";
@@ -87,7 +87,9 @@ const RequisitionDetailPage = () => {
 
       const unitPrice = Number(selectedQuoteItem.preco_unitario || 0);
       const quantity = Number(item.quantidade || 0);
-      return acc + unitPrice * quantity;
+      const ipiPercent = Number(selectedQuoteItem.IPI || 0);
+      const stPercent = Number(selectedQuoteItem.ST || 0);
+      return acc + calculateQuoteSubtotal(unitPrice, quantity, ipiPercent, stPercent);
     }, 0);
   }, [items]);
 
