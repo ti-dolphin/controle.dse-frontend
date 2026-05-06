@@ -91,6 +91,15 @@ export function calculateUnitPriceWithIpi(
   return roundToScale(priceWithIpi, MONEY_SCALE);
 }
 
+export function calculateUnitPriceWithTaxes(
+  precoUnitario: number,
+  ipiPercent: number,
+  stPercent: number
+): number {
+  const priceWithTaxes = precoUnitario * (1 + ipiPercent / 100 + stPercent / 100);
+  return roundToScale(priceWithTaxes, MONEY_SCALE);
+}
+
 export function calculateLineTotalWithIpi(
   precoUnitario: number,
   quantidade: number,

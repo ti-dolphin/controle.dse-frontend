@@ -2,7 +2,7 @@ import React, { ChangeEvent, useCallback, useEffect, useState, useMemo } from "r
 import { GridColDef } from "@mui/x-data-grid";
 import {
   calculateQuoteSubtotal,
-  calculateUnitPriceWithIpi,
+  calculateUnitPriceWithTaxes,
   formatCurrency2To3,
   getDateFromISOstring,
 } from "../../utils";
@@ -452,9 +452,10 @@ export const useRequisitionItemColumns = (
         const prices = row.items_cotacao
           .filter((item: any) => item && item.preco_unitario > 0 && !item.indisponivel)
           .map((item: any) =>
-            calculateUnitPriceWithIpi(
+            calculateUnitPriceWithTaxes(
               Number(item.preco_unitario || 0),
-              Number(item.IPI || 0)
+              Number(item.IPI || 0),
+              Number(item.ST || 0)
             )
           );
         
@@ -666,9 +667,10 @@ export const useRequisitionItemColumns = (
             (item: QuoteItem) => Number(item.id_cotacao) === Number(col.field)
           );
           return quoteItem && !quoteItem.indisponivel
-            ? calculateUnitPriceWithIpi(
+            ? calculateUnitPriceWithTaxes(
                 Number(quoteItem.preco_unitario || 0),
-                Number(quoteItem.IPI || 0)
+                Number(quoteItem.IPI || 0),
+                Number(quoteItem.ST || 0)
               )
             : null;
         },
@@ -683,17 +685,18 @@ export const useRequisitionItemColumns = (
             ? Number(quoteItem.quantidade_cotada) <
               Number(quoteItem.quantidade_solicitada)
             : false;
-          const priceWithIpi = hasquoteItem
-            ? calculateUnitPriceWithIpi(
+          const priceWithTaxes = hasquoteItem
+            ? calculateUnitPriceWithTaxes(
                 Number(quoteItem?.preco_unitario || 0),
-                Number(quoteItem?.IPI || 0)
+                Number(quoteItem?.IPI || 0),
+                Number(quoteItem?.ST || 0)
               )
             : null;
 
           return (
             <Box sx={{ display: "flex", alignItems: "center" }}>
-              {hasquoteItem && priceWithIpi !== null &&
-                formatCurrency2To3(Number(priceWithIpi) || 0)}
+              {hasquoteItem && priceWithTaxes !== null &&
+                formatCurrency2To3(Number(priceWithTaxes) || 0)}
               {hasquoteItem && (
                 <Checkbox
                   disabled={blockFields || !editItemFieldsPermitted}
