@@ -17,7 +17,7 @@ export const usePatMovementationColumns = (rows: any[] = []) => {
   const dispatch = useDispatch();
   const user = useSelector((state: RootState) => state.user.user);
 
-  const permissionToDelete = Number(user?.PERM_ADMINISTRADOR) === 1;
+  const permissionToDelete = Number(user?.PERM_ADMINISTRADOR) === 1 || Number(user?.PERM_ESTOQUE) === 1
   const {filters} = useSelector((state: RootState) => state.patrionyTable);
 
   // Calcula os widths uma única vez e memoriza
