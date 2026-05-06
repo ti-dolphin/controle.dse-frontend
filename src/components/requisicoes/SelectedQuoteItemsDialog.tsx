@@ -26,7 +26,7 @@ import QuoteService from "../../services/requisicoes/QuoteService";
 import { QuoteItemService } from "../../services/requisicoes/QuoteItemService";
 import { Quote } from "../../models/requisicoes/Quote";
 import { QuoteItem } from "../../models/requisicoes/QuoteItem";
-import { calculateLineTotalWithIpi, formatCurrency2To3 } from "../../utils";
+import { calculateQuoteSubtotal, formatCurrency2To3 } from "../../utils";
 import BaseDataTable from "../shared/BaseDataTable";
 import { useSelectedQuoteItemColumns } from "../../hooks/requisicoes/useSelectedQuoteItemColumns";
 
@@ -70,14 +70,17 @@ const SelectedQuoteItemsDialog: React.FC<SelectedQuoteItemsDialogProps> = ({
           doc.addPage();
         }
 
-        const selectedTotal = selectedItems.reduce((acc, item) =>
-          acc +
-          calculateLineTotalWithIpi(
-            Number(item.preco_unitario || 0),
-            Number(item.quantidade_solicitada || 0),
-            Number(item.IPI || 0)
-          ),
-        0);
+        const selectedTotal = selectedItems.reduce(
+          (acc, item) =>
+            acc +
+            calculateQuoteSubtotal(
+              Number(item.preco_unitario || 0),
+              Number(item.quantidade_solicitada || 0),
+              Number(item.IPI || 0),
+              Number(item.ST || 0)
+            ),
+          0
+        );
 
         doc.setFontSize(14);
         doc.setTextColor(25, 118, 210);
@@ -129,10 +132,11 @@ const SelectedQuoteItemsDialog: React.FC<SelectedQuoteItemsDialogProps> = ({
             const requestedQuantity = Number(item.quantidade_solicitada || 0);
             const ipiPercent = Number(item.IPI || 0);
             const subtotal = unitPrice * requestedQuantity;
-            const totalWithIpi = calculateLineTotalWithIpi(
+            const totalWithTaxes = calculateQuoteSubtotal(
               unitPrice,
               requestedQuantity,
-              ipiPercent
+              ipiPercent,
+              Number(item.ST || 0)
             );
 
             return [
@@ -145,7 +149,7 @@ const SelectedQuoteItemsDialog: React.FC<SelectedQuoteItemsDialogProps> = ({
               `${ipiPercent}%`,
               `${Number(item.ST || 0)}%`,
               formatCurrency2To3(subtotal),
-              formatCurrency2To3(totalWithIpi),
+              formatCurrency2To3(totalWithTaxes),
             ];
           }),
           theme: "grid",
@@ -351,10 +355,11 @@ const SelectedQuoteItemsDialog: React.FC<SelectedQuoteItemsDialogProps> = ({
                           selectedItems.reduce(
                             (acc, item) =>
                               acc +
-                              calculateLineTotalWithIpi(
+                              calculateQuoteSubtotal(
                                 Number(item.preco_unitario || 0),
                                 Number(item.quantidade_solicitada || 0),
-                                Number(item.IPI || 0)
+                                Number(item.IPI || 0),
+                                Number(item.ST || 0)
                               ),
                             0
                           )

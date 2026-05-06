@@ -1,7 +1,7 @@
 import React, { ChangeEvent, useCallback, useEffect, useState, useMemo } from "react";
 import { GridColDef } from "@mui/x-data-grid";
 import {
-  calculateLineTotalWithIpi,
+  calculateQuoteSubtotal,
   calculateUnitPriceWithIpi,
   formatCurrency2To3,
   getDateFromISOstring,
@@ -498,10 +498,11 @@ export const useRequisitionItemColumns = (
 
         const unitPrice = Number(selectedQuoteItem.preco_unitario || 0);
         const quantity = Number(row.quantidade || 0);
-        return calculateLineTotalWithIpi(
+        return calculateQuoteSubtotal(
           unitPrice,
           quantity,
-          Number(selectedQuoteItem.IPI || 0)
+          Number(selectedQuoteItem.IPI || 0),
+          Number(selectedQuoteItem.ST || 0)
         );
       },
       renderCell: (params: any) => {
