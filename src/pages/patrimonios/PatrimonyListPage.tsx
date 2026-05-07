@@ -131,6 +131,11 @@ const PatrimonyListPage = () => {
     dispatch(cleanFilters());
   };
 
+  const handleFilterInativos = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const checked = e.target.checked;
+    dispatch(setFilters({ ...filters, patrimonio_ativo: checked ? 0 : 1 }));
+  };
+
   const fetchData = React.useCallback(async () => {
     dispatch(setIsLoading(true));
     try {
@@ -177,6 +182,20 @@ const PatrimonyListPage = () => {
           handleChangeSearchTerm={debouncedHandleChangeSearchTerm}
         >
           <Stack direction="row" alignItems="center" gap={1}>
+            <Box sx={{ display: "inline-flex", alignItems: "center", ml: 1 }}>
+              <input
+                type="checkbox"
+                id="filter-inativos"
+                onChange={handleFilterInativos}
+                checked={filters.patrimonio_ativo === 0}
+              />
+              <label
+                htmlFor="filter-inativos"
+                style={{ marginLeft: 4, fontSize: 14 }}
+              >
+                Inativos
+              </label>
+            </Box>
             {!isMobile && (
               <Button
                 variant="contained"
