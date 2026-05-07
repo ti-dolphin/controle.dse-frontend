@@ -93,6 +93,15 @@ export const useQuoteItemColumns = (
       type: "number",
       flex: 0.5,
       editable: true,
+      renderCell: (params: any) => (
+        <Box sx={{ display: "flex", alignItems: "center", height: "100%" }}>
+          <Typography fontSize="small" fontWeight="bold" color="black">
+            {params.value != null
+              ? formatDecimalPtBr2To3(Number(params.value))
+              : ""}
+          </Typography>
+        </Box>
+      ),
     },
     {
       field: "IPI",
@@ -100,6 +109,15 @@ export const useQuoteItemColumns = (
       type: "number",
       flex: 0.5,
       editable: true,
+      renderCell: (params: any) => (
+        <Box sx={{ display: "flex", alignItems: "center", height: "100%" }}>
+          <Typography fontSize="small" fontWeight="bold" color="black">
+            {params.value != null
+              ? formatDecimalPtBr2To3(Number(params.value))
+              : ""}
+          </Typography>
+        </Box>
+      ),
     },
     {
       field: "ST",
@@ -107,6 +125,15 @@ export const useQuoteItemColumns = (
       type: "number",
       flex: 0.5,
       editable: true,
+      renderCell: (params: any) => (
+        <Box sx={{ display: "flex", alignItems: "center", height: "100%" }}>
+          <Typography fontSize="small" fontWeight="bold" color="black">
+            {params.value != null
+              ? formatDecimalPtBr2To3(Number(params.value))
+              : ""}
+          </Typography>
+        </Box>
+      ),
     },
     {
       field: "subtotal",
