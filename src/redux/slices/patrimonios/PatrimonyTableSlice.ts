@@ -7,6 +7,8 @@ const filterFieldMap: Record<string, string> = {
   nome: "nome.contains",
   valor_compra: "valor_compra.gt",
 
+  patrimonio_ativo: "web_patrimonio.ativo.equals",
+
   patrimonio_tipo: "web_patrimonio.web_tipo_patrimonio.nome_tipo.contains",
   patrimonio_descricao: "web_patrimonio.descricao.contains",
   patrimonio_nome: "web_patrimonio.nome.contains",
@@ -30,6 +32,7 @@ export interface PatrimonyFilters {
   patrimonio_valor_compra: string;
   patrimonio_nserie: string;
   patrimonio_tipo: string;
+  patrimonio_ativo: number | null;
 
   responsavel: string;
   projeto: string;
@@ -67,6 +70,7 @@ const initialState: PatrimonyTableState ={
       patrimonio_valor_compra : "",
       patrimonio_nserie: "",
       patrimonio_tipo: "",
+      patrimonio_ativo: 1,
 
       responsavel: "",
       projeto: "",
@@ -77,7 +81,7 @@ const initialState: PatrimonyTableState ={
 export const buildPatrimonyPrismaFilters = (filters: PatrimonyFilters) => {
   return Object.entries(filters)
     .filter(([_field, value]) => {
-      if (typeof value === "number" && value === null) return false;
+      if (value === null || value === undefined) return false;
       if (typeof value === "string" && value === "") return false;
       return true;
     })
@@ -129,6 +133,7 @@ export const patrimonyTableSlice = createSlice({
         patrimonio_valor_compra: "",
         patrimonio_nserie: "",
         patrimonio_tipo: "",
+        patrimonio_ativo: 1,
 
         responsavel: "",
         projeto: "",

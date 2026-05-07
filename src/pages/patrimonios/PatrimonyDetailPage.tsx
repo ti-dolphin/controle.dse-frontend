@@ -9,15 +9,74 @@ import FullscreenIcon from "@mui/icons-material/Fullscreen";
 import AttachFileIcon from "@mui/icons-material/AttachFile";
 import PatrimonyAttachmentList from '../../components/patrimonios/PatrimonyAttachmentList';
 import PatrimonyAccessoryList from '../../components/patrimonios/PatrimonyAccessoryList';
+import { useDispatch, useSelector } from 'react-redux';
+import { PatrimonyService } from '../../services/patrimonios/PatrimonyService';
+import { setFeedback } from '../../redux/slices/feedBackSlice';
+import { Patrimony } from '../../models/patrimonios/Patrimony';
+import { usePatrimonyFormPermissions } from '../../hooks/patrimonios/usePatrimonyFormPermissions';
+import { RootState } from '../../redux/store';
 
 const PatrimonyDetailPage = () => {
 
   const navigate = useNavigate()
+  const dispatch = useDispatch();
+  const user = useSelector((state: RootState) => state.user.user);
   const params = useParams();
   const patrimonyNumber = params.id || params.idPatrimonio || params.numero || Object.values(params)[0];
   const [fullScreenChecklist, setFullScreenChecklist] = React.useState(false);
   const [attachmentDialogOpen, setAttachmentDialogOpen] = React.useState(false);
   const [accessoryDialogOpen, setAccessoryDialogOpen] = React.useState(false);
+  const [patrimony, setPatrimony] = React.useState<Patrimony | null>(null);
+  const [isUpdatingStatus, setIsUpdatingStatus] = React.useState(false);
+  const { permissionToEdit } = usePatrimonyFormPermissions("edit", patrimony || undefined);
+  const canToggleActive = Number(user?.PERM_ADMINISTRADOR) === 1 || Number(user?.PERM_ESTOQUE) === 1;
+
+  const fetchPatrimony = React.useCallback(async () => {
+    const parsedId = Number(patrimonyNumber);
+    if (!parsedId || Number.isNaN(parsedId)) return;
+    try {
+      const data = await PatrimonyService.getById(parsedId);
+      setPatrimony(data);
+    } catch (error) {
+      dispatch(
+        setFeedback({
+          message: "Houve um erro ao buscar o patrimônio",
+          type: "error",
+        })
+      );
+    }
+  }, [dispatch, patrimonyNumber]);
+
+  const handleToggleActive = async () => {
+    if (!patrimony || isUpdatingStatus) return;
+    const nextValue = patrimony.ativo === 1 ? 0 : 1;
+    setIsUpdatingStatus(true);
+    try {
+      const updated = await PatrimonyService.update(patrimony.id_patrimonio, {
+        ativo: nextValue,
+      });
+      setPatrimony(updated);
+      dispatch(
+        setFeedback({
+          message: nextValue === 1 ? "Patrimônio ativado" : "Patrimônio desativado",
+          type: "success",
+        })
+      );
+    } catch (error) {
+      dispatch(
+        setFeedback({
+          message: "Houve um erro ao atualizar o patrimônio",
+          type: "error",
+        })
+      );
+    } finally {
+      setIsUpdatingStatus(false);
+    }
+  };
+
+  React.useEffect(() => {
+    fetchPatrimony();
+  }, [fetchPatrimony]);
 
   const handleBack = () => {
     navigate("/patrimonios");
@@ -33,6 +92,17 @@ const PatrimonyDetailPage = () => {
               <Typography variant="h6" color="primary.main">
                 Patrimônio #{patrimonyNumber}
               </Typography>
+              {canToggleActive && (
+                <Button
+                  variant="contained"
+                  size="small"
+                  color={patrimony?.ativo === 1 ? "error" : "primary"}
+                  disabled={!permissionToEdit || isUpdatingStatus || !patrimony}
+                  onClick={handleToggleActive}
+                >
+                  {patrimony?.ativo === 1 ? "Desativar" : "Ativar"}
+                </Button>
+              )}
               <Button
                 variant="outlined"
                 startIcon={<AttachFileIcon />}
