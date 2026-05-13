@@ -45,10 +45,11 @@ const QuoteDetailPage = () => {
 
   const handleSubmitQuote  = async (e : React.FormEvent<HTMLFormElement>, data : Quote) =>  { 
     e.preventDefault();
+    const isSupplier = accesType === "supplier";
     const missingCnpjFornecedor = !String(data?.cnpj_fornecedor || "").trim();
     const missingCondicaoPagamento = !Number(data?.id_condicao_pagamento || 0);
 
-    if (missingCnpjFornecedor || missingCondicaoPagamento) {
+    if (isSupplier && (missingCnpjFornecedor || missingCondicaoPagamento)) {
       dispatch(
         setFeedback({
           message: "Para enviar a cotação, CNPJ Fornecedor e Condição Pagamento são obrigatórios.",
