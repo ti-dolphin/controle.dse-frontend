@@ -455,6 +455,10 @@ const RequisitionStatusStepper = ({
             user!,
             updatedRequisition
           );
+          const isConcludedStatus =
+            normalizeStatusName(
+              updatedRequisition.status?.nome ?? newStatus?.nome
+            ) === "concluido";
 
           if (
             !newPermissions.permissionToChangeStatus &&
@@ -466,7 +470,9 @@ const RequisitionStatusStepper = ({
                 message: "Status atualizado com sucesso!",
               })
             );
-            navigate("/requisicoes");
+            if (!isConcludedStatus) {
+              navigate("/requisicoes");
+            }
             return;
           }
 
