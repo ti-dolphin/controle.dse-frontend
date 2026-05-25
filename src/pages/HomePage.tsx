@@ -4,7 +4,7 @@ import crm from '../assets/images/crm.jpg'
 import patrimonios from '../assets/images/patrimonios.jpg';
 import requisicoes from '../assets/images/requisicoes.jpg';
 import apontamentos from '../assets/images/apontamentos.png';
-import ordemCompra from '../assets/images/imagePlaceholder.svg';
+import ordemCompra from '../assets/images/capa-ordem-de-compra.png';
 import { useNavigate } from 'react-router-dom';
 import AccountCircleIcon from '@mui/icons-material/AccountCircle';
 import { useSelector } from 'react-redux';
