@@ -27,6 +27,27 @@ export const useOppDetailedFields = (user: User | null, opportunity: Partial<Opp
       comercialResponsableOptions.length > 0 &&
       opportunity
     ) {
+      const projectOptionsWithCurrent = (() => {
+        const currentProjectId = opportunity.ID_PROJETO;
+        if (currentProjectId === null || currentProjectId === undefined) {
+          return projectOptions;
+        }
+
+        const alreadyIncluded = projectOptions.some(
+          (option) => String(option.id) === String(currentProjectId)
+        );
+
+        if (alreadyIncluded) return projectOptions;
+
+        const currentProjectName =
+          opportunity.projeto?.DESCRICAO || `Projeto ${currentProjectId}`;
+
+        return [
+          ...projectOptions,
+          { id: currentProjectId, name: currentProjectName },
+        ];
+      })();
+
       setFields([
         {
           field: "NOME",
@@ -41,7 +62,7 @@ export const useOppDetailedFields = (user: User | null, opportunity: Partial<Opp
           label: "Projeto",
           type: "autocomplete",
           required: true,
-          options: projectOptions,
+          options: projectOptionsWithCurrent,
           disabled: true,
           defaultValue: opportunity.ID_PROJETO != null ? String(opportunity.ID_PROJETO) : "",
         },
