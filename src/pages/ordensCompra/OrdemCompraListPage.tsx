@@ -1,8 +1,21 @@
 import React, { useCallback, useEffect, useMemo, useState } from "react";
-import { Box, Button, IconButton, Tooltip, useTheme } from "@mui/material";
+import {
+  Box,
+  Button,
+  Dialog,
+  DialogActions,
+  DialogContent,
+  DialogTitle,
+  IconButton,
+  Stack,
+  Tooltip,
+  Typography,
+  useTheme,
+} from "@mui/material";
 import { useDispatch, useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
 import { debounce } from "lodash";
+import { GridRowParams } from "@mui/x-data-grid";
 import UpperNavigation from "../../components/shared/UpperNavigation";
 import BaseTableToolBar from "../../components/shared/BaseTableToolBar";
 import BaseDataTable from "../../components/shared/BaseDataTable";
@@ -23,6 +36,8 @@ import {
 import { ColumnReorderDialog } from "../../components/shared/ColumnReorderDialog";
 import OpenWithIcon from "@mui/icons-material/OpenWith";
 import { ColumnPreference, usePersistedColumnOrder } from "../../hooks/table/usePersistedColumnOrder";
+import { OrdemCompra } from "../../models/OrdemCompra";
+import { formatCurrency, getDateStringFromISOstring } from "../../utils";
 
 const ORDEM_COMPRA_TABLE_KEY = "ordem-compra-list";
 
@@ -36,6 +51,9 @@ const OrdemCompraListPage = () => {
   );
 
   const [columnOrderDialogOpen, setColumnOrderDialogOpen] = useState(false);
+  const [approvalDialogOpen, setApprovalDialogOpen] = useState(false);
+  const [approvalSaving, setApprovalSaving] = useState(false);
+  const [selectedOrder, setSelectedOrder] = useState<OrdemCompra | null>(null);
 
   const handleChangeFilters = useCallback(
     (event: React.ChangeEvent<HTMLInputElement>, field: string) => {
@@ -100,6 +118,71 @@ const OrdemCompraListPage = () => {
     }
   }, [dispatch, searchTerm, filters, page, pageSize]);
 
+  const handleRowClick = (params: GridRowParams) => {
+    setSelectedOrder(params.row as OrdemCompra);
+    setApprovalDialogOpen(true);
+  };
+
+  const handleCloseApprovalDialog = () => {
+    setApprovalDialogOpen(false);
+  };
+
+  const handleApprovalChange = async (approved: boolean) => {
+    if (!selectedOrder) return;
+
+    if (!user?.CODGERENTE) {
+      dispatch(
+        setFeedback({
+          message: "Usuario nao autorizado a aprovar esta ordem",
+          type: "error",
+        })
+      );
+      return;
+    }
+
+    if (approved && !user?.LOGIN) {
+      dispatch(
+        setFeedback({
+          message: "Login do aprovador nao informado",
+          type: "error",
+        })
+      );
+      return;
+    }
+
+    setApprovalSaving(true);
+    try {
+      const updated = await OrdemCompraService.updateApproval(selectedOrder.ID, {
+        approved,
+        login: user?.LOGIN || "",
+        codGerente: user?.CODGERENTE ?? null,
+      });
+
+      setSelectedOrder((prev) => (prev ? { ...prev, ...updated } : prev));
+      dispatch(
+        setFeedback({
+          message: approved
+            ? "Ordem de compra aprovada com sucesso"
+            : "Ordem de compra desaprovada com sucesso",
+          type: "success",
+        })
+      );
+      await fetchData();
+    } catch (error: any) {
+      dispatch(
+        setFeedback({
+          message:
+            error?.response?.data?.message ||
+            error?.message ||
+            "Erro ao atualizar aprovacao",
+          type: "error",
+        })
+      );
+    } finally {
+      setApprovalSaving(false);
+    }
+  };
+
   useEffect(() => {
     fetchData();
   }, [fetchData]);
@@ -155,6 +238,7 @@ const OrdemCompraListPage = () => {
           rowCount={total}
           paginationModel={{ page, pageSize }}
           onPaginationModelChange={handlePaginationModelChange}
+          onRowClick={handleRowClick}
           pageSizeOptions={[10, 25, 50, 100]}
         />
       </Box>
@@ -171,6 +255,73 @@ const OrdemCompraListPage = () => {
         onApply={handleApplyColumnOrder}
         onRemoveSavedOrder={removeSavedColumnOrder}
       />
+      <Dialog open={approvalDialogOpen} onClose={handleCloseApprovalDialog} maxWidth="sm" fullWidth>
+        <DialogTitle>Status da ordem de compra</DialogTitle>
+        <DialogContent>
+          {selectedOrder ? (
+            <Stack spacing={2} sx={{ mt: 1 }}>
+              <Box>
+                <Typography fontSize="14px" fontWeight={600}>
+                  {selectedOrder.DATAEXTRA1 && selectedOrder.CAMPOLIVRE1
+                    ? "Aprovada"
+                    : "Nao aprovada"}
+                </Typography>
+                {selectedOrder.DATAEXTRA1 && selectedOrder.CAMPOLIVRE1 ? (
+                  <Stack spacing={0.5} sx={{ mt: 1 }}>
+                    <Typography fontSize="12px">
+                      Aprovada em: {getDateStringFromISOstring(selectedOrder.DATAEXTRA1)}
+                    </Typography>
+                    <Typography fontSize="12px">
+                      Aprovador: {selectedOrder.CAMPOLIVRE1}
+                    </Typography>
+                  </Stack>
+                ) : null}
+              </Box>
+              <Box>
+                <Typography fontSize="12px">
+                  Numero: {selectedOrder.NUMERO_MOVIMENTO}
+                </Typography>
+                <Typography fontSize="12px">
+                  Fornecedor: {selectedOrder.FORNECEDOR}
+                </Typography>
+                <Typography fontSize="12px">
+                  Valor bruto: {formatCurrency(Number(selectedOrder.VALOR_BRUTO || 0))}
+                </Typography>
+              </Box>
+              {!user?.CODGERENTE ||
+              String(selectedOrder.RESPONSAVEL ?? "") !== String(user?.CODGERENTE ?? "") ? (
+                <Typography fontSize="12px" color="text.secondary">
+                  Apenas o gerente do projeto pode aprovar ou desaprovar.
+                </Typography>
+              ) : null}
+            </Stack>
+          ) : null}
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={handleCloseApprovalDialog} disabled={approvalSaving}>
+            Fechar
+          </Button>
+          {selectedOrder ? (
+            <Button
+              variant="contained"
+              color={selectedOrder.DATAEXTRA1 && selectedOrder.CAMPOLIVRE1 ? "warning" : "primary"}
+              onClick={() =>
+                handleApprovalChange(!(selectedOrder.DATAEXTRA1 && selectedOrder.CAMPOLIVRE1))
+              }
+              disabled={
+                approvalSaving ||
+                !user?.CODGERENTE ||
+                String(selectedOrder.RESPONSAVEL ?? "") !== String(user?.CODGERENTE ?? "")
+              }
+              sx={{ borderRadius: 0 }}
+            >
+              {selectedOrder.DATAEXTRA1 && selectedOrder.CAMPOLIVRE1
+                ? "Desaprovar"
+                : "Aprovar"}
+            </Button>
+          ) : null}
+        </DialogActions>
+      </Dialog>
     </Box>
   );
 };
