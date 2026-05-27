@@ -127,10 +127,13 @@ const OrdemCompraListPage = () => {
     setApprovalDialogOpen(false);
   };
 
-  const handleApprovalChange = async (approved: boolean) => {
+  const handleManagerApprovalChange = async (approved: boolean) => {
     if (!selectedOrder) return;
 
-    if (!user?.CODGERENTE) {
+    if (
+      !user?.CODGERENTE ||
+      String(selectedOrder.RESPONSAVEL ?? "") !== String(user?.CODGERENTE ?? "")
+    ) {
       dispatch(
         setFeedback({
           message: "Usuario nao autorizado a aprovar esta ordem",
@@ -183,6 +186,62 @@ const OrdemCompraListPage = () => {
     }
   };
 
+  const handleDirectorApprovalChange = async (approved: boolean) => {
+    if (!selectedOrder) return;
+
+    if (!user?.PERM_DIRETOR) {
+      dispatch(
+        setFeedback({
+          message: "Usuario nao autorizado a aprovar esta ordem",
+          type: "error",
+        })
+      );
+      return;
+    }
+
+    if (!user?.LOGIN) {
+      dispatch(
+        setFeedback({
+          message: "Login do aprovador nao informado",
+          type: "error",
+        })
+      );
+      return;
+    }
+
+    setApprovalSaving(true);
+    try {
+      const updated = await OrdemCompraService.updateDirectorApproval(selectedOrder.ID, {
+        approved,
+        login: user?.LOGIN || "",
+        permDiretor: user?.PERM_DIRETOR ?? null,
+      });
+
+      setSelectedOrder((prev) => (prev ? { ...prev, ...updated } : prev));
+      dispatch(
+        setFeedback({
+          message: approved
+            ? "Ordem de compra aprovada com sucesso"
+            : "Ordem de compra desaprovada com sucesso",
+          type: "success",
+        })
+      );
+      await fetchData();
+    } catch (error: any) {
+      dispatch(
+        setFeedback({
+          message:
+            error?.response?.data?.message ||
+            error?.message ||
+            "Erro ao atualizar aprovacao",
+          type: "error",
+        })
+      );
+    } finally {
+      setApprovalSaving(false);
+    }
+  };
+
   useEffect(() => {
     fetchData();
   }, [fetchData]);
@@ -198,6 +257,12 @@ const OrdemCompraListPage = () => {
       dispatch(setPage(model.page));
     }
   };
+
+  const isDirector = Boolean(user?.PERM_DIRETOR);
+  const isManager =
+    Boolean(user?.CODGERENTE) &&
+    String(selectedOrder?.RESPONSAVEL ?? "") === String(user?.CODGERENTE ?? "");
+  const isApproved = Boolean(selectedOrder?.DATAEXTRA1 && selectedOrder?.CAMPOLIVRE1);
 
   return (
     <Box sx={{ height: "100vh", width: "100%" }}>
@@ -288,10 +353,9 @@ const OrdemCompraListPage = () => {
                   Valor bruto: {formatCurrency(Number(selectedOrder.VALOR_BRUTO || 0))}
                 </Typography>
               </Box>
-              {!user?.CODGERENTE ||
-              String(selectedOrder.RESPONSAVEL ?? "") !== String(user?.CODGERENTE ?? "") ? (
+              {!isDirector && !isManager ? (
                 <Typography fontSize="12px" color="text.secondary">
-                  Apenas o gerente do projeto pode aprovar ou desaprovar.
+                  Apenas o gerente do projeto ou a diretoria podem aprovar ou desaprovar.
                 </Typography>
               ) : null}
             </Stack>
@@ -301,23 +365,26 @@ const OrdemCompraListPage = () => {
           <Button onClick={handleCloseApprovalDialog} disabled={approvalSaving}>
             Fechar
           </Button>
-          {selectedOrder ? (
+          {selectedOrder && isManager ? (
             <Button
               variant="contained"
-              color={selectedOrder.DATAEXTRA1 && selectedOrder.CAMPOLIVRE1 ? "warning" : "primary"}
-              onClick={() =>
-                handleApprovalChange(!(selectedOrder.DATAEXTRA1 && selectedOrder.CAMPOLIVRE1))
-              }
-              disabled={
-                approvalSaving ||
-                !user?.CODGERENTE ||
-                String(selectedOrder.RESPONSAVEL ?? "") !== String(user?.CODGERENTE ?? "")
-              }
+              color={isApproved ? "warning" : "primary"}
+              onClick={() => handleManagerApprovalChange(!isApproved)}
+              disabled={approvalSaving}
               sx={{ borderRadius: 0 }}
             >
-              {selectedOrder.DATAEXTRA1 && selectedOrder.CAMPOLIVRE1
-                ? "Desaprovar"
-                : "Aprovar"}
+              {isApproved ? "Desaprovar" : "Aprovar"}
+            </Button>
+          ) : null}
+          {selectedOrder && isDirector ? (
+            <Button
+              variant="contained"
+              color={isApproved ? "warning" : "primary"}
+              onClick={() => handleDirectorApprovalChange(!isApproved)}
+              disabled={approvalSaving}
+              sx={{ borderRadius: 0 }}
+            >
+              {isApproved ? "Desaprovar Diretoria" : "Aprovar Diretoria"}
             </Button>
           ) : null}
         </DialogActions>

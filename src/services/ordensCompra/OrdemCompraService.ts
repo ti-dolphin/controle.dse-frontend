@@ -16,6 +16,12 @@ interface ApprovalPayload {
   codGerente: number | null;
 }
 
+interface DirectorApprovalPayload {
+  approved: boolean;
+  login: string;
+  permDiretor: number | boolean | null;
+}
+
 const OrdemCompraService = {
   getMany: async ({ searchTerm, filters, page, pageSize }: OrdemCompraQuery) => {
     const response = await apiLocal.get(API_ENDPOINT, {
@@ -30,6 +36,10 @@ const OrdemCompraService = {
   },
   updateApproval: async (id: number, payload: ApprovalPayload) => {
     const response = await apiLocal.patch(`${API_ENDPOINT}/${id}/approval`, payload);
+    return response.data;
+  },
+  updateDirectorApproval: async (id: number, payload: DirectorApprovalPayload) => {
+    const response = await apiLocal.patch(`${API_ENDPOINT}/${id}/director-approval`, payload);
     return response.data;
   },
 };
