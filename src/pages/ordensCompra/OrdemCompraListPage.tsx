@@ -6,8 +6,13 @@ import {
   DialogActions,
   DialogContent,
   DialogTitle,
+  FormControlLabel,
   IconButton,
   Stack,
+  Switch,
+  TextField,
+  ToggleButton,
+  ToggleButtonGroup,
   Tooltip,
   Typography,
   useTheme,
@@ -37,7 +42,12 @@ import { ColumnReorderDialog } from "../../components/shared/ColumnReorderDialog
 import OpenWithIcon from "@mui/icons-material/OpenWith";
 import { ColumnPreference, usePersistedColumnOrder } from "../../hooks/table/usePersistedColumnOrder";
 import { OrdemCompra } from "../../models/OrdemCompra";
-import { formatCurrency, getDateStringFromISOstring } from "../../utils";
+import {
+  formatCurrency,
+  formatDateStringtoISOstring,
+  getDateInputValue,
+  getDateStringFromISOstring,
+} from "../../utils";
 
 const ORDEM_COMPRA_TABLE_KEY = "ordem-compra-list";
 
@@ -94,12 +104,58 @@ const OrdemCompraListPage = () => {
     dispatch(clearFilters());
   };
 
+  const handleApprovalStatusChange = useCallback(
+    (_event: React.MouseEvent<HTMLElement>, value: string | null) => {
+      if (!value) return;
+      dispatch(
+        setFilters({
+          ...filters,
+          APPROVAL_STATUS: value as "PENDING" | "APPROVED" | "ALL",
+        })
+      );
+      dispatch(setPage(0));
+    },
+    [dispatch, filters]
+  );
+
+  const handleScopeChange = useCallback(
+    (event: React.ChangeEvent<HTMLInputElement>) => {
+      const checked = event.target.checked;
+      dispatch(
+        setFilters({
+          ...filters,
+          SCOPE: checked ? "ALL" : "MY",
+        })
+      );
+      dispatch(setPage(0));
+    },
+    [dispatch, filters]
+  );
+
+  const handleDateRangeChange = useCallback(
+    (key: "DATA_EMISSAO_FROM" | "DATA_EMISSAO_TO", value: string) => {
+      const isoValue = value ? formatDateStringtoISOstring(value) : "";
+      dispatch(
+        setFilters({
+          ...filters,
+          [key]: isoValue,
+        })
+      );
+      dispatch(setPage(0));
+    },
+    [dispatch, filters]
+  );
+
   const fetchData = useCallback(async () => {
     dispatch(setLoading(true));
     try {
+      const effectiveFilters = {
+        ...filters,
+        CODGERENTE: user?.CODGERENTE ?? null,
+      };
       const data = await OrdemCompraService.getMany({
         searchTerm,
-        filters,
+        filters: effectiveFilters,
         page,
         pageSize,
       });
@@ -116,7 +172,7 @@ const OrdemCompraListPage = () => {
         })
       );
     }
-  }, [dispatch, searchTerm, filters, page, pageSize]);
+  }, [dispatch, searchTerm, filters, page, pageSize, user]);
 
   const handleRowClick = (params: GridRowParams) => {
     setSelectedOrder(params.row as OrdemCompra);
@@ -272,6 +328,50 @@ const OrdemCompraListPage = () => {
           handleChangeSearchTerm={debouncedHandleChangeSearchTerm}
           searchValue={searchTerm}
         >
+          <ToggleButtonGroup
+            value={filters.APPROVAL_STATUS || "PENDING"}
+            exclusive
+            onChange={handleApprovalStatusChange}
+            size="small"
+            sx={{ height: 30 }}
+          >
+            <ToggleButton value="PENDING">Pendentes</ToggleButton>
+            <ToggleButton value="APPROVED">Aprovadas</ToggleButton>
+            <ToggleButton value="ALL">Todas</ToggleButton>
+          </ToggleButtonGroup>
+          <FormControlLabel
+            control={
+              <Switch
+                size="small"
+                checked={filters.SCOPE === "ALL"}
+                onChange={handleScopeChange}
+              />
+            }
+            label="Exibir todas"
+            sx={{ ml: 1 }}
+          />
+          <Stack direction="row" spacing={1} alignItems="center">
+            <TextField
+              label="Emissao de"
+              type="date"
+              size="small"
+              value={getDateInputValue(filters.DATA_EMISSAO_FROM) || ""}
+              onChange={(event) =>
+                handleDateRangeChange("DATA_EMISSAO_FROM", event.target.value)
+              }
+              InputLabelProps={{ shrink: true }}
+            />
+            <TextField
+              label="ate"
+              type="date"
+              size="small"
+              value={getDateInputValue(filters.DATA_EMISSAO_TO) || ""}
+              onChange={(event) =>
+                handleDateRangeChange("DATA_EMISSAO_TO", event.target.value)
+              }
+              InputLabelProps={{ shrink: true }}
+            />
+          </Stack>
           <Button
             variant="contained"
             onClick={handleCleanFilters}
@@ -353,11 +453,6 @@ const OrdemCompraListPage = () => {
                   Valor bruto: {formatCurrency(Number(selectedOrder.VALOR_BRUTO || 0))}
                 </Typography>
               </Box>
-              {!isDirector && !isManager ? (
-                <Typography fontSize="12px" color="text.secondary">
-                  Apenas o gerente do projeto ou a diretoria podem aprovar ou desaprovar.
-                </Typography>
-              ) : null}
             </Stack>
           ) : null}
         </DialogContent>

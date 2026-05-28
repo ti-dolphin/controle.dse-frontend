@@ -1,4 +1,5 @@
 import { createSlice, PayloadAction } from "@reduxjs/toolkit";
+import { DateTime } from "luxon";
 import { OrdemCompra } from "../../../models/OrdemCompra";
 
 export interface OrdemCompraFilters {
@@ -8,10 +9,15 @@ export interface OrdemCompraFilters {
   CENTRO_CUSTO: string;
   NUMERO_MOVIMENTO: string;
   DATA_EMISSAO: string;
+  DATA_EMISSAO_FROM?: string;
+  DATA_EMISSAO_TO?: string;
   DATA_ENTREGA: string;
   VALOR_BRUTO: string;
   FORNECEDOR: string;
   FORNECEDOR_NOME_FANTASIA: string;
+  APPROVAL_STATUS?: "PENDING" | "APPROVED" | "ALL";
+  SCOPE?: "MY" | "ALL";
+  CODGERENTE?: string | number | null;
 }
 
 export interface OrdemCompraTableState {
@@ -24,6 +30,17 @@ export interface OrdemCompraTableState {
   total: number;
 }
 
+const getDefaultDateRange = () => {
+  const now = DateTime.utc();
+  const start = DateTime.utc(now.year - 1, 1, 1, 0, 0, 0);
+  return {
+    from: start.toISO() || "",
+    to: now.toISO() || "",
+  };
+};
+
+const defaultRange = getDefaultDateRange();
+
 const defaultFilters: OrdemCompraFilters = {
   ID: "",
   COLIGADA: "",
@@ -31,10 +48,15 @@ const defaultFilters: OrdemCompraFilters = {
   CENTRO_CUSTO: "",
   NUMERO_MOVIMENTO: "",
   DATA_EMISSAO: "",
+  DATA_EMISSAO_FROM: defaultRange.from,
+  DATA_EMISSAO_TO: defaultRange.to,
   DATA_ENTREGA: "",
   VALOR_BRUTO: "",
   FORNECEDOR: "",
   FORNECEDOR_NOME_FANTASIA: "",
+  APPROVAL_STATUS: "PENDING",
+  SCOPE: "MY",
+  CODGERENTE: null,
 };
 
 const initialState: OrdemCompraTableState = {
