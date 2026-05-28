@@ -126,20 +126,20 @@ export const useOppDetailedFields = (user: User | null, opportunity: Partial<Opp
           options: comercialResponsableOptions,
         },
         {
-          field: "VALORFATDIRETO",
-          label: "Valor Faturamento Direto",
-          type: "number",
-          disabled: false,
-          required: false,
-          defaultValue: opportunity.VALORFATDIRETO != null ? String(opportunity.VALORFATDIRETO) : "",
-        },
-        {
           field: "VALORFATDOLPHIN",
           label: "Valor Faturamento Dolphin",
           type: "number",
           disabled: false,
           required: false,
           defaultValue: opportunity.VALORFATDOLPHIN != null ? String(opportunity.VALORFATDOLPHIN) : "",
+        },
+        {
+          field: "VALORFATDIRETO",
+          label: "Valor Faturamento Direto",
+          type: "number",
+          disabled: false,
+          required: false,
+          defaultValue: opportunity.VALORFATDIRETO != null ? String(opportunity.VALORFATDIRETO) : "",
         },
         {
           field: "VALOR_COMISSAO",
