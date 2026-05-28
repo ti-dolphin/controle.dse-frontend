@@ -455,10 +455,13 @@ const RequisitionStatusStepper = ({
             user!,
             updatedRequisition
           );
-          const isConcludedStatus =
-            normalizeStatusName(
-              updatedRequisition.status?.nome ?? newStatus?.nome
-            ) === "concluido";
+          const updatedStatusName = normalizeStatusName(
+            updatedRequisition.status?.nome ?? newStatus?.nome
+          );
+          const isConcludedStatus = updatedStatusName === "concluido";
+          const shouldStayOnPageForManagerApproval =
+            user?.PERM_COMPRADOR === 1 &&
+            updatedStatusName === "aprovacao gerente";
 
           if (
             !newPermissions.permissionToChangeStatus &&
@@ -470,7 +473,7 @@ const RequisitionStatusStepper = ({
                 message: "Status atualizado com sucesso!",
               })
             );
-            if (!isConcludedStatus) {
+            if (!isConcludedStatus && !shouldStayOnPageForManagerApproval) {
               navigate("/requisicoes");
             }
             return;
@@ -543,7 +546,14 @@ const RequisitionStatusStepper = ({
       dispatch(setRefreshRequisition(!refreshRequisition));
       setJustifyingLessThenThreeQuotes(false);
       setComment("");
-      if (!permissionToChangeStatus) {
+      const updatedStatusName = normalizeStatusName(
+        updatedRequisition.status?.nome ?? newStatus?.nome
+      );
+      const shouldStayOnPageForManagerApproval =
+        user?.PERM_COMPRADOR === 1 &&
+        updatedStatusName === "aprovacao gerente";
+
+      if (!permissionToChangeStatus && !shouldStayOnPageForManagerApproval) {
         navigate("/requisicoes");
         return;
       }
@@ -553,7 +563,9 @@ const RequisitionStatusStepper = ({
           message: "Status atualizado com sucesso!",
         })
       );
-      navigate("/requisicoes");
+      if (!shouldStayOnPageForManagerApproval) {
+        navigate("/requisicoes");
+      }
     } catch (e: any) {
       dispatch(
         setFeedback({
