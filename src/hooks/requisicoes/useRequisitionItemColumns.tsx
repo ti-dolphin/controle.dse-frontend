@@ -362,6 +362,7 @@ export const useRequisitionItemColumns = (
       field: "produto_unidade",
       headerName: "Unidade",
       type: "string",
+      editable: true,
       sortable: false,
       minWidth: 70,
     },
