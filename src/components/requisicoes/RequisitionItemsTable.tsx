@@ -74,6 +74,7 @@ import { PatrimonyService } from "../../services/patrimonios/PatrimonyService";
 import MovementationService from "../../services/patrimonios/MovementationService";
 import ElegantInput from "../shared/ui/Input";
 import OptionsField from "../shared/ui/OptionsField";
+import StickyHorizontalScrollbar from "../shared/StickyHorizontalScrollbar";
 
 interface RequisitionItemsTable {
   tableMaxHeight?: number;
@@ -313,6 +314,7 @@ const RequisitionItemsTable = ({
   );
 
   const toolbarRef = React.useRef<HTMLDivElement>(null);
+  const tableWrapperRef = React.useRef<HTMLDivElement>(null);
 
   const { columns, isDinamicField, dinamicColumns } = useRequisitionItemColumns(
     addingReqItems,
@@ -1103,16 +1105,11 @@ const RequisitionItemsTable = ({
         </Box>
       ) : (
         <Box
+          ref={tableWrapperRef}
           sx={{
             height: tableMaxHeight ? tableMaxHeight : "auto",
             overflowX: "auto",
             overflowY: shouldUseAutoHeight ? "visible" : "auto",
-            "& .MuiDataGrid-scrollbar--horizontal": {
-              position: "sticky",
-              bottom: 0,
-              zIndex: 3,
-              backgroundColor: (theme) => theme.palette.background.paper,
-            },
             '& .item-without-quote': {
               backgroundColor: '#ffebee !important',
               '&:hover': {
@@ -1217,6 +1214,7 @@ const RequisitionItemsTable = ({
           />
         </Box>
       )}
+      <StickyHorizontalScrollbar wrapperRef={tableWrapperRef} />
       {addingReqItems && (
         <Box sx={{ display: "flex", justifyContent: "flex-end", p: 2 }}>
           <Button variant="contained" onClick={handleAddItemsToRequisition}>
