@@ -337,7 +337,6 @@ const OrdemCompraListPage = () => {
           >
             <ToggleButton value="PENDING">Pendentes</ToggleButton>
             <ToggleButton value="APPROVED">Aprovadas</ToggleButton>
-            <ToggleButton value="ALL">Todas</ToggleButton>
           </ToggleButtonGroup>
           <FormControlLabel
             control={
