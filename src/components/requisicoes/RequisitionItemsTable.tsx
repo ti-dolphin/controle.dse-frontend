@@ -350,6 +350,21 @@ const RequisitionItemsTable = ({
     return ocStatus && buyer;
   };
 
+  const isNonRegisteredItem = useCallback((row: any) => {
+    const productCode = String(row?.produto_codigo || row?.produto?.codigo || "").trim();
+    return productCode === "06.001.04.0002";
+  }, []);
+
+  const isCellEditable = useCallback(
+    (params: GridCellParams) => {
+      if (params.field === "produto_unidade") {
+        return isNonRegisteredItem(params.row);
+      }
+      return Boolean(params.colDef.editable);
+    },
+    [isNonRegisteredItem]
+  );
+
   const mobileColumns = () => {
     const mobile = ["produto_descricao", "quantidade", "total_linha", "actions"];
     const filtered = columns.filter((column) => mobile.includes(column.field) || isDinamicField?.(column.field));
@@ -488,7 +503,16 @@ const RequisitionItemsTable = ({
           oc: newRow.oc,
           observacao: newRow.observacao,
           alterado_por: user?.CODPESSOA,
-        };
+        } as any;
+        const productCode = String(
+          newRow.produto_codigo || newRow.produto?.codigo || ""
+        ).trim();
+        if (
+          productCode === "06.001.04.0002" &&
+          newRow.produto_unidade !== oldRow.produto_unidade
+        ) {
+          payload.produto_unidade = newRow.produto_unidade;
+        }
         if (payload.quantidade < 0) {
           dispatch(
             setFeedback({
@@ -1083,6 +1107,12 @@ const RequisitionItemsTable = ({
             height: tableMaxHeight ? tableMaxHeight : "auto",
             overflowX: "auto",
             overflowY: shouldUseAutoHeight ? "visible" : "auto",
+            "& .MuiDataGrid-scrollbar--horizontal": {
+              position: "sticky",
+              bottom: 0,
+              zIndex: 3,
+              backgroundColor: (theme) => theme.palette.background.paper,
+            },
             '& .item-without-quote': {
               backgroundColor: '#ffebee !important',
               '&:hover': {
@@ -1173,6 +1203,7 @@ const RequisitionItemsTable = ({
             rowSelectionModel={selectionModel}
             disableRowSelectionOnClick
             columns={isMobile ? mobileColumns() : columns}
+            isCellEditable={isCellEditable}
             cellModesModel={cellModesModel}
             onCellModesModelChange={handleCellModesModelChange}
             onCellClick={handleCellClick}
