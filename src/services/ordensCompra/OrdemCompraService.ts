@@ -22,6 +22,20 @@ interface DirectorApprovalPayload {
   permDiretor: number | boolean | null;
 }
 
+interface BatchApprovalPayload extends ApprovalPayload {
+  ids: number[];
+}
+
+interface BatchDirectorApprovalPayload extends DirectorApprovalPayload {
+  ids: number[];
+}
+
+export interface BatchApprovalResult {
+  total: number;
+  succeeded: { idMov: number; result: any }[];
+  failed: { idMov: number; message: string }[];
+}
+
 const OrdemCompraService = {
   getMany: async ({ searchTerm, filters, page, pageSize }: OrdemCompraQuery) => {
     const response = await apiLocal.get(API_ENDPOINT, {
@@ -40,6 +54,16 @@ const OrdemCompraService = {
   },
   updateDirectorApproval: async (id: number, payload: DirectorApprovalPayload) => {
     const response = await apiLocal.patch(`${API_ENDPOINT}/${id}/director-approval`, payload);
+    return response.data;
+  },
+  updateApprovalBatch: async (payload: BatchApprovalPayload): Promise<BatchApprovalResult> => {
+    const response = await apiLocal.patch(`${API_ENDPOINT}/approval/batch`, payload);
+    return response.data;
+  },
+  updateDirectorApprovalBatch: async (
+    payload: BatchDirectorApprovalPayload
+  ): Promise<BatchApprovalResult> => {
+    const response = await apiLocal.patch(`${API_ENDPOINT}/director-approval/batch`, payload);
     return response.data;
   },
 };

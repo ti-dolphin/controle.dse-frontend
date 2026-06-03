@@ -10,6 +10,9 @@ export interface OrdemCompra {
   VALOR_BRUTO: number | string;
   DATAEXTRA1?: string | null;
   CAMPOLIVRE1?: string | null;
+  DIRECTOR_APPROVED?: boolean | number | null;
+  DIRECTOR_APPROVAL_DATE?: string | null;
+  DIRECTOR_APPROVER?: string | null;
   FORNECEDOR: string;
   FORNECEDOR_NOME_FANTASIA: string;
 }

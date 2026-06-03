@@ -20,7 +20,7 @@ import {
 import { useDispatch, useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
 import { debounce } from "lodash";
-import { GridRowParams } from "@mui/x-data-grid";
+import { GridRowParams, GridRowSelectionModel } from "@mui/x-data-grid";
 import UpperNavigation from "../../components/shared/UpperNavigation";
 import BaseTableToolBar from "../../components/shared/BaseTableToolBar";
 import BaseDataTable from "../../components/shared/BaseDataTable";
@@ -64,6 +64,7 @@ const OrdemCompraListPage = () => {
   const [approvalDialogOpen, setApprovalDialogOpen] = useState(false);
   const [approvalSaving, setApprovalSaving] = useState(false);
   const [selectedOrder, setSelectedOrder] = useState<OrdemCompra | null>(null);
+  const [selectedIds, setSelectedIds] = useState<GridRowSelectionModel>([]);
 
   const handleChangeFilters = useCallback(
     (event: React.ChangeEvent<HTMLInputElement>, field: string) => {
@@ -298,6 +299,127 @@ const OrdemCompraListPage = () => {
     }
   };
 
+  const notifyBatchResult = useCallback(
+    (result: { succeeded?: unknown[]; failed?: { message?: string }[] }, approved: boolean) => {
+      const succeeded = result?.succeeded?.length || 0;
+      const failed = result?.failed?.length || 0;
+      const action = approved ? "aprovada(s)" : "reprovada(s)";
+
+      if (failed === 0) {
+        dispatch(
+          setFeedback({
+            message: `${succeeded} ordem(ns) de compra ${action} com sucesso`,
+            type: "success",
+          })
+        );
+        return;
+      }
+
+      const firstError = result?.failed?.[0]?.message;
+      if (succeeded === 0) {
+        dispatch(
+          setFeedback({
+            message: `Nenhuma ordem foi ${action}.${firstError ? ` ${firstError}` : ""}`,
+            type: "error",
+          })
+        );
+        return;
+      }
+
+      dispatch(
+        setFeedback({
+          message: `${succeeded} ordem(ns) ${action}, ${failed} com erro.${
+            firstError ? ` Ex.: ${firstError}` : ""
+          }`,
+          type: "error",
+        })
+      );
+    },
+    [dispatch]
+  );
+
+  const handleManagerBatchApproval = async (approved: boolean) => {
+    if (selectedIds.length === 0) return;
+
+    if (!user?.CODGERENTE) {
+      dispatch(
+        setFeedback({ message: "Usuario nao autorizado a aprovar", type: "error" })
+      );
+      return;
+    }
+
+    if (approved && !user?.LOGIN) {
+      dispatch(
+        setFeedback({ message: "Login do aprovador nao informado", type: "error" })
+      );
+      return;
+    }
+
+    setApprovalSaving(true);
+    try {
+      const result = await OrdemCompraService.updateApprovalBatch({
+        ids: selectedIds.map((id) => Number(id)),
+        approved,
+        login: user?.LOGIN || "",
+        codGerente: user?.CODGERENTE ?? null,
+      });
+      notifyBatchResult(result, approved);
+      setSelectedIds([]);
+      await fetchData();
+    } catch (error: any) {
+      dispatch(
+        setFeedback({
+          message:
+            error?.response?.data?.message || error?.message || "Erro ao atualizar aprovacoes",
+          type: "error",
+        })
+      );
+    } finally {
+      setApprovalSaving(false);
+    }
+  };
+
+  const handleDirectorBatchApproval = async (approved: boolean) => {
+    if (selectedIds.length === 0) return;
+
+    if (!user?.PERM_DIRETOR) {
+      dispatch(
+        setFeedback({ message: "Usuario nao autorizado a aprovar", type: "error" })
+      );
+      return;
+    }
+
+    if (!user?.LOGIN) {
+      dispatch(
+        setFeedback({ message: "Login do aprovador nao informado", type: "error" })
+      );
+      return;
+    }
+
+    setApprovalSaving(true);
+    try {
+      const result = await OrdemCompraService.updateDirectorApprovalBatch({
+        ids: selectedIds.map((id) => Number(id)),
+        approved,
+        login: user?.LOGIN || "",
+        permDiretor: user?.PERM_DIRETOR ?? null,
+      });
+      notifyBatchResult(result, approved);
+      setSelectedIds([]);
+      await fetchData();
+    } catch (error: any) {
+      dispatch(
+        setFeedback({
+          message:
+            error?.response?.data?.message || error?.message || "Erro ao atualizar aprovacoes",
+          type: "error",
+        })
+      );
+    } finally {
+      setApprovalSaving(false);
+    }
+  };
+
   useEffect(() => {
     fetchData();
   }, [fetchData]);
@@ -318,7 +440,16 @@ const OrdemCompraListPage = () => {
   const isManager =
     Boolean(user?.CODGERENTE) &&
     String(selectedOrder?.RESPONSAVEL ?? "") === String(user?.CODGERENTE ?? "");
-  const isApproved = Boolean(selectedOrder?.DATAEXTRA1 && selectedOrder?.CAMPOLIVRE1);
+
+  // Status do gerente vem da TMOV; status da diretoria vem da TMOVAPROVA.
+  const isManagerApproved = Boolean(selectedOrder?.DATAEXTRA1 && selectedOrder?.CAMPOLIVRE1);
+  const isDirectorApproved = Boolean(
+    selectedOrder?.DIRECTOR_APPROVED === true ||
+      Number(selectedOrder?.DIRECTOR_APPROVED ?? 0) > 0
+  );
+
+  const canManagerApprove = Boolean(user?.CODGERENTE);
+  const hasSelection = selectedIds.length > 0;
 
   return (
     <Box sx={{ height: "100vh", width: "100%" }}>
@@ -387,6 +518,59 @@ const OrdemCompraListPage = () => {
               <OpenWithIcon fontSize="small" />
             </IconButton>
           </Tooltip>
+          {canManagerApprove ? (
+            <Stack direction="row" spacing={1} alignItems="center" sx={{ ml: "auto" }}>
+              <Button
+                variant="contained"
+                color="primary"
+                size="small"
+                disabled={!hasSelection || approvalSaving}
+                onClick={() => handleManagerBatchApproval(true)}
+                sx={{ borderRadius: 0, height: 30, fontSize: "12px" }}
+              >
+                Aprovar Gerente ({selectedIds.length})
+              </Button>
+              <Button
+                variant="contained"
+                color="warning"
+                size="small"
+                disabled={!hasSelection || approvalSaving}
+                onClick={() => handleManagerBatchApproval(false)}
+                sx={{ borderRadius: 0, height: 30, fontSize: "12px" }}
+              >
+                Reprovar Gerente ({selectedIds.length})
+              </Button>
+            </Stack>
+          ) : null}
+          {isDirector ? (
+            <Stack
+              direction="row"
+              spacing={1}
+              alignItems="center"
+              sx={{ ml: canManagerApprove ? 0 : "auto" }}
+            >
+              <Button
+                variant="contained"
+                color="primary"
+                size="small"
+                disabled={!hasSelection || approvalSaving}
+                onClick={() => handleDirectorBatchApproval(true)}
+                sx={{ borderRadius: 0, height: 30, fontSize: "12px" }}
+              >
+                Aprovar Diretoria ({selectedIds.length})
+              </Button>
+              <Button
+                variant="contained"
+                color="warning"
+                size="small"
+                disabled={!hasSelection || approvalSaving}
+                onClick={() => handleDirectorBatchApproval(false)}
+                sx={{ borderRadius: 0, height: 30, fontSize: "12px" }}
+              >
+                Reprovar Diretoria ({selectedIds.length})
+              </Button>
+            </Stack>
+          ) : null}
         </BaseTableToolBar>
         <BaseDataTable
           rows={rows}
@@ -403,6 +587,10 @@ const OrdemCompraListPage = () => {
           paginationModel={{ page, pageSize }}
           onPaginationModelChange={handlePaginationModelChange}
           onRowClick={handleRowClick}
+          checkboxSelection
+          disableRowSelectionOnClick
+          rowSelectionModel={selectedIds}
+          onRowSelectionModelChange={(model: GridRowSelectionModel) => setSelectedIds(model)}
           pageSizeOptions={[10, 25, 50, 100]}
         />
       </Box>
@@ -425,19 +613,37 @@ const OrdemCompraListPage = () => {
           {selectedOrder ? (
             <Stack spacing={2} sx={{ mt: 1 }}>
               <Box>
-                <Typography fontSize="14px" fontWeight={600}>
-                  {selectedOrder.DATAEXTRA1 && selectedOrder.CAMPOLIVRE1
-                    ? "Aprovada"
-                    : "Nao aprovada"}
+                <Typography fontSize="13px" fontWeight={600}>
+                  Gerente: {isManagerApproved ? "Aprovada" : "Nao aprovada"}
                 </Typography>
-                {selectedOrder.DATAEXTRA1 && selectedOrder.CAMPOLIVRE1 ? (
-                  <Stack spacing={0.5} sx={{ mt: 1 }}>
+                {isManagerApproved ? (
+                  <Stack spacing={0.5} sx={{ mt: 0.5 }}>
                     <Typography fontSize="12px">
-                      Aprovada em: {getDateStringFromISOstring(selectedOrder.DATAEXTRA1)}
+                      Aprovada em: {getDateStringFromISOstring(selectedOrder.DATAEXTRA1!)}
                     </Typography>
                     <Typography fontSize="12px">
                       Aprovador: {selectedOrder.CAMPOLIVRE1}
                     </Typography>
+                  </Stack>
+                ) : null}
+              </Box>
+              <Box>
+                <Typography fontSize="13px" fontWeight={600}>
+                  Diretoria: {isDirectorApproved ? "Aprovada" : "Nao aprovada"}
+                </Typography>
+                {isDirectorApproved ? (
+                  <Stack spacing={0.5} sx={{ mt: 0.5 }}>
+                    {selectedOrder.DIRECTOR_APPROVAL_DATE ? (
+                      <Typography fontSize="12px">
+                        Aprovada em:{" "}
+                        {getDateStringFromISOstring(selectedOrder.DIRECTOR_APPROVAL_DATE)}
+                      </Typography>
+                    ) : null}
+                    {selectedOrder.DIRECTOR_APPROVER ? (
+                      <Typography fontSize="12px">
+                        Aprovador: {selectedOrder.DIRECTOR_APPROVER}
+                      </Typography>
+                    ) : null}
                   </Stack>
                 ) : null}
               </Box>
@@ -462,23 +668,23 @@ const OrdemCompraListPage = () => {
           {selectedOrder && isManager ? (
             <Button
               variant="contained"
-              color={isApproved ? "warning" : "primary"}
-              onClick={() => handleManagerApprovalChange(!isApproved)}
+              color={isManagerApproved ? "warning" : "primary"}
+              onClick={() => handleManagerApprovalChange(!isManagerApproved)}
               disabled={approvalSaving}
               sx={{ borderRadius: 0 }}
             >
-              {isApproved ? "Desaprovar" : "Aprovar"}
+              {isManagerApproved ? "Desaprovar Gerente" : "Aprovar Gerente"}
             </Button>
           ) : null}
           {selectedOrder && isDirector ? (
             <Button
               variant="contained"
-              color={isApproved ? "warning" : "primary"}
-              onClick={() => handleDirectorApprovalChange(!isApproved)}
+              color={isDirectorApproved ? "warning" : "primary"}
+              onClick={() => handleDirectorApprovalChange(!isDirectorApproved)}
               disabled={approvalSaving}
               sx={{ borderRadius: 0 }}
             >
-              {isApproved ? "Desaprovar Diretoria" : "Aprovar Diretoria"}
+              {isDirectorApproved ? "Desaprovar Diretoria" : "Aprovar Diretoria"}
             </Button>
           ) : null}
         </DialogActions>
