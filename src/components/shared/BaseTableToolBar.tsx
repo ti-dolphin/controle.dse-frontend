@@ -2,13 +2,12 @@ import { Box } from "@mui/material";
 import React from "react";
 import BaseSearchInput from "./BaseSearchInput";
 import { DebouncedFunc } from "lodash";
-import { useSelector } from "react-redux";
-import { RootState } from "../../redux/store";
 
 interface BaseTableToolBar {
   handleChangeSearchTerm: DebouncedFunc<
     (event: React.ChangeEvent<HTMLInputElement>) => void
   >;
+  searchTerm?: string;
   data?: any;
   columns?: string[];
   children?: React.ReactNode;
@@ -17,11 +16,9 @@ interface BaseTableToolBar {
 
 const BaseTableToolBar = ({
   handleChangeSearchTerm,
+  searchTerm,
   children,
 }: BaseTableToolBar) => {
-  const searchTerm = useSelector(
-    (state: RootState) => state.requisitionTable.searchTerm
-  );
 
   return (
     <Box
