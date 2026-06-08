@@ -13,7 +13,7 @@ interface BaseSearchInput {
   styles? : any;
 }
 
-const BaseSearchInput = ({ onChange, showIcon, label, placeholder, styles} : BaseSearchInput) => {
+const BaseSearchInput = ({ onChange, value, showIcon, label, placeholder, styles} : BaseSearchInput) => {
   return (
     <Box
       component="form"
@@ -36,6 +36,7 @@ const BaseSearchInput = ({ onChange, showIcon, label, placeholder, styles} : Bas
         type="text"
         placeholder={placeholder || "Pesquisar..."}
         aria-label={label && label}
+        defaultValue={value}
         onChange={onChange}
         onKeyDown={(e) => e.key === "Enter" && e.preventDefault()}
         className="bg-gray-50"
