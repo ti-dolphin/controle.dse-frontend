@@ -56,7 +56,11 @@ import {
   setRefreshRequisition,
   setRequisition,
 } from "../../redux/slices/requisicoes/requisitionSlice";
-import { formatDateStringtoISOstring } from "../../utils";
+import {
+  formatDateStringtoISOstring,
+  formatDateToISOstring,
+  getDateFromISOstring,
+} from "../../utils";
 import RequisitionService from "../../services/requisicoes/RequisitionService";
 import UpdateChildReqItemsDialog from "./UpdateChildReqItemsDialog";
 import { useIsMobile } from "../../hooks/useIsMobile";
@@ -81,6 +85,26 @@ interface RequisitionItemsTable {
   hideFooter: boolean;
 }
 
+// 0 é o default do banco para OC e significa "sem OC"; a coluna exibe/edita
+// como vazio, então 0 e "" precisam ser equivalentes na comparação de mudança.
+const normalizeOcValue = (value: any): string => {
+  const text = String(value ?? "").trim();
+  return text === "0" ? "" : text;
+};
+
+// Chave local yyyy-mm-dd para comparar datas: entrar e sair da célula converte
+// a string ISO em Date (com deslocamento de fuso), então comparar pela string
+// acusaria mudança mesmo sem o usuário alterar nada.
+const getDateKey = (value: any): string => {
+  if (!value) return "";
+  const date =
+    value instanceof Date ? value : getDateFromISOstring(String(value));
+  if (!date || isNaN(date.getTime())) return "";
+  const month = String(date.getMonth() + 1).padStart(2, "0");
+  const day = String(date.getDate()).padStart(2, "0");
+  return `${date.getFullYear()}-${month}-${day}`;
+};
+
 interface PatrimonyFormData {
   nome: string;
   descricao: string;
@@ -96,8 +120,6 @@ const RequisitionItemsTable = ({
   tableMaxHeight,
   hideFooter,
 }: RequisitionItemsTable) => {
-  const shouldUseAutoHeight = tableMaxHeight === undefined;
-
   const normalizeStatusName = (value?: string | null) => {
     if (!value) return "";
     return value
@@ -165,77 +187,16 @@ const RequisitionItemsTable = ({
     viewingItemAttachment,
   } = useSelector((state: RootState) => state.requisitionItem);
 
-  const handleDeleteItem = async (id_item_requisicao: number) => {
-    setBlockFields(true);
-    try {
-      const updatedItems = items.filter(
-        (item) => item.id_item_requisicao !== id_item_requisicao
-      );
-      dispatch(removeItem(id_item_requisicao));
-      await RequisitionItemService.delete(id_item_requisicao);
-      dispatch(setRefreshRequisition(!refreshRequisition));
-      dispatch(
-        setProductsAdded(
-          updatedItems.map((item: RequisitionItem) => item.id_produto)
-        )
-      );
-      setBlockFields(false);
-      return;
-    } catch (e: any) {
-      dispatch(setRefreshRequisition(!refreshRequisition));
-      dispatch(
-        setFeedback({ message: "Erro ao excluir itens", type: "error" })
-      );
-      setBlockFields(false);
-    }
-  };
+  const itemsRef = React.useRef(items);
+  useEffect(() => {
+    itemsRef.current = items;
+  }, [items]);
 
-  const handleFillOCS = async (ocValue: number) => {
-    try {
-      const itemsWithOC = await RequisitionItemService.updateOCS(
-        selectionModel as number[],
-        ocValue
-      );
-      if (itemsWithOC) {
-        setSelectionModel([]);
-        dispatch(setRefresh(!refresh));
-      }
-    } catch (e: any) {
-      dispatch(setFeedback({ message: "Erro ao preencher OC", type: "error" }));
-    }
-  };
-  const handleFillShippingDate = async (date: string) => {
-    if (!date) {
-      dispatch(
-        setFeedback({
-          message: "Data inválida ou no formato errado",
-          type: "error",
-        })
-      );
-      return;
-    }
-    if (date) {
-      const isoDate = formatDateStringtoISOstring(date);
-      try {
-        const itemsWithShippingDate =
-          await RequisitionItemService.updateShippingDate(
-            selectionModel as number[],
-            isoDate
-          );
-        if (itemsWithShippingDate) {
-          setSelectionModel([]);
-          dispatch(setRefresh(!refresh));
-        }
-      } catch (e) {
-        dispatch(
-          setFeedback({
-            message: "Erro ao preencher data de entrega",
-            type: "error",
-          })
-        );
-      }
-    }
-  };
+  // PUTs em voo por linha e sequência de fetches: impedem que respostas
+  // antigas do servidor sobrescrevam valores recém-digitados pelo usuário.
+  const pendingRowUpdates = React.useRef<Map<number, number>>(new Map());
+  const fetchSeqRef = React.useRef(0);
+
   const [searchTerm, setSearchTerm] = useState("");
 
   const [cellModesModel, setCellModesModel] =
@@ -269,6 +230,90 @@ const RequisitionItemsTable = ({
   const { userOptions } = useUserOptions();
   const { projectOptions } = useProjectOptions();
   const { patirmonyTypeOptions } = usePatrimonyTypeOptions();
+
+  const handleDeleteItem = useCallback(
+    async (id_item_requisicao: number) => {
+      setBlockFields(true);
+      try {
+        const updatedItems = itemsRef.current.filter(
+          (item) => item.id_item_requisicao !== id_item_requisicao
+        );
+        dispatch(removeItem(id_item_requisicao));
+        await RequisitionItemService.delete(id_item_requisicao);
+        dispatch(setRefreshRequisition(!refreshRequisition));
+        dispatch(
+          setProductsAdded(
+            updatedItems.map((item: RequisitionItem) => item.id_produto)
+          )
+        );
+        setBlockFields(false);
+        return;
+      } catch (e: any) {
+        dispatch(setRefreshRequisition(!refreshRequisition));
+        dispatch(
+          setFeedback({ message: "Erro ao excluir itens", type: "error" })
+        );
+        setBlockFields(false);
+      }
+    },
+    [dispatch, refreshRequisition]
+  );
+
+  const handleFillOCS = useCallback(
+    async (ocValue: number) => {
+      try {
+        const itemsWithOC = await RequisitionItemService.updateOCS(
+          selectionModel as number[],
+          ocValue
+        );
+        if (itemsWithOC) {
+          setSelectionModel([]);
+          dispatch(setRefresh(!refresh));
+        }
+      } catch (e: any) {
+        dispatch(
+          setFeedback({ message: "Erro ao preencher OC", type: "error" })
+        );
+      }
+    },
+    [dispatch, refresh, selectionModel]
+  );
+
+  const handleFillShippingDate = useCallback(
+    async (date: string) => {
+      if (!date) {
+        dispatch(
+          setFeedback({
+            message: "Data inválida ou no formato errado",
+            type: "error",
+          })
+        );
+        return;
+      }
+      if (date) {
+        const isoDate = formatDateStringtoISOstring(date);
+        try {
+          const itemsWithShippingDate =
+            await RequisitionItemService.updateShippingDate(
+              selectionModel as number[],
+              isoDate
+            );
+          if (itemsWithShippingDate) {
+            setSelectionModel([]);
+            dispatch(setRefresh(!refresh));
+          }
+        } catch (e) {
+          dispatch(
+            setFeedback({
+              message: "Erro ao preencher data de entrega",
+              type: "error",
+            })
+          );
+        }
+      }
+    },
+    [dispatch, refresh, selectionModel]
+  );
 
   const handleChangeQuoteItemsSelected = useCallback(
     async (
@@ -343,6 +388,12 @@ const RequisitionItemsTable = ({
       );
     });
   }, [items, supplierFilter, quoteItemsSelected]);
+
+  // autoHeight desliga a virtualização de linhas do DataGrid; acima de 30
+  // linhas forçamos altura fixa para manter a tabela virtualizada e fluida.
+  const effectiveMaxHeight =
+    tableMaxHeight ?? (filteredItems.length > 30 ? 600 : undefined);
+  const shouldUseAutoHeight = effectiveMaxHeight === undefined;
 
   const exceptionForBuyer = (field: string) => {
     if (!requisition.status) return;
@@ -493,27 +544,86 @@ const RequisitionItemsTable = ({
     },
     []
   );
+  const performUpdateOnDatabase = React.useCallback(
+    async (newRow: GridRowModel, oldRow: GridRowModel, payload: any) => {
+      const rowId = newRow.id_item_requisicao;
+      const pending = pendingRowUpdates.current;
+      pending.set(rowId, (pending.get(rowId) || 0) + 1);
+      try {
+        const updatedItem = await RequisitionItemService.update(rowId, payload);
+        const remaining = (pending.get(rowId) || 1) - 1;
+        if (remaining <= 0) {
+          pending.delete(rowId);
+          // Só sincroniza com a resposta do servidor se esta for a última
+          // edição em voo da linha, senão sobrescreveria um valor mais novo.
+          dispatch(replaceItem({ id_item_requisicao: rowId, updatedItem }));
+        } else {
+          pending.set(rowId, remaining);
+        }
+        if (
+          payload.quantidade !== undefined &&
+          payload.quantidade !== oldRow.quantidade
+        ) {
+          dispatch(setRefreshRequisition(!refreshRequisition));
+        }
+      } catch (e: any) {
+        const remaining = (pending.get(rowId) || 1) - 1;
+        if (remaining <= 0) {
+          pending.delete(rowId);
+          dispatch(
+            replaceItem({
+              id_item_requisicao: rowId,
+              updatedItem: oldRow as RequisitionItem,
+            })
+          );
+        } else {
+          pending.set(rowId, remaining);
+        }
+        dispatch(
+          setFeedback({
+            message: `Erro ao atualizar item da requisição: ${e.message}`,
+            type: "error",
+          })
+        );
+      }
+    },
+    [dispatch, refreshRequisition]
+  );
+
   const processRowUpdate = React.useCallback(
     async (newRow: GridRowModel, oldRow: GridRowModel) => {
       if (!attendingItems) {
+        // O editor de datas do grid devolve Date; normaliza para ISO para
+        // manter o mesmo formato que o servidor retorna.
+        const normalizedRow: GridRowModel = {
+          ...newRow,
+          data_necessidade:
+            newRow.data_necessidade instanceof Date
+              ? formatDateToISOstring(newRow.data_necessidade)
+              : newRow.data_necessidade,
+          data_entrega:
+            newRow.data_entrega instanceof Date
+              ? formatDateToISOstring(newRow.data_entrega)
+              : newRow.data_entrega,
+        };
         const payload = {
-          id_item_requisicao: newRow.id_item_requisicao,
-          quantidade: newRow.quantidade,
-          target_price: newRow.target_price,
-          data_necessidade: newRow.data_necessidade,
-          data_entrega: newRow.data_entrega,
-          oc: newRow.oc,
-          observacao: newRow.observacao,
+          id_item_requisicao: normalizedRow.id_item_requisicao,
+          quantidade: normalizedRow.quantidade,
+          target_price: normalizedRow.target_price,
+          data_necessidade: normalizedRow.data_necessidade,
+          data_entrega: normalizedRow.data_entrega,
+          oc: normalizedRow.oc,
+          observacao: normalizedRow.observacao,
           alterado_por: user?.CODPESSOA,
         } as any;
         const productCode = String(
-          newRow.produto_codigo || newRow.produto?.codigo || ""
+          normalizedRow.produto_codigo || normalizedRow.produto?.codigo || ""
         ).trim();
         if (
           productCode === "06.001.04.0002" &&
-          newRow.produto_unidade !== oldRow.produto_unidade
+          normalizedRow.produto_unidade !== oldRow.produto_unidade
         ) {
-          payload.produto_unidade = newRow.produto_unidade;
+          payload.produto_unidade = normalizedRow.produto_unidade;
         }
         if (payload.quantidade < 0) {
           dispatch(
@@ -524,7 +634,32 @@ const RequisitionItemsTable = ({
           );
           return oldRow;
         }
-        return await performUpdateOnDatabase(newRow, oldRow, payload);
+        // Sair da célula sem alterar nada não deve disparar PUT.
+        const hasChanges =
+          payload.produto_unidade !== undefined ||
+          normalizedRow.quantidade !== oldRow.quantidade ||
+          normalizedRow.target_price !== oldRow.target_price ||
+          getDateKey(normalizedRow.data_necessidade) !==
+            getDateKey(oldRow.data_necessidade) ||
+          getDateKey(normalizedRow.data_entrega) !==
+            getDateKey(oldRow.data_entrega) ||
+          normalizeOcValue(normalizedRow.oc) !== normalizeOcValue(oldRow.oc) ||
+          String(normalizedRow.observacao ?? "") !==
+            String(oldRow.observacao ?? "");
+        if (!hasChanges) {
+          return oldRow;
+        }
+        // Update otimista: o valor digitado entra no estado imediatamente e
+        // o PUT roda em segundo plano, revertendo apenas se o servidor falhar.
+        fetchSeqRef.current++;
+        dispatch(
+          replaceItem({
+            id_item_requisicao: normalizedRow.id_item_requisicao,
+            updatedItem: normalizedRow as RequisitionItem,
+          })
+        );
+        performUpdateOnDatabase(normalizedRow, oldRow, payload);
+        return normalizedRow;
       }
 
       if (newRow.quantidade_atendida < 0) {
@@ -563,39 +698,8 @@ const RequisitionItemsTable = ({
       );
       return newRow;
     },
-    [items, dispatch]
+    [attendingItems, dispatch, performUpdateOnDatabase, user?.CODPESSOA]
   );
-
-  const performUpdateOnDatabase = async (
-    newRow: GridRowModel,
-    oldRow: GridRowModel,
-    payload: any
-  ) => {
-    try {
-      const updatedItem = await RequisitionItemService.update(
-        newRow.id_item_requisicao,
-        payload
-      );
-      dispatch(
-        replaceItem({
-          id_item_requisicao: newRow.id_item_requisicao,
-          updatedItem,
-        })
-      );
-      if (payload.quantidade !== undefined && payload.quantidade !== oldRow.quantidade) {
-        dispatch(setRefreshRequisition(!refreshRequisition));
-      }
-      return updatedItem;
-    } catch (e: any) {
-      dispatch(
-        setFeedback({
-          message: `Erro ao atualizar item da requisição: ${e.message}`,
-          type: "error",
-        })
-      );
-      return oldRow;
-    }
-  };
 
   const getTotalFromQuotes = async () => {
     let quotes = await QuoteService.getAllQuotesByReq(Number(id_requisicao));
@@ -876,13 +980,24 @@ const RequisitionItemsTable = ({
     }
     setSelectionModel(newRowSelectionModel);
   };
-  const changeSearchTerm = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const value = e.target.value;
-    setSearchTerm(value.toLowerCase());
-  };
-  const debouncedHandleChangeSearchTerm = debounce(changeSearchTerm, 500);
+  const changeSearchTerm = useCallback(
+    (e: React.ChangeEvent<HTMLInputElement>) => {
+      const value = e.target.value;
+      setSearchTerm(value.toLowerCase());
+    },
+    []
+  );
+  const debouncedHandleChangeSearchTerm = useMemo(
+    () => debounce(changeSearchTerm, 500),
+    [changeSearchTerm]
+  );
+  useEffect(
+    () => () => debouncedHandleChangeSearchTerm.cancel(),
+    [debouncedHandleChangeSearchTerm]
+  );
   const fetchData = useCallback(async () => {
     setLoading(true);
+    const seq = ++fetchSeqRef.current;
     try {
       const params =
         newItems.length > 0
@@ -897,7 +1012,25 @@ const RequisitionItemsTable = ({
             };
 
       const data = await RequisitionItemService.getMany(params);
-      dispatch(setItems(data));
+      // Resposta obsoleta: houve nova busca ou edição de célula depois que
+      // esta requisição partiu — descarta para não reverter valores.
+      if (seq !== fetchSeqRef.current) {
+        setLoading(false);
+        return;
+      }
+      let nextItems = data;
+      if (pendingRowUpdates.current.size > 0) {
+        nextItems = data.map((item: RequisitionItem) => {
+          if (!pendingRowUpdates.current.has(item.id_item_requisicao)) {
+            return item;
+          }
+          const localItem = itemsRef.current.find(
+            (local) => local.id_item_requisicao === item.id_item_requisicao
+          );
+          return localItem ?? item;
+        });
+      }
+      dispatch(setItems(nextItems));
       if (attendingItems) {
         dispatch(
           setItems(
@@ -1033,9 +1166,19 @@ const RequisitionItemsTable = ({
     }
   }, [id_requisicao]);
 
+  // A marcação de patrimônios criados só importa na etapa "cadastrar
+  // patrimônio" e só precisa recarregar quando a lista de itens muda de
+  // composição — não a cada edição de célula.
+  const isCadPatrimonioStep =
+    normalizeStatusName(requisition.status?.nome) === "cadastrar patrimonio";
+  const itemIdsKey = useMemo(
+    () => items.map((item) => item.id_item_requisicao).join(","),
+    [items]
+  );
   useEffect(() => {
-    syncCreatedPatrimonyItems(items);
-  }, [items, syncCreatedPatrimonyItems]);
+    if (!isCadPatrimonioStep) return;
+    syncCreatedPatrimonyItems(itemsRef.current);
+  }, [isCadPatrimonioStep, itemIdsKey, syncCreatedPatrimonyItems]);
 
   return (
     <Box>
@@ -1107,7 +1250,7 @@ const RequisitionItemsTable = ({
         <Box
           ref={tableWrapperRef}
           sx={{
-            height: tableMaxHeight ? tableMaxHeight : "auto",
+            height: effectiveMaxHeight ? effectiveMaxHeight : "auto",
             overflowX: "auto",
             overflowY: shouldUseAutoHeight ? "visible" : "auto",
             '& .item-without-quote': {
