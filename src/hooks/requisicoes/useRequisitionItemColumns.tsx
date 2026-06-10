@@ -1,5 +1,9 @@
 import React, { ChangeEvent, useCallback, useEffect, useState, useMemo } from "react";
-import { GridColDef } from "@mui/x-data-grid";
+import {
+  GridColDef,
+  GridEditInputCell,
+  GridRenderEditCellParams,
+} from "@mui/x-data-grid";
 import {
   calculateQuoteSubtotal,
   calculateUnitPriceWithTaxes,
@@ -29,6 +33,21 @@ import ErrorIcon from "@mui/icons-material/Error";
 import ContentCopyIcon from "@mui/icons-material/ContentCopy";
 import FileIcon from '@mui/icons-material/FilePresent';
 import { calculateColumnWidth } from "../../utils/calculateColumnWidth";
+
+const StyledBadge = styled(Badge)<BadgeProps>(() => ({
+  "& .MuiBadge-badge": {
+    right: -3,
+    top: 13,
+    padding: "0 4px",
+  },
+}));
+
+// O editor padrão do grid aplica o valor digitado com debounce (~200ms);
+// trocando de célula rapidamente o commit acontecia antes do valor pendente
+// ser aplicado e o PUT ia sem a alteração. debounceMs={0} aplica a cada tecla.
+const renderInstantEditCell = (params: GridRenderEditCellParams) => (
+  <GridEditInputCell {...params} debounceMs={0} />
+);
 
 export const useRequisitionItemColumns = (
   addingReqItems: boolean,
@@ -70,14 +89,6 @@ export const useRequisitionItemColumns = (
     [items]
   );
 
-  const StyledBadge = styled(Badge)<BadgeProps>(({ theme }) => ({
-    "& .MuiBadge-badge": {
-      right: -3,
-      top: 13,
-      padding: "0 4px",
-    },
-  }));
-
   // Calcula a largura dinâmica da coluna de descrição
   const descriptionColumnWidth = useMemo(() => 
     calculateColumnWidth(items, 'produto_descricao', 'Descrição', undefined, undefined, 200, 600),
@@ -93,7 +104,7 @@ export const useRequisitionItemColumns = (
     dispatch(setCurrentQuoteIdSelected(null));
   };
 
-  const concludeFillingOC = async () => {
+  const concludeFillingOC = useCallback(async () => {
     if (!ocValue) {
       dispatch(
         setFeedback({
@@ -106,9 +117,9 @@ export const useRequisitionItemColumns = (
     await handleFillOCS(ocValue);
     setOcValue(null);
     setFillingOC(false);
-  };
+  }, [dispatch, handleFillOCS, ocValue]);
 
-  const concludeFillingShippingDate = async () => {
+  const concludeFillingShippingDate = useCallback(async () => {
     if (!shippingDate) {
       dispatch(
         setFeedback({
@@ -121,13 +132,16 @@ export const useRequisitionItemColumns = (
     await handleFillShippingDate(shippingDate);
     setShippingDate("");
     setFillingShippingDate(false);
-  };
+  }, [dispatch, handleFillShippingDate, shippingDate]);
 
-  const handleChangeshippingDate = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setShippingDate(e.target.value);
-  };
+  const handleChangeshippingDate = useCallback(
+    (e: React.ChangeEvent<HTMLInputElement>) => {
+      setShippingDate(e.target.value);
+    },
+    []
+  );
 
-  const openOCDialog = () => {
+  const openOCDialog = useCallback(() => {
     if (!selectionModel.length) {
       dispatch(
         setFeedback({
@@ -138,9 +152,9 @@ export const useRequisitionItemColumns = (
       return;
     }
     setFillingOC(true);
-  };
+  }, [dispatch, selectionModel]);
 
-  const openShippingDateDialog = () => {
+  const openShippingDateDialog = useCallback(() => {
     if (!selectionModel.length) {
       dispatch(
         setFeedback({
@@ -151,9 +165,9 @@ export const useRequisitionItemColumns = (
       return;
     }
     setFillingShippingDate(true);
-  };
+  }, [dispatch, selectionModel]);
 
-  const columns: GridColDef[] = [
+  const columns: GridColDef[] = useMemo(() => [
     {
       field: "id_item_requisicao",
       headerName: "ID",
@@ -186,6 +200,7 @@ export const useRequisitionItemColumns = (
       type: "number",
       width: 100,
       editable: true,
+      renderEditCell: renderInstantEditCell,
     },
     {
       field: "quantidade",
@@ -196,6 +211,7 @@ export const useRequisitionItemColumns = (
           : "QTD",
       type: "number",
       editable: attendingItems ? false : true,
+      renderEditCell: renderInstantEditCell,
       width: attendingItems ? 200 : 100,
       renderCell: (params: any) => (
         <Box
@@ -218,7 +234,8 @@ export const useRequisitionItemColumns = (
       type: "number",
       width: 120,
       editable: attendingItems ? false : true,
-    },  
+      renderEditCell: renderInstantEditCell,
+    },
     {
       field: "data_necessidade",
       headerName: "Data de necessidade",
@@ -363,6 +380,7 @@ export const useRequisitionItemColumns = (
       headerName: "Unidade",
       type: "string",
       editable: true,
+      renderEditCell: renderInstantEditCell,
       sortable: false,
       minWidth: 70,
     },
@@ -370,8 +388,14 @@ export const useRequisitionItemColumns = (
       field: "oc",
       headerName: "OC",
       editable: true,
+      renderEditCell: renderInstantEditCell,
       type: "string",
-      valueGetter: (oc: string) => oc || "",
+      // 0 é o default do banco e significa "sem OC": exibe e edita como vazio.
+      // O guard de no-op da tabela também trata 0 e "" como equivalentes.
+      valueGetter: (oc: string) => {
+        const value = String(oc ?? "").trim();
+        return value === "0" ? "" : value;
+      },
       minWidth: 100,
       renderHeader: () => (
         <Box
@@ -415,7 +439,10 @@ export const useRequisitionItemColumns = (
       headerName: "Observação",
       type: "string",
       editable: true,
-      valueGetter: (observacao: string) => observacao || "N/A",
+      renderEditCell: renderInstantEditCell,
+      // O "N/A" é só exibição (renderCell); no valueGetter ele contaminava o
+      // valor de edição e clicar/sair da célula gravava "N/A" no banco.
+      valueGetter: (observacao: string) => observacao ?? "",
       minWidth: 100,
       renderCell: (params) => (
         <Box
@@ -435,7 +462,7 @@ export const useRequisitionItemColumns = (
             </IconButton>
           </Tooltip>
           <Typography fontSize="small" fontWeight="bold">
-            {params.value}
+            {params.value || "N/A"}
           </Typography>
         </Box>
       ),
@@ -589,68 +616,96 @@ export const useRequisitionItemColumns = (
         );
       },
     },
-  ];
+  ], [
+    descriptionColumnWidth,
+    attendingItems,
+    hasStockToPurchaseSplit,
+    editItemFieldsPermitted,
+    user?.PERM_COMPRADOR,
+    blockFields,
+    fillingOC,
+    ocValue,
+    fillingShippingDate,
+    shippingDate,
+    openOCDialog,
+    openShippingDateDialog,
+    concludeFillingOC,
+    concludeFillingShippingDate,
+    handleChangeshippingDate,
+    handleDeleteItem,
+    dispatch,
+  ]);
 
   // Definindo filteredColumns para sempre executar hooks depois
-  const nonDefaultColumns = [
-    "produto_quantidade_disponivel",
-    "quantidade_atendida",
-    "quantidade_disponivel",
-    "quantidade_solicitada",
-    "quantidade_estoque",
-  ];
-  let filteredColumns = columns.filter((col) => !nonDefaultColumns.includes(col.field));
-
-  if (hasStockToPurchaseSplit && !updatingRecentProductsQuantity && !addingReqItems && !attendingItems) {
-    const fieldsToShow = ["quantidade_solicitada", "quantidade_estoque"];
-    const stockFlowColumns = columns.filter((col) => fieldsToShow.includes(col.field));
-    filteredColumns = [...filteredColumns, ...stockFlowColumns];
-
-    const quantityFlowOrder = ["quantidade_solicitada", "quantidade", "quantidade_estoque"];
-    const quantityFlowColumns = quantityFlowOrder
-      .map((field) => filteredColumns.find((col) => col.field === field))
-      .filter(Boolean) as GridColDef[];
-    const remainingColumns = filteredColumns.filter(
-      (col) => !quantityFlowOrder.includes(col.field)
-    );
-    filteredColumns = [...quantityFlowColumns, ...remainingColumns];
-  }
-
-  // Se a requisição está no escopo de estoque (id_escopo_requisicao = 1), incluir coluna de estoque
-  const isStockScope = requisition?.id_escopo_requisicao === 1;
-  if (isStockScope && !updatingRecentProductsQuantity && !addingReqItems && !attendingItems) {
-    // Incluir a coluna quantidade_disponivel
-    const stockColumn = columns.find(col => col.field === "quantidade_disponivel");
-    if (stockColumn && !filteredColumns.includes(stockColumn)) {
-      filteredColumns = [...filteredColumns, stockColumn];
-    }
-  }
-
-  if (updatingRecentProductsQuantity) {
-    const selectedColumns = [
-      "produto_descricao",
-      "quantidade",
+  const filteredColumns = useMemo(() => {
+    const nonDefaultColumns = [
       "produto_quantidade_disponivel",
+      "quantidade_atendida",
+      "quantidade_disponivel",
+      "quantidade_solicitada",
+      "quantidade_estoque",
     ];
-    filteredColumns = columns.filter((col) =>
-      selectedColumns.includes(col.field)
-    );
-  }
-  if (addingReqItems) {
-    filteredColumns = columns.filter((col) =>
-      ["produto_descricao"].includes(col.field)
-    );
-  }
-  if (attendingItems) {
-    filteredColumns = columns.filter((col) =>
-      [
+    let filtered = columns.filter((col) => !nonDefaultColumns.includes(col.field));
+
+    if (hasStockToPurchaseSplit && !updatingRecentProductsQuantity && !addingReqItems && !attendingItems) {
+      const fieldsToShow = ["quantidade_solicitada", "quantidade_estoque"];
+      const stockFlowColumns = columns.filter((col) => fieldsToShow.includes(col.field));
+      filtered = [...filtered, ...stockFlowColumns];
+
+      const quantityFlowOrder = ["quantidade_solicitada", "quantidade", "quantidade_estoque"];
+      const quantityFlowColumns = quantityFlowOrder
+        .map((field) => filtered.find((col) => col.field === field))
+        .filter(Boolean) as GridColDef[];
+      const remainingColumns = filtered.filter(
+        (col) => !quantityFlowOrder.includes(col.field)
+      );
+      filtered = [...quantityFlowColumns, ...remainingColumns];
+    }
+
+    // Se a requisição está no escopo de estoque (id_escopo_requisicao = 1), incluir coluna de estoque
+    const isStockScope = requisition?.id_escopo_requisicao === 1;
+    if (isStockScope && !updatingRecentProductsQuantity && !addingReqItems && !attendingItems) {
+      // Incluir a coluna quantidade_disponivel
+      const stockColumn = columns.find(col => col.field === "quantidade_disponivel");
+      if (stockColumn && !filtered.includes(stockColumn)) {
+        filtered = [...filtered, stockColumn];
+      }
+    }
+
+    if (updatingRecentProductsQuantity) {
+      const selectedColumns = [
         "produto_descricao",
-        "quantidade_atendida",
         "quantidade",
-        "quantidade_disponivel",
-      ].includes(col.field)
-    );
-  }
+        "produto_quantidade_disponivel",
+      ];
+      filtered = columns.filter((col) =>
+        selectedColumns.includes(col.field)
+      );
+    }
+    if (addingReqItems) {
+      filtered = columns.filter((col) =>
+        ["produto_descricao"].includes(col.field)
+      );
+    }
+    if (attendingItems) {
+      filtered = columns.filter((col) =>
+        [
+          "produto_descricao",
+          "quantidade_atendida",
+          "quantidade",
+          "quantidade_disponivel",
+        ].includes(col.field)
+      );
+    }
+    return filtered;
+  }, [
+    columns,
+    hasStockToPurchaseSplit,
+    updatingRecentProductsQuantity,
+    addingReqItems,
+    attendingItems,
+    requisition?.id_escopo_requisicao,
+  ]);
 
 
   const fetchDinamicColumns = useCallback(async () => {
@@ -830,7 +885,5 @@ export const useRequisitionItemColumns = (
     fillingShippingDate,
     shippingDate,
     isDinamicField,
-    editItemFieldsPermitted,
-    requisition?.id_escopo_requisicao
   ]);
 };
