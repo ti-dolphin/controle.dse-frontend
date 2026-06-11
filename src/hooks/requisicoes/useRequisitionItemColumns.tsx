@@ -20,6 +20,7 @@ import {
   setItemBeingReplaced,
   setReplacingItemProduct,
   setViewingItemAttachment,
+  setViewingItemAttachmentType,
 } from "../../redux/slices/requisicoes/requisitionItemSlice";
 import ArticleOutlinedIcon from "@mui/icons-material/ArticleOutlined";
 import { setFeedback } from "../../redux/slices/feedBackSlice";
@@ -32,6 +33,7 @@ import CheckCircleIcon from "@mui/icons-material/CheckCircle";
 import ErrorIcon from "@mui/icons-material/Error";
 import ContentCopyIcon from "@mui/icons-material/ContentCopy";
 import FileIcon from '@mui/icons-material/FilePresent';
+import ReceiptLongIcon from '@mui/icons-material/ReceiptLong';
 import { calculateColumnWidth } from "../../utils/calculateColumnWidth";
 
 const StyledBadge = styled(Badge)<BadgeProps>(() => ({
@@ -554,12 +556,16 @@ export const useRequisitionItemColumns = (
       field: "actions",
       headerName: "Ações",
       type: "actions",
-      minWidth: 110,
+      minWidth: 140,
       renderCell: (row) => {
         const { id } = row;
-        function setItemBeingViewed(arg0: number): any {
-          throw new Error("Function not implemented.");
-        }
+        const anexos = row.row.anexos ?? [];
+        const normalAttachmentsCount = anexos.filter(
+          (anexo: any) => (anexo.tipo ?? 1) !== 2
+        ).length;
+        const nfAttachmentsCount = anexos.filter(
+          (anexo: any) => anexo.tipo === 2
+        ).length;
 
         return (
           <Box
@@ -594,24 +600,48 @@ export const useRequisitionItemColumns = (
                 </IconButton>
               </Tooltip>
             )}
-            <IconButton
-              onClick={() => {
-                dispatch(setViewingItemAttachment(Number(id)));
-              }}
-              sx={{ height: 24, width: 24 }}
-            >
-              {row.row.anexos.length > 0 ? (
-                <StyledBadge
-                  variant="standard"
-                  badgeContent={row.row.anexos.length}
-                  color="primary"
-                >
+            <Tooltip title="Anexos">
+              <IconButton
+                onClick={() => {
+                  dispatch(setViewingItemAttachmentType(1));
+                  dispatch(setViewingItemAttachment(Number(id)));
+                }}
+                sx={{ height: 24, width: 24 }}
+              >
+                {normalAttachmentsCount > 0 ? (
+                  <StyledBadge
+                    variant="standard"
+                    badgeContent={normalAttachmentsCount}
+                    color="primary"
+                  >
+                    <FileIcon sx={{ fontSize: 14 }} />
+                  </StyledBadge>
+                ) : (
                   <FileIcon sx={{ fontSize: 14 }} />
-                </StyledBadge>
-              ) : (
-                <FileIcon sx={{ fontSize: 14 }} />
-              )}
-            </IconButton>
+                )}
+              </IconButton>
+            </Tooltip>
+            <Tooltip title="Anexo NF">
+              <IconButton
+                onClick={() => {
+                  dispatch(setViewingItemAttachmentType(2));
+                  dispatch(setViewingItemAttachment(Number(id)));
+                }}
+                sx={{ height: 24, width: 24 }}
+              >
+                {nfAttachmentsCount > 0 ? (
+                  <StyledBadge
+                    variant="standard"
+                    badgeContent={nfAttachmentsCount}
+                    color="secondary"
+                  >
+                    <ReceiptLongIcon sx={{ fontSize: 14 }} />
+                  </StyledBadge>
+                ) : (
+                  <ReceiptLongIcon sx={{ fontSize: 14 }} />
+                )}
+              </IconButton>
+            </Tooltip>
           </Box>
         );
       },
