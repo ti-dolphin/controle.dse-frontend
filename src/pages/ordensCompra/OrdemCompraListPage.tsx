@@ -214,8 +214,6 @@ const OrdemCompraListPage = () => {
     try {
       const updated = await OrdemCompraService.updateApproval(selectedOrder.ID, {
         approved,
-        login: user?.LOGIN || "",
-        codGerente: user?.CODGERENTE ?? null,
       });
 
       setSelectedOrder((prev) => (prev ? { ...prev, ...updated } : prev));
@@ -270,8 +268,6 @@ const OrdemCompraListPage = () => {
     try {
       const updated = await OrdemCompraService.updateDirectorApproval(selectedOrder.ID, {
         approved,
-        login: user?.LOGIN || "",
-        permDiretor: user?.PERM_DIRETOR ?? null,
       });
 
       setSelectedOrder((prev) => (prev ? { ...prev, ...updated } : prev));
@@ -360,8 +356,6 @@ const OrdemCompraListPage = () => {
       const result = await OrdemCompraService.updateApprovalBatch({
         ids: selectedIds.map((id) => Number(id)),
         approved,
-        login: user?.LOGIN || "",
-        codGerente: user?.CODGERENTE ?? null,
       });
       notifyBatchResult(result, approved);
       setSelectedIds([]);
@@ -401,8 +395,6 @@ const OrdemCompraListPage = () => {
       const result = await OrdemCompraService.updateDirectorApprovalBatch({
         ids: selectedIds.map((id) => Number(id)),
         approved,
-        login: user?.LOGIN || "",
-        permDiretor: user?.PERM_DIRETOR ?? null,
       });
       notifyBatchResult(result, approved);
       setSelectedIds([]);

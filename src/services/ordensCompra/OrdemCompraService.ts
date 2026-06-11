@@ -10,16 +10,14 @@ interface OrdemCompraQuery {
   pageSize: number;
 }
 
+// Identidade e permissoes (login, codGerente, permDiretor) sao derivadas do
+// token JWT no servidor — nao devem ser enviadas pelo cliente.
 interface ApprovalPayload {
   approved: boolean;
-  login: string;
-  codGerente: number | null;
 }
 
 interface DirectorApprovalPayload {
   approved: boolean;
-  login: string;
-  permDiretor: number | boolean | null;
 }
 
 interface BatchApprovalPayload extends ApprovalPayload {
