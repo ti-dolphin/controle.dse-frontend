@@ -185,6 +185,7 @@ const RequisitionItemsTable = ({
     selectedQuote,
     updatingChildReqItems,
     viewingItemAttachment,
+    viewingItemAttachmentType,
   } = useSelector((state: RootState) => state.requisitionItem);
 
   const itemsRef = React.useRef(items);
@@ -1398,7 +1399,11 @@ const RequisitionItemsTable = ({
         >
           <GridCloseIcon />
         </IconButton>
-        <DialogTitle>Lista de Anexos</DialogTitle>
+        <DialogTitle>
+          {viewingItemAttachmentType === 2
+            ? "Anexos de Nota Fiscal"
+            : "Lista de Anexos"}
+        </DialogTitle>
         <DialogContent>
           <RequisitionItemAttachmentList />
         </DialogContent>
