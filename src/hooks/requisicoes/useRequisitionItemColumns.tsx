@@ -91,6 +91,13 @@ export const useRequisitionItemColumns = (
     [items]
   );
 
+  // O anexo de NF só deve ficar disponível a partir da etapa "Lançar NF"
+  // (a etapa seguinte/final é "Concluído").
+  const canViewNfAttachment = useMemo(() => {
+    const statusName = (requisition.status?.nome ?? "").toLowerCase().trim();
+    return statusName === "lançar nf" || statusName === "concluído";
+  }, [requisition.status?.nome]);
+
   // Calcula a largura dinâmica da coluna de descrição
   const descriptionColumnWidth = useMemo(() => 
     calculateColumnWidth(items, 'produto_descricao', 'Descrição', undefined, undefined, 200, 600),
@@ -621,27 +628,29 @@ export const useRequisitionItemColumns = (
                 )}
               </IconButton>
             </Tooltip>
-            <Tooltip title="Anexo NF">
-              <IconButton
-                onClick={() => {
-                  dispatch(setViewingItemAttachmentType(2));
-                  dispatch(setViewingItemAttachment(Number(id)));
-                }}
-                sx={{ height: 24, width: 24 }}
-              >
-                {nfAttachmentsCount > 0 ? (
-                  <StyledBadge
-                    variant="standard"
-                    badgeContent={nfAttachmentsCount}
-                    color="secondary"
-                  >
+            {canViewNfAttachment && (
+              <Tooltip title="Anexo NF">
+                <IconButton
+                  onClick={() => {
+                    dispatch(setViewingItemAttachmentType(2));
+                    dispatch(setViewingItemAttachment(Number(id)));
+                  }}
+                  sx={{ height: 24, width: 24 }}
+                >
+                  {nfAttachmentsCount > 0 ? (
+                    <StyledBadge
+                      variant="standard"
+                      badgeContent={nfAttachmentsCount}
+                      color="secondary"
+                    >
+                      <ReceiptLongIcon sx={{ fontSize: 14 }} />
+                    </StyledBadge>
+                  ) : (
                     <ReceiptLongIcon sx={{ fontSize: 14 }} />
-                  </StyledBadge>
-                ) : (
-                  <ReceiptLongIcon sx={{ fontSize: 14 }} />
-                )}
-              </IconButton>
-            </Tooltip>
+                  )}
+                </IconButton>
+              </Tooltip>
+            )}
           </Box>
         );
       },
@@ -650,6 +659,7 @@ export const useRequisitionItemColumns = (
     descriptionColumnWidth,
     attendingItems,
     hasStockToPurchaseSplit,
+    canViewNfAttachment,
     editItemFieldsPermitted,
     user?.PERM_COMPRADOR,
     blockFields,
