@@ -99,8 +99,19 @@ export const useRequisitionItemColumns = (
   }, [requisition.status?.nome]);
 
   // Calcula a largura dinâmica da coluna de descrição
-  const descriptionColumnWidth = useMemo(() => 
+  const descriptionColumnWidth = useMemo(() =>
     calculateColumnWidth(items, 'produto_descricao', 'Descrição', undefined, undefined, 200, 600),
+    [items]
+  );
+
+  // Largura dinâmica da observação, no mesmo padrão da descrição. A célula
+  // renderiza o texto em negrito (~13px), então medimos com a mesma fonte —
+  // medir com a fonte normal/menor subestimava a largura e cortava o texto.
+  // O espaço extra cobre o botão de copiar + gap que dividem a célula.
+  const OBSERVACAO_ICON_ALLOWANCE = 30;
+  const observacaoColumnWidth = useMemo(() =>
+    calculateColumnWidth(items, 'observacao', 'Observação', undefined, 'bold 13px Roboto', 100, 600) +
+    OBSERVACAO_ICON_ALLOWANCE,
     [items]
   );
 
@@ -452,6 +463,8 @@ export const useRequisitionItemColumns = (
       // O "N/A" é só exibição (renderCell); no valueGetter ele contaminava o
       // valor de edição e clicar/sair da célula gravava "N/A" no banco.
       valueGetter: (observacao: string) => observacao ?? "",
+      width: observacaoColumnWidth,
+      flex: 0,
       minWidth: 100,
       renderCell: (params) => (
         <Box
@@ -657,6 +670,7 @@ export const useRequisitionItemColumns = (
     },
   ], [
     descriptionColumnWidth,
+    observacaoColumnWidth,
     attendingItems,
     hasStockToPurchaseSplit,
     canViewNfAttachment,
