@@ -13,7 +13,7 @@ interface BaseViewFileDialogProps {
 const SUPPORTED_EXTENSIONS = {
   pdf: ["pdf"],
   image: ["png", "jpg", "jpeg", "gif", "bmp", "webp", "svg", ],
-  xlsx: ["xlsx", "xls"],
+  xlsx: ["xlsx", "xls", "xlsm", "xlsb", "xltx", "xltm"],
 };
 
 const BaseViewFileDialog: React.FC<BaseViewFileDialogProps> = ({
