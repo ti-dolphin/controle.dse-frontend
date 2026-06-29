@@ -170,11 +170,11 @@ const HomePage = () => {
         {modules.map((module) => (
           <Grid
             item
-            xs={12}
+            xs={6}
             sm={6}
             md={3}
             key={module.name}
-            sx={{ height: 600 }}
+            sx={{ height: { xs: "auto", md: 600 } }}
           >
             <Box
               onClick={() => navigate(module.path)}
@@ -200,24 +200,28 @@ const HomePage = () => {
                 src={module.image}
                 alt={module.name}
                 sx={{
-                  height: 220,
+                  height: { xs: 120, md: 220 },
                   width: "100%",
                   objectFit: "cover",
                   borderTopLeftRadius: 16,
                   borderTopRightRadius: 16,
-                  mb: 2,
+                  mb: { xs: 1, md: 2 },
                 }}
               />
-              <Box sx={{ px: 3, pb: 3, width: "100%" }}>
+              <Box sx={{ px: { xs: 1.5, md: 3 }, pb: { xs: 2, md: 3 }, width: "100%" }}>
                 <Typography
-                  fontSize="1.25rem"
+                  fontSize={{ xs: "1rem", md: "1.25rem" }}
                   textAlign="center"
                   color="#222831"
-                  mb={1}
+                  mb={{ xs: 0, md: 1 }}
                 >
                   {module.name}
                 </Typography>
-                <Typography variant="body2" color="text.secondary">
+                <Typography
+                  variant="body2"
+                  color="text.secondary"
+                  sx={{ display: { xs: "none", md: "block" } }}
+                >
                   {module.description}
                 </Typography>
               </Box>
