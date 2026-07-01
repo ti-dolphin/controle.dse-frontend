@@ -14,6 +14,7 @@ import NotesHomePage from "./pages/apontamentos/NotesHomePage";
 import AdminPage from "./pages/AdminPage";
 import UserCreationPage from "./pages/admin/UserCreationPage";
 import UserManagementPage from "./pages/admin/UserManagementPage";
+import AdminManagementHomePage from "./pages/admin/AdminManagementHomePage";
 // Exemplo de páginas
 const AppRoutes = () => { 
   return (
@@ -23,6 +24,7 @@ const AppRoutes = () => {
       <Route path="/perfil" element={<ProfilePage />} />
 
       <Route path="/admin" element={<AdminPage />} />
+      <Route path="/gestao-adm" element={<AdminManagementHomePage />} />
       <Route path="/admin/usuarios" element={<UserManagementPage />} />
       <Route path="/admin/usuarios/novo" element={<UserCreationPage />} />
 
