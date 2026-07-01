@@ -151,11 +151,13 @@ const HomePage = () => {
         <MenuItem onClick={( ) => navigate('/auth')}>
           Logout
         </MenuItem>
+        {/* Ocultado temporariamente — Painel Admin
         {isAdmin && (
           <MenuItem onClick={( ) => navigate('/admin')}>
             painel admin
           </MenuItem>
         )}
+        */}
       </Menu>
       <Typography
         variant="h4"
