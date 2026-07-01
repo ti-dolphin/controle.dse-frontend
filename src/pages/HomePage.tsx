@@ -135,6 +135,11 @@ const HomePage = () => {
             Cadastrar usuário
           </MenuItem>
         )}
+        {isAdmin && (
+          <MenuItem onClick={() => { handleClose(); navigate('/admin/usuarios'); }}>
+            Gerenciar usuários
+          </MenuItem>
+        )}
         <MenuItem onClick={( ) => navigate('/auth')}>
           Logout
         </MenuItem>
