@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import {
   Alert,
   Box,
+  Button,
   Chip,
   CircularProgress,
   IconButton,
@@ -14,6 +15,7 @@ import { GridColDef } from "@mui/x-data-grid";
 import EditIcon from "@mui/icons-material/Edit";
 import BlockIcon from "@mui/icons-material/Block";
 import CheckCircleIcon from "@mui/icons-material/CheckCircle";
+import PersonAddIcon from "@mui/icons-material/PersonAdd";
 import { debounce } from "lodash";
 import { useNavigate } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
@@ -177,7 +179,7 @@ const UserManagementPage = () => {
   if (!isAdmin) {
     return (
       <Box sx={{ backgroundColor: "#f4f6f8", minHeight: "100vh", p: 3 }}>
-        <UpperNavigation handleBack={() => navigate("/")} />
+        <UpperNavigation handleBack={() => navigate("/gestao-adm")} />
         <Alert severity="error" sx={{ mt: 3 }}>
           Você não tem permissão para acessar esta tela.
         </Alert>
@@ -187,7 +189,7 @@ const UserManagementPage = () => {
 
   return (
     <Box sx={{ backgroundColor: "#f4f6f8", minHeight: "100vh" }}>
-      <UpperNavigation handleBack={() => navigate("/")} />
+      <UpperNavigation handleBack={() => navigate("/gestao-adm")} />
 
       <Box sx={{ p: 3 }}>
         <Stack
@@ -200,11 +202,20 @@ const UserManagementPage = () => {
           <Typography variant="h5" fontWeight={600}>
             Gerenciar Usuários
           </Typography>
-          <BaseSearchInput
-            onChange={handleSearch}
-            showIcon
-            placeholder="Buscar por nome, login ou e-mail"
-          />
+          <Stack direction={{ xs: "column", sm: "row" }} spacing={2} alignItems={{ xs: "flex-start", sm: "center" }}>
+            <BaseSearchInput
+              onChange={handleSearch}
+              showIcon
+              placeholder="Buscar por nome, login ou e-mail"
+            />
+            <Button
+              variant="contained"
+              startIcon={<PersonAddIcon />}
+              onClick={() => navigate("/admin/usuarios/novo")}
+            >
+              Novo Usuário
+            </Button>
+          </Stack>
         </Stack>
 
         <Box sx={{ height: "calc(100vh - 180px)", backgroundColor: "#fff" }}>

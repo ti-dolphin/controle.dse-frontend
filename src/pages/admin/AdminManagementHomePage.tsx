@@ -8,7 +8,6 @@ import {
   Stack,
   Typography,
 } from "@mui/material";
-import PersonAddIcon from "@mui/icons-material/PersonAdd";
 import ManageAccountsIcon from "@mui/icons-material/ManageAccounts";
 import { useNavigate } from "react-router-dom";
 import { useSelector } from "react-redux";
@@ -40,15 +39,9 @@ const AdminManagementHomePage = () => {
 
   const options = [
     {
-      title: "Cadastrar Usuário",
-      description: "Criar um novo usuário e definir suas permissões iniciais.",
-      icon: <PersonAddIcon color="primary" fontSize="large" />,
-      action: () => navigate("/admin/usuarios/novo"),
-    },
-    {
       title: "Gerenciar Usuários",
       description:
-        "Listar, editar permissões e ativar/desativar usuários do sistema.",
+        "Listar, cadastrar, editar permissões e ativar/desativar usuários do sistema.",
       icon: <ManageAccountsIcon color="primary" fontSize="large" />,
       action: () => navigate("/admin/usuarios"),
     },

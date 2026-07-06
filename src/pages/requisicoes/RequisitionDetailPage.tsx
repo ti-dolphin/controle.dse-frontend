@@ -244,7 +244,7 @@ const RequisitionDetailPage = () => {
 
   const shouldShowSelectedItemsButton = () => {
     if (!requisition || !requisition.status) return false;
-    return ['comprar', 'recebimento', 'lançar nf'].includes(
+    return ['em cotação', 'comprar', 'recebimento', 'lançar nf', 'concluído'].includes(
       (requisition.status.nome ?? "").toLowerCase()
     );
   }
