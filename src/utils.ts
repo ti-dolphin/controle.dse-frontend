@@ -176,7 +176,7 @@ export function getRequisitionUrgencyLevel(
   dataUltimaAlteracaoStatus: string | null | undefined
 ): 'critical' | 'warning' | null {
   // Verifica se é um dos status de aprovação que devem ser monitorados
-  const statusAprovacao = [6, 7]; // 6 = Aprovação Gerente, 7 = Aprovação Diretoria
+  const statusAprovacao = [2, 6, 7]; // 6 = Aprovação Gerente, 7 = Aprovação Diretoria
   if (!statusAprovacao.includes(statusId)) {
     return null;
   }
@@ -196,9 +196,9 @@ export function getRequisitionUrgencyLevel(
   const diasNoStatus = agora.diff(dataAlteracao, 'days').days;
 
   // Define o nível de urgência baseado nos dias
-  if (diasNoStatus >= 5) {
+  if (diasNoStatus >= 3) {
     return 'critical'; // Vermelho
-  } else if (diasNoStatus >= 3) {
+  } else if (diasNoStatus >= 2) {
     return 'warning'; // Amarelo
   }
 
