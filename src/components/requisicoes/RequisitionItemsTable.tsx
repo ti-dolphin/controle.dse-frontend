@@ -60,6 +60,9 @@ import {
   formatDateStringtoISOstring,
   formatDateToISOstring,
   getDateFromISOstring,
+  getDateKey,
+  normalizeOcValue,
+  normalizeText,
 } from "../../utils";
 import RequisitionService from "../../services/requisicoes/RequisitionService";
 import UpdateChildReqItemsDialog from "./UpdateChildReqItemsDialog";
@@ -84,39 +87,10 @@ import {
   PatrimonyFormData,
 } from "../../models/requisicoes/RequisitionItemsTable";
 
-// 0 é o default do banco para OC e significa "sem OC"; a coluna exibe/edita
-// como vazio, então 0 e "" precisam ser equivalentes na comparação de mudança.
-const normalizeOcValue = (value: any): string => {
-  const text = String(value ?? "").trim();
-  return text === "0" ? "" : text;
-};
-
-// Chave local yyyy-mm-dd para comparar datas: entrar e sair da célula converte
-// a string ISO em Date (com deslocamento de fuso), então comparar pela string
-// acusaria mudança mesmo sem o usuário alterar nada.
-const getDateKey = (value: any): string => {
-  if (!value) return "";
-  const date =
-    value instanceof Date ? value : getDateFromISOstring(String(value));
-  if (!date || isNaN(date.getTime())) return "";
-  const month = String(date.getMonth() + 1).padStart(2, "0");
-  const day = String(date.getDate()).padStart(2, "0");
-  return `${date.getFullYear()}-${month}-${day}`;
-};
-
 const RequisitionItemsTable = ({
   tableMaxHeight,
   hideFooter,
 }: RequisitionItemsTableProps) => {
-  const normalizeStatusName = (value?: string | null) => {
-    if (!value) return "";
-    return value
-      .normalize("NFD")
-      .replace(/[\u0300-\u036f]/g, "")
-      .toLowerCase()
-      .trim();
-  };
-
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const theme = useTheme();
@@ -847,7 +821,7 @@ const RequisitionItemsTable = ({
   const getRowClassName = useCallback((params: any) => {
     const item = params.row;
     const classes: string[] = [];
-    const currentStatus = normalizeStatusName(requisition.status?.nome);
+    const currentStatus = normalizeText(requisition.status?.nome);
     const isCadPatrimonioStep = currentStatus === "cadastrar patrimonio";
     const patrimonyType = Number(item?.produto?.tipo_produto_patrimonio ?? 0);
     const isPatrimonyItem = patrimonyType === 1 || patrimonyType === 2;
@@ -878,7 +852,7 @@ const RequisitionItemsTable = ({
 
   const handleRowClick = (params: any) => {
     const row = params?.row as RequisitionItem;
-    const currentStatus = normalizeStatusName(requisition.status?.nome);
+    const currentStatus = normalizeText(requisition.status?.nome);
     const isCadPatrimonioStep = currentStatus === "cadastrar patrimonio";
     const patrimonyType = Number(row?.produto?.tipo_produto_patrimonio ?? 0);
     const isPatrimonyItem = patrimonyType === 1 || patrimonyType === 2;
@@ -1159,7 +1133,7 @@ const RequisitionItemsTable = ({
   // patrimônio" e só precisa recarregar quando a lista de itens muda de
   // composição — não a cada edição de célula.
   const isCadPatrimonioStep =
-    normalizeStatusName(requisition.status?.nome) === "cadastrar patrimonio";
+    normalizeText(requisition.status?.nome) === "cadastrar patrimonio";
   const itemIdsKey = useMemo(
     () => items.map((item) => item.id_item_requisicao).join(","),
     [items]
