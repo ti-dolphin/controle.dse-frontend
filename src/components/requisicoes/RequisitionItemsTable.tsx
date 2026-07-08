@@ -95,49 +95,21 @@ const RequisitionItemsTable = ({
   const navigate = useNavigate();
   const theme = useTheme();
   const { id_requisicao } = useParams();
-  const { isMobile } = useIsMobile();
+
   const { requisition, refreshRequisition } = useSelector(
     (state: RootState) => state.requisition
   );
   const attendingItems = useSelector(
     (state: RootState) => state.attendingItemsSlice.attendingItems
   );
-
-  const [quotesTotal, setQuotesTotal] = useState([]);
-
-  const gridApiRef = useGridApiRef();
   const quote = useSelector((state: RootState) => state.quote.quote);
-
   const quoteItems = useSelector(
     (state: RootState) => state.quoteItem.quoteItems
   );
-
   const addingReqItems = useSelector(
     (state: RootState) => state.quoteItem.addingReqItems
   );
-
   const user = useSelector((state: RootState) => state.user.user);
-
-  const permissionsFromHook = useRequisitionItemPermissions(user, requisition);
-
-  const permissions = useMemo(() => {
-    if (!requisition?.status) {
-      return { editItemFieldsPermitted: false, createQuotePermitted: false };
-    }
-    const isBuyer = Number(user?.PERM_COMPRADOR) === 1;
-    const isReceivingStep =
-      requisition.status?.nome?.toLowerCase() === "recebimento" ||
-      requisition.status?.nome?.toLowerCase() === "lançar nf"
-    if (isBuyer && isReceivingStep) {
-      return {
-        editItemFieldsPermitted: true,
-        createQuotePermitted: permissionsFromHook.createQuotePermitted,
-      };
-    }
-    return permissionsFromHook;
-  }, [permissionsFromHook, requisition?.status, user]);
-  const { editItemFieldsPermitted, createQuotePermitted } = permissions;
-
   const {
     items,
     newItems,
@@ -150,35 +122,25 @@ const RequisitionItemsTable = ({
     viewingItemAttachmentType,
   } = useSelector((state: RootState) => state.requisitionItem);
 
-  const itemsRef = React.useRef(items);
-  useEffect(() => {
-    itemsRef.current = items;
-  }, [items]);
+  const { isMobile } = useIsMobile();
+  const gridApiRef = useGridApiRef();
+  const permissionsFromHook = useRequisitionItemPermissions(user, requisition);
+  const { userOptions } = useUserOptions();
+  const { projectOptions } = useProjectOptions();
+  const { patirmonyTypeOptions } = usePatrimonyTypeOptions();
 
-  // PUTs em voo por linha e sequência de fetches: impedem que respostas
-  // antigas do servidor sobrescrevam valores recém-digitados pelo usuário.
-  const pendingRowUpdates = React.useRef<Map<number, number>>(new Map());
-  const fetchSeqRef = React.useRef(0);
-
+  const [quotesTotal, setQuotesTotal] = useState([]);
   const [searchTerm, setSearchTerm] = useState("");
-
-  const [cellModesModel, setCellModesModel] =
-    React.useState<GridCellModesModel>({});
-  const [selectionModel, setSelectionModel] =
-    React.useState<GridRowSelectionModel>([]);
-  const [quoteItemsSelected, setQuoteItemsSelected] = useState<
-    Map<number, number>
-  >(new Map());
+  const [cellModesModel, setCellModesModel] = React.useState<GridCellModesModel>({});
+  const [selectionModel, setSelectionModel] = React.useState<GridRowSelectionModel>([]);
+  const [quoteItemsSelected, setQuoteItemsSelected] = useState<Map<number, number>>(new Map());
   const [loading, setLoading] = useState(false);
   const [blockFields, setBlockFields] = useState(false);
   const [quoteListOpen, setQuoteListOpen] = useState<boolean>(false);
   const [patrimonyDialogOpen, setPatrimonyDialogOpen] = useState(false);
-  const [selectedPatrimonyItem, setSelectedPatrimonyItem] =
-    useState<RequisitionItem | null>(null);
+  const [selectedPatrimonyItem, setSelectedPatrimonyItem] = useState<RequisitionItem | null>(null);
   const [savingPatrimony, setSavingPatrimony] = useState(false);
-  const [createdPatrimonyItemIds, setCreatedPatrimonyItemIds] = useState<
-    Set<number>
-  >(new Set());
+  const [createdPatrimonyItemIds, setCreatedPatrimonyItemIds] = useState<Set<number>>(new Set());
   const [patrimonyFormData, setPatrimonyFormData] = useState<PatrimonyFormData>({
     nome: "",
     descricao: "",
@@ -190,9 +152,34 @@ const RequisitionItemsTable = ({
     responsavel: undefined,
     projeto: undefined,
   });
-  const { userOptions } = useUserOptions();
-  const { projectOptions } = useProjectOptions();
-  const { patirmonyTypeOptions } = usePatrimonyTypeOptions();
+
+  const itemsRef = React.useRef(items);
+  const pendingRowUpdates = React.useRef<Map<number, number>>(new Map());
+  const fetchSeqRef = React.useRef(0);
+
+  const permissions = useMemo(() => {
+    if (!requisition?.status) {
+      return { editItemFieldsPermitted: false, createQuotePermitted: false };
+    }
+    
+    const isBuyer = Number(user?.PERM_COMPRADOR) === 1;
+    const isReceivingStep = requisition.status?.nome?.toLowerCase() === "recebimento" || requisition.status?.nome?.toLowerCase() === "lançar nf"
+
+    if (isBuyer && isReceivingStep) {
+      return {
+        editItemFieldsPermitted: true,
+        createQuotePermitted: permissionsFromHook.createQuotePermitted,
+      };
+    }
+    
+    return permissionsFromHook;
+
+  }, [permissionsFromHook, requisition?.status, user]);
+  const { editItemFieldsPermitted, createQuotePermitted } = permissions;
+
+  useEffect(() => {
+    itemsRef.current = items;
+  }, [items]);
 
   const handleDeleteItem = useCallback(
     async (id_item_requisicao: number) => {
