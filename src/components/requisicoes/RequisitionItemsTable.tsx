@@ -79,11 +79,10 @@ import MovementationService from "../../services/patrimonios/MovementationServic
 import ElegantInput from "../shared/ui/Input";
 import OptionsField from "../shared/ui/OptionsField";
 import StickyHorizontalScrollbar from "../shared/StickyHorizontalScrollbar";
-
-interface RequisitionItemsTable {
-  tableMaxHeight?: number;
-  hideFooter: boolean;
-}
+import {
+  RequisitionItemsTableProps,
+  PatrimonyFormData,
+} from "../../models/requisicoes/RequisitionItemsTable";
 
 // 0 é o default do banco para OC e significa "sem OC"; a coluna exibe/edita
 // como vazio, então 0 e "" precisam ser equivalentes na comparação de mudança.
@@ -105,21 +104,10 @@ const getDateKey = (value: any): string => {
   return `${date.getFullYear()}-${month}-${day}`;
 };
 
-interface PatrimonyFormData {
-  nome: string;
-  descricao: string;
-  nserie: string;
-  tipo: number;
-  valor_compra: number;
-  calibracao: number;
-  data_proxima_calibracao: string;
-  responsavel?: number;
-  projeto?: number;
-}
 const RequisitionItemsTable = ({
   tableMaxHeight,
   hideFooter,
-}: RequisitionItemsTable) => {
+}: RequisitionItemsTableProps) => {
   const normalizeStatusName = (value?: string | null) => {
     if (!value) return "";
     return value
