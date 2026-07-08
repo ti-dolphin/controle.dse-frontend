@@ -54,7 +54,7 @@ import {
 
 import {
   setRefreshRequisition,
-  setRequisition,
+  updateRequisitionField,
 } from "../../redux/slices/requisicoes/requisitionSlice";
 import {
   formatDateStringtoISOstring,
@@ -265,26 +265,49 @@ const RequisitionItemsTable = ({
     [dispatch, refresh, selectionModel]
   );
 
+  const recalculateQuoteItemsTotals = useCallback(async () => {
+    try {
+      const { custo_total_itens, custo_total_frete } =
+        await RequisitionItemService.recalculateQuoteItemsTotals(
+          Number(id_requisicao)
+        );
+      dispatch(
+        updateRequisitionField({ field: "custo_total_itens", value: custo_total_itens })
+      );
+      dispatch(
+        updateRequisitionField({ field: "custo_total_frete", value: custo_total_frete })
+      );
+    } catch (error: any) {
+      dispatch(
+        setFeedback({
+          message: "Erro ao recalcular o total da requisição",
+          type: "error",
+        })
+      );
+    }
+  }, [dispatch, id_requisicao]);
+
+  const debouncedRecalculateTotals = useMemo(
+    () => debounce(recalculateQuoteItemsTotals, 2000),
+    [recalculateQuoteItemsTotals]
+  );
+
+  useEffect(
+    () => () => {
+      debouncedRecalculateTotals.flush();
+    },
+    [debouncedRecalculateTotals]
+  );
+
   const handleChangeQuoteItemsSelected = useCallback(
     async (
       e: React.ChangeEvent<HTMLInputElement>,
       id_item_cotacao: number,
       id_item_requisicao: number
     ) => {
-      if (e.target.checked) {
-        setQuoteItemsSelected (
-          new Map(quoteItemsSelected.set(id_item_requisicao, id_item_cotacao))
-        );
-        const { updatedItems, updatedRequisition } =
-          await RequisitionItemService.updateQuoteItemsSelected(
-            Number(id_requisicao),
-            Object.fromEntries(quoteItemsSelected)
-          );
-        dispatch(setItems(updatedItems));
-        dispatch(setRequisition(updatedRequisition));
-        return;
-      }
-      if (requisition.status?.nome.toLowerCase() !== "em cotação") {
+      const isChecking = e.target.checked;
+
+      if (!isChecking && requisition.status?.nome.toLowerCase() !== "em cotação") {
         dispatch(
           setFeedback({
             message: "Apenas itens em cotação podem ser removidos",
@@ -294,18 +317,50 @@ const RequisitionItemsTable = ({
         return;
       }
 
-      quoteItemsSelected.delete(id_item_requisicao);
-      setQuoteItemsSelected(new Map(quoteItemsSelected));
-      const { updatedItems, updatedRequisition } =
-        await RequisitionItemService.updateQuoteItemsSelected(
-          Number(id_requisicao),
-          Object.fromEntries(quoteItemsSelected)
-        );
+      const nextSelectedQuoteItem = isChecking ? id_item_cotacao : null;
+      setBlockFields(true);
 
-      dispatch(setItems(updatedItems));
-      dispatch(setRequisition(updatedRequisition));
+      try {
+        await RequisitionItemService.updateQuoteItemsSelected(
+          id_item_requisicao,
+          nextSelectedQuoteItem
+        );
+        setQuoteItemsSelected((previous) => {
+          const next = new Map(previous);
+          if (nextSelectedQuoteItem) {
+            next.set(id_item_requisicao, nextSelectedQuoteItem);
+          } else {
+            next.delete(id_item_requisicao);
+          }
+          return next;
+        });
+        const currentItem = itemsRef.current.find(
+          (item) => item.id_item_requisicao === id_item_requisicao
+        );
+        if (currentItem) {
+          dispatch(
+            replaceItem({
+              id_item_requisicao,
+              updatedItem: {
+                ...currentItem,
+                id_item_cotacao: nextSelectedQuoteItem ?? undefined,
+              },
+            })
+          );
+        }
+        debouncedRecalculateTotals();
+      } catch (error: any) {
+        dispatch(
+          setFeedback({
+            message: "Erro ao atualizar fornecedor selecionado",
+            type: "error",
+          })
+        );
+      } finally {
+        setBlockFields(false);
+      }
     },
-    [quoteItemsSelected, requisition, setItems]
+    [requisition, dispatch, debouncedRecalculateTotals]
   );
 
   const toolbarRef = React.useRef<HTMLDivElement>(null);
@@ -360,12 +415,13 @@ const RequisitionItemsTable = ({
 
   const isCellEditable = useCallback(
     (params: GridCellParams) => {
+      if (blockFields) return false;
       if (params.field === "produto_unidade") {
         return isNonRegisteredItem(params.row);
       }
       return Boolean(params.colDef.editable);
     },
-    [isNonRegisteredItem]
+    [isNonRegisteredItem, blockFields]
   );
 
   const mobileColumns = () => {
@@ -1283,7 +1339,7 @@ const RequisitionItemsTable = ({
             apiRef={gridApiRef}
             density="compact"
             getRowId={(row: any) => row.id_item_requisicao}
-            loading={loading}
+            loading={loading || blockFields}
             theme={theme}
             disableColumnMenu
             rowHeight={60}

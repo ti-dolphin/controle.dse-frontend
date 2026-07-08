@@ -72,7 +72,7 @@ export const useRequisitionItemColumns = (
   const [ocValue, setOcValue] = useState<number | null>(null);
   const [fillingShippingDate, setFillingShippingDate] = useState(false);
   const [shippingDate, setShippingDate] = useState<string>("");
-  const [dinamicColumns, setDinamicColumns] = useState<GridColDef[]>([]);
+  const [rawDinamicColumns, setRawDinamicColumns] = useState<GridColDef[]>([]);
 
   const user = useSelector((state: RootState) => state.user.user);
 
@@ -767,101 +767,7 @@ export const useRequisitionItemColumns = (
       const rawCols = await RequisitionItemService.getDinamicColumns(
         Number(id_requisicao)
       );
-      const colsWithRenderCell = rawCols.map((col: GridColDef) => ({
-        ...col,
-        editable: true,
-        // Permite ordenação correta pelo valor numérico do preço cotado
-        valueGetter: (value: any, row: any) => {
-          if (!row) return null;
-          const quoteItem = row.items_cotacao?.find(
-            (item: QuoteItem) => Number(item.id_cotacao) === Number(col.field)
-          );
-          return quoteItem && !quoteItem.indisponivel
-            ? calculateUnitPriceWithTaxes(
-                Number(quoteItem.preco_unitario || 0),
-                Number(quoteItem.IPI || 0),
-                Number(quoteItem.ST || 0)
-              )
-            : null;
-        },
-        renderCell: (params: any) => {
-          const { id_item_requisicao } = params.row;
-          const quoteItem = params.row.items_cotacao.find(
-            (item: QuoteItem) =>
-              Number(item.id_cotacao) === Number(params.field)
-          );
-          const hasquoteItem = quoteItem && !quoteItem.indisponivel;
-          const parciallyQuoted = hasquoteItem
-            ? Number(quoteItem.quantidade_cotada) <
-              Number(quoteItem.quantidade_solicitada)
-            : false;
-          const priceWithTaxes = hasquoteItem
-            ? calculateUnitPriceWithTaxes(
-                Number(quoteItem?.preco_unitario || 0),
-                Number(quoteItem?.IPI || 0),
-                Number(quoteItem?.ST || 0)
-              )
-            : null;
-
-          return (
-            <Box sx={{ display: "flex", alignItems: "center" }}>
-              {hasquoteItem && priceWithTaxes !== null &&
-                formatCurrency2To3(Number(priceWithTaxes) || 0)}
-              {hasquoteItem && (
-                <Checkbox
-                  disabled={blockFields || !editItemFieldsPermitted}
-                  onChange={(e) =>
-                    handleChangeQuoteItemsSelected(
-                      e,
-                      Number(quoteItem?.id_item_cotacao),
-                      Number(id_item_requisicao)
-                    )
-                  }
-                  checked={
-                    quoteItemsSelected.get(Number(id_item_requisicao)) ===
-                    Number(quoteItem?.id_item_cotacao)
-                      ? true
-                      : false
-                  }
-                  icon={<RadioButtonUncheckedIcon sx={{ fontSize: 14 }} />}
-                  checkedIcon={<CheckCircleIcon sx={{ fontSize: 14 }} />}
-                  sx={{ color: "primary.main" }}
-                />
-              )}
-              {quoteItem?.indisponivel > 0 && (
-                <Tooltip
-                  title={`Indisponível no fornecedor: ${col.headerName}`}
-                >
-                  <ErrorIcon color="error" sx={{ fontSize: 14 }} />
-                </Tooltip>
-              )}
-              {parciallyQuoted && (
-                <Tooltip
-                  title={`Quantidade cotada: ${quoteItem?.quantidade_cotada}`}
-                > 
-                  <ErrorIcon color="secondary" sx={{ fontSize: 14 }} />
-                </Tooltip>
-              )}
-            </Box>
-          );
-        },
-        minWidth: 200,
-        sortable: true,
-        renderHeader: (params: any) => {
-          return (
-            <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-              <Typography
-                fontSize="0.7rem"
-                fontWeight="bold"
-                color="primary"
-              >
-                {params.colDef.headerName}
-              </Typography>
-            </Box>
-          );
-        },
-      }));
-      setDinamicColumns(colsWithRenderCell);
+      setRawDinamicColumns(rawCols);
     } catch (e) {
       console.error('[useRequisitionItemColumns] Erro ao buscar colunas dinâmicas', e);
       dispatch(
@@ -871,13 +777,109 @@ export const useRequisitionItemColumns = (
         })
       );
     }
+  }, [dispatch, id_requisicao]);
+
+  const dinamicColumns = useMemo(() => {
+    return rawDinamicColumns.map((col: GridColDef) => ({
+      ...col,
+      editable: true,
+      // Permite ordenação correta pelo valor numérico do preço cotado
+      valueGetter: (value: any, row: any) => {
+        if (!row) return null;
+        const quoteItem = row.items_cotacao?.find(
+          (item: QuoteItem) => Number(item.id_cotacao) === Number(col.field)
+        );
+        return quoteItem && !quoteItem.indisponivel
+          ? calculateUnitPriceWithTaxes(
+              Number(quoteItem.preco_unitario || 0),
+              Number(quoteItem.IPI || 0),
+              Number(quoteItem.ST || 0)
+            )
+          : null;
+      },
+      renderCell: (params: any) => {
+        const { id_item_requisicao } = params.row;
+        const quoteItem = params.row.items_cotacao.find(
+          (item: QuoteItem) =>
+            Number(item.id_cotacao) === Number(params.field)
+        );
+        const hasquoteItem = quoteItem && !quoteItem.indisponivel;
+        const parciallyQuoted = hasquoteItem
+          ? Number(quoteItem.quantidade_cotada) <
+            Number(quoteItem.quantidade_solicitada)
+          : false;
+        const priceWithTaxes = hasquoteItem
+          ? calculateUnitPriceWithTaxes(
+              Number(quoteItem?.preco_unitario || 0),
+              Number(quoteItem?.IPI || 0),
+              Number(quoteItem?.ST || 0)
+            )
+          : null;
+
+        return (
+          <Box sx={{ display: "flex", alignItems: "center" }}>
+            {hasquoteItem && priceWithTaxes !== null &&
+              formatCurrency2To3(Number(priceWithTaxes) || 0)}
+            {hasquoteItem && (
+              <Checkbox
+                disabled={blockFields || !editItemFieldsPermitted}
+                onChange={(e) =>
+                  handleChangeQuoteItemsSelected(
+                    e,
+                    Number(quoteItem?.id_item_cotacao),
+                    Number(id_item_requisicao)
+                  )
+                }
+                checked={
+                  quoteItemsSelected.get(Number(id_item_requisicao)) ===
+                  Number(quoteItem?.id_item_cotacao)
+                    ? true
+                    : false
+                }
+                icon={<RadioButtonUncheckedIcon sx={{ fontSize: 14 }} />}
+                checkedIcon={<CheckCircleIcon sx={{ fontSize: 14 }} />}
+                sx={{ color: "primary.main" }}
+              />
+            )}
+            {quoteItem?.indisponivel > 0 && (
+              <Tooltip
+                title={`Indisponível no fornecedor: ${col.headerName}`}
+              >
+                <ErrorIcon color="error" sx={{ fontSize: 14 }} />
+              </Tooltip>
+            )}
+            {parciallyQuoted && (
+              <Tooltip
+                title={`Quantidade cotada: ${quoteItem?.quantidade_cotada}`}
+              >
+                <ErrorIcon color="secondary" sx={{ fontSize: 14 }} />
+              </Tooltip>
+            )}
+          </Box>
+        );
+      },
+      minWidth: 200,
+      sortable: true,
+      renderHeader: (params: any) => {
+        return (
+          <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+            <Typography
+              fontSize="0.7rem"
+              fontWeight="bold"
+              color="primary"
+            >
+              {params.colDef.headerName}
+            </Typography>
+          </Box>
+        );
+      },
+    }));
   }, [
-    dispatch,
+    rawDinamicColumns,
     handleChangeQuoteItemsSelected,
-    id_requisicao,
     quoteItemsSelected,
     blockFields,
-    editItemFieldsPermitted
+    editItemFieldsPermitted,
   ]);
 
   const isDinamicField = useCallback(
@@ -893,7 +895,7 @@ export const useRequisitionItemColumns = (
     items.every((item: any) => Array.isArray(item.items_cotacao));
 
   useEffect(() => {
-    setDinamicColumns([]);
+    setRawDinamicColumns([]);
   }, [id_requisicao]);
 
   useEffect(() => {

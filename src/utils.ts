@@ -1,7 +1,5 @@
 import { DateTime } from "luxon";
 
-//remove acentos, converte para minúsculas e retira espaços nas extremidades
-//uso: comparar textos (ex: nome de status) ignorando acentuação/caixa
 export function normalizeText(value?: string | null): string {
   if (!value) return "";
   return value
@@ -164,9 +162,6 @@ export const getDateFromISOstring = (ISOstring: string) => {
   }
 };
 
-// Chave local yyyy-mm-dd para comparar datas: entrar e sair da célula converte
-// a string ISO em Date (com deslocamento de fuso), então comparar pela string
-// acusaria mudança mesmo sem o usuário alterar nada.
 export const getDateKey = (value: any): string => {
   if (!value) return "";
   const date =
@@ -177,8 +172,6 @@ export const getDateKey = (value: any): string => {
   return `${date.getFullYear()}-${month}-${day}`;
 };
 
-// 0 é o default do banco para OC e significa "sem OC"; a coluna exibe/edita
-// como vazio, então 0 e "" precisam ser equivalentes na comparação de mudança.
 export const normalizeOcValue = (value: any): string => {
   const text = String(value ?? "").trim();
   return text === "0" ? "" : text;
