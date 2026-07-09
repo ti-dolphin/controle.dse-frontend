@@ -28,6 +28,7 @@ import { set } from "lodash";
 import { RequisitionItemAttachmentService } from "../../services/requisicoes/RequisitionItemAttachmentService";
 import { RequisitionFileService } from "../../services/requisicoes/RequisitionFileService";
 import { PatrimonyService } from "../../services/patrimonios/PatrimonyService";
+import { normalizeText } from "../../utils";
 
 interface RequisitionStatusStepperProps {
   id_requisicao: number;
@@ -80,15 +81,6 @@ function CustomStepIcon(props: any) {
 const RequisitionStatusStepper = ({
   id_requisicao,
 }: RequisitionStatusStepperProps) => {
-  const normalizeStatusName = (value?: string | null) => {
-    if (!value) return "";
-    return value
-      .normalize("NFD")
-      .replace(/[\u0300-\u036f]/g, "")
-      .toLowerCase()
-      .trim();
-  };
-
   const user = useSelector((state: RootState) => state.user.user);
   const dispatch = useDispatch();
   const navigate = useNavigate();
@@ -160,7 +152,7 @@ const RequisitionStatusStepper = ({
     }
 
     return statusList.filter(
-      (status) => normalizeStatusName(status.nome) !== "cadastrar patrimonio"
+      (status) => normalizeText(status.nome) !== "cadastrar patrimonio"
     );
   }, [statusList, hasPatrimonyItems]);
 
@@ -275,7 +267,7 @@ const RequisitionStatusStepper = ({
       throw new Error("Requisição sem itens");
     }
 
-    const currentStatusName = normalizeStatusName(requisition.status?.nome);
+    const currentStatusName = normalizeText(requisition.status?.nome);
     const isAdvancingFromCadastroPatrimonio =
       advancingStatus && currentStatusName === "cadastrar patrimonio";
 
@@ -455,7 +447,7 @@ const RequisitionStatusStepper = ({
             user!,
             updatedRequisition
           );
-          const updatedStatusName = normalizeStatusName(
+          const updatedStatusName = normalizeText(
             updatedRequisition.status?.nome ?? newStatus?.nome
           );
           const isConcludedStatus = updatedStatusName === "concluido";
@@ -546,7 +538,7 @@ const RequisitionStatusStepper = ({
       dispatch(setRefreshRequisition(!refreshRequisition));
       setJustifyingLessThenThreeQuotes(false);
       setComment("");
-      const updatedStatusName = normalizeStatusName(
+      const updatedStatusName = normalizeText(
         updatedRequisition.status?.nome ?? newStatus?.nome
       );
       const shouldStayOnPageForManagerApproval =

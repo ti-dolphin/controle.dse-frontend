@@ -54,12 +54,16 @@ import {
 
 import {
   setRefreshRequisition,
-  setRequisition,
+  updateRequisitionField,
 } from "../../redux/slices/requisicoes/requisitionSlice";
+import { toggleRefreshReqComments } from "../../redux/slices/requisicoes/requisitionCommentSlice";
 import {
   formatDateStringtoISOstring,
   formatDateToISOstring,
   getDateFromISOstring,
+  getDateKey,
+  normalizeOcValue,
+  normalizeText,
 } from "../../utils";
 import RequisitionService from "../../services/requisicoes/RequisitionService";
 import UpdateChildReqItemsDialog from "./UpdateChildReqItemsDialog";
@@ -84,86 +88,29 @@ import {
   PatrimonyFormData,
 } from "../../models/requisicoes/RequisitionItemsTable";
 
-// 0 é o default do banco para OC e significa "sem OC"; a coluna exibe/edita
-// como vazio, então 0 e "" precisam ser equivalentes na comparação de mudança.
-const normalizeOcValue = (value: any): string => {
-  const text = String(value ?? "").trim();
-  return text === "0" ? "" : text;
-};
-
-// Chave local yyyy-mm-dd para comparar datas: entrar e sair da célula converte
-// a string ISO em Date (com deslocamento de fuso), então comparar pela string
-// acusaria mudança mesmo sem o usuário alterar nada.
-const getDateKey = (value: any): string => {
-  if (!value) return "";
-  const date =
-    value instanceof Date ? value : getDateFromISOstring(String(value));
-  if (!date || isNaN(date.getTime())) return "";
-  const month = String(date.getMonth() + 1).padStart(2, "0");
-  const day = String(date.getDate()).padStart(2, "0");
-  return `${date.getFullYear()}-${month}-${day}`;
-};
-
 const RequisitionItemsTable = ({
   tableMaxHeight,
   hideFooter,
 }: RequisitionItemsTableProps) => {
-  const normalizeStatusName = (value?: string | null) => {
-    if (!value) return "";
-    return value
-      .normalize("NFD")
-      .replace(/[\u0300-\u036f]/g, "")
-      .toLowerCase()
-      .trim();
-  };
-
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const theme = useTheme();
   const { id_requisicao } = useParams();
-  const { isMobile } = useIsMobile();
+
   const { requisition, refreshRequisition } = useSelector(
     (state: RootState) => state.requisition
   );
   const attendingItems = useSelector(
     (state: RootState) => state.attendingItemsSlice.attendingItems
   );
-
-  const [quotesTotal, setQuotesTotal] = useState([]);
-
-  const gridApiRef = useGridApiRef();
   const quote = useSelector((state: RootState) => state.quote.quote);
-
   const quoteItems = useSelector(
     (state: RootState) => state.quoteItem.quoteItems
   );
-
   const addingReqItems = useSelector(
     (state: RootState) => state.quoteItem.addingReqItems
   );
-
   const user = useSelector((state: RootState) => state.user.user);
-
-  const permissionsFromHook = useRequisitionItemPermissions(user, requisition);
-
-  const permissions = useMemo(() => {
-    if (!requisition?.status) {
-      return { editItemFieldsPermitted: false, createQuotePermitted: false };
-    }
-    const isBuyer = Number(user?.PERM_COMPRADOR) === 1;
-    const isReceivingStep =
-      requisition.status?.nome?.toLowerCase() === "recebimento" ||
-      requisition.status?.nome?.toLowerCase() === "lançar nf"
-    if (isBuyer && isReceivingStep) {
-      return {
-        editItemFieldsPermitted: true,
-        createQuotePermitted: permissionsFromHook.createQuotePermitted,
-      };
-    }
-    return permissionsFromHook;
-  }, [permissionsFromHook, requisition?.status, user]);
-  const { editItemFieldsPermitted, createQuotePermitted } = permissions;
-
   const {
     items,
     newItems,
@@ -176,35 +123,25 @@ const RequisitionItemsTable = ({
     viewingItemAttachmentType,
   } = useSelector((state: RootState) => state.requisitionItem);
 
-  const itemsRef = React.useRef(items);
-  useEffect(() => {
-    itemsRef.current = items;
-  }, [items]);
+  const { isMobile } = useIsMobile();
+  const gridApiRef = useGridApiRef();
+  const permissionsFromHook = useRequisitionItemPermissions(user, requisition);
+  const { userOptions } = useUserOptions();
+  const { projectOptions } = useProjectOptions();
+  const { patirmonyTypeOptions } = usePatrimonyTypeOptions();
 
-  // PUTs em voo por linha e sequência de fetches: impedem que respostas
-  // antigas do servidor sobrescrevam valores recém-digitados pelo usuário.
-  const pendingRowUpdates = React.useRef<Map<number, number>>(new Map());
-  const fetchSeqRef = React.useRef(0);
-
+  const [quotesTotal, setQuotesTotal] = useState([]);
   const [searchTerm, setSearchTerm] = useState("");
-
-  const [cellModesModel, setCellModesModel] =
-    React.useState<GridCellModesModel>({});
-  const [selectionModel, setSelectionModel] =
-    React.useState<GridRowSelectionModel>([]);
-  const [quoteItemsSelected, setQuoteItemsSelected] = useState<
-    Map<number, number>
-  >(new Map());
+  const [cellModesModel, setCellModesModel] = React.useState<GridCellModesModel>({});
+  const [selectionModel, setSelectionModel] = React.useState<GridRowSelectionModel>([]);
+  const [quoteItemsSelected, setQuoteItemsSelected] = useState<Map<number, number>>(new Map());
   const [loading, setLoading] = useState(false);
   const [blockFields, setBlockFields] = useState(false);
   const [quoteListOpen, setQuoteListOpen] = useState<boolean>(false);
   const [patrimonyDialogOpen, setPatrimonyDialogOpen] = useState(false);
-  const [selectedPatrimonyItem, setSelectedPatrimonyItem] =
-    useState<RequisitionItem | null>(null);
+  const [selectedPatrimonyItem, setSelectedPatrimonyItem] = useState<RequisitionItem | null>(null);
   const [savingPatrimony, setSavingPatrimony] = useState(false);
-  const [createdPatrimonyItemIds, setCreatedPatrimonyItemIds] = useState<
-    Set<number>
-  >(new Set());
+  const [createdPatrimonyItemIds, setCreatedPatrimonyItemIds] = useState<Set<number>>(new Set());
   const [patrimonyFormData, setPatrimonyFormData] = useState<PatrimonyFormData>({
     nome: "",
     descricao: "",
@@ -216,9 +153,34 @@ const RequisitionItemsTable = ({
     responsavel: undefined,
     projeto: undefined,
   });
-  const { userOptions } = useUserOptions();
-  const { projectOptions } = useProjectOptions();
-  const { patirmonyTypeOptions } = usePatrimonyTypeOptions();
+
+  const itemsRef = React.useRef(items);
+  const pendingRowUpdates = React.useRef<Map<number, number>>(new Map());
+  const fetchSeqRef = React.useRef(0);
+
+  const permissions = useMemo(() => {
+    if (!requisition?.status) {
+      return { editItemFieldsPermitted: false, createQuotePermitted: false };
+    }
+    
+    const isBuyer = Number(user?.PERM_COMPRADOR) === 1;
+    const isReceivingStep = requisition.status?.nome?.toLowerCase() === "recebimento" || requisition.status?.nome?.toLowerCase() === "lançar nf"
+
+    if (isBuyer && isReceivingStep) {
+      return {
+        editItemFieldsPermitted: true,
+        createQuotePermitted: permissionsFromHook.createQuotePermitted,
+      };
+    }
+    
+    return permissionsFromHook;
+
+  }, [permissionsFromHook, requisition?.status, user]);
+  const { editItemFieldsPermitted, createQuotePermitted } = permissions;
+
+  useEffect(() => {
+    itemsRef.current = items;
+  }, [items]);
 
   const handleDeleteItem = useCallback(
     async (id_item_requisicao: number) => {
@@ -304,26 +266,49 @@ const RequisitionItemsTable = ({
     [dispatch, refresh, selectionModel]
   );
 
+  const recalculateQuoteItemsTotals = useCallback(async () => {
+    try {
+      const { custo_total_itens, custo_total_frete } =
+        await RequisitionItemService.recalculateQuoteItemsTotals(
+          Number(id_requisicao)
+        );
+      dispatch(
+        updateRequisitionField({ field: "custo_total_itens", value: custo_total_itens })
+      );
+      dispatch(
+        updateRequisitionField({ field: "custo_total_frete", value: custo_total_frete })
+      );
+    } catch (error: any) {
+      dispatch(
+        setFeedback({
+          message: "Erro ao recalcular o total da requisição",
+          type: "error",
+        })
+      );
+    }
+  }, [dispatch, id_requisicao]);
+
+  const debouncedRecalculateTotals = useMemo(
+    () => debounce(recalculateQuoteItemsTotals, 2000),
+    [recalculateQuoteItemsTotals]
+  );
+
+  useEffect(
+    () => () => {
+      debouncedRecalculateTotals.flush();
+    },
+    [debouncedRecalculateTotals]
+  );
+
   const handleChangeQuoteItemsSelected = useCallback(
     async (
       e: React.ChangeEvent<HTMLInputElement>,
       id_item_cotacao: number,
       id_item_requisicao: number
     ) => {
-      if (e.target.checked) {
-        setQuoteItemsSelected (
-          new Map(quoteItemsSelected.set(id_item_requisicao, id_item_cotacao))
-        );
-        const { updatedItems, updatedRequisition } =
-          await RequisitionItemService.updateQuoteItemsSelected(
-            Number(id_requisicao),
-            Object.fromEntries(quoteItemsSelected)
-          );
-        dispatch(setItems(updatedItems));
-        dispatch(setRequisition(updatedRequisition));
-        return;
-      }
-      if (requisition.status?.nome.toLowerCase() !== "em cotação") {
+      const isChecking = e.target.checked;
+
+      if (!isChecking && requisition.status?.nome.toLowerCase() !== "em cotação") {
         dispatch(
           setFeedback({
             message: "Apenas itens em cotação podem ser removidos",
@@ -333,18 +318,50 @@ const RequisitionItemsTable = ({
         return;
       }
 
-      quoteItemsSelected.delete(id_item_requisicao);
-      setQuoteItemsSelected(new Map(quoteItemsSelected));
-      const { updatedItems, updatedRequisition } =
-        await RequisitionItemService.updateQuoteItemsSelected(
-          Number(id_requisicao),
-          Object.fromEntries(quoteItemsSelected)
-        );
+      const nextSelectedQuoteItem = isChecking ? id_item_cotacao : null;
+      setBlockFields(true);
 
-      dispatch(setItems(updatedItems));
-      dispatch(setRequisition(updatedRequisition));
+      try {
+        await RequisitionItemService.updateQuoteItemsSelected(
+          id_item_requisicao,
+          nextSelectedQuoteItem
+        );
+        setQuoteItemsSelected((previous) => {
+          const next = new Map(previous);
+          if (nextSelectedQuoteItem) {
+            next.set(id_item_requisicao, nextSelectedQuoteItem);
+          } else {
+            next.delete(id_item_requisicao);
+          }
+          return next;
+        });
+        const currentItem = itemsRef.current.find(
+          (item) => item.id_item_requisicao === id_item_requisicao
+        );
+        if (currentItem) {
+          dispatch(
+            replaceItem({
+              id_item_requisicao,
+              updatedItem: {
+                ...currentItem,
+                id_item_cotacao: nextSelectedQuoteItem ?? undefined,
+              },
+            })
+          );
+        }
+        debouncedRecalculateTotals();
+      } catch (error: any) {
+        dispatch(
+          setFeedback({
+            message: "Erro ao atualizar fornecedor selecionado",
+            type: "error",
+          })
+        );
+      } finally {
+        setBlockFields(false);
+      }
     },
-    [quoteItemsSelected, requisition, setItems]
+    [requisition, dispatch, debouncedRecalculateTotals]
   );
 
   const toolbarRef = React.useRef<HTMLDivElement>(null);
@@ -399,12 +416,13 @@ const RequisitionItemsTable = ({
 
   const isCellEditable = useCallback(
     (params: GridCellParams) => {
+      if (blockFields) return false;
       if (params.field === "produto_unidade") {
         return isNonRegisteredItem(params.row);
       }
       return Boolean(params.colDef.editable);
     },
-    [isNonRegisteredItem]
+    [isNonRegisteredItem, blockFields]
   );
 
   const mobileColumns = () => {
@@ -549,12 +567,6 @@ const RequisitionItemsTable = ({
         } else {
           pending.set(rowId, remaining);
         }
-        if (
-          payload.quantidade !== undefined &&
-          payload.quantidade !== oldRow.quantidade
-        ) {
-          dispatch(setRefreshRequisition(!refreshRequisition));
-        }
       } catch (e: any) {
         const remaining = (pending.get(rowId) || 1) - 1;
         if (remaining <= 0) {
@@ -576,7 +588,7 @@ const RequisitionItemsTable = ({
         );
       }
     },
-    [dispatch, refreshRequisition]
+    [dispatch]
   );
 
   const processRowUpdate = React.useCallback(
@@ -595,26 +607,24 @@ const RequisitionItemsTable = ({
               ? formatDateToISOstring(newRow.data_entrega)
               : newRow.data_entrega,
         };
-        const payload = {
-          id_item_requisicao: normalizedRow.id_item_requisicao,
-          quantidade: normalizedRow.quantidade,
-          target_price: normalizedRow.target_price,
-          data_necessidade: normalizedRow.data_necessidade,
-          data_entrega: normalizedRow.data_entrega,
-          oc: normalizedRow.oc,
-          observacao: normalizedRow.observacao,
-          alterado_por: user?.CODPESSOA,
-        } as any;
         const productCode = String(
           normalizedRow.produto_codigo || normalizedRow.produto?.codigo || ""
         ).trim();
-        if (
+
+        const quantidadeChanged = normalizedRow.quantidade !== oldRow.quantidade;
+        const targetPriceChanged = normalizedRow.target_price !== oldRow.target_price;
+        const dataNecessidadeChanged =
+          getDateKey(normalizedRow.data_necessidade) !== getDateKey(oldRow.data_necessidade);
+        const dataEntregaChanged =
+          getDateKey(normalizedRow.data_entrega) !== getDateKey(oldRow.data_entrega);
+        const ocChanged = normalizeOcValue(normalizedRow.oc) !== normalizeOcValue(oldRow.oc);
+        const observacaoChanged =
+          String(normalizedRow.observacao ?? "") !== String(oldRow.observacao ?? "");
+        const produtoUnidadeChanged =
           productCode === "06.001.04.0002" &&
-          normalizedRow.produto_unidade !== oldRow.produto_unidade
-        ) {
-          payload.produto_unidade = normalizedRow.produto_unidade;
-        }
-        if (payload.quantidade < 0) {
+          normalizedRow.produto_unidade !== oldRow.produto_unidade;
+
+        if (quantidadeChanged && normalizedRow.quantidade < 0) {
           dispatch(
             setFeedback({
               message: `Quantidade solicitada não pode ser negativa`,
@@ -625,19 +635,64 @@ const RequisitionItemsTable = ({
         }
         // Sair da célula sem alterar nada não deve disparar PUT.
         const hasChanges =
-          payload.produto_unidade !== undefined ||
-          normalizedRow.quantidade !== oldRow.quantidade ||
-          normalizedRow.target_price !== oldRow.target_price ||
-          getDateKey(normalizedRow.data_necessidade) !==
-            getDateKey(oldRow.data_necessidade) ||
-          getDateKey(normalizedRow.data_entrega) !==
-            getDateKey(oldRow.data_entrega) ||
-          normalizeOcValue(normalizedRow.oc) !== normalizeOcValue(oldRow.oc) ||
-          String(normalizedRow.observacao ?? "") !==
-            String(oldRow.observacao ?? "");
+          quantidadeChanged ||
+          targetPriceChanged ||
+          dataNecessidadeChanged ||
+          dataEntregaChanged ||
+          ocChanged ||
+          observacaoChanged ||
+          produtoUnidadeChanged;
         if (!hasChanges) {
           return oldRow;
         }
+
+        // Manda só os campos que mudaram nesta edição, não a linha inteira.
+        const payload: any = {
+          id_item_requisicao: normalizedRow.id_item_requisicao,
+          alterado_por: user?.CODPESSOA,
+        };
+        if (quantidadeChanged) {
+          payload.quantidade = normalizedRow.quantidade;
+          payload.oldQuantity = oldRow.quantidade;
+        }
+        if (targetPriceChanged) payload.target_price = normalizedRow.target_price;
+        if (dataNecessidadeChanged) payload.data_necessidade = normalizedRow.data_necessidade;
+        if (dataEntregaChanged) payload.data_entrega = normalizedRow.data_entrega;
+        if (ocChanged) payload.oc = normalizedRow.oc;
+        if (observacaoChanged) payload.observacao = normalizedRow.observacao;
+        if (produtoUnidadeChanged) payload.produto_unidade = normalizedRow.produto_unidade;
+
+        if (quantidadeChanged) {
+          // Sem estado otimista: a quantidade dispara recálculo de cotação e
+          // totais no servidor, então só refletimos na tela depois que ele
+          // confirma. A tabela já fica travada (blockFields) nesse meio tempo.
+          setBlockFields(true);
+          try {
+            const updatedItem = await RequisitionItemService.update(
+              normalizedRow.id_item_requisicao,
+              payload
+            );
+            dispatch(
+              replaceItem({
+                id_item_requisicao: normalizedRow.id_item_requisicao,
+                updatedItem,
+              })
+            );
+            dispatch(toggleRefreshReqComments());
+            return updatedItem;
+          } catch (e: any) {
+            dispatch(
+              setFeedback({
+                message: `Erro ao atualizar item da requisição: ${e.message}`,
+                type: "error",
+              })
+            );
+            return oldRow;
+          } finally {
+            setBlockFields(false);
+          }
+        }
+
         // Update otimista: o valor digitado entra no estado imediatamente e
         // o PUT roda em segundo plano, revertendo apenas se o servidor falhar.
         fetchSeqRef.current++;
@@ -847,7 +902,7 @@ const RequisitionItemsTable = ({
   const getRowClassName = useCallback((params: any) => {
     const item = params.row;
     const classes: string[] = [];
-    const currentStatus = normalizeStatusName(requisition.status?.nome);
+    const currentStatus = normalizeText(requisition.status?.nome);
     const isCadPatrimonioStep = currentStatus === "cadastrar patrimonio";
     const patrimonyType = Number(item?.produto?.tipo_produto_patrimonio ?? 0);
     const isPatrimonyItem = patrimonyType === 1 || patrimonyType === 2;
@@ -878,7 +933,7 @@ const RequisitionItemsTable = ({
 
   const handleRowClick = (params: any) => {
     const row = params?.row as RequisitionItem;
-    const currentStatus = normalizeStatusName(requisition.status?.nome);
+    const currentStatus = normalizeText(requisition.status?.nome);
     const isCadPatrimonioStep = currentStatus === "cadastrar patrimonio";
     const patrimonyType = Number(row?.produto?.tipo_produto_patrimonio ?? 0);
     const isPatrimonyItem = patrimonyType === 1 || patrimonyType === 2;
@@ -1159,7 +1214,7 @@ const RequisitionItemsTable = ({
   // patrimônio" e só precisa recarregar quando a lista de itens muda de
   // composição — não a cada edição de célula.
   const isCadPatrimonioStep =
-    normalizeStatusName(requisition.status?.nome) === "cadastrar patrimonio";
+    normalizeText(requisition.status?.nome) === "cadastrar patrimonio";
   const itemIdsKey = useMemo(
     () => items.map((item) => item.id_item_requisicao).join(","),
     [items]
@@ -1322,7 +1377,7 @@ const RequisitionItemsTable = ({
             apiRef={gridApiRef}
             density="compact"
             getRowId={(row: any) => row.id_item_requisicao}
-            loading={loading}
+            loading={loading || blockFields}
             theme={theme}
             disableColumnMenu
             rowHeight={60}
