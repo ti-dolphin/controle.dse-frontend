@@ -56,6 +56,7 @@ import {
   setRefreshRequisition,
   updateRequisitionField,
 } from "../../redux/slices/requisicoes/requisitionSlice";
+import { toggleRefreshReqComments } from "../../redux/slices/requisicoes/requisitionCommentSlice";
 import {
   formatDateStringtoISOstring,
   formatDateToISOstring,
@@ -566,12 +567,6 @@ const RequisitionItemsTable = ({
         } else {
           pending.set(rowId, remaining);
         }
-        if (
-          payload.quantidade !== undefined &&
-          payload.quantidade !== oldRow.quantidade
-        ) {
-          dispatch(setRefreshRequisition(!refreshRequisition));
-        }
       } catch (e: any) {
         const remaining = (pending.get(rowId) || 1) - 1;
         if (remaining <= 0) {
@@ -593,7 +588,7 @@ const RequisitionItemsTable = ({
         );
       }
     },
-    [dispatch, refreshRequisition]
+    [dispatch]
   );
 
   const processRowUpdate = React.useCallback(
@@ -612,26 +607,24 @@ const RequisitionItemsTable = ({
               ? formatDateToISOstring(newRow.data_entrega)
               : newRow.data_entrega,
         };
-        const payload = {
-          id_item_requisicao: normalizedRow.id_item_requisicao,
-          quantidade: normalizedRow.quantidade,
-          target_price: normalizedRow.target_price,
-          data_necessidade: normalizedRow.data_necessidade,
-          data_entrega: normalizedRow.data_entrega,
-          oc: normalizedRow.oc,
-          observacao: normalizedRow.observacao,
-          alterado_por: user?.CODPESSOA,
-        } as any;
         const productCode = String(
           normalizedRow.produto_codigo || normalizedRow.produto?.codigo || ""
         ).trim();
-        if (
+
+        const quantidadeChanged = normalizedRow.quantidade !== oldRow.quantidade;
+        const targetPriceChanged = normalizedRow.target_price !== oldRow.target_price;
+        const dataNecessidadeChanged =
+          getDateKey(normalizedRow.data_necessidade) !== getDateKey(oldRow.data_necessidade);
+        const dataEntregaChanged =
+          getDateKey(normalizedRow.data_entrega) !== getDateKey(oldRow.data_entrega);
+        const ocChanged = normalizeOcValue(normalizedRow.oc) !== normalizeOcValue(oldRow.oc);
+        const observacaoChanged =
+          String(normalizedRow.observacao ?? "") !== String(oldRow.observacao ?? "");
+        const produtoUnidadeChanged =
           productCode === "06.001.04.0002" &&
-          normalizedRow.produto_unidade !== oldRow.produto_unidade
-        ) {
-          payload.produto_unidade = normalizedRow.produto_unidade;
-        }
-        if (payload.quantidade < 0) {
+          normalizedRow.produto_unidade !== oldRow.produto_unidade;
+
+        if (quantidadeChanged && normalizedRow.quantidade < 0) {
           dispatch(
             setFeedback({
               message: `Quantidade solicitada não pode ser negativa`,
@@ -642,19 +635,64 @@ const RequisitionItemsTable = ({
         }
         // Sair da célula sem alterar nada não deve disparar PUT.
         const hasChanges =
-          payload.produto_unidade !== undefined ||
-          normalizedRow.quantidade !== oldRow.quantidade ||
-          normalizedRow.target_price !== oldRow.target_price ||
-          getDateKey(normalizedRow.data_necessidade) !==
-            getDateKey(oldRow.data_necessidade) ||
-          getDateKey(normalizedRow.data_entrega) !==
-            getDateKey(oldRow.data_entrega) ||
-          normalizeOcValue(normalizedRow.oc) !== normalizeOcValue(oldRow.oc) ||
-          String(normalizedRow.observacao ?? "") !==
-            String(oldRow.observacao ?? "");
+          quantidadeChanged ||
+          targetPriceChanged ||
+          dataNecessidadeChanged ||
+          dataEntregaChanged ||
+          ocChanged ||
+          observacaoChanged ||
+          produtoUnidadeChanged;
         if (!hasChanges) {
           return oldRow;
         }
+
+        // Manda só os campos que mudaram nesta edição, não a linha inteira.
+        const payload: any = {
+          id_item_requisicao: normalizedRow.id_item_requisicao,
+          alterado_por: user?.CODPESSOA,
+        };
+        if (quantidadeChanged) {
+          payload.quantidade = normalizedRow.quantidade;
+          payload.oldQuantity = oldRow.quantidade;
+        }
+        if (targetPriceChanged) payload.target_price = normalizedRow.target_price;
+        if (dataNecessidadeChanged) payload.data_necessidade = normalizedRow.data_necessidade;
+        if (dataEntregaChanged) payload.data_entrega = normalizedRow.data_entrega;
+        if (ocChanged) payload.oc = normalizedRow.oc;
+        if (observacaoChanged) payload.observacao = normalizedRow.observacao;
+        if (produtoUnidadeChanged) payload.produto_unidade = normalizedRow.produto_unidade;
+
+        if (quantidadeChanged) {
+          // Sem estado otimista: a quantidade dispara recálculo de cotação e
+          // totais no servidor, então só refletimos na tela depois que ele
+          // confirma. A tabela já fica travada (blockFields) nesse meio tempo.
+          setBlockFields(true);
+          try {
+            const updatedItem = await RequisitionItemService.update(
+              normalizedRow.id_item_requisicao,
+              payload
+            );
+            dispatch(
+              replaceItem({
+                id_item_requisicao: normalizedRow.id_item_requisicao,
+                updatedItem,
+              })
+            );
+            dispatch(toggleRefreshReqComments());
+            return updatedItem;
+          } catch (e: any) {
+            dispatch(
+              setFeedback({
+                message: `Erro ao atualizar item da requisição: ${e.message}`,
+                type: "error",
+              })
+            );
+            return oldRow;
+          } finally {
+            setBlockFields(false);
+          }
+        }
+
         // Update otimista: o valor digitado entra no estado imediatamente e
         // o PUT roda em segundo plano, revertendo apenas se o servidor falhar.
         fetchSeqRef.current++;
