@@ -1209,9 +1209,6 @@ const RequisitionItemsTable = ({
     }
   }, [id_requisicao]);
 
-  // A marcação de patrimônios criados só importa na etapa "cadastrar
-  // patrimônio" e só precisa recarregar quando a lista de itens muda de
-  // composição — não a cada edição de célula.
   const isCadPatrimonioStep =
     normalizeText(requisition.status?.nome) === "cadastrar patrimonio";
   const itemIdsKey = useMemo(
