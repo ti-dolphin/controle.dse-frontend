@@ -894,6 +894,17 @@ export const useRequisitionItemColumns = (
     items.length > 0 &&
     items.every((item: any) => Array.isArray(item.items_cotacao));
 
+  const selectedQuoteItemsKey = useMemo(
+    () =>
+      items
+        .map(
+          (item: any) =>
+            `${item.id_item_requisicao}:${item.id_item_cotacao ?? 0}:${item.quantidade ?? 0}`
+        )
+        .join("|"),
+    [items]
+  );
+
   useEffect(() => {
     setRawDinamicColumns([]);
   }, [id_requisicao]);
@@ -917,7 +928,8 @@ export const useRequisitionItemColumns = (
     addingReqItems,
     updatingRecentProductsQuantity,
     id_requisicao,
-    allItemsHaveCotacao
+    allItemsHaveCotacao,
+    selectedQuoteItemsKey,
   ]);
 
   return useMemo(() => {

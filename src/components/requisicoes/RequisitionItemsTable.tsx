@@ -397,8 +397,7 @@ const RequisitionItemsTable = ({
 
   // autoHeight desliga a virtualização de linhas do DataGrid; acima de 30
   // linhas forçamos altura fixa para manter a tabela virtualizada e fluida.
-  const effectiveMaxHeight =
-    tableMaxHeight ?? (filteredItems.length > 30 ? 600 : undefined);
+  const effectiveMaxHeight = tableMaxHeight ?? (filteredItems.length > 30 ? 600 : undefined);
   const shouldUseAutoHeight = effectiveMaxHeight === undefined;
 
   const exceptionForBuyer = (field: string) => {
@@ -1210,9 +1209,6 @@ const RequisitionItemsTable = ({
     }
   }, [id_requisicao]);
 
-  // A marcação de patrimônios criados só importa na etapa "cadastrar
-  // patrimônio" e só precisa recarregar quando a lista de itens muda de
-  // composição — não a cada edição de célula.
   const isCadPatrimonioStep =
     normalizeText(requisition.status?.nome) === "cadastrar patrimonio";
   const itemIdsKey = useMemo(
