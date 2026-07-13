@@ -8,6 +8,7 @@ import {
   calculateQuoteSubtotal,
   calculateUnitPriceWithTaxes,
   formatCurrency2To3,
+  formatDecimalPtBr,
   getDateFromISOstring,
 } from "../../utils";
 import { useDispatch, useSelector } from "react-redux";
@@ -249,12 +250,22 @@ export const useRequisitionItemColumns = (
       ),
     },
     {
+      // Sem type "number" de propósito: o editor numérico do DataGrid rejeita
+      // vírgula como separador decimal (padrão pt-BR). A conversão para número
+      // acontece só no commit (processRowUpdate), senão o separador some
+      // enquanto o usuário digita.
       field: "target_price",
       headerName: "Valor alvo unitário",
-      type: "number",
       width: 120,
       editable: attendingItems ? false : true,
+      align: "right",
+      headerAlign: "right",
+      sortComparator: (a: any, b: any) => Number(a || 0) - Number(b || 0),
       renderEditCell: renderInstantEditCell,
+      renderCell: (params: any) =>
+        params.value !== null && params.value !== undefined && params.value !== ""
+          ? formatDecimalPtBr(Number(params.value))
+          : "",
     },
     {
       field: "data_necessidade",

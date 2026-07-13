@@ -590,13 +590,28 @@ const RequisitionItemsTable = ({
     [dispatch]
   );
 
+  // Aceita vírgula ou ponto como separador decimal; entrada inválida mantém
+  // o valor anterior.
+  const parseTargetPrice = (value: any, previousValue: any) => {
+    if (value === null || value === undefined || String(value).trim() === "") {
+      return null;
+    }
+    if (typeof value === "number") {
+      return value;
+    }
+    const parsed = Number(String(value).trim().replace(",", "."));
+    return isNaN(parsed) ? previousValue ?? null : parsed;
+  };
+
   const processRowUpdate = React.useCallback(
     async (newRow: GridRowModel, oldRow: GridRowModel) => {
       if (!attendingItems) {
         // O editor de datas do grid devolve Date; normaliza para ISO para
-        // manter o mesmo formato que o servidor retorna.
+        // manter o mesmo formato que o servidor retorna. O preço alvo chega
+        // como texto (editor livre para aceitar vírgula) e vira número aqui.
         const normalizedRow: GridRowModel = {
           ...newRow,
+          target_price: parseTargetPrice(newRow.target_price, oldRow.target_price),
           data_necessidade:
             newRow.data_necessidade instanceof Date
               ? formatDateToISOstring(newRow.data_necessidade)
@@ -910,7 +925,18 @@ const RequisitionItemsTable = ({
     if (isCadPatrimonioStep && isPatrimonyItem) {
       classes.push(patrimonyCreated ? "item-patrimonio-green" : "item-patrimonio-blue");
     }
-    
+
+    // Na etapa "Comprar", o comprador vê em amarelo (mesma cor da requisição
+    // parada há 2 dias) os itens que tiveram a quantidade alterada.
+    const isBuyer = Number(user?.PERM_COMPRADOR) === 1;
+    if (
+      currentStatus === "comprar" &&
+      isBuyer &&
+      Number(item?.quantidade_alterada) === 1
+    ) {
+      classes.push("item-quantity-changed");
+    }
+
     if (quotesTotal.length === 0) {
       return classes.join(" ");
     }
@@ -928,7 +954,7 @@ const RequisitionItemsTable = ({
     }
 
     return classes.join(" ");
-  }, [quotesTotal, requisition.status?.nome, isPatrimonyItemCreated]);
+  }, [quotesTotal, requisition.status?.nome, isPatrimonyItemCreated, user?.PERM_COMPRADOR]);
 
   const handleRowClick = (params: any) => {
     const row = params?.row as RequisitionItem;
@@ -1309,6 +1335,12 @@ const RequisitionItemsTable = ({
               backgroundColor: '#d8f5d0 !important',
               '&:hover': {
                 backgroundColor: '#c5ecb9 !important',
+              },
+            },
+            '& .item-quantity-changed': {
+              backgroundColor: '#fff3cc !important',
+              '&:hover': {
+                backgroundColor: '#ffe9a8 !important',
               },
             },
           }}
