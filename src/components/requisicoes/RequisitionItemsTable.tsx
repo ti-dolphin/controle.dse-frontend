@@ -397,8 +397,7 @@ const RequisitionItemsTable = ({
 
   // autoHeight desliga a virtualização de linhas do DataGrid; acima de 30
   // linhas forçamos altura fixa para manter a tabela virtualizada e fluida.
-  const effectiveMaxHeight =
-    tableMaxHeight ?? (filteredItems.length > 30 ? 600 : undefined);
+  const effectiveMaxHeight = tableMaxHeight ?? (filteredItems.length > 30 ? 600 : undefined);
   const shouldUseAutoHeight = effectiveMaxHeight === undefined;
 
   const exceptionForBuyer = (field: string) => {

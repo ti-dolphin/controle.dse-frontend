@@ -894,6 +894,22 @@ export const useRequisitionItemColumns = (
     items.length > 0 &&
     items.every((item: any) => Array.isArray(item.items_cotacao));
 
+  // O total no cabeçalho de cada coluna de fornecedor (ex.: "(R$ 16,00)") é
+  // calculado no backend a partir do fornecedor selecionado por item
+  // (id_item_cotacao) e da quantidade. Esta chave muda exatamente quando um
+  // desses fatores muda, disparando o refetch das colunas — e não a cada
+  // edição de célula não relacionada (evita chamadas desnecessárias).
+  const selectedQuoteItemsKey = useMemo(
+    () =>
+      items
+        .map(
+          (item: any) =>
+            `${item.id_item_requisicao}:${item.id_item_cotacao ?? 0}:${item.quantidade ?? 0}`
+        )
+        .join("|"),
+    [items]
+  );
+
   useEffect(() => {
     setRawDinamicColumns([]);
   }, [id_requisicao]);
@@ -917,7 +933,8 @@ export const useRequisitionItemColumns = (
     addingReqItems,
     updatingRecentProductsQuantity,
     id_requisicao,
-    allItemsHaveCotacao
+    allItemsHaveCotacao,
+    selectedQuoteItemsKey,
   ]);
 
   return useMemo(() => {
