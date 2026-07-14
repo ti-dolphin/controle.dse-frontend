@@ -65,6 +65,7 @@ import {
   normalizeOcValue,
   normalizeText,
 } from "../../utils";
+import ContentCopyIcon from "@mui/icons-material/ContentCopy";
 import RequisitionService from "../../services/requisicoes/RequisitionService";
 import UpdateChildReqItemsDialog from "./UpdateChildReqItemsDialog";
 import { useIsMobile } from "../../hooks/useIsMobile";
@@ -363,6 +364,69 @@ const RequisitionItemsTable = ({
     },
     [requisition, dispatch, debouncedRecalculateTotals]
   );
+
+  const handleCopySelectedItems = useCallback(async () => {
+    const selectedIds = new Set(selectionModel.map((id) => Number(id)));
+    const selectedItems = itemsRef.current.filter((item) =>
+      selectedIds.has(item.id_item_requisicao)
+    );
+    if (selectedItems.length === 0) return;
+
+    const formatDate = (value?: string | null) => {
+      if (!value) return "";
+      const date = getDateFromISOstring(value);
+      return date ? date.toLocaleDateString("pt-BR") : "";
+    };
+    const sanitize = (value: any) =>
+      String(value ?? "").replace(/[\t\r\n]+/g, " ").trim();
+    const formatNumber = (value: any) =>
+      value === null || value === undefined || value === ""
+        ? ""
+        : String(value).replace(".", ",");
+
+    const header = [
+      "ID",
+      "Cód. Produto",
+      "Descrição",
+      "QTD",
+      "Valor alvo unitário",
+      "Data de necessidade",
+      "Data entrega",
+      "Unidade",
+      "OC",
+    ];
+    const rows = selectedItems.map((item: any) =>
+      [
+        item.id_item_requisicao,
+        sanitize(item.produto_codigo || item.produto?.codigo),
+        sanitize(item.produto_descricao || item.produto?.descricao),
+        formatNumber(item.quantidade),
+        formatNumber(item.target_price),
+        formatDate(item.data_necessidade),
+        formatDate(item.data_entrega),
+        sanitize(item.produto_unidade || item.produto?.unidade),
+        sanitize(item.oc),
+      ].join("\t")
+    );
+
+    try {
+      await navigator.clipboard.writeText(
+        [header.join("\t"), ...rows].join("\n")
+      );
+      dispatch(
+        setFeedback({
+          message: `${selectedItems.length} ${
+            selectedItems.length === 1 ? "item copiado" : "itens copiados"
+          }`,
+          type: "success",
+        })
+      );
+    } catch {
+      dispatch(
+        setFeedback({ message: "Erro ao copiar itens", type: "error" })
+      );
+    }
+  }, [dispatch, selectionModel]);
 
   const toolbarRef = React.useRef<HTMLDivElement>(null);
   const tableWrapperRef = React.useRef<HTMLDivElement>(null);
@@ -1024,15 +1088,6 @@ const RequisitionItemsTable = ({
   const handleChangeSelection = async (
     newRowSelectionModel: GridRowSelectionModel
   ) => {
-    if (!(editItemFieldsPermitted || addingReqItems)) {
-      dispatch(
-        setFeedback({
-          message: "Vocé não tem permissão para editar itens",
-          type: "error",
-        })
-      );
-      return;
-    }
     if (addingReqItems) {
       const itemsInQuoteItems = quoteItems.map(
         (item) => item.id_item_requisicao
@@ -1165,6 +1220,7 @@ const RequisitionItemsTable = ({
       !updatingRecentProductsQuantity &&
       items.length > 0 &&
       !attendingItems &&
+      editItemFieldsPermitted &&
       allowedStatus.includes(requisition.status?.nome?.toLowerCase() || "")
     );
   };
@@ -1276,6 +1332,13 @@ const RequisitionItemsTable = ({
               atender
             </Button>
           )}
+          <Button
+            variant="outlined"
+            startIcon={<ContentCopyIcon />}
+            onClick={handleCopySelectedItems}
+          >
+            Copiar itens
+          </Button>
         </Box>
       )}
       <BaseTableToolBar
