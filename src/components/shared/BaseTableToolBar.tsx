@@ -12,12 +12,14 @@ interface BaseTableToolBar {
   columns?: string[];
   children?: React.ReactNode;
   ref?: React.MutableRefObject<any>;
+  searchInputStyles?: any;
 }
 
 const BaseTableToolBar = ({
   handleChangeSearchTerm,
   searchTerm,
   children,
+  searchInputStyles,
 }: BaseTableToolBar) => {
 
   return (
@@ -40,6 +42,7 @@ const BaseTableToolBar = ({
         showIcon={true}
         onChange={handleChangeSearchTerm}
         value={searchTerm}
+        styles={searchInputStyles}
       />
       {children}
     </Box>

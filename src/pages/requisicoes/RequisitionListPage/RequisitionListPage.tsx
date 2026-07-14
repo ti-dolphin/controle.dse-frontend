@@ -366,6 +366,7 @@ const RequisitionListPage = () => {
         <BaseTableToolBar
           handleChangeSearchTerm={debouncedHandleChangeSearchTerm}
           searchTerm={searchTerm}
+          searchInputStyles={{ width: 400 }}
         >
           {!isMobile && selectedKanban?.id_kanban_requisicao === 5 && (
             <>
