@@ -16,3 +16,11 @@ export interface OrdemCompra {
   FORNECEDOR: string;
   FORNECEDOR_NOME_FANTASIA: string;
 }
+
+export interface OrdemCompraRequisicao {
+  id_requisicao: number;
+  descricao: string | null;
+  id_projeto: number | null;
+  projeto: string | null;
+  oc: number | string | null;
+}

@@ -42,6 +42,7 @@ import { ColumnReorderDialog } from "../../components/shared/ColumnReorderDialog
 import OpenWithIcon from "@mui/icons-material/OpenWith";
 import { ColumnPreference, usePersistedColumnOrder } from "../../hooks/table/usePersistedColumnOrder";
 import { OrdemCompra } from "../../models/OrdemCompra";
+import OrdemCompraRequisitionsDialog from "../../components/ordensCompra/OrdemCompraRequisitionsDialog";
 import {
   formatCurrency,
   formatDateStringtoISOstring,
@@ -65,6 +66,10 @@ const OrdemCompraListPage = () => {
   const [approvalSaving, setApprovalSaving] = useState(false);
   const [selectedOrder, setSelectedOrder] = useState<OrdemCompra | null>(null);
   const [selectedIds, setSelectedIds] = useState<GridRowSelectionModel>([]);
+  const [requisitionsDialogOpen, setRequisitionsDialogOpen] = useState(false);
+  const [requisitionsNumeroMov, setRequisitionsNumeroMov] = useState<
+    string | number | null
+  >(null);
 
   const handleChangeFilters = useCallback(
     (event: React.ChangeEvent<HTMLInputElement>, field: string) => {
@@ -75,7 +80,16 @@ const OrdemCompraListPage = () => {
     [dispatch, filters]
   );
 
-  const { columns: rawColumns } = useOrdemCompraColumns(handleChangeFilters, rows);
+  const handleOpenRequisitions = useCallback((order: OrdemCompra) => {
+    setRequisitionsNumeroMov(order.NUMERO_MOVIMENTO ?? null);
+    setRequisitionsDialogOpen(true);
+  }, []);
+
+  const { columns: rawColumns } = useOrdemCompraColumns(
+    handleChangeFilters,
+    rows,
+    handleOpenRequisitions
+  );
 
   const { orderedColumns: columns, columnVisibilityModel, saveColumnOrder, removeColumnOrder } =
     usePersistedColumnOrder(ORDEM_COMPRA_TABLE_KEY, user!, rawColumns);
@@ -681,6 +695,11 @@ const OrdemCompraListPage = () => {
           ) : null}
         </DialogActions>
       </Dialog>
+      <OrdemCompraRequisitionsDialog
+        open={requisitionsDialogOpen}
+        onClose={() => setRequisitionsDialogOpen(false)}
+        numeroMovimento={requisitionsNumeroMov}
+      />
     </Box>
   );
 };

@@ -1,15 +1,17 @@
 import { useMemo } from "react";
 import { GridColDef, GridRenderCellParams } from "@mui/x-data-grid";
-import { Box, Typography } from "@mui/material";
+import { Box, Button, Typography } from "@mui/material";
 import { useSelector } from "react-redux";
 import { RootState } from "../../redux/store";
 import { TextHeader } from "../../components/TextHeader";
 import { calculateColumnWidth } from "../../utils/calculateColumnWidth";
 import { formatCurrency, getDateStringFromISOstring } from "../../utils";
+import { OrdemCompra } from "../../models/OrdemCompra";
 
 export function useOrdemCompraColumns(
   handleChangeFilters: (event: React.ChangeEvent<HTMLInputElement>, field: string) => void,
-  rows: any[] = []
+  rows: any[] = [],
+  onOpenRequisitions?: (order: OrdemCompra) => void
 ) {
   const { filters } = useSelector((state: RootState) => state.ordemCompraTable);
 
@@ -111,6 +113,31 @@ export function useOrdemCompraColumns(
         ),
       },
       {
+        field: "REQUISICAO",
+        headerName: "Requisição",
+        width: 140,
+        sortable: false,
+        filterable: false,
+        renderHeader: () => (
+          <Typography fontSize="12px" fontWeight={600}>
+            Requisição
+          </Typography>
+        ),
+        renderCell: (params: GridRenderCellParams) => (
+          <Button
+            size="small"
+            variant="text"
+            onClick={(event) => {
+              event.stopPropagation();
+              onOpenRequisitions?.(params.row as OrdemCompra);
+            }}
+            sx={{ fontSize: "11px", textTransform: "none" }}
+          >
+            Ver requisições
+          </Button>
+        ),
+      },
+      {
         field: "DATA_EMISSAO",
         headerName: "Data Emissao",
         width: columnWidths.DATA_EMISSAO,
@@ -197,7 +224,7 @@ export function useOrdemCompraColumns(
         ),
       },
     ],
-    [columnWidths, filters, handleChangeFilters]
+    [columnWidths, filters, handleChangeFilters, onOpenRequisitions]
   );
 
   return { columns };

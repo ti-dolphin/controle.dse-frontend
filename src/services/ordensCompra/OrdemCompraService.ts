@@ -46,6 +46,12 @@ const OrdemCompraService = {
     });
     return response.data;
   },
+  getRequisitionsByOc: async (numeroMovimento: string | number) => {
+    const response = await apiLocal.get(
+      `${API_ENDPOINT}/${encodeURIComponent(String(numeroMovimento))}/requisicoes`
+    );
+    return response.data;
+  },
   updateApproval: async (id: number, payload: ApprovalPayload) => {
     const response = await apiLocal.patch(`${API_ENDPOINT}/${id}/approval`, payload);
     return response.data;
