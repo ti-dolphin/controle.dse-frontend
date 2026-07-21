@@ -96,7 +96,7 @@ const OrdemCompraRequisitionsDialog = ({
                     }`}
                     secondary={`Projeto: ${
                       requisition.projeto || "-"
-                    } • OC no item: ${requisition.oc ?? "-"}`}
+                    }`}
                   />
                 </ListItemButton>
               </ListItem>
