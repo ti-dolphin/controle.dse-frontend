@@ -47,6 +47,7 @@ import FullscreenIcon from "@mui/icons-material/Fullscreen";
 import RequisitionCommentList from "../../components/requisicoes/RequisitionCommentList";
 import { useIsMobile } from "../../hooks/useIsMobile";
 import SelectedQuoteItemsDialog from "../../components/requisicoes/SelectedQuoteItemsDialog";
+import RequisitionHeaderTitle from "../../components/requisicoes/RequisitionHeaderTitle";
 import { Requisition } from "../../models/requisicoes/Requisition";
 
 const RequisitionDetailPage = () => {
@@ -291,19 +292,7 @@ const RequisitionDetailPage = () => {
       bgcolor="background"
     >
       <UpperNavigation handleBack={handleBack}>
-        <Typography
-          sx={{
-            fontSize: {
-              xs: "0.8rem",
-              sm: "1.2rem",
-            },
-          }}
-          fontWeight={600}
-          color="primary.main"
-        >
-          {requisition.ID_REQUISICAO} | {requisition.DESCRIPTION} |{" "}
-          {requisition.projeto?.DESCRICAO}
-        </Typography>
+        <RequisitionHeaderTitle />
       </UpperNavigation>
       <Grid container spacing={0.6}>
         {/* Header: Título, Projeto, Status Steps */}
