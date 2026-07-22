@@ -503,13 +503,13 @@ export const useRequisitionItemColumns = (
               onClick={() => navigator.clipboard.writeText(params.value)}
               sx={{ padding: 0, flexShrink: 0 }}
             >
-              <ContentCopyIcon sx={{ fontSize: 10 }} />
+              <ContentCopyIcon sx={{ fontSize: 11 }} />
             </IconButton>
           </Tooltip>
           <Typography 
-            fontSize="11" 
             sx={{
-              whiteSpace: 'normal'
+              whiteSpace: 'normal',
+              fontSize: '12px'
             }}
           >
             {String(params?.value ?? '').toLowerCase()}
