@@ -208,8 +208,20 @@ export const useRequisitionItemColumns = (
       width: descriptionColumnWidth,
       flex: 0,
       renderCell: (params: any) => (
-        <Box sx={{ display: "flex", alignItems: "center", height: "100%" }}>
-          <Typography fontSize="12px" fontWeight="bold">
+        <Box 
+          sx={{ 
+            display: "flex", 
+            alignItems: "center", 
+            height: "100%" 
+          }}
+        >
+          <Typography 
+            fontSize="11px" 
+            fontWeight="bold"
+            sx={{
+              whiteSpace: 'normal'
+            }}
+          >
             {params.value}
           </Typography>
         </Box>
@@ -491,11 +503,16 @@ export const useRequisitionItemColumns = (
               onClick={() => navigator.clipboard.writeText(params.value)}
               sx={{ padding: 0, flexShrink: 0 }}
             >
-              <ContentCopyIcon sx={{ fontSize: 14 }} />
+              <ContentCopyIcon sx={{ fontSize: 10 }} />
             </IconButton>
           </Tooltip>
-          <Typography fontSize="small" fontWeight="bold">
-            {params.value || "N/A"}
+          <Typography 
+            fontSize="11" 
+            sx={{
+              whiteSpace: 'normal'
+            }}
+          >
+            {String(params?.value ?? '').toLowerCase()}
           </Typography>
         </Box>
       ),
