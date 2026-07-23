@@ -512,7 +512,7 @@ export const useRequisitionItemColumns = (
               fontSize: '12px'
             }}
           >
-            {String(params?.value ?? '').toLowerCase()}
+            {String(params?.value ?? '')}
           </Typography>
         </Box>
       ),

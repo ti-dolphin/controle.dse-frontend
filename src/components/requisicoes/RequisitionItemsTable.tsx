@@ -771,8 +771,6 @@ const RequisitionItemsTable = ({
           }
         }
 
-        // Update otimista: o valor digitado entra no estado imediatamente e
-        // o PUT roda em segundo plano, revertendo apenas se o servidor falhar.
         fetchSeqRef.current++;
         dispatch(
           replaceItem({
@@ -1136,8 +1134,6 @@ const RequisitionItemsTable = ({
             };
 
       const data = await RequisitionItemService.getMany(params);
-      // Resposta obsoleta: houve nova busca ou edição de célula depois que
-      // esta requisição partiu — descarta para não reverter valores.
       if (seq !== fetchSeqRef.current) {
         setLoading(false);
         return;
