@@ -36,7 +36,6 @@ const theme=  useTheme();
 const toolbarRef = React.useRef<HTMLDivElement>(null);
 const [toolbarHeight, setToolbarHeight] = useState(0);
 const [columnFiltersHeight, setColumnFiltersHeight] = useState(0);
-const [activeTab, setActiveTab] = useState(0);
 const columnFiltersRef = React.useRef<HTMLDivElement>(null);
 const { filters, handleChangeFilters, clearFilters , activeFilters} = useOpportunityFilters();
 const [finalizados, setFinalizados] = useState(false);
@@ -119,10 +118,6 @@ useEffect(()=> {
   }
    //log heihgts
 }, [toolbarRef.current, columnFiltersRef.current]);
-
-const handleTabChange = (_event: React.SyntheticEvent, newValue: number) => {
-  setActiveTab(newValue);
-};
 
   return (
     <Box
