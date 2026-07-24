@@ -1,6 +1,20 @@
+import { Box } from "@mui/material"
+
 const OpportunityKanbanComponent = () => {
   return (
-    <>oi</>
+    <Box
+      sx={{
+        height: '100%',
+        width: '100%',
+        backgroundColor: 'white',
+        display: "flex",
+        flexDirection: "column",
+        alignItems: "center",
+        margin: "auto",
+      }}
+    >
+
+    </Box>
   )
 }
 
