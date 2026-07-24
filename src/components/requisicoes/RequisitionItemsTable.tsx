@@ -1121,17 +1121,14 @@ const RequisitionItemsTable = ({
     setLoading(true);
     const seq = ++fetchSeqRef.current;
     try {
-      const params =
-        newItems.length > 0
-          ? {
-              id_requisicao: requisition.ID_REQUISICAO,
-              id_item_requisicao: { in: [...newItems] },
-              searchTerm,
-            }
-          : {
-              id_requisicao: requisition.ID_REQUISICAO,
-              searchTerm,
-            };
+      const params = newItems.length > 0 ? {
+        id_requisicao: requisition.ID_REQUISICAO,
+        id_item_requisicao: { in: [...newItems] },
+        searchTerm,
+      } : {
+        id_requisicao: requisition.ID_REQUISICAO,
+        searchTerm,
+      };
 
       const data = await RequisitionItemService.getMany(params);
       if (seq !== fetchSeqRef.current) {
