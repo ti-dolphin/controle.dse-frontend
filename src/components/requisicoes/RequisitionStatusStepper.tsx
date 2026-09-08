@@ -26,6 +26,7 @@ import RequisitionItemsTable from "./RequisitionItemsTable";
 import { set } from "lodash";
 import { RequisitionFileService } from "../../services/requisicoes/RequisitionFileService";
 import { normalizeText } from "../../utils";
+import CompareArrowsIcon from '@mui/icons-material/CompareArrows';
 
 interface RequisitionStatusStepperProps {
   id_requisicao: number;
@@ -1101,7 +1102,7 @@ const RequisitionStatusStepper = ({
           sx={{ maxHeight: 35, px: { xs: 0.5, sm: 1 } }}
         >
           <Typography fontSize={12}>Verificar Estoque</Typography>
-          <SwapHorizIcon fontSize="small" />
+          <CompareArrowsIcon fontSize="small" />
         </Button>
         )}
         {permissionToCancel && (
