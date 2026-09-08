@@ -396,9 +396,7 @@ const RequisitionStatusStepper = ({
           }
         );
 
-        const returnedFromStockReview =
-          Number(newStatus.id_status_requisicao) === 106 &&
-          Number(updatedRequisition.id_status_requisicao) !== 106;
+        const returnedFromStockReview = Number(newStatus.id_status_requisicao) === 127
 
         if (returnedFromStockReview) {
           window.location.reload();
