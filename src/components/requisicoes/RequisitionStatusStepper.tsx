@@ -396,6 +396,13 @@ const RequisitionStatusStepper = ({
           }
         );
 
+        const returnedFromStockReview = Number(newStatus.id_status_requisicao) === 127
+
+        if (returnedFromStockReview) {
+          window.location.reload();
+          return;
+        }
+
         dispatch(setRequisition(updatedRequisition));
         if (newStatus.nome !== "Validação") {
           dispatch(setRefresh(!refresh));
@@ -989,6 +996,18 @@ const RequisitionStatusStepper = ({
     );
   };
 
+  const canSendToReviewStock = () => {
+    const allowedStatusIds = [2, 3, 6, 7]
+    return allowedStatusIds.includes(
+      requisition.status?.id_status_requisicao ?? 0
+    )
+  }
+
+  const sendToReviewStock = async () => {
+    await RequisitionService.sendToReviewStock(id_requisicao, user)
+    window.location.reload();
+  }
+
   return (
     <Box
       sx={{
@@ -1073,6 +1092,17 @@ const RequisitionStatusStepper = ({
             <Typography fontSize={12}>Alterar tipo de solicitação</Typography>
             <SwapHorizIcon fontSize="small" />
           </Button>
+        )}
+        {canSendToReviewStock() && (
+          <Button
+          size="small"
+          variant="contained"
+          onClick={sendToReviewStock}
+          sx={{ maxHeight: 35, px: { xs: 0.5, sm: 1 } }}
+        >
+          <Typography fontSize={12}>Verificar Estoque</Typography>
+          <SwapHorizIcon fontSize="small" />
+        </Button>
         )}
         {permissionToCancel && (
           <Button
