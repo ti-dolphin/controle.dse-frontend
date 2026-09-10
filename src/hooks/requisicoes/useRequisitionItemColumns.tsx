@@ -50,9 +50,6 @@ const StyledBadge = styled(Badge)<BadgeProps>(() => ({
   },
 }));
 
-// O editor padrão do grid aplica o valor digitado com debounce (~200ms);
-// trocando de célula rapidamente o commit acontecia antes do valor pendente
-// ser aplicado e o PUT ia sem a alteração. debounceMs={0} aplica a cada tecla.
 const renderInstantEditCell = (params: GridRenderEditCellParams) => (
   <GridEditInputCell {...params} debounceMs={0} />
 );
@@ -205,6 +202,15 @@ export const useRequisitionItemColumns = (
   }, [dispatch, selectionModel]);
 
   const columns: GridColDef[] = useMemo(() => [
+    {
+      field: 'ordem',
+      headerName: 'N°',
+      width: 60,
+      type: "number",
+      renderCell: (params: any) => (
+        params.api.getRowIndexRelativeToVisibleRows(params.id) + 1        
+      )
+    },
     {
       field: "id_item_requisicao",
       headerName: "ID",

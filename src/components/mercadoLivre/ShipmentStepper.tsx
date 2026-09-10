@@ -33,16 +33,20 @@ const SUBSTATUS_DESCRICAO: Record<string, string> = {
   bad_address: "Tentativa sem sucesso: endereço incorreto.",
   dangerous_area: "Tentativa sem sucesso: região de risco.",
   unauthorized_receiver: "Tentativa sem sucesso: pessoa não autorizada.",
+  waiting_for_withdrawal: "Disponível para retirada.",
   returning_to_sender: "Em devolução ao vendedor.",
 };
 
 const ShipmentStepper = ({ rastreio, historico }: ShipmentStepperProps) => {
   const statusAtual = rastreio?.status || "";
   const falhou = statusAtual === "not_delivered" || statusAtual === "cancelled";
+  const disponivelParaRetirada =
+    statusAtual === "shipped" &&
+    rastreio?.substatus === "waiting_for_withdrawal";
 
-  const etapaAtual = ETAPAS.findIndex((etapa) =>
-    etapa.statuses.includes(statusAtual)
-  );
+  const etapaAtual = disponivelParaRetirada
+    ? 2
+    : ETAPAS.findIndex((etapa) => etapa.statuses.includes(statusAtual));
 
   const dataDaEtapa = (statuses: string[]) => {
     const evento = historico.find((item) => statuses.includes(item.status));
@@ -68,7 +72,9 @@ const ShipmentStepper = ({ rastreio, historico }: ShipmentStepperProps) => {
             <Step key={etapa.id} completed={etapaAtual > indice}>
               <StepLabel error={falhou && indice === ETAPAS.length - 1}>
                 <Typography fontSize="0.8rem" fontWeight={600}>
-                  {etapa.label}
+                  {disponivelParaRetirada && indice === 2
+                    ? "Disponível para retirada"
+                    : etapa.label}
                 </Typography>
                 <Typography fontSize="0.7rem" color="text.secondary">
                   {descricaoDaEtapa(indice, etapa.descricao)}
