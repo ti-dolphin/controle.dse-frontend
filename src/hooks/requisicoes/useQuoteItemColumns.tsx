@@ -1,17 +1,56 @@
-import { Box, Checkbox, IconButton, Tooltip, Typography } from "@mui/material";
+import {
+  Badge,
+  BadgeProps,
+  Box,
+  Checkbox,
+  Dialog,
+  DialogContent,
+  DialogTitle,
+  IconButton,
+  styled,
+  Tooltip,
+  Typography,
+} from "@mui/material";
 import { GridColDef } from "@mui/x-data-grid";
-import { ChangeEvent } from "react";
+import { ChangeEvent, useState } from "react";
 import AttachFileIcon from "@mui/icons-material/AttachFile";
+import CloseIcon from "@mui/icons-material/Close";
 import ContentCopyIcon from "@mui/icons-material/ContentCopy";
 import { calculateQuoteSubtotal, formatDecimalPtBr2To3, formatQuantidade } from "../../utils";
+import FileIcon from '@mui/icons-material/FilePresent';
+import { QuoteItemAttachment } from "../../models/requisicoes/QuoteItemAttachment";
+import QuoteItemAttachmentList from "../../components/requisicoes/QuoteItemAttachmentList";
 
 export const useQuoteItemColumns = (
   handleUpdateUnavailable: (params: ChangeEvent<HTMLInputElement>, itemId : number) => void,
   blockFields: boolean,
-  onViewAttachments?: (id_item_requisicao: number) => void
+  onViewAttachments?: (id_item_requisicao: number) => void,
+  onQuoteItemAttachmentsChange?: (
+    id_item_cotacao: number,
+    attachments: QuoteItemAttachment[],
+  ) => void,
 )  => {
 
-  
+  const StyledBadge = styled(Badge)<BadgeProps>(() => ({
+    "& .MuiBadge-badge": {
+      right: -3,
+      top: 13,
+      padding: "0 4px",
+    },
+  }));
+
+  const [dialogQuoteItemAttachmentOpen, setDialogquoteItemAttachmentOpen] = useState(false)
+  const [quoteItemAttachmentSelectedId, setQuoteItemAttachmentSelectedId] = useState<number | null>(null)
+
+  const openDialogQuoteItemAttachment = (id: number | string) => {
+    setQuoteItemAttachmentSelectedId(Number(id));
+    setDialogquoteItemAttachmentOpen(true);
+  }
+
+  const closeDialogQuoteItemAttachment = () => {
+    setDialogquoteItemAttachmentOpen(false);
+    setQuoteItemAttachmentSelectedId(null);
+  }
 
   const columns: GridColDef[] = [
     {
@@ -208,12 +247,54 @@ export const useQuoteItemColumns = (
       },
     },
     {
+      field: 'actions',
+      headerName: 'Ações',
+      type: 'actions',
+      minWidth: 140,
+      renderCell: (row) => {
+        const { id } = row
+        const anexos = row.row.anexos ?? []
+        const normalAttachmentsCount = anexos.filter(
+          (anexo: any) => (anexo.tipo ?? 1) !== 2
+        ).length;
+
+        return (
+          <Box
+            sx={{
+              display: 'flex',
+              justifyContent: 'center',
+              alignItems: 'center',
+              gap: .4
+            }}
+          >
+              <Tooltip title="Anexos">
+                <IconButton
+                  onClick={() => openDialogQuoteItemAttachment(id)}
+                  sx={{ height: 24, width: 24 }}
+                >
+                  {normalAttachmentsCount > 0 ? (
+                    <StyledBadge
+                      variant="standard"
+                      badgeContent={normalAttachmentsCount}
+                      color="primary"
+                    >
+                      <FileIcon sx={{ fontSize: 14 }} />
+                    </StyledBadge>
+                  ) : (
+                    <FileIcon sx={{ fontSize: 14 }} />
+                  )}
+                </IconButton>
+              </Tooltip>
+          </Box>
+        )
+      }
+    },
+    {
       field: "indisponivel",
       headerName: "Indisponivel",
       flex: 0.5,
       editable: false,
       renderCell: (params: any) => { 
-     
         return (
           <Box sx={{ display: "flex", alignItems: "center" }}>
             <Checkbox
@@ -230,5 +311,38 @@ export const useQuoteItemColumns = (
     },
   ];
 
-  return { columns };
+  const quoteItemAttachmentDialog = (
+    <Dialog
+      open={
+        dialogQuoteItemAttachmentOpen && quoteItemAttachmentSelectedId !== null
+      }
+      onClose={closeDialogQuoteItemAttachment}
+      fullWidth
+      maxWidth="sm"
+    >
+      <DialogTitle>Anexos do item da cotação</DialogTitle>
+      <IconButton
+        onClick={closeDialogQuoteItemAttachment}
+        color="error"
+        sx={{ position: "absolute", top: 8, right: 8 }}
+      >
+        <CloseIcon />
+      </IconButton>
+      <DialogContent dividers>
+        {quoteItemAttachmentSelectedId !== null && (
+          <QuoteItemAttachmentList
+            id_item_cotacao={quoteItemAttachmentSelectedId}
+            onAttachmentsChange={(attachments) =>
+              onQuoteItemAttachmentsChange?.(
+                quoteItemAttachmentSelectedId,
+                attachments,
+              )
+            }
+          />
+        )}
+      </DialogContent>
+    </Dialog>
+  );
+
+  return { columns, quoteItemAttachmentDialog };
 };

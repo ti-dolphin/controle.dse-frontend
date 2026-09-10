@@ -23,6 +23,7 @@ import { useParams } from "react-router-dom";
 import { useIsMobile } from "../../hooks/useIsMobile";
 import QuoteItemAttachmentViewList from "./QuoteItemAttachmentViewList";
 import { normalizeMonetaryInput } from "../../utils/parseMonetaryInput";
+import { QuoteItemAttachment } from "../../models/requisicoes/QuoteItemAttachment";
 
 
 interface QuoteItemsTableProps {
@@ -107,7 +108,24 @@ const QuoteItemsTable = ({
     dispatch(setViewingItemAttachment(id_item_requisicao));
   };
 
-  const { columns } = useQuoteItemColumns(handleUpdateUnavailable, blockFields, handleViewAttachments);
+  const handleQuoteItemAttachmentsChange = useCallback(
+    (id_item_cotacao: number, anexos: QuoteItemAttachment[]) => {
+      const item = quoteItems.find(
+        (quoteItem) => quoteItem.id_item_cotacao === id_item_cotacao,
+      );
+      if (item) {
+        dispatch(setSingleQuoteItem({ ...item, anexos }));
+      }
+    },
+    [dispatch, quoteItems],
+  );
+
+  const { columns, quoteItemAttachmentDialog } = useQuoteItemColumns(
+    handleUpdateUnavailable,
+    blockFields,
+    handleViewAttachments,
+    handleQuoteItemAttachmentsChange,
+  );
 
   const mobileColumns = ( ) =>  {
     const arr = [
@@ -432,7 +450,7 @@ const QuoteItemsTable = ({
       <BaseTableToolBar
         handleChangeSearchTerm={debouncedHandleChangeSearchTerm}
       >
-         {permissionToAddItems && (
+        {permissionToAddItems && (
           <Button
             variant="contained"
             onClick={() => {
@@ -499,6 +517,7 @@ const QuoteItemsTable = ({
           )}
         </DialogContent>
       </Dialog>
+      {quoteItemAttachmentDialog}
     </Box>
   );
 };
