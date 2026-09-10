@@ -206,6 +206,15 @@ export const useRequisitionItemColumns = (
 
   const columns: GridColDef[] = useMemo(() => [
     {
+      field: 'ordem',
+      headerName: 'N°',
+      width: 60,
+      type: "number",
+      renderCell: (params: any) => (
+        params.api.getRowIndexRelativeToVisibleRows(params.id) + 1        
+      )
+    },
+    {
       field: "id_item_requisicao",
       headerName: "ID",
       type: "number",

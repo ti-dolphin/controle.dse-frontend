@@ -1246,6 +1246,7 @@ const RequisitionItemsTable = ({
       };
 
       const data = await RequisitionItemService.getMany(params);
+
       if (seq !== fetchSeqRef.current) {
         setLoading(false);
         return;

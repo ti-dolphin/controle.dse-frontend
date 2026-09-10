@@ -15,6 +15,15 @@ export const useQuoteItemColumns = (
 
   const columns: GridColDef[] = [
     {
+      field: 'ordem',
+      headerName: 'N°',
+      width: 60,
+      type: "number",
+      renderCell: (params: any) => (
+        params.api.getRowIndexRelativeToVisibleRows(params.id) + 1        
+      )
+    },
+    {
       field: "anexos",
       headerName: "Anexos",
       flex: 0.4,
