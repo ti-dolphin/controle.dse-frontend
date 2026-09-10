@@ -399,7 +399,7 @@ const QuoteItemsTable = ({
     setLoading(true);
     try {
       const params = {
-        id_cotacao: quote?.id_cotacao, // Adjust to your quotation state property
+        id_cotacao: quote?.id_cotacao,
         searchTerm,
       };
       if (token) {
@@ -408,7 +408,6 @@ const QuoteItemsTable = ({
         return;
       }
       const data = await QuoteItemService.getMany(params);
-      console.log(data, 'data items cotacao');
       dispatch(setQuoteItems(data));
     } catch (e) {
       dispatch(
