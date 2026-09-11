@@ -20,16 +20,17 @@ import { ProductService } from "../../services/ProductService";
 import { setProductSelected, setRecentAddedProducts, removeRecentProduct } from "../../redux/slices/requisicoes/requisitionItemSlice";
 import EditIcon from "@mui/icons-material/Edit";
 import { useIsMobile } from "../../hooks/useIsMobile";
-import { useProductColumns } from "../../hooks/productColumnsHook";
+import { ProductPermissionField, useProductColumns } from "../../hooks/productColumnsHook";
 import ProductAttachmentList from "../ProductAttachmentList";
 import ProductStandardGuide from "../produtos/ProductStandardGuide";
-import { setProducts, setViewingProductAttachment, setViewingStandardGuide } from "../../redux/slices/productSlice";
+import { setProducts, setViewingProductAttachment, setViewingStandardGuide, updateProductInList } from "../../redux/slices/productSlice";
 import { FixedSizeGrid } from "react-window";
 import AttachFileIcon from '@mui/icons-material/AttachFile';
 import { green, red } from "@mui/material/colors";
 import ProductCard from "./ProductCard";
 import { Requisition } from "../../models/requisicoes/Requisition";
 import { fr } from "date-fns/locale";
+import { hasInfiniteStock } from "../../utils/stock";
 
 interface ProductsTableProps {
   tipoFaturamento: number | null | undefined; // Tipo de faturamento a ser usado no filtro (0 = todos os produtos)
@@ -89,11 +90,13 @@ const ProductsTable = ({ tipoFaturamento, fromReq }: ProductsTableProps) => {
   const handleUpdatePatrimonyType = useCallback(async (productId: number, patrimonyTypeId: number | null) => {
     setIsUpdating(true);
     try {
-      await ProductService.update(productId, {
+      const updatedProduct = await ProductService.update(productId, {
         tipo_produto_patrimonio: patrimonyTypeId,
       });
 
-      await refreshProducts();
+      if (updatedProduct) {
+        dispatch(updateProductInList(updatedProduct));
+      }
     } catch (e) {
       dispatch(
         setFeedback({
@@ -104,11 +107,40 @@ const ProductsTable = ({ tipoFaturamento, fromReq }: ProductsTableProps) => {
     } finally {
       setIsUpdating(false);
     }
-  }, [dispatch, refreshProducts]);
+  }, [dispatch]);
+
+  const handleToggleProductPermission = useCallback(async (
+    product: Product,
+    field: ProductPermissionField,
+    currentValue: unknown
+  ) => {
+    setIsUpdating(true);
+    try {
+      const updatedProduct = await ProductService.update(product.ID, {
+        [field]: Number(currentValue) === 1 ? 0 : 1,
+      });
+
+      if (updatedProduct) {
+        dispatch(updateProductInList(updatedProduct));
+        dispatch(setFeedback({ message: "Permissão atualizada", type: "success" }));
+      }
+    } catch (e: any) {
+      dispatch(
+        setFeedback({
+          message: `Erro ao atualizar permissão: ${e.message || e}`,
+          type: "error",
+        })
+      );
+    } finally {
+      setIsUpdating(false);
+    }
+  }, [dispatch]);
+
   const { columns } = useProductColumns({
     patrimonyTypes,
     onUpdatePatrimonyType: handleUpdatePatrimonyType,
-    disablePatrimonyActions: isUpdating,
+    onToggleProductPermission: handleToggleProductPermission,
+    disableActions: isUpdating,
   });
   const [productBeingEdited, setProductBeingEdited] = useState<Product | null>(null);
   const [quantity, setQuantity] = useState<number>(0);
@@ -459,6 +491,16 @@ const ProductsTable = ({ tipoFaturamento, fromReq }: ProductsTableProps) => {
           onCellModesModelChange={handleCellModesModelChange}
           onCellClick={handleCellClick}
           processRowUpdate={processRowUpdate}
+          isCellEditable={(params: GridCellParams) => {
+            if (
+              params.field === "quantidade_estoque" &&
+              hasInfiniteStock(params.row.quantidade_estoque) &&
+              Number(user?.PERM_ADMINISTRADOR) !== 1
+            ) {
+              return false;
+            }
+            return params.colDef.editable === true;
+          }}
         />
       )}
       {isUpdating && (

@@ -41,6 +41,7 @@ import AddLinkOutlinedIcon from '@mui/icons-material/AddLinkOutlined';
 import ReceiptLongIcon from '@mui/icons-material/ReceiptLong';
 import ShoppingCartIcon from '@mui/icons-material/ShoppingCart';
 import { calculateColumnWidth } from "../../utils/calculateColumnWidth";
+import { getVisibleStockQuantity } from "../../utils/stock";
 
 const StyledBadge = styled(Badge)<BadgeProps>(() => ({
   "& .MuiBadge-badge": {
@@ -78,6 +79,7 @@ export const useRequisitionItemColumns = (
   const [rawDinamicColumns, setRawDinamicColumns] = useState<GridColDef[]>([]);
 
   const user = useSelector((state: RootState) => state.user.user);
+  const isAdministrator = Number(user?.PERM_ADMINISTRADOR) === 1;
 
   const { updatingRecentProductsQuantity } = useSelector(
     (state: RootState) => state.requisitionItem
@@ -400,7 +402,12 @@ export const useRequisitionItemColumns = (
       editable: false,
       renderCell: (params: any) => {
         const value = params.value;
-        const hasStock = value && value > 0;
+        const visibleValue = getVisibleStockQuantity(
+          params.row.produto_quantidade_estoque,
+          value,
+          isAdministrator
+        );
+        const hasStock = visibleValue > 0;
         return (
           <Box
             sx={{
@@ -416,7 +423,7 @@ export const useRequisitionItemColumns = (
               fontWeight="bold"
               color={hasStock ? "success.main" : "error.main"}
             >
-              {formatQuantidade(value || 0)}
+              {formatQuantidade(visibleValue)}
             </Typography>
           </Box>
         );
