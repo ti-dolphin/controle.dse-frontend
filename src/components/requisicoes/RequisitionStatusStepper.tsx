@@ -998,7 +998,7 @@ const RequisitionStatusStepper = ({
   };
 
   const canSendToReviewStock = () => {
-    const allowedStatusIds = [2, 3, 6, 7]
+    const allowedStatusIds = [2, 3, 6, 7, 10]
     return allowedStatusIds.includes(
       requisition.status?.id_status_requisicao ?? 0
     )

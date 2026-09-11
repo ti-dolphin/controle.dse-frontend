@@ -25,6 +25,7 @@ import ElegantInput from "../shared/ui/Input";
 import OptionsField from "../shared/ui/OptionsField";
 import { normalizeText } from "../../utils";
 
+const CREATION_BILLING_TYPE_IDS = new Set([1, 2]);
 
 
 const RequisitionForm: React.FC = () => {
@@ -47,8 +48,13 @@ const RequisitionForm: React.FC = () => {
   // Buscar tipos de faturamento ao montar
   useEffect(() => {
     RequisitionService.getAllFaturamentosTypes({ visible: 1 }).then((data) => {
-      setTiposFaturamento(data);
-      if (data && data.length > 0) setTipoFaturamentoSelecionado(data[0].id);
+      const creationTypes = (data || []).filter((tipo: { id: number }) =>
+        CREATION_BILLING_TYPE_IDS.has(Number(tipo.id))
+      );
+      setTiposFaturamento(creationTypes);
+      if (creationTypes.length > 0) {
+        setTipoFaturamentoSelecionado(creationTypes[0].id);
+      }
     });
   }, []);
 
@@ -112,20 +118,13 @@ const RequisitionForm: React.FC = () => {
             // Busca o tipo selecionado para pegar o escopo e tipo_faturamento correspondente
             const tipoSelecionado = tiposFaturamento.find(t => t.id === tipoFaturamentoSelecionado);
 
-            let id_status_requisicao = 1
-            if (tipoSelecionado?.id === 3) {
-              id_status_requisicao = 107
-            } else if (tipoSelecionado?.id === 6) {
-              id_status_requisicao = 115
-            }
-
             const newRequisition = await RequisitionService.create({
               DESCRIPTION: requisition.DESCRIPTION,
               ID_PROJETO: requisition.ID_PROJETO,
               TIPO: 9,
               tipo_faturamento: tipoSelecionado ? tipoSelecionado.id : null,
               ID_RESPONSAVEL: requisition.ID_RESPONSAVEL,
-              id_status_requisicao: id_status_requisicao,
+              id_status_requisicao: 1,
               id_escopo_requisicao: tipoSelecionado
                 ? tipoSelecionado.escopo
                 : null,
