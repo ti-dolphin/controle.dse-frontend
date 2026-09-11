@@ -33,9 +33,17 @@ const SUBSTATUS_DESCRICAO: Record<string, string> = {
   bad_address: "Tentativa sem sucesso: endereço incorreto.",
   dangerous_area: "Tentativa sem sucesso: região de risco.",
   unauthorized_receiver: "Tentativa sem sucesso: pessoa não autorizada.",
+  // out_for_delivery
   waiting_for_withdrawal: "Disponível para retirada.",
   returning_to_sender: "Em devolução ao vendedor.",
 };
+
+// handling → Em preparação
+// ready_to_ship / picked_up → Coletado pela transportadora
+// shipped / null → Em trânsito entre centros de distribuição
+// shipped / out_for_delivery → Saiu para a agência (rota final)
+// shipped / waiting_for_withdrawal → Disponível na agência para retirada
+// delivered / null → Retirado pelo comprador 
 
 const ShipmentStepper = ({ rastreio, historico }: ShipmentStepperProps) => {
   const statusAtual = rastreio?.status || "";
