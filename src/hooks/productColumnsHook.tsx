@@ -1,7 +1,7 @@
 import { GridColDef, GridRenderCellParams } from "@mui/x-data-grid";
 import { useDispatch, useSelector } from "react-redux";
 import { RootState } from "../redux/store";
-import { Badge, BadgeProps, Box, IconButton, Radio, RadioGroup, FormControlLabel, styled, Tooltip, Typography } from "@mui/material";
+import { Badge, BadgeProps, Box, Checkbox, IconButton, Radio, RadioGroup, FormControlLabel, styled, Tooltip, Typography } from "@mui/material";
 import { blue, green, red } from "@mui/material/colors";
 import { useEffect, useState } from "react";
 import { set } from "lodash";
@@ -31,6 +31,7 @@ interface UseProductColumnsParams {
     field: ProductPermissionField,
     currentValue: unknown
   ) => Promise<void>;
+  onToggleProductActive: (product: Product, active: boolean) => Promise<void>;
   disableActions?: boolean;
 }
 
@@ -44,6 +45,7 @@ export const useProductColumns = ({
   patrimonyTypes,
   onUpdatePatrimonyType,
   onToggleProductPermission,
+  onToggleProductActive,
   disableActions = false,
 }: UseProductColumnsParams) => {
   const dispatch = useDispatch();
@@ -298,6 +300,26 @@ export const useProductColumns = ({
       flex: 0.15,
       editable: false,
       valueGetter: (value) => value || "",
+    },
+    {
+      field: "inativo",
+      headerName: "Ativo",
+      flex: 0.12,
+      minWidth: 80,
+      editable: false,
+      sortable: true,
+      renderCell: (params: GridRenderCellParams) => (
+        <Checkbox
+          size="small"
+          checked={Number(params.row.inativo) !== 1}
+          disabled={!isAdministrator || disableActions}
+          onClick={(event) => event.stopPropagation()}
+          onChange={async (event) => {
+            await onToggleProductActive(params.row, event.target.checked);
+          }}
+          inputProps={{ "aria-label": `Produto ${params.row.ID} ativo` }}
+        />
+      ),
     },
 
     {
@@ -577,6 +599,7 @@ export const useProductColumns = ({
     patrimonyTypes,
     onUpdatePatrimonyType,
     onToggleProductPermission,
+    onToggleProductActive,
     disableActions,
     dispatch,
   ]);

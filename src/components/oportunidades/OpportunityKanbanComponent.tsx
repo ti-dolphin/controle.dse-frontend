@@ -369,6 +369,7 @@ const OpportunityKanbanComponent = ({ board }: OpportunityKanbanComponentProps) 
             <OpportunityCard
               row={card.opportunity}
               onClick={() => setSelectedOpportunity(card.opportunity)}
+              showKanbanDates
               styles={{ width: KANBAN_COLUMN_WIDTH - 24, minHeight: 'auto', maxHeight: 'none', margin: '0 12px 12px 12px' }}
               actions={
                 <Stack direction="row" gap={0.5}>

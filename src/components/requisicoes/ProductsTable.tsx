@@ -8,7 +8,7 @@ import {
 } from "@mui/x-data-grid";
 import React, { useCallback, useEffect, useState } from "react";
 import { Product, ProductPatrimonyType } from "../../models/Product";
-import { Backdrop, Box, Button, Chip, CircularProgress, Dialog, DialogActions, DialogContent, DialogTitle, IconButton, Stack, TextField, Typography, useTheme } from "@mui/material";
+import { Backdrop, Box, Button, Checkbox, Chip, CircularProgress, Dialog, DialogActions, DialogContent, DialogTitle, FormControlLabel, IconButton, Stack, TextField, Typography, useTheme } from "@mui/material";
 import { useDispatch, useSelector } from "react-redux";
 import { RootState } from "../../redux/store";
 import BaseDataTable from "../shared/BaseDataTable";
@@ -45,6 +45,7 @@ const ProductsTable = ({ tipoFaturamento, fromReq }: ProductsTableProps) => {
   const { editProductFieldsPermitted, hasStockPermission } = useProductPermissions(user);
   const {viewingProductAttachment, viewingStandardGuide, products, viewingProducts } = useSelector((state: RootState) => state.productSlice);
   const [searchTerm, setSearchTerm] = useState("");
+  const [showInactiveProducts, setShowInactiveProducts] = useState(false);
 
   const [cellModesModel, setCellModesModel]  = React.useState<GridCellModesModel>({});
   const [isFetching, setIsFetching] = useState(false);
@@ -76,6 +77,7 @@ const ProductsTable = ({ tipoFaturamento, fromReq }: ProductsTableProps) => {
     }
 
     params.tipoFaturamento = tipoFaturamento;
+    params.includeInactive = viewingProducts && showInactiveProducts;
 
     const data = await ProductService.getMany(params);
     const sortedData = [...data].sort((a, b) => {
@@ -85,7 +87,7 @@ const ProductsTable = ({ tipoFaturamento, fromReq }: ProductsTableProps) => {
     });
 
     dispatch(setProducts(sortedData));
-  }, [dispatch, searchTerm, fromReq, tipoFaturamento]);
+  }, [dispatch, searchTerm, fromReq, tipoFaturamento, viewingProducts, showInactiveProducts]);
 
   const handleUpdatePatrimonyType = useCallback(async (productId: number, patrimonyTypeId: number | null) => {
     setIsUpdating(true);
@@ -136,10 +138,41 @@ const ProductsTable = ({ tipoFaturamento, fromReq }: ProductsTableProps) => {
     }
   }, [dispatch]);
 
+  const handleToggleProductActive = useCallback(async (
+    product: Product,
+    active: boolean
+  ) => {
+    setIsUpdating(true);
+    try {
+      const updatedProduct = await ProductService.update(product.ID, {
+        inativo: active ? 0 : 1,
+      });
+
+      dispatch(updateProductInList(updatedProduct));
+      await refreshProducts();
+      dispatch(
+        setFeedback({
+          message: active ? "Produto ativado" : "Produto desativado",
+          type: "success",
+        })
+      );
+    } catch (e: any) {
+      dispatch(
+        setFeedback({
+          message: `Erro ao alterar situação do produto: ${e.message || e}`,
+          type: "error",
+        })
+      );
+    } finally {
+      setIsUpdating(false);
+    }
+  }, [dispatch, refreshProducts]);
+
   const { columns } = useProductColumns({
     patrimonyTypes,
     onUpdatePatrimonyType: handleUpdatePatrimonyType,
     onToggleProductPermission: handleToggleProductPermission,
+    onToggleProductActive: handleToggleProductActive,
     disableActions: isUpdating,
   });
   const [productBeingEdited, setProductBeingEdited] = useState<Product | null>(null);
@@ -401,6 +434,19 @@ const ProductsTable = ({ tipoFaturamento, fromReq }: ProductsTableProps) => {
       <BaseTableToolBar
         handleChangeSearchTerm={debouncedHandleChangeSearchTerm}
       />
+      {viewingProducts && (
+        <Box sx={{ px: 1, py: 0.5 }}>
+          <FormControlLabel
+            label="Exibir produtos inativos"
+            control={
+              <Checkbox
+                checked={showInactiveProducts}
+                onChange={(event) => setShowInactiveProducts(event.target.checked)}
+              />
+            }
+          />
+        </Box>
+      )}
       {addingProducts && selectedProductsInfo.length > 0 && (
         <Box sx={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 1, px: 1, py: 1 }}>
           {selectedProductsInfo.map((product) => (
@@ -442,7 +488,7 @@ const ProductsTable = ({ tipoFaturamento, fromReq }: ProductsTableProps) => {
             columnCount={1}
             columnWidth={280}
             height={gridContainerRef.current?.clientHeight || 0}
-            rowHeight={290}
+            rowHeight={viewingProducts ? 330 : 290}
             width={300}
           >
             {({ columnIndex, rowIndex, style }) => {
@@ -454,6 +500,8 @@ const ProductsTable = ({ tipoFaturamento, fromReq }: ProductsTableProps) => {
                   setProductBeingEdited={setProductBeingEdited}
                   productBeingEdited={productBeingEdited}
                   saveProductQuantity={saveProductQuantity}
+                  onToggleActive={handleToggleProductActive}
+                  disableActions={isUpdating}
                 />
               );
             }}

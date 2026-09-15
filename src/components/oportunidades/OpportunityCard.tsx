@@ -8,6 +8,7 @@ interface OpportunityCardProps {
   styles?: React.CSSProperties;
   onClick?: () => void;
   actions?: React.ReactNode;
+  showKanbanDates?: boolean;
 }
 
 const AVATAR_COLORS = ["#e57373", "#f06292", "#ba68c8", "#9575cd", "#7986cb", "#64b5f6", "#4db6ac", "#81c784", "#ffb74d"];
@@ -24,9 +25,10 @@ const getAvatarColor = (nome: string) => {
   return AVATAR_COLORS[Math.abs(hash) % AVATAR_COLORS.length];
 };
 
-const formatDataPlanejada = (data: string) => {
+const formatCardDate = (data?: string | null) => {
+  if (!data) return "-";
   const date = getDateFromISOstring(data);
-  return date ? date.toLocaleDateString("pt-BR", { day: "numeric", month: "short" }) : "";
+  return date ? date.toLocaleDateString("pt-BR") : "-";
 };
 
 const DSE_CODE_PATTERN = /-?\s*DSE\s*(\d+)\s*$/i;
@@ -50,6 +52,7 @@ const OpportunityCard: React.FC<OpportunityCardProps> = ({
   styles,
   onClick,
   actions,
+  showKanbanDates = false,
 }) => {
   const seguidores: { NOME: string }[] = row?.seguidores ?? [];
 
@@ -82,12 +85,23 @@ const OpportunityCard: React.FC<OpportunityCardProps> = ({
           {formatCardTitle(row)}
         </Typography>
 
-        <Stack direction="row" alignItems="center" justifyContent="space-between" sx={{ width: "100%", mt: 1.5 }}>
-          {row?.data_planejada ? (
+        <Stack direction="row" alignItems="center" justifyContent="space-between" gap={1} sx={{ width: "100%", mt: 1.5 }}>
+          {showKanbanDates ? (
+            <Stack spacing={0.25}>
+              <Typography variant="caption" sx={{ lineHeight: 1.35 }}>
+                <Box component="span" sx={{ fontWeight: 700 }}>Data planejada:</Box>{" "}
+                {formatCardDate(row?.data_planejada)}
+              </Typography>
+              <Typography variant="caption" sx={{ lineHeight: 1.35 }}>
+                <Box component="span" sx={{ fontWeight: 700 }}>Data de solicitação:</Box>{" "}
+                {formatCardDate(row?.DATASOLICITACAO)}
+              </Typography>
+            </Stack>
+          ) : row?.data_planejada ? (
             <Chip
               size="small"
               icon={<AccessTimeIcon sx={{ fontSize: 14 }} />}
-              label={formatDataPlanejada(row.data_planejada)}
+              label={formatCardDate(row.data_planejada)}
               sx={{ height: 22, fontSize: 11 }}
             />
           ) : (

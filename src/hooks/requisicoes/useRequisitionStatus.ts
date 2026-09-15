@@ -6,7 +6,10 @@ import { setFeedback } from '../../redux/slices/feedBackSlice';
 import { useCallback } from 'react';
 
 
-export const useRequisitionStatus = (id_requisicao: number) => {
+export const useRequisitionStatus = (
+  id_requisicao: number,
+  id_escopo_requisicao?: number
+) => {
   const dispatch = useDispatch();
   const [statusList, setStatusList] = useState<RequisitionStatus[]>([]);
   const [canceledStatus, setCanceledStatus] = useState<RequisitionStatus>();
@@ -27,7 +30,7 @@ export const useRequisitionStatus = (id_requisicao: number) => {
         })
       );
     }
-  }, [dispatch, id_requisicao]);
+  }, [dispatch, id_requisicao, id_escopo_requisicao]);
 
   useEffect(() => {
     fetchData();

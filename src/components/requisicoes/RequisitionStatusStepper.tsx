@@ -96,7 +96,10 @@ const RequisitionStatusStepper = ({
     permissionToRevertStatus,
     fetchPermission,
   } = useRequisitionStatusPermissions(user, requisition);
-  const { statusList } = useRequisitionStatus(id_requisicao);
+  const { statusList } = useRequisitionStatus(
+    id_requisicao,
+    requisition.id_escopo_requisicao
+  );
   const { refresh } = useSelector((state: RootState) => state.requisitionItem);
   const [fillingComment, setFillingComment] = useState<boolean>(false);
   const [comment, setComment] = useState<string>("");

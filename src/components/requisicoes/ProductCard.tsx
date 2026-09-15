@@ -9,6 +9,8 @@ import {
   DialogTitle,
   DialogContent,
   DialogActions,
+  Checkbox,
+  FormControlLabel,
   TextField,
 } from "@mui/material";
 import EditIcon from "@mui/icons-material/Edit";
@@ -25,6 +27,8 @@ interface ProductCardProps {
   setProductBeingEdited: (product: any | null) => void;
   productBeingEdited: any | null;
   saveProductQuantity: (quantity: number) => void;
+  onToggleActive: (product: Product, active: boolean) => Promise<void>;
+  disableActions?: boolean;
 }
 
 const ProductCard: React.FC<ProductCardProps> = ({
@@ -32,9 +36,12 @@ const ProductCard: React.FC<ProductCardProps> = ({
   setProductBeingEdited,
   productBeingEdited,
   saveProductQuantity,
+  onToggleActive,
+  disableActions = false,
 }) => {
     const dispatch = useDispatch();
     const user = useSelector((state: RootState) => state.user.user);
+    const viewingProducts = useSelector((state: RootState) => state.productSlice.viewingProducts);
     const isAdministrator = Number(user?.PERM_ADMINISTRADOR) === 1;
     const isInfinite = hasInfiniteStock(row.quantidade_estoque);
     const visibleAvailableQuantity = getVisibleStockQuantity(
@@ -58,7 +65,7 @@ const ProductCard: React.FC<ProductCardProps> = ({
         boxShadow: 1,
         gap: 1,
         width: 280,
-        height: 280,
+        height: viewingProducts ? 320 : 280,
       }}
     >
       <Typography variant="subtitle2" color="primary.main" component="div">
@@ -118,6 +125,19 @@ const ProductCard: React.FC<ProductCardProps> = ({
           {row.unidade}
         </Typography>
       </Stack>
+      {viewingProducts && (
+        <FormControlLabel
+          label="Ativo"
+          control={
+            <Checkbox
+              size="small"
+              checked={Number(row.inativo) !== 1}
+              disabled={!isAdministrator || disableActions}
+              onChange={(event) => onToggleActive(row, event.target.checked)}
+            />
+          }
+        />
+      )}
       <Button
         variant="contained"
         size="small"

@@ -2,7 +2,14 @@ import { Box, Step, StepLabel, Stepper, Typography } from "@mui/material";
 import { ShipmentStepperProps } from "../../models/mercadoLivre/ShipmentStepper";
 import { getDateStringFromISOstring } from "../../utils";
 
-const ETAPAS = [
+type Etapa = {
+  id: string;
+  label: string;
+  descricao: string;
+  statuses: string[];
+};
+
+const ETAPAS_ENTREGA: Etapa[] = [
   {
     id: "preparacao",
     label: "Em preparação",
@@ -23,6 +30,33 @@ const ETAPAS = [
   },
 ];
 
+const ETAPAS_RETIRADA: Etapa[] = [
+  {
+    id: "preparacao",
+    label: "Em preparação",
+    descricao: "O vendedor está preparando o seu pacote.",
+    statuses: ["pending", "handling"],
+  },
+  {
+    id: "caminho",
+    label: "A caminho",
+    descricao: "O pacote está a caminho da agência.",
+    statuses: ["ready_to_ship"],
+  },
+  {
+    id: "ponto_retirada",
+    label: "Em ponto de retirada",
+    descricao: "Pacote disponível na agência para retirada.",
+    statuses: ["shipped"],
+  },
+  {
+    id: "entrega",
+    label: "Entrega",
+    descricao: "Pacote retirado pelo destinatário.",
+    statuses: ["delivered"],
+  },
+];
+
 const SUBSTATUS_DESCRICAO: Record<string, string> = {
   out_for_delivery: "Saiu para entrega.",
   in_hub: "Recebido no centro de distribuição.",
@@ -38,23 +72,14 @@ const SUBSTATUS_DESCRICAO: Record<string, string> = {
   returning_to_sender: "Em devolução ao vendedor.",
 };
 
-// handling → Em preparação
-// ready_to_ship / picked_up → Coletado pela transportadora
-// shipped / null → Em trânsito entre centros de distribuição
-// shipped / out_for_delivery → Saiu para a agência (rota final)
-// shipped / waiting_for_withdrawal → Disponível na agência para retirada
-// delivered / null → Retirado pelo comprador 
-
 const ShipmentStepper = ({ rastreio, historico }: ShipmentStepperProps) => {
   const statusAtual = rastreio?.status || "";
   const falhou = statusAtual === "not_delivered" || statusAtual === "cancelled";
-  const disponivelParaRetirada =
-    statusAtual === "shipped" &&
-    rastreio?.substatus === "waiting_for_withdrawal";
-
-  const etapaAtual = disponivelParaRetirada
-    ? 2
-    : ETAPAS.findIndex((etapa) => etapa.statuses.includes(statusAtual));
+  const retiradaAgencia = Boolean(rastreio?.retirada_agencia);
+  const etapas = retiradaAgencia ? ETAPAS_RETIRADA : ETAPAS_ENTREGA;
+  const etapaAtual = etapas.findIndex((etapa) =>
+    etapa.statuses.includes(statusAtual)
+  );
 
   const dataDaEtapa = (statuses: string[]) => {
     const evento = historico.find((item) => statuses.includes(item.status));
@@ -62,6 +87,9 @@ const ShipmentStepper = ({ rastreio, historico }: ShipmentStepperProps) => {
   };
 
   const descricaoDaEtapa = (indice: number, padrao: string) => {
+    if (retiradaAgencia && etapas[indice].id === "ponto_retirada") {
+      return padrao;
+    }
     if (indice === etapaAtual && rastreio?.substatus) {
       return SUBSTATUS_DESCRICAO[rastreio.substatus] || padrao;
     }
@@ -71,18 +99,16 @@ const ShipmentStepper = ({ rastreio, historico }: ShipmentStepperProps) => {
   return (
     <Box sx={{ width: "100%", py: 1 }}>
       <Stepper
-        activeStep={falhou ? ETAPAS.length : etapaAtual}
+        activeStep={falhou ? etapas.length : etapaAtual}
         alternativeLabel
       >
-        {ETAPAS.map((etapa, indice) => {
+        {etapas.map((etapa, indice) => {
           const data = dataDaEtapa(etapa.statuses);
           return (
             <Step key={etapa.id} completed={etapaAtual > indice}>
-              <StepLabel error={falhou && indice === ETAPAS.length - 1}>
+              <StepLabel error={falhou && indice === etapas.length - 1}>
                 <Typography fontSize="0.8rem" fontWeight={600}>
-                  {disponivelParaRetirada && indice === 2
-                    ? "Disponível para retirada"
-                    : etapa.label}
+                  {etapa.label}
                 </Typography>
                 <Typography fontSize="0.7rem" color="text.secondary">
                   {descricaoDaEtapa(indice, etapa.descricao)}
