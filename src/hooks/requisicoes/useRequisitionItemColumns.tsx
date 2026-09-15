@@ -879,6 +879,7 @@ export const useRequisitionItemColumns = (
     if (updatingRecentProductsQuantity) {
       const selectedColumns = [
         "produto_descricao",
+        "produto_unidade",
         "quantidade",
         "produto_quantidade_disponivel",
       ];

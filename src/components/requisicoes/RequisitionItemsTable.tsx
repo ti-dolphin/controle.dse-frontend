@@ -574,7 +574,13 @@ const RequisitionItemsTable = ({
   );
 
   const mobileColumns = () => {
-    const mobile = ["produto_descricao", "quantidade", "total_linha", "actions"];
+    const mobile = [
+      "produto_descricao",
+      ...(updatingRecentProductsQuantity ? ["produto_unidade"] : []),
+      "quantidade",
+      "total_linha",
+      "actions",
+    ];
     const filtered = columns.filter((column) => mobile.includes(column.field) || isDinamicField?.(column.field));
     filtered.forEach((column) => {
       if (column.field !== "actions") {
