@@ -12,6 +12,8 @@
 
 ## Áreas transversais
 
+No fluxo de compras, a criação envia o faturamento e a API determina o escopo e o status inicial. O stepper usa a lista do escopo e reconhece aprovação, troca de modalidade e revisão de estoque por nomes de status, sem fixar IDs de Dolphin ou Direto. O destaque de urgência também usa o nome do status.
+
 - `src/components/shared`: componentes reutilizáveis entre domínios.
 - `src/redux`: store e slices.
 - `src/utils`: auxiliares realmente genéricos.

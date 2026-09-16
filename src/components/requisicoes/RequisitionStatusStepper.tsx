@@ -326,12 +326,11 @@ const RequisitionStatusStepper = ({
     }
 
     if (type === "acao_anterior") {
-      const currentStatusId = requisition.id_status_requisicao;
-      const currentStatusNome = requisition.status?.nome?.toLowerCase() || '';
+      const currentStatusNome = normalizeText(requisition.status?.nome || '');
       
       const shouldShowRevertDialog = 
-        (currentStatusId === 6 || currentStatusId === 7) ||
-        (user?.PERM_COMPRADOR === 1 && (currentStatusNome === 'requisitado' || currentStatusNome === 'em cotação'));
+        ['aprovacao gerente', 'aprovacao diretoria'].includes(currentStatusNome) ||
+        (user?.PERM_COMPRADOR === 1 && ['requisitado', 'em cotacao'].includes(currentStatusNome));
       
       if (shouldShowRevertDialog) {
         setShowRevertSelectionDialog(true);
@@ -806,14 +805,9 @@ const RequisitionStatusStepper = ({
     setShowValueIncreaseDialog(false);
 
     try {
-      const scopeApprovalMap: { [key: number]: number } = {
-        2: 7,
-        3: 110,
-        5: 118,
-      };
-
-      const approvalStatusId =
-        scopeApprovalMap[requisition.id_escopo_requisicao];
+      const approvalStatusId = statusList.find(
+        status => normalizeText(status.nome) === 'aprovacao diretoria'
+      )?.id_status_requisicao;
 
       if (!approvalStatusId) {
         dispatch(
@@ -994,17 +988,14 @@ const RequisitionStatusStepper = ({
     }, []);
 
   const canChangeRequisitionType = (): boolean => {
-    const allowedStatusIds = [1, 2, 3, 10, 107, 108, 109, 115, 116, 117];
-    return allowedStatusIds.includes(
-      requisition.status?.id_status_requisicao ?? 0
-    );
+    return ['em edicao', 'requisitado', 'em cotacao', 'validacao', 'definicao ti']
+      .includes(normalizeText(requisition.status?.nome || ''));
   };
 
   const canSendToReviewStock = () => {
-    const allowedStatusIds = [2, 3, 6, 7, 10]
-    return allowedStatusIds.includes(
-      requisition.status?.id_status_requisicao ?? 0
-    )
+    return [2, 4].includes(Number(requisition.id_escopo_requisicao)) &&
+      ['requisitado', 'em cotacao', 'aprovacao gerente', 'aprovacao diretoria', 'validacao']
+        .includes(normalizeText(requisition.status?.nome || ''));
   }
 
   const sendToReviewStock = async () => {

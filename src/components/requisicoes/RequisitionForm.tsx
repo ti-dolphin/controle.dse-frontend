@@ -124,10 +124,6 @@ const RequisitionForm: React.FC = () => {
               TIPO: 9,
               tipo_faturamento: tipoSelecionado ? tipoSelecionado.id : null,
               ID_RESPONSAVEL: requisition.ID_RESPONSAVEL,
-              id_status_requisicao: 1,
-              id_escopo_requisicao: tipoSelecionado
-                ? tipoSelecionado.escopo
-                : null,
             });
             dispatch(setRows([...rows, newRequisition]));
             dispatch(clearRequisition());
