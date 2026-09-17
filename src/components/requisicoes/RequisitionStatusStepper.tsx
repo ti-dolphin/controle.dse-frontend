@@ -115,6 +115,8 @@ const RequisitionStatusStepper = ({
   >(null);
   const [showMissingTargetPriceDialog, setShowMissingTargetPriceDialog] =
     useState<boolean>(false);
+  const [showMissingDeliveryDateDialog, setShowMissingDeliveryDateDialog] =
+    useState<boolean>(false);
   const [
     pendingStatusChangeMissingTarget,
     setPendingStatusChangeMissingTarget,
@@ -226,7 +228,8 @@ const RequisitionStatusStepper = ({
   const validationRules = async (
     newStatus: RequisitionStatus,
     skipAttachmentValidation: boolean = false,
-    skipTargetValidation: boolean = false
+    skipTargetValidation: boolean = false,
+    skipDeliveryDateValidation: boolean = false
   ) => {
     if (!requisition.status) return;
     const advancingStatus = newStatus.etapa > requisition.status?.etapa || 0;
@@ -258,6 +261,16 @@ const RequisitionStatusStepper = ({
     const noItems = items.length === 0;
     if (noItems) {
       throw new Error("Requisição sem itens");
+    }
+
+    if (
+      normalizeText(requisition.status.nome) === "em producao" &&
+      normalizeText(newStatus.nome) === "lancar nf" &&
+      advancingStatus &&
+      !skipDeliveryDateValidation &&
+      items.some((item) => !item.data_entrega?.trim())
+    ) {
+      throw new Error("SHOW_MISSING_DELIVERY_DATE_DIALOG");
     }
 
     if (newStatus.nome === "Em Cotação" && advancingStatus) {
@@ -305,7 +318,8 @@ const RequisitionStatusStepper = ({
   const handleChangeStatus = async (
     type: "acao_anterior" | "acao_posterior",
     confirmValidation?: boolean,
-    skipTargetValidation?: boolean
+    skipTargetValidation?: boolean,
+    skipDeliveryDateValidation?: boolean
   ) => {
     const hasPermission =
       type === "acao_anterior"
@@ -348,9 +362,14 @@ const RequisitionStatusStepper = ({
           await validationRules(
             newStatus,
             confirmValidation || false,
-            skipTargetValidation || false
+            skipTargetValidation || false,
+            skipDeliveryDateValidation || false
           );
         } catch (error: any) {
+          if (error.message === "SHOW_MISSING_DELIVERY_DATE_DIALOG") {
+            setShowMissingDeliveryDateDialog(true);
+            return;
+          }
           if (error.message === "SHOW_VALIDATION_DIALOG") {
             setPendingStatusChange(type);
             setShowValidationDialog(true);
@@ -774,6 +793,11 @@ const RequisitionStatusStepper = ({
       await handleChangeStatus(pendingStatusChange, true);
     }
     setPendingStatusChange(null);
+  };
+
+  const confirmMissingDeliveryDateStatusChange = async () => {
+    setShowMissingDeliveryDateDialog(false);
+    await handleChangeStatus("acao_posterior", false, false, true);
   };
 
   const cancelValidationStatusChange = () => {
@@ -1344,6 +1368,39 @@ const RequisitionStatusStepper = ({
             onClick={confirmMissingTargetPriceStatusChange}
           >
             Confirmar
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      <Dialog
+        open={showMissingDeliveryDateDialog}
+        onClose={() => setShowMissingDeliveryDateDialog(false)}
+        aria-labelledby="missing-delivery-date-title"
+        aria-describedby="missing-delivery-date-description"
+      >
+        <DialogTitle id="missing-delivery-date-title">
+          Avançar sem data de entrega?
+        </DialogTitle>
+        <DialogContent>
+          <Typography id="missing-delivery-date-description">
+            Existem itens sem data de entrega preenchida. Deseja mesmo avançar
+            para "Lançar NF" sem preencher a data de entrega de todos os itens?
+          </Typography>
+        </DialogContent>
+        <DialogActions>
+          <Button
+            variant="outlined"
+            size="small"
+            onClick={() => setShowMissingDeliveryDateDialog(false)}
+          >
+            Cancelar
+          </Button>
+          <Button
+            variant="contained"
+            size="small"
+            onClick={confirmMissingDeliveryDateStatusChange}
+          >
+            Avançar mesmo assim
           </Button>
         </DialogActions>
       </Dialog>
