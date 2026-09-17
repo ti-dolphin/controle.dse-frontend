@@ -899,7 +899,9 @@ const RequisitionItemsTable = ({
         return oldRow;
       }
 
-      if (newRow.produto_quantidade_disponivel < newRow.quantidade_atendida) {
+      // O atendimento usa o saldo do item, também usado para iniciar a
+      // quantidade atendida, e não o saldo geral do cadastro do produto.
+      if (Number(newRow.quantidade_disponivel) < Number(newRow.quantidade_atendida)) {
         dispatch(
           setFeedback({
             message: `Quantidade atendida não pode ser maior do que a disponível em estoque`,
