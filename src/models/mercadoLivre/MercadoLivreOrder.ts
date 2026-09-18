@@ -12,6 +12,7 @@ export interface MercadoLivreTracking {
   codigo_rastreio: string | null;
   transportadora: string | null;
   data_estimada: string | null;
+  retirada_agencia: boolean;
 }
 
 export interface MercadoLivreAccount {

@@ -41,6 +41,7 @@ import AddLinkOutlinedIcon from '@mui/icons-material/AddLinkOutlined';
 import ReceiptLongIcon from '@mui/icons-material/ReceiptLong';
 import ShoppingCartIcon from '@mui/icons-material/ShoppingCart';
 import { calculateColumnWidth } from "../../utils/calculateColumnWidth";
+import { getVisibleStockQuantity } from "../../utils/stock";
 
 const StyledBadge = styled(Badge)<BadgeProps>(() => ({
   "& .MuiBadge-badge": {
@@ -50,9 +51,6 @@ const StyledBadge = styled(Badge)<BadgeProps>(() => ({
   },
 }));
 
-// O editor padrão do grid aplica o valor digitado com debounce (~200ms);
-// trocando de célula rapidamente o commit acontecia antes do valor pendente
-// ser aplicado e o PUT ia sem a alteração. debounceMs={0} aplica a cada tecla.
 const renderInstantEditCell = (params: GridRenderEditCellParams) => (
   <GridEditInputCell {...params} debounceMs={0} />
 );
@@ -81,6 +79,7 @@ export const useRequisitionItemColumns = (
   const [rawDinamicColumns, setRawDinamicColumns] = useState<GridColDef[]>([]);
 
   const user = useSelector((state: RootState) => state.user.user);
+  const isAdministrator = Number(user?.PERM_ADMINISTRADOR) === 1;
 
   const { updatingRecentProductsQuantity } = useSelector(
     (state: RootState) => state.requisitionItem
@@ -205,6 +204,15 @@ export const useRequisitionItemColumns = (
   }, [dispatch, selectionModel]);
 
   const columns: GridColDef[] = useMemo(() => [
+    {
+      field: 'ordem',
+      headerName: 'N°',
+      width: 60,
+      type: "number",
+      renderCell: (params: any) => (
+        params.api.getRowIndexRelativeToVisibleRows(params.id) + 1        
+      )
+    },
     {
       field: "id_item_requisicao",
       headerName: "ID",
@@ -394,7 +402,12 @@ export const useRequisitionItemColumns = (
       editable: false,
       renderCell: (params: any) => {
         const value = params.value;
-        const hasStock = value && value > 0;
+        const visibleValue = getVisibleStockQuantity(
+          params.row.produto_quantidade_estoque,
+          value,
+          isAdministrator
+        );
+        const hasStock = visibleValue > 0;
         return (
           <Box
             sx={{
@@ -410,7 +423,7 @@ export const useRequisitionItemColumns = (
               fontWeight="bold"
               color={hasStock ? "success.main" : "error.main"}
             >
-              {formatQuantidade(value || 0)}
+              {formatQuantidade(visibleValue)}
             </Typography>
           </Box>
         );
@@ -866,6 +879,7 @@ export const useRequisitionItemColumns = (
     if (updatingRecentProductsQuantity) {
       const selectedColumns = [
         "produto_descricao",
+        "produto_unidade",
         "quantidade",
         "produto_quantidade_disponivel",
       ];

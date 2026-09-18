@@ -8,7 +8,7 @@ import {
 } from "@mui/x-data-grid";
 import React, { useCallback, useEffect, useState } from "react";
 import { Product, ProductPatrimonyType } from "../../models/Product";
-import { Backdrop, Box, Button, Chip, CircularProgress, Dialog, DialogActions, DialogContent, DialogTitle, IconButton, Stack, TextField, Typography, useTheme } from "@mui/material";
+import { Backdrop, Box, Button, Checkbox, Chip, CircularProgress, Dialog, DialogActions, DialogContent, DialogTitle, FormControlLabel, IconButton, Stack, TextField, Typography, useTheme } from "@mui/material";
 import { useDispatch, useSelector } from "react-redux";
 import { RootState } from "../../redux/store";
 import BaseDataTable from "../shared/BaseDataTable";
@@ -20,16 +20,17 @@ import { ProductService } from "../../services/ProductService";
 import { setProductSelected, setRecentAddedProducts, removeRecentProduct } from "../../redux/slices/requisicoes/requisitionItemSlice";
 import EditIcon from "@mui/icons-material/Edit";
 import { useIsMobile } from "../../hooks/useIsMobile";
-import { useProductColumns } from "../../hooks/productColumnsHook";
+import { ProductPermissionField, useProductColumns } from "../../hooks/productColumnsHook";
 import ProductAttachmentList from "../ProductAttachmentList";
 import ProductStandardGuide from "../produtos/ProductStandardGuide";
-import { setProducts, setViewingProductAttachment, setViewingStandardGuide } from "../../redux/slices/productSlice";
+import { setProducts, setViewingProductAttachment, setViewingStandardGuide, updateProductInList } from "../../redux/slices/productSlice";
 import { FixedSizeGrid } from "react-window";
 import AttachFileIcon from '@mui/icons-material/AttachFile';
 import { green, red } from "@mui/material/colors";
 import ProductCard from "./ProductCard";
 import { Requisition } from "../../models/requisicoes/Requisition";
 import { fr } from "date-fns/locale";
+import { hasInfiniteStock } from "../../utils/stock";
 
 interface ProductsTableProps {
   tipoFaturamento: number | null | undefined; // Tipo de faturamento a ser usado no filtro (0 = todos os produtos)
@@ -44,6 +45,7 @@ const ProductsTable = ({ tipoFaturamento, fromReq }: ProductsTableProps) => {
   const { editProductFieldsPermitted, hasStockPermission } = useProductPermissions(user);
   const {viewingProductAttachment, viewingStandardGuide, products, viewingProducts } = useSelector((state: RootState) => state.productSlice);
   const [searchTerm, setSearchTerm] = useState("");
+  const [showInactiveProducts, setShowInactiveProducts] = useState(false);
 
   const [cellModesModel, setCellModesModel]  = React.useState<GridCellModesModel>({});
   const [isFetching, setIsFetching] = useState(false);
@@ -75,6 +77,7 @@ const ProductsTable = ({ tipoFaturamento, fromReq }: ProductsTableProps) => {
     }
 
     params.tipoFaturamento = tipoFaturamento;
+    params.includeInactive = viewingProducts && showInactiveProducts;
 
     const data = await ProductService.getMany(params);
     const sortedData = [...data].sort((a, b) => {
@@ -84,16 +87,18 @@ const ProductsTable = ({ tipoFaturamento, fromReq }: ProductsTableProps) => {
     });
 
     dispatch(setProducts(sortedData));
-  }, [dispatch, searchTerm, fromReq, tipoFaturamento]);
+  }, [dispatch, searchTerm, fromReq, tipoFaturamento, viewingProducts, showInactiveProducts]);
 
   const handleUpdatePatrimonyType = useCallback(async (productId: number, patrimonyTypeId: number | null) => {
     setIsUpdating(true);
     try {
-      await ProductService.update(productId, {
+      const updatedProduct = await ProductService.update(productId, {
         tipo_produto_patrimonio: patrimonyTypeId,
       });
 
-      await refreshProducts();
+      if (updatedProduct) {
+        dispatch(updateProductInList(updatedProduct));
+      }
     } catch (e) {
       dispatch(
         setFeedback({
@@ -104,11 +109,71 @@ const ProductsTable = ({ tipoFaturamento, fromReq }: ProductsTableProps) => {
     } finally {
       setIsUpdating(false);
     }
+  }, [dispatch]);
+
+  const handleToggleProductPermission = useCallback(async (
+    product: Product,
+    field: ProductPermissionField,
+    currentValue: unknown
+  ) => {
+    setIsUpdating(true);
+    try {
+      const updatedProduct = await ProductService.update(product.ID, {
+        [field]: Number(currentValue) === 1 ? 0 : 1,
+      });
+
+      if (updatedProduct) {
+        dispatch(updateProductInList(updatedProduct));
+        dispatch(setFeedback({ message: "Permissão atualizada", type: "success" }));
+      }
+    } catch (e: any) {
+      dispatch(
+        setFeedback({
+          message: `Erro ao atualizar permissão: ${e.message || e}`,
+          type: "error",
+        })
+      );
+    } finally {
+      setIsUpdating(false);
+    }
+  }, [dispatch]);
+
+  const handleToggleProductActive = useCallback(async (
+    product: Product,
+    active: boolean
+  ) => {
+    setIsUpdating(true);
+    try {
+      const updatedProduct = await ProductService.update(product.ID, {
+        inativo: active ? 0 : 1,
+      });
+
+      dispatch(updateProductInList(updatedProduct));
+      await refreshProducts();
+      dispatch(
+        setFeedback({
+          message: active ? "Produto ativado" : "Produto desativado",
+          type: "success",
+        })
+      );
+    } catch (e: any) {
+      dispatch(
+        setFeedback({
+          message: `Erro ao alterar situação do produto: ${e.message || e}`,
+          type: "error",
+        })
+      );
+    } finally {
+      setIsUpdating(false);
+    }
   }, [dispatch, refreshProducts]);
+
   const { columns } = useProductColumns({
     patrimonyTypes,
     onUpdatePatrimonyType: handleUpdatePatrimonyType,
-    disablePatrimonyActions: isUpdating,
+    onToggleProductPermission: handleToggleProductPermission,
+    onToggleProductActive: handleToggleProductActive,
+    disableActions: isUpdating,
   });
   const [productBeingEdited, setProductBeingEdited] = useState<Product | null>(null);
   const [quantity, setQuantity] = useState<number>(0);
@@ -369,6 +434,19 @@ const ProductsTable = ({ tipoFaturamento, fromReq }: ProductsTableProps) => {
       <BaseTableToolBar
         handleChangeSearchTerm={debouncedHandleChangeSearchTerm}
       />
+      {viewingProducts && (
+        <Box sx={{ px: 1, py: 0.5 }}>
+          <FormControlLabel
+            label="Exibir produtos inativos"
+            control={
+              <Checkbox
+                checked={showInactiveProducts}
+                onChange={(event) => setShowInactiveProducts(event.target.checked)}
+              />
+            }
+          />
+        </Box>
+      )}
       {addingProducts && selectedProductsInfo.length > 0 && (
         <Box sx={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 1, px: 1, py: 1 }}>
           {selectedProductsInfo.map((product) => (
@@ -410,7 +488,7 @@ const ProductsTable = ({ tipoFaturamento, fromReq }: ProductsTableProps) => {
             columnCount={1}
             columnWidth={280}
             height={gridContainerRef.current?.clientHeight || 0}
-            rowHeight={290}
+            rowHeight={viewingProducts ? 330 : 290}
             width={300}
           >
             {({ columnIndex, rowIndex, style }) => {
@@ -422,6 +500,8 @@ const ProductsTable = ({ tipoFaturamento, fromReq }: ProductsTableProps) => {
                   setProductBeingEdited={setProductBeingEdited}
                   productBeingEdited={productBeingEdited}
                   saveProductQuantity={saveProductQuantity}
+                  onToggleActive={handleToggleProductActive}
+                  disableActions={isUpdating}
                 />
               );
             }}
@@ -459,6 +539,16 @@ const ProductsTable = ({ tipoFaturamento, fromReq }: ProductsTableProps) => {
           onCellModesModelChange={handleCellModesModelChange}
           onCellClick={handleCellClick}
           processRowUpdate={processRowUpdate}
+          isCellEditable={(params: GridCellParams) => {
+            if (
+              params.field === "quantidade_estoque" &&
+              hasInfiniteStock(params.row.quantidade_estoque) &&
+              Number(user?.PERM_ADMINISTRADOR) !== 1
+            ) {
+              return false;
+            }
+            return params.colDef.editable === true;
+          }}
         />
       )}
       {isUpdating && (

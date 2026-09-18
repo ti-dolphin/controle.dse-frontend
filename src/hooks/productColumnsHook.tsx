@@ -1,20 +1,19 @@
 import { GridColDef, GridRenderCellParams } from "@mui/x-data-grid";
 import { useDispatch, useSelector } from "react-redux";
 import { RootState } from "../redux/store";
-import { Badge, BadgeProps, Box, IconButton, Radio, RadioGroup, FormControlLabel, styled, Tooltip, Typography } from "@mui/material";
+import { Badge, BadgeProps, Box, Checkbox, IconButton, Radio, RadioGroup, FormControlLabel, styled, Tooltip, Typography } from "@mui/material";
 import { blue, green, red } from "@mui/material/colors";
 import { useEffect, useState } from "react";
 import { set } from "lodash";
 import { useIsMobile } from "./useIsMobile";
 import FileIcon from '@mui/icons-material/FilePresent';
-import { setViewingProductAttachment, setViewingStandardGuide, setProducts } from "../redux/slices/productSlice";
-import { setFeedback } from "../redux/slices/feedBackSlice";
-import { ProductService } from "../services/ProductService";
+import { setViewingProductAttachment, setViewingStandardGuide } from "../redux/slices/productSlice";
 import CircleIcon from '@mui/icons-material/Circle';
 import ClearIcon from '@mui/icons-material/Clear';
 import { useProductPermissions } from "./productPermissionsHook";
-import { ProductPatrimonyType } from "../models/Product";
+import { Product, ProductPatrimonyType } from "../models/Product";
 import { formatQuantidade } from "../utils";
+import { getVisibleStockQuantity } from "../utils/stock";
 
 const StyledBadge = styled(Badge)<BadgeProps>(({ theme }) => ({
   "& .MuiBadge-badge": {
@@ -27,10 +26,28 @@ const StyledBadge = styled(Badge)<BadgeProps>(({ theme }) => ({
 interface UseProductColumnsParams {
   patrimonyTypes: ProductPatrimonyType[];
   onUpdatePatrimonyType: (productId: number, patrimonyTypeId: number | null) => Promise<void>;
-  disablePatrimonyActions?: boolean;
+  onToggleProductPermission: (
+    product: Product,
+    field: ProductPermissionField,
+    currentValue: unknown
+  ) => Promise<void>;
+  onToggleProductActive: (product: Product, active: boolean) => Promise<void>;
+  disableActions?: boolean;
 }
 
-export const useProductColumns = ({ patrimonyTypes, onUpdatePatrimonyType, disablePatrimonyActions = false }: UseProductColumnsParams) => {
+export type ProductPermissionField =
+  | "perm_ti"
+  | "perm_operacional"
+  | "perm_faturamento_direto"
+  | "perm_faturamento_dse";
+
+export const useProductColumns = ({
+  patrimonyTypes,
+  onUpdatePatrimonyType,
+  onToggleProductPermission,
+  onToggleProductActive,
+  disableActions = false,
+}: UseProductColumnsParams) => {
   const dispatch = useDispatch();
   const {
     addingProducts,
@@ -43,23 +60,8 @@ export const useProductColumns = ({ patrimonyTypes, onUpdatePatrimonyType, disab
   const [columns, setColumns] = useState<GridColDef[]>([]);
   const user = useSelector((state: RootState) => state.user.user);
   const { editProductFieldsPermitted, hasStockPermission } = useProductPermissions(user);
+  const isAdministrator = Number(user?.PERM_ADMINISTRADOR) === 1;
   
-  const togglePermission = async (row: any, field: string, currentValue: any) => {
-    try {
-      const payload: any = {};
-      payload[field] = currentValue === 1 ? 0 : 1;
-      await ProductService.update(row.ID, payload);
-      
-      // Fetch latest list and set it
-      const refreshed = await ProductService.getMany();
-      dispatch(setProducts(refreshed));
-      dispatch(setFeedback({ message: 'Permissão atualizada', type: 'success' }));
-    } catch (e: any) {
-      console.error('Erro ao atualizar permissão', e);
-      dispatch(setFeedback({ message: `Erro ao atualizar permissão: ${e.message || e}`, type: 'error' }));
-    }
-  };
-
   const addingProductsColumns: GridColDef[] = [
     {
       field: "ID",
@@ -100,6 +102,11 @@ export const useProductColumns = ({ patrimonyTypes, onUpdatePatrimonyType, disab
       editable: false,
       valueGetter: (value) => value || 0,
       renderCell: (params: GridRenderCellParams) => {
+        const visibleValue = getVisibleStockQuantity(
+          params.row.quantidade_estoque,
+          params.value,
+          isAdministrator
+        );
         return (
           <Box
             sx={{
@@ -108,11 +115,11 @@ export const useProductColumns = ({ patrimonyTypes, onUpdatePatrimonyType, disab
               justifyContent: "end",
               height: "100%",
               padding: 1,
-              backgroundColor: params.value > 0 ? green[200] : red[200],
+              backgroundColor: visibleValue > 0 ? green[200] : red[200],
             }}
           >
             <Typography fontSize="12px" fontWeight={"bold"}>
-              {formatQuantidade(params.value)}
+              {formatQuantidade(visibleValue)}
             </Typography>
           </Box>
         );
@@ -212,6 +219,11 @@ export const useProductColumns = ({ patrimonyTypes, onUpdatePatrimonyType, disab
       editable: false,
       valueGetter: (value) => value || 0,
       renderCell: (params: GridRenderCellParams) => {
+        const visibleValue = getVisibleStockQuantity(
+          params.row.quantidade_estoque,
+          params.value,
+          isAdministrator
+        );
         return (
           <Box
             sx={{
@@ -220,11 +232,11 @@ export const useProductColumns = ({ patrimonyTypes, onUpdatePatrimonyType, disab
               justifyContent: "end",
               height: "100%",
               padding: 1,
-              backgroundColor: params.value > 0 ? green[200] : red[200],
+              backgroundColor: visibleValue > 0 ? green[200] : red[200],
             }}
           >
             <Typography fontSize="12px" fontWeight={"bold"}>
-              {formatQuantidade(params.value)}
+              {formatQuantidade(visibleValue)}
             </Typography>
           </Box>
         );
@@ -289,6 +301,26 @@ export const useProductColumns = ({ patrimonyTypes, onUpdatePatrimonyType, disab
       editable: false,
       valueGetter: (value) => value || "",
     },
+    {
+      field: "inativo",
+      headerName: "Ativo",
+      flex: 0.12,
+      minWidth: 80,
+      editable: false,
+      sortable: true,
+      renderCell: (params: GridRenderCellParams) => (
+        <Checkbox
+          size="small"
+          checked={Number(params.row.inativo) !== 1}
+          disabled={!isAdministrator || disableActions}
+          onClick={(event) => event.stopPropagation()}
+          onChange={async (event) => {
+            await onToggleProductActive(params.row, event.target.checked);
+          }}
+          inputProps={{ "aria-label": `Produto ${params.row.ID} ativo` }}
+        />
+      ),
+    },
 
     {
       field: "quantidade_estoque",
@@ -297,7 +329,8 @@ export const useProductColumns = ({ patrimonyTypes, onUpdatePatrimonyType, disab
       flex: 0.15,
       editable: editProductFieldsPermitted || hasStockPermission,
       valueGetter: (value) => value || 0,
-      renderCell: (params: GridRenderCellParams) => formatQuantidade(params.value),
+      renderCell: (params: GridRenderCellParams) =>
+        formatQuantidade(getVisibleStockQuantity(params.row.quantidade_estoque, params.value, isAdministrator)),
     },
     {
       field: "quantidade_reservada",
@@ -316,6 +349,11 @@ export const useProductColumns = ({ patrimonyTypes, onUpdatePatrimonyType, disab
       editable: false,
       valueGetter: (value) => value || 0,
       renderCell: (params: GridRenderCellParams) => {
+        const visibleValue = getVisibleStockQuantity(
+          params.row.quantidade_estoque,
+          params.value,
+          isAdministrator
+        );
         return (
           <Box
             sx={{
@@ -327,8 +365,8 @@ export const useProductColumns = ({ patrimonyTypes, onUpdatePatrimonyType, disab
 
             }}
           >
-            <Typography fontSize="12px" color={params.value > 0 ? green[600] : red[600]} fontWeight={"bold"}>
-              {formatQuantidade(params.value)}
+            <Typography fontSize="12px" color={visibleValue > 0 ? green[600] : red[600]} fontWeight={"bold"}>
+              {formatQuantidade(visibleValue)}
             </Typography>
           </Box>
         );
@@ -362,10 +400,10 @@ export const useProductColumns = ({ patrimonyTypes, onUpdatePatrimonyType, disab
                   size="small"
                   onClick={async (e) => {
                     e.stopPropagation();
-                    if (!canEditPatrimony || disablePatrimonyActions || rowValue === 0) return;
+                    if (!canEditPatrimony || disableActions || rowValue === 0) return;
                     await onUpdatePatrimonyType(Number(params.row.ID), null);
                   }}
-                  disabled={!canEditPatrimony || disablePatrimonyActions || rowValue === 0}
+                  disabled={!canEditPatrimony || disableActions || rowValue === 0}
                 >
                   <ClearIcon sx={{ fontSize: 14 }} />
                 </IconButton>
@@ -387,7 +425,7 @@ export const useProductColumns = ({ patrimonyTypes, onUpdatePatrimonyType, disab
                 <FormControlLabel
                   key={type.id}
                   value={String(type.id)}
-                  control={<Radio size="small" disabled={!canEditPatrimony || disablePatrimonyActions} />}
+                  control={<Radio size="small" disabled={!canEditPatrimony || disableActions} />}
                   label={type.nome || `Tipo ${type.id}`}
                   sx={{
                     mr: 1,
@@ -476,7 +514,8 @@ export const useProductColumns = ({ patrimonyTypes, onUpdatePatrimonyType, disab
             <Box sx={{ display: "flex", alignItems: "center", justifyContent: "center", height: "100%", width: "100%" }}>
               <IconButton
                 size="small"
-                onClick={(e) => { e.stopPropagation(); togglePermission(params.row, 'perm_ti', params.value); }}
+                disabled={disableActions}
+                onClick={(e) => { e.stopPropagation(); onToggleProductPermission(params.row, 'perm_ti', params.value); }}
               >
                 <CircleIcon sx={{ fontSize: 14, color: params.value === 1 ? green[600] : red[600] }} />
               </IconButton>
@@ -493,7 +532,7 @@ export const useProductColumns = ({ patrimonyTypes, onUpdatePatrimonyType, disab
         renderCell: (params: GridRenderCellParams) => {
           return (
             <Box sx={{ display: "flex", alignItems: "center", justifyContent: "center", height: "100%", width: "100%" }}>
-              <IconButton size="small" onClick={(e) => { e.stopPropagation(); togglePermission(params.row, 'perm_operacional', params.value); }}>
+              <IconButton disabled={disableActions} size="small" onClick={(e) => { e.stopPropagation(); onToggleProductPermission(params.row, 'perm_operacional', params.value); }}>
                 <CircleIcon sx={{ fontSize: 14, color: params.value === 1 ? green[600] : red[600] }} />
               </IconButton>
             </Box>
@@ -509,7 +548,7 @@ export const useProductColumns = ({ patrimonyTypes, onUpdatePatrimonyType, disab
         renderCell: (params: GridRenderCellParams) => {
           return (
             <Box sx={{ display: "flex", alignItems: "center", justifyContent: "center", height: "100%", width: "100%" }}>
-              <IconButton size="small" onClick={(e) => { e.stopPropagation(); togglePermission(params.row, 'perm_faturamento_direto', params.value); }}>
+              <IconButton disabled={disableActions} size="small" onClick={(e) => { e.stopPropagation(); onToggleProductPermission(params.row, 'perm_faturamento_direto', params.value); }}>
                 <CircleIcon sx={{ fontSize: 14, color: params.value === 1 ? green[600] : red[600] }} />
               </IconButton>
             </Box>
@@ -525,7 +564,7 @@ export const useProductColumns = ({ patrimonyTypes, onUpdatePatrimonyType, disab
         renderCell: (params: GridRenderCellParams) => {
           return (
             <Box sx={{ display: "flex", alignItems: "center", justifyContent: "center", height: "100%", width: "100%" }}>
-              <IconButton size="small" onClick={(e) => { e.stopPropagation(); togglePermission(params.row, 'perm_faturamento_dse', params.value); }}>
+              <IconButton disabled={disableActions} size="small" onClick={(e) => { e.stopPropagation(); onToggleProductPermission(params.row, 'perm_faturamento_dse', params.value); }}>
                 <CircleIcon sx={{ fontSize: 14, color: params.value === 1 ? green[600] : red[600] }} />
               </IconButton>
             </Box>
@@ -558,6 +597,10 @@ export const useProductColumns = ({ patrimonyTypes, onUpdatePatrimonyType, disab
     editProductFieldsPermitted,
     hasStockPermission,
     patrimonyTypes,
+    onUpdatePatrimonyType,
+    onToggleProductPermission,
+    onToggleProductActive,
+    disableActions,
     dispatch,
   ]);
   return { columns };

@@ -103,6 +103,20 @@ const RequisitionDetailPage = () => {
     () => displayItemsTotal + displayShippingTotal,
     [displayItemsTotal, displayShippingTotal]
   );
+
+  const nonRegisteredItemsWithoutUnit = useMemo(
+    () =>
+      items.filter((item) => {
+        const productCode = String(
+          item.produto_codigo || item.produto?.codigo || ""
+        ).trim();
+        return (
+          productCode === "06.001.04.0002" &&
+          !String(item.produto_unidade || "").trim()
+        );
+      }),
+    [items]
+  );
   
   const fetchData = useCallback(async () => { 
     const requisition = await RequisitionService.getById(Number(id_requisicao));
@@ -732,6 +746,7 @@ const RequisitionDetailPage = () => {
             onClick={concludeUpdateItemsQuantity}
             variant="contained"
             color="primary"
+            disabled={nonRegisteredItemsWithoutUnit.length > 0}
             sx={{ textTransform: "none", minWidth: 120 }}
           >
             Concluir

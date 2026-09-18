@@ -134,7 +134,7 @@ const RequisitionListPage = () => {
 
     const requisition = params.row as Requisition;
     const urgencyLevel = getRequisitionUrgencyLevel(
-      requisition.id_status_requisicao,
+      requisition.status?.nome,
       requisition.data_ultima_alteracao_status
     );
 

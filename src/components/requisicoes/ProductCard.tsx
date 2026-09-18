@@ -9,20 +9,26 @@ import {
   DialogTitle,
   DialogContent,
   DialogActions,
+  Checkbox,
+  FormControlLabel,
   TextField,
 } from "@mui/material";
 import EditIcon from "@mui/icons-material/Edit";
 import AttachFileIcon from "@mui/icons-material/AttachFile";
 import { red } from "@mui/material/colors";
-import { useDispatch } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import { setViewingProductAttachment } from "../../redux/slices/productSlice";
 import { Product } from "../../models/Product";
+import { RootState } from "../../redux/store";
+import { getVisibleStockQuantity, hasInfiniteStock } from "../../utils/stock";
 
 interface ProductCardProps {
   row: Product;
   setProductBeingEdited: (product: any | null) => void;
   productBeingEdited: any | null;
   saveProductQuantity: (quantity: number) => void;
+  onToggleActive: (product: Product, active: boolean) => Promise<void>;
+  disableActions?: boolean;
 }
 
 const ProductCard: React.FC<ProductCardProps> = ({
@@ -30,8 +36,19 @@ const ProductCard: React.FC<ProductCardProps> = ({
   setProductBeingEdited,
   productBeingEdited,
   saveProductQuantity,
+  onToggleActive,
+  disableActions = false,
 }) => {
     const dispatch = useDispatch();
+    const user = useSelector((state: RootState) => state.user.user);
+    const viewingProducts = useSelector((state: RootState) => state.productSlice.viewingProducts);
+    const isAdministrator = Number(user?.PERM_ADMINISTRADOR) === 1;
+    const isInfinite = hasInfiniteStock(row.quantidade_estoque);
+    const visibleAvailableQuantity = getVisibleStockQuantity(
+      row.quantidade_estoque,
+      row.quantidade_disponivel,
+      isAdministrator
+    );
     const [localQuantity, setLocalQuantity] = React.useState(row.quantidade_estoque);
 
   return (
@@ -48,7 +65,7 @@ const ProductCard: React.FC<ProductCardProps> = ({
         boxShadow: 1,
         gap: 1,
         width: 280,
-        height: 280,
+        height: viewingProducts ? 320 : 280,
       }}
     >
       <Typography variant="subtitle2" color="primary.main" component="div">
@@ -64,9 +81,9 @@ const ProductCard: React.FC<ProductCardProps> = ({
           Quantidade em estoque:
         </Typography>
         <Typography variant="body2" color="text.primary">
-          {row.quantidade_estoque}
+          {getVisibleStockQuantity(row.quantidade_estoque, row.quantidade_estoque, isAdministrator)}
         </Typography>
-        <IconButton
+        {(!isInfinite || isAdministrator) && <IconButton
           onClick={() => {
             setProductBeingEdited(row);
           }}
@@ -78,7 +95,7 @@ const ProductCard: React.FC<ProductCardProps> = ({
           }}
         >
           <EditIcon sx={{ height: 20, width: 20 }} />
-        </IconButton>
+        </IconButton>}
       </Stack>
       <Stack direction="row" spacing={1} alignItems="center">
         <Typography variant="body2" color="text.primary">
@@ -95,9 +112,9 @@ const ProductCard: React.FC<ProductCardProps> = ({
         <Typography
           variant="body2"
           fontWeight={"bold"}
-          color={row.quantidade_disponivel > 0 ? "success.main" : red[800]}
+          color={visibleAvailableQuantity > 0 ? "success.main" : red[800]}
         >
-          {row.quantidade_disponivel}
+          {visibleAvailableQuantity}
         </Typography>
       </Stack>
       <Stack direction="row" spacing={1} alignItems="center">
@@ -108,6 +125,19 @@ const ProductCard: React.FC<ProductCardProps> = ({
           {row.unidade}
         </Typography>
       </Stack>
+      {viewingProducts && (
+        <FormControlLabel
+          label="Ativo"
+          control={
+            <Checkbox
+              size="small"
+              checked={Number(row.inativo) !== 1}
+              disabled={!isAdministrator || disableActions}
+              onChange={(event) => onToggleActive(row, event.target.checked)}
+            />
+          }
+        />
+      )}
       <Button
         variant="contained"
         size="small"

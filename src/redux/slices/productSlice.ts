@@ -15,6 +15,18 @@ const productSlice = createSlice({
     setProducts(state, action: PayloadAction<Product[]>) {
       state.products = action.payload
     },
+    updateProductInList(state, action: PayloadAction<Product>) {
+      const productIndex = state.products.findIndex(
+        (product) => product.ID === action.payload.ID
+      );
+
+      if (productIndex >= 0) {
+        state.products[productIndex] = {
+          ...state.products[productIndex],
+          ...action.payload,
+        };
+      }
+    },
     setViewingProducts(state, action: PayloadAction<boolean>) {
       state.viewingProducts = action.payload
     },
@@ -27,7 +39,13 @@ const productSlice = createSlice({
   },
 });
 
-export const { setProducts, setViewingProducts, setViewingProductAttachment, setViewingStandardGuide } = productSlice.actions;
+export const {
+  setProducts,
+  updateProductInList,
+  setViewingProducts,
+  setViewingProductAttachment,
+  setViewingStandardGuide,
+} = productSlice.actions;
 export default productSlice.reducer;
 
 export type ProductState = typeof initialState;

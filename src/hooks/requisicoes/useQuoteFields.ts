@@ -19,13 +19,6 @@ isSupplierRoute :boolean,
       options: [],
     },
     {
-      name: "descricao",
-      label: "Descrição",
-      autoComplete: false,
-      disabled: isSupplierRoute,
-      options: [],
-    },
-    {
       name: "valor_frete",
       label: "Valor Frete",
       type: "number",

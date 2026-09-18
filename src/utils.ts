@@ -244,12 +244,12 @@ export function getQuoteItemObservation(item: {
  * - null se não precisa destaque
  */
 export function getRequisitionUrgencyLevel(
-  statusId: number,
+  statusName: string | null | undefined,
   dataUltimaAlteracaoStatus: string | null | undefined
 ): 'critical' | 'warning' | null {
   // Verifica se é um dos status de aprovação que devem ser monitorados
-  const statusAprovacao = [2, 6, 7]; // 6 = Aprovação Gerente, 7 = Aprovação Diretoria
-  if (!statusAprovacao.includes(statusId)) {
+  const statusAprovacao = ['requisitado', 'aprovacao gerente', 'aprovacao diretoria'];
+  if (!statusAprovacao.includes(normalizeText(statusName))) {
     return null;
   }
 

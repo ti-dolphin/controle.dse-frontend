@@ -1,3 +1,5 @@
+import { QuoteItemAttachment } from "./QuoteItemAttachment";
+
 export interface QuoteItem {
   id_item_cotacao: number;
   id_cotacao: number;
@@ -16,4 +18,5 @@ export interface QuoteItem {
   produto_descricao?: string;
   produto_codigo?: string;
   produto_unidade?: string;
+  anexos?: QuoteItemAttachment[];
 }

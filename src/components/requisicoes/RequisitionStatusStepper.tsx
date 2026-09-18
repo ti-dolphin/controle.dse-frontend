@@ -26,6 +26,7 @@ import RequisitionItemsTable from "./RequisitionItemsTable";
 import { set } from "lodash";
 import { RequisitionFileService } from "../../services/requisicoes/RequisitionFileService";
 import { normalizeText } from "../../utils";
+import CompareArrowsIcon from '@mui/icons-material/CompareArrows';
 
 interface RequisitionStatusStepperProps {
   id_requisicao: number;
@@ -95,7 +96,10 @@ const RequisitionStatusStepper = ({
     permissionToRevertStatus,
     fetchPermission,
   } = useRequisitionStatusPermissions(user, requisition);
-  const { statusList } = useRequisitionStatus(id_requisicao);
+  const { statusList } = useRequisitionStatus(
+    id_requisicao,
+    requisition.id_escopo_requisicao
+  );
   const { refresh } = useSelector((state: RootState) => state.requisitionItem);
   const [fillingComment, setFillingComment] = useState<boolean>(false);
   const [comment, setComment] = useState<string>("");
@@ -110,6 +114,8 @@ const RequisitionStatusStepper = ({
     "acao_anterior" | "acao_posterior" | null
   >(null);
   const [showMissingTargetPriceDialog, setShowMissingTargetPriceDialog] =
+    useState<boolean>(false);
+  const [showMissingDeliveryDateDialog, setShowMissingDeliveryDateDialog] =
     useState<boolean>(false);
   const [
     pendingStatusChangeMissingTarget,
@@ -222,7 +228,8 @@ const RequisitionStatusStepper = ({
   const validationRules = async (
     newStatus: RequisitionStatus,
     skipAttachmentValidation: boolean = false,
-    skipTargetValidation: boolean = false
+    skipTargetValidation: boolean = false,
+    skipDeliveryDateValidation: boolean = false
   ) => {
     if (!requisition.status) return;
     const advancingStatus = newStatus.etapa > requisition.status?.etapa || 0;
@@ -254,6 +261,16 @@ const RequisitionStatusStepper = ({
     const noItems = items.length === 0;
     if (noItems) {
       throw new Error("Requisição sem itens");
+    }
+
+    if (
+      normalizeText(requisition.status.nome) === "em producao" &&
+      normalizeText(newStatus.nome) === "lancar nf" &&
+      advancingStatus &&
+      !skipDeliveryDateValidation &&
+      items.some((item) => !item.data_entrega?.trim())
+    ) {
+      throw new Error("SHOW_MISSING_DELIVERY_DATE_DIALOG");
     }
 
     if (newStatus.nome === "Em Cotação" && advancingStatus) {
@@ -301,7 +318,8 @@ const RequisitionStatusStepper = ({
   const handleChangeStatus = async (
     type: "acao_anterior" | "acao_posterior",
     confirmValidation?: boolean,
-    skipTargetValidation?: boolean
+    skipTargetValidation?: boolean,
+    skipDeliveryDateValidation?: boolean
   ) => {
     const hasPermission =
       type === "acao_anterior"
@@ -322,12 +340,11 @@ const RequisitionStatusStepper = ({
     }
 
     if (type === "acao_anterior") {
-      const currentStatusId = requisition.id_status_requisicao;
-      const currentStatusNome = requisition.status?.nome?.toLowerCase() || '';
+      const currentStatusNome = normalizeText(requisition.status?.nome || '');
       
       const shouldShowRevertDialog = 
-        (currentStatusId === 6 || currentStatusId === 7) ||
-        (user?.PERM_COMPRADOR === 1 && (currentStatusNome === 'requisitado' || currentStatusNome === 'em cotação'));
+        ['aprovacao gerente', 'aprovacao diretoria'].includes(currentStatusNome) ||
+        (user?.PERM_COMPRADOR === 1 && ['requisitado', 'em cotacao'].includes(currentStatusNome));
       
       if (shouldShowRevertDialog) {
         setShowRevertSelectionDialog(true);
@@ -345,9 +362,14 @@ const RequisitionStatusStepper = ({
           await validationRules(
             newStatus,
             confirmValidation || false,
-            skipTargetValidation || false
+            skipTargetValidation || false,
+            skipDeliveryDateValidation || false
           );
         } catch (error: any) {
+          if (error.message === "SHOW_MISSING_DELIVERY_DATE_DIALOG") {
+            setShowMissingDeliveryDateDialog(true);
+            return;
+          }
           if (error.message === "SHOW_VALIDATION_DIALOG") {
             setPendingStatusChange(type);
             setShowValidationDialog(true);
@@ -773,6 +795,11 @@ const RequisitionStatusStepper = ({
     setPendingStatusChange(null);
   };
 
+  const confirmMissingDeliveryDateStatusChange = async () => {
+    setShowMissingDeliveryDateDialog(false);
+    await handleChangeStatus("acao_posterior", false, false, true);
+  };
+
   const cancelValidationStatusChange = () => {
     setShowValidationDialog(false);
     setPendingStatusChange(null);
@@ -802,14 +829,9 @@ const RequisitionStatusStepper = ({
     setShowValueIncreaseDialog(false);
 
     try {
-      const scopeApprovalMap: { [key: number]: number } = {
-        2: 7,
-        3: 110,
-        5: 118,
-      };
-
-      const approvalStatusId =
-        scopeApprovalMap[requisition.id_escopo_requisicao];
+      const approvalStatusId = statusList.find(
+        status => normalizeText(status.nome) === 'aprovacao diretoria'
+      )?.id_status_requisicao;
 
       if (!approvalStatusId) {
         dispatch(
@@ -990,17 +1012,14 @@ const RequisitionStatusStepper = ({
     }, []);
 
   const canChangeRequisitionType = (): boolean => {
-    const allowedStatusIds = [1, 2, 3, 10, 107, 108, 109, 115, 116, 117];
-    return allowedStatusIds.includes(
-      requisition.status?.id_status_requisicao ?? 0
-    );
+    return ['em edicao', 'requisitado', 'em cotacao', 'validacao', 'definicao ti']
+      .includes(normalizeText(requisition.status?.nome || ''));
   };
 
   const canSendToReviewStock = () => {
-    const allowedStatusIds = [2, 3, 6, 7]
-    return allowedStatusIds.includes(
-      requisition.status?.id_status_requisicao ?? 0
-    )
+    return [2, 4].includes(Number(requisition.id_escopo_requisicao)) &&
+      ['requisitado', 'em cotacao', 'aprovacao gerente', 'aprovacao diretoria', 'validacao']
+        .includes(normalizeText(requisition.status?.nome || ''));
   }
 
   const sendToReviewStock = async () => {
@@ -1101,7 +1120,7 @@ const RequisitionStatusStepper = ({
           sx={{ maxHeight: 35, px: { xs: 0.5, sm: 1 } }}
         >
           <Typography fontSize={12}>Verificar Estoque</Typography>
-          <SwapHorizIcon fontSize="small" />
+          <CompareArrowsIcon fontSize="small" />
         </Button>
         )}
         {permissionToCancel && (
@@ -1349,6 +1368,39 @@ const RequisitionStatusStepper = ({
             onClick={confirmMissingTargetPriceStatusChange}
           >
             Confirmar
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      <Dialog
+        open={showMissingDeliveryDateDialog}
+        onClose={() => setShowMissingDeliveryDateDialog(false)}
+        aria-labelledby="missing-delivery-date-title"
+        aria-describedby="missing-delivery-date-description"
+      >
+        <DialogTitle id="missing-delivery-date-title">
+          Avançar sem data de entrega?
+        </DialogTitle>
+        <DialogContent>
+          <Typography id="missing-delivery-date-description">
+            Existem itens sem data de entrega preenchida. Deseja mesmo avançar
+            para "Lançar NF" sem preencher a data de entrega de todos os itens?
+          </Typography>
+        </DialogContent>
+        <DialogActions>
+          <Button
+            variant="outlined"
+            size="small"
+            onClick={() => setShowMissingDeliveryDateDialog(false)}
+          >
+            Cancelar
+          </Button>
+          <Button
+            variant="contained"
+            size="small"
+            onClick={confirmMissingDeliveryDateStatusChange}
+          >
+            Avançar mesmo assim
           </Button>
         </DialogActions>
       </Dialog>
