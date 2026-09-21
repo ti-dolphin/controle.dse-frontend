@@ -209,31 +209,22 @@ export const NON_REGISTERED_PRODUCT_CODE = "06.001.04.0002";
 
 /**
  * Observação a ser exibida junto da descrição do produto em telas de cotação.
- * Itens do produto genérico "não cadastrado" já usam a observação como
- * descrição, então repeti-la ao lado só duplicaria o texto.
+ * Prioriza a observação da cotação e usa a da requisição quando estiver vazia.
  */
 export function getQuoteItemObservation(item: {
   observacao?: string | null;
+  observacao_requisicao?: string | null;
   produto_codigo?: string | null;
   produto_descricao?: string | null;
 }): string {
-  const observacao = String(item?.observacao ?? "").trim();
-
-  if (!observacao) {
-    return "";
-  }
-
-  const productCode = String(item?.produto_codigo ?? "").trim();
-  if (productCode === NON_REGISTERED_PRODUCT_CODE) {
-    return "";
-  }
-
-  const descricao = String(item?.produto_descricao ?? "").trim();
-  if (descricao.toUpperCase() === observacao.toUpperCase()) {
-    return "";
-  }
-
-  return observacao;
+  // O marcador usado pela tabela pode ter sido salvo por edições anteriores.
+  // Ele não deve impedir a exibição da observação da requisição.
+  const normalizeObservation = (value: string | null | undefined) => {
+    const text = String(value ?? "").trim();
+    return /^n\s*\/\s*a$/i.test(text) ? "" : text;
+  };
+  return normalizeObservation(item?.observacao) ||
+    normalizeObservation(item?.observacao_requisicao);
 }
 
 /**

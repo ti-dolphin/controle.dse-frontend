@@ -16,7 +16,7 @@ import { ChangeEvent, useState } from "react";
 import AttachFileIcon from "@mui/icons-material/AttachFile";
 import CloseIcon from "@mui/icons-material/Close";
 import ContentCopyIcon from "@mui/icons-material/ContentCopy";
-import { calculateQuoteSubtotal, formatDecimalPtBr2To3, formatQuantidade } from "../../utils";
+import { calculateQuoteSubtotal, formatDecimalPtBr2To3, formatQuantidade, getQuoteItemObservation } from "../../utils";
 import FileIcon from '@mui/icons-material/FilePresent';
 import { QuoteItemAttachment } from "../../models/requisicoes/QuoteItemAttachment";
 import QuoteItemAttachmentList from "../../components/requisicoes/QuoteItemAttachmentList";
@@ -96,9 +96,10 @@ export const useQuoteItemColumns = (
     {
       field: "observacao",
       headerName: "Observação",
+      minWidth: 160,
       flex: 1,
       editable: true,
-      valueGetter: (observacao: string) => observacao || "N/A",
+      valueGetter: (_value, row) => getQuoteItemObservation(row),
       renderCell: (params: any) => (
         <Box
           sx={{
@@ -117,7 +118,7 @@ export const useQuoteItemColumns = (
             </IconButton>
           </Tooltip>
           <Typography fontSize="small" fontWeight="bold">
-            {params.value}
+            {params.value || "N/A"}
           </Typography>
         </Box>
       ),

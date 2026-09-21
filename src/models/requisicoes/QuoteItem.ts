@@ -9,6 +9,7 @@ export interface QuoteItem {
   subtotal: number;
   id_item_requisicao: number;
   observacao: string | null;
+  observacao_requisicao?: string | null;
   ICMS: number;
   IPI: number;
   ST: number;
