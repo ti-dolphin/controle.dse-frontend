@@ -12,7 +12,7 @@ import RadioButtonUncheckedIcon from "@mui/icons-material/RadioButtonUnchecked";
 import CheckCircleIcon from "@mui/icons-material/CheckCircle";
 import { useRequisitionItemColumns } from "../../hooks/requisicoes/useRequisitionItemColumns";
 import { RequisitionItem } from "../../models/requisicoes/RequisitionItem";
-import { formatCurrency } from "../../utils";
+import { calculateUnitPriceWithTaxes, formatCurrency } from "../../utils";
 import CloseIcon from '@mui/icons-material/Close';
 import {
   Box,
@@ -151,6 +151,7 @@ const RequisitionItemsTable = ({
   const [quoteItemsSelected, setQuoteItemsSelected] = useState<Map<number, number>>(new Map());
   const [loading, setLoading] = useState(false);
   const [blockFields, setBlockFields] = useState(false);
+  const [selectingCheapest, setSelectingCheapest] = useState(false);
   const [quoteListOpen, setQuoteListOpen] = useState<boolean>(false);
   const [patrimonyDialogOpen, setPatrimonyDialogOpen] = useState(false);
   const [selectedPatrimonyItem, setSelectedPatrimonyItem] = useState<RequisitionItem | null>(null);
@@ -239,6 +240,13 @@ const RequisitionItemsTable = ({
 
   }, [permissionsFromHook, requisition?.status, user]);
   const { editItemFieldsPermitted, createQuotePermitted } = permissions;
+  const canSelectCheapest = [
+    "em cotacao",
+    "aprovacao gerente",
+    "aprovacao diretoria",
+    "comprar",
+  ].includes(normalizeText(requisition.status?.nome)) &&
+    !addingReqItems && !updatingRecentProductsQuantity && !attendingItems;
 
   useEffect(() => {
     itemsRef.current = items;
@@ -1312,6 +1320,65 @@ const RequisitionItemsTable = ({
     });
   };
 
+  const handleSelectCheapest = async () => {
+    if (!canSelectCheapest || !editItemFieldsPermitted || loading || blockFields) return;
+
+    setSelectingCheapest(true);
+    setBlockFields(true);
+    let updatedCount = 0;
+    try {
+      // Compare all quotation options, including items hidden by table filters.
+      const allItems = await RequisitionItemService.getMany({
+        id_requisicao: requisition.ID_REQUISICAO,
+      });
+      for (const item of allItems) {
+        let cheapestId: number | undefined;
+        let cheapestPrice = Infinity;
+        for (const option of item.items_cotacao ?? []) {
+          if (!option || Number(option.indisponivel) > 0 ||
+              option.preco_unitario == null) continue;
+          const unitPrice = Number(option.preco_unitario);
+          const price = calculateUnitPriceWithTaxes(
+            unitPrice, Number(option.IPI || 0), Number(option.ST || 0)
+          );
+          if (!Number.isFinite(unitPrice) || unitPrice <= 0 ||
+              !Number.isFinite(price) || price <= 0) continue;
+          // Preserve the current supplier when the lowest prices are tied.
+          if (price < cheapestPrice || (price === cheapestPrice &&
+              Number(option.id_item_cotacao) === Number(item.id_item_cotacao))) {
+            cheapestPrice = price;
+            cheapestId = Number(option.id_item_cotacao);
+          }
+        }
+        if (!cheapestId || cheapestId === Number(item.id_item_cotacao)) continue;
+        const result = await RequisitionItemService.updateQuoteItemsSelected(
+          item.id_item_requisicao, cheapestId
+        );
+        if (!result.updated) throw new Error("Falha ao salvar seleção");
+        updatedCount += 1;
+      }
+      dispatch(setFeedback({
+        message: updatedCount > 0
+          ? `Cotação mais barata selecionada para ${updatedCount} item(ns).`
+          : "Nenhuma alteração necessária: os menores preços válidos já estão selecionados ou não há opções disponíveis.",
+        type: "success",
+      }));
+    } catch {
+      dispatch(setFeedback({
+        message: `Não foi possível concluir a seleção. ${updatedCount} item(ns) atualizado(s). Tente novamente.`,
+        type: "error",
+      }));
+    } finally {
+      if (updatedCount > 0) {
+        debouncedRecalculateTotals.cancel();
+        await recalculateQuoteItemsTotals();
+      }
+      await fetchData();
+      setBlockFields(false);
+      setSelectingCheapest(false);
+    }
+  };
+
   const handleChangeQuoteSelected = useCallback(async () => {
     if (currentQuoteIdSelected) {
       const quote: Partial<Quote> = await QuoteService.getById(
@@ -1525,7 +1592,18 @@ const RequisitionItemsTable = ({
       <BaseTableToolBar
         ref={toolbarRef}
         handleChangeSearchTerm={debouncedHandleChangeSearchTerm}
-      />
+      >
+        {canSelectCheapest && (
+          <Button
+            variant="outlined"
+            size="small"
+            disabled={!editItemFieldsPermitted || loading || blockFields}
+            onClick={handleSelectCheapest}
+          >
+            {selectingCheapest ? "Selecionando..." : "Selecionar menores preços"}
+          </Button>
+        )}
+      </BaseTableToolBar>
       <Box
         ref={tableWrapperRef}
         sx={{
