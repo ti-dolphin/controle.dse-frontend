@@ -214,12 +214,6 @@ export const useRequisitionItemColumns = (
       )
     },
     {
-      field: "id_item_requisicao",
-      headerName: "ID",
-      type: "number",
-      width: 50,
-    },
-    {
       field: "produto_codigo",
       headerName: "Cód. Produto",
       type: "string",
