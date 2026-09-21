@@ -36,7 +36,7 @@ const OpportunityForm = () => {
 
     const { projectOptions } = useProjectOptions();
     const {oppStatusOptions} = useOppStatusOptions();
-    const { clientOptions } = useClientOptions();
+    const { clientOptions } = useClientOptions(true);
     const {comercialResponsableOptions} = useComercialResponsableOptions();
     const { fields } = useOpportunityMandatoryFields(
       projectOptions,

@@ -25,6 +25,9 @@ const opportunitySlice = createSlice({
   initialState,
   reducers: {
     setCreating(state, action: PayloadAction<boolean>) {
+      if (action.payload && !state.creating) {
+        state.opportunity = { ...state.opportunity, CODSTATUS: 7 };
+      }
       state.creating = action.payload;
     },
     setViewing(state, action: PayloadAction<boolean>) {

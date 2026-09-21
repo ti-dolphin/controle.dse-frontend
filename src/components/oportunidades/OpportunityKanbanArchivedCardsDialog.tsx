@@ -40,7 +40,7 @@ const OpportunityKanbanArchivedCardsDialog = ({ open, board, onClose, onUnarchiv
       setLoading(true)
       try {
         const [cardsData, columnsData] = await Promise.all([
-          OpportunityKanbanService.getArchivedCards(),
+          OpportunityKanbanService.getArchivedCards(board),
           OpportunityKanbanService.getColumns(board),
         ])
         setCards(cardsData)

@@ -32,8 +32,8 @@ const OpportunityKanbanService = {
     const response = await api.put(`${API_ENDPOINT}/colunas/${id}`, { name });
     return response.data;
   },
-  getArchivedCards: async (): Promise<ArchivedOpportunity[]> => {
-    const response = await api.get(`${API_ENDPOINT}/arquivados`)
+  getArchivedCards: async (board: KanbanBoardName): Promise<ArchivedOpportunity[]> => {
+    const response = await api.get(`${API_ENDPOINT}/arquivados`, { params: { board } })
     return response.data
   }
 };

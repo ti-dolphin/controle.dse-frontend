@@ -1,4 +1,5 @@
-import { Box, Chip, CircularProgress, IconButton, Stack, TextField, Tooltip, Typography, Button, Menu, MenuItem, Checkbox, ListItemText, Divider, } from "@mui/material"
+import { Box, Chip, CircularProgress, IconButton, InputAdornment, Stack, TextField, Tooltip, Typography, Button, Menu, MenuItem, Checkbox, ListItemText, Divider, } from "@mui/material"
+import SearchIcon from "@mui/icons-material/Search"
 import CheckIcon from "@mui/icons-material/Check"
 import CloseIcon from "@mui/icons-material/Close"
 import DeleteOutlineIcon from "@mui/icons-material/DeleteOutline"
@@ -26,15 +27,20 @@ interface OpportunityKanbanComponentProps {
 
 type ColumnField = "kanban_column_id" | "kanban_column_id_orcamento"
 
+const normalizeSearch = (value: string) => value.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase().trim()
+
 const buildBoardData = (
   columns: OpportunityKanbanColumn[],
   cards: KanbanCardOpportunity[],
   followerIds: number[],
-  columnField: ColumnField
+  columnField: ColumnField,
+  searchTerm: string
 ): KanbanBoard<OpportunityKanbanCardData> => {
-  const filteredCards = followerIds.length === 0
-    ? cards
-    : cards.filter((opportunity) => opportunity.seguidores.some((seguidor) => followerIds.includes(seguidor.CODPESSOA)))
+  const search = normalizeSearch(searchTerm)
+  const filteredCards = cards.filter((opportunity) =>
+    normalizeSearch(opportunity.NOME || "").includes(search) &&
+    (followerIds.length === 0 || opportunity.seguidores.some((seguidor) => followerIds.includes(seguidor.CODPESSOA)))
+  )
 
   return {
     columns: columns.map((column) => ({
@@ -58,6 +64,8 @@ const OpportunityKanbanComponent = ({ board }: OpportunityKanbanComponentProps) 
   const [allCards, setAllCards] = useState<KanbanCardOpportunity[]>([])
   const [kanbanBoardData, setKanbanBoardData] = useState<KanbanBoard<OpportunityKanbanCardData>>({ columns: [] })
   const [selectedFollowerIds, setSelectedFollowerIds] = useState<number[]>([])
+  const [searchTerm, setSearchTerm] = useState("")
+  const searchTermRef = useRef("")
   const [followerFilterAnchorEl, setFollowerFilterAnchorEl] = useState<null | HTMLElement>(null)
   const [loading, setLoading] = useState(false)
   const [selectedOpportunity, setSelectedOpportunity] = useState<KanbanCardOpportunity | null>(null)
@@ -101,12 +109,12 @@ const OpportunityKanbanComponent = ({ board }: OpportunityKanbanComponentProps) 
       ? [...selectedFollowerIds, codpessoa]
       : selectedFollowerIds.filter((id) => id !== codpessoa)
     setSelectedFollowerIds(nextIds)
-    setKanbanBoardData(buildBoardData(columns, allCards, nextIds, columnField))
+    setKanbanBoardData(buildBoardData(columns, allCards, nextIds, columnField, searchTerm))
   }
 
   const handleClearFollowerFilter = () => {
     setSelectedFollowerIds([])
-    setKanbanBoardData(buildBoardData(columns, allCards, [], columnField))
+    setKanbanBoardData(buildBoardData(columns, allCards, [], columnField, searchTerm))
     setFollowerFilterAnchorEl(null)
   }
 
@@ -120,7 +128,7 @@ const OpportunityKanbanComponent = ({ board }: OpportunityKanbanComponentProps) 
       ])
       setColumns(fetchedColumns)
       setAllCards(opps)
-      setKanbanBoardData(buildBoardData(fetchedColumns, opps, selectedFollowerIdsRef.current, columnField))
+      setKanbanBoardData(buildBoardData(fetchedColumns, opps, selectedFollowerIdsRef.current, columnField, searchTermRef.current))
     } catch (error) {
       dispatch(setFeedback({ message: "Erro ao carregar o kanban de oportunidades", type: "error" }))
     } finally {
@@ -235,7 +243,23 @@ const OpportunityKanbanComponent = ({ board }: OpportunityKanbanComponentProps) 
           borderBottom: '1px solid rgba(0,0,0,0.1)',
         }}
       >
-        <Box>
+        <Box sx={{ display: "flex", alignItems: "center", gap: 1, flexWrap: "wrap" }}>
+          <TextField
+            size="small"
+            placeholder="Buscar pelo nome do card..."
+            value={searchTerm}
+            onChange={(event) => {
+              const value = event.target.value
+              setSearchTerm(value)
+              searchTermRef.current = value
+              setKanbanBoardData(buildBoardData(columns, allCards, selectedFollowerIds, columnField, value))
+            }}
+            inputProps={{ "aria-label": "Buscar pelo nome do card" }}
+            InputProps={{
+              startAdornment: <InputAdornment position="start"><SearchIcon fontSize="small" /></InputAdornment>,
+            }}
+            sx={{ width: { xs: 220, sm: 300 } }}
+          />
           <Button
             variant="outlined"
             startIcon={<FilterAltOutlinedIcon />}

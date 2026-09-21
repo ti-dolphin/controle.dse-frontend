@@ -1,14 +1,20 @@
-import React, { useCallback, useEffect, useState } from "react";
+import React, { useState } from "react";
 import { Box, Tabs, Tab } from "@mui/material";
 import UpperNavigation from "../../components/shared/UpperNavigation";
 import { useNavigate } from "react-router-dom";
 import OpportunityTableComponent from "../../components/oportunidades/OpportunityTableComponent";
 import OpportunityKanbanComponent from "../../components/oportunidades/OpportunityKanbanComponent";
+import { useSelector } from "react-redux";
+import { RootState } from "../../redux/store";
 
 const OpportunityListPage = () => {
   const navigate = useNavigate();
+  const user = useSelector((state: RootState) => state.user.user);
+  const canViewOrcamento =
+    Number(user?.PERM_CRM) === 1 || Number(user?.PERM_ADMINISTRADOR) === 1;
 
   const [activeTab, setActiveTab] = useState(0);
+  const visibleTab = activeTab === 2 && !canViewOrcamento ? 0 : activeTab;
 
   const handleTabChange = (_event: React.SyntheticEvent, newValue: number) => {
     setActiveTab(newValue);
@@ -33,7 +39,7 @@ const OpportunityListPage = () => {
 
         <Box sx={{ borderBottom: 1, borderColor: "divider", backgroundColor: "white" }}>
           <Tabs
-            value={activeTab}
+            value={visibleTab}
             onChange={handleTabChange}
             sx={{
               minHeight: 36,
@@ -47,13 +53,13 @@ const OpportunityListPage = () => {
           >
             <Tab label="Tabela" />
             <Tab label="Comercial" />
-            <Tab label="Orçamento" />
+            {canViewOrcamento && <Tab label="Orçamento" />}
           </Tabs>
         </Box>
 
-        {activeTab === 0 && <OpportunityTableComponent />}
-        {activeTab === 1 && <OpportunityKanbanComponent board="Comercial" />}
-        {activeTab === 2 && <OpportunityKanbanComponent board="Orçamento" />}
+        {visibleTab === 0 && <OpportunityTableComponent />}
+        {visibleTab === 1 && <OpportunityKanbanComponent board="Comercial" />}
+        {visibleTab === 2 && canViewOrcamento && <OpportunityKanbanComponent board="Orçamento" />}
       </Box>
     </Box>
 

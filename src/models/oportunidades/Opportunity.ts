@@ -9,6 +9,9 @@ import { KanbanBoardName } from "../../utils/kanbanFlowRules";
 import { KanbanCardOpportunity, OpportunityKanbanColumn } from "./OpportunityKanbanColumn";
 
 export interface Opportunity {
+  criado_por?: number | null;
+  criado_em?: string | null;
+  criado_por_nome?: string | null;
   CODOS: number;
   CODTIPOOS: number;
   CODCCUSTO: string;
