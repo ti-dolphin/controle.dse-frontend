@@ -29,6 +29,7 @@ const OPPORTUNITY_TABLE_KEY='opportunity-list'
 const OpportunityTableComponent = () => {
 const dispatch = useDispatch();
 const user = useSelector((state: RootState) => state.user.user);
+const canViewAll = Number(user?.PERM_CRM) === 1;
 const navigate = useNavigate();
 const {loading, rows, searchTerm } = useSelector((state: RootState) => state.opportunityTable);
 const { columns: rawColumns } = useOpportunityColumns();
@@ -39,6 +40,7 @@ const [columnFiltersHeight, setColumnFiltersHeight] = useState(0);
 const columnFiltersRef = React.useRef<HTMLDivElement>(null);
 const { filters, handleChangeFilters, clearFilters , activeFilters} = useOpportunityFilters();
 const [finalizados, setFinalizados] = useState(false);
+const [todos, setTodos] = useState(false);
 const {isMobile } = useIsMobile();
 const gridContainerRef = React.useRef<HTMLDivElement>(null);
 const changeSearchTerm = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -85,6 +87,7 @@ const fetchData = useCallback(async () => {
           searchTerm,
           filters,
           finalizados,
+          todos: canViewAll && todos,
         });
       dispatch(setRows(opps));
       dispatch(
@@ -103,7 +106,7 @@ const fetchData = useCallback(async () => {
       });
     }
   }
-}, [dispatch, searchTerm, filters, finalizados]);
+}, [dispatch, user, searchTerm, filters, finalizados, todos, canViewAll]);
 
 useEffect(() => {
   fetchData();
@@ -134,6 +137,7 @@ useEffect(()=> {
         }}
       >
         <BaseTableToolBar handleChangeSearchTerm={handleChangeSearchTerm}>
+          
           {!isMobile && (
             <Button
               variant="contained"
@@ -158,6 +162,25 @@ useEffect(()=> {
           onClick={openFormModal}
           />
           <OpportunityFormModal />
+          {canViewAll && (
+          <Stack
+            direction={"row"}
+            alignItems={"center"}
+            sx={{ padding: 0, gap: 1 }}
+          >
+            <Checkbox
+              sx={{ padding: 0 }}
+              checkedIcon={<CheckCircleIcon />}
+              icon={<RadioButtonUncheckedIcon />}
+              checked={todos}
+              onChange={(e) => setTodos(e.target.checked)}
+              inputProps={{ "aria-label": "Todos (ver tudo)" }}
+            />
+            <Typography fontSize={"12px"} variant="body2" sx={{ padding: 0 }}>
+              Ver tudo
+            </Typography>
+          </Stack>
+          )}
           <Stack
             direction={"row"}
             alignItems={"center"}
