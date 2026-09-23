@@ -13,7 +13,7 @@ import { RootState } from "../../redux/store"
 import { setFeedback } from "../../redux/slices/feedBackSlice"
 import OpportunityKanbanService from "../../services/oportunidades/OpportunityKanbanService"
 import { KanbanCardOpportunity, OpportunityKanbanCardData, OpportunityKanbanColumn } from "../../models/oportunidades/OpportunityKanbanColumn"
-import OpportunityCard from "./OpportunityCard"
+import OpportunityCard, { formatCardTitle } from "./OpportunityCard"
 import BaseDeleteDialog from "../shared/BaseDeleteDialog"
 import OpportunityKanbanCardDialog from "./OpportunityKanbanCardDialog"
 import OpportunityKanbanArchivedCardsDialog from "./OpportunityKanbanArchivedCardsDialog";
@@ -38,7 +38,9 @@ const buildBoardData = (
 ): KanbanBoard<OpportunityKanbanCardData> => {
   const search = normalizeSearch(searchTerm)
   const filteredCards = cards.filter((opportunity) =>
-    normalizeSearch(opportunity.NOME || "").includes(search) &&
+    (normalizeSearch(opportunity.NOME || "").includes(search) ||
+      normalizeSearch(formatCardTitle(opportunity)).includes(search) ||
+      String(opportunity.projeto?.ID ?? "").includes(search)) &&
     (followerIds.length === 0 || opportunity.seguidores.some((seguidor) => followerIds.includes(seguidor.CODPESSOA)))
   )
 
@@ -247,7 +249,7 @@ const OpportunityKanbanComponent = ({ board }: OpportunityKanbanComponentProps) 
         <Box sx={{ display: "flex", alignItems: "center", gap: 1, flexWrap: "wrap" }}>
           <TextField
             size="small"
-            placeholder="Buscar pelo nome do card..."
+            placeholder="Buscar por nome, projeto ou DSE..."
             value={searchTerm}
             onChange={(event) => {
               const value = event.target.value
@@ -255,7 +257,7 @@ const OpportunityKanbanComponent = ({ board }: OpportunityKanbanComponentProps) 
               searchTermRef.current = value
               setKanbanBoardData(buildBoardData(columns, allCards, selectedFollowerIds, columnField, value))
             }}
-            inputProps={{ "aria-label": "Buscar pelo nome do card" }}
+            inputProps={{ "aria-label": "Buscar por nome, número do projeto ou código DSE" }}
             InputProps={{
               startAdornment: <InputAdornment position="start"><SearchIcon fontSize="small" /></InputAdornment>,
             }}

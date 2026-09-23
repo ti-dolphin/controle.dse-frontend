@@ -33,7 +33,7 @@ const formatCardDate = (data?: string | null) => {
 
 const DSE_CODE_PATTERN = /-?\s*DSE\s*(\d+)\s*$/i;
 
-const formatCardTitle = (row: any) => {
+export const formatCardTitle = (row: any) => {
   const numero = row?.adicional?.NUMERO ?? 0;
   const projetoId = numero ? `${row?.projeto?.ID ?? "-"}.${numero}` : row?.projeto?.ID ?? "-";
   const nomeFantasia: string = row?.cliente?.NOMEFANTASIA ?? "-";
