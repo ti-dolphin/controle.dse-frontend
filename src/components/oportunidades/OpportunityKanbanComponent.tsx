@@ -170,7 +170,8 @@ const OpportunityKanbanComponent = ({ board }: OpportunityKanbanComponentProps) 
     if (!source || !destination || destination.toColumnId === undefined) return
     const targetColumnId = Number(destination.toColumnId)
     if (destination.toColumnId !== source.fromColumnId) {
-      const moveCheck = isManualMoveAllowed(targetColumnId)
+      const canRelease = Number(user?.PERM_CHECAGEM_CRM) === 1 || Number(user?.PERM_ADMINISTRADOR) === 1
+      const moveCheck = isManualMoveAllowed(targetColumnId, board, Number(source.fromColumnId), canRelease)
       if (!moveCheck.allowed) {
         dispatch(setFeedback({ message: moveCheck.message, type: "error" }))
         return

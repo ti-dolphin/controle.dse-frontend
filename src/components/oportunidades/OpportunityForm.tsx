@@ -137,7 +137,7 @@ const OpportunityForm = () => {
       return {
         NOME: opportunity?.NOME,
         ID_PROJETO: isAdicional ? opportunity?.ID_PROJETO : null,
-        CODSTATUS: opportunity?.CODSTATUS,
+        CODSTATUS: opportunity?.CODSTATUS ?? 7,
         DATASOLICITACAO: opportunity?.DATASOLICITACAO
           ? formatDateStringtoISOstring(opportunity.DATASOLICITACAO)
           : null,
@@ -249,7 +249,9 @@ const OpportunityForm = () => {
                       options={field.options}
                       optionHeight={field.field === 'FK_CODCLIENTE' ? 60 : 30}
                       value={
-                        opportunity
+                        field.field === "CODSTATUS"
+                          ? String(opportunity?.CODSTATUS ?? 7)
+                          : opportunity
                           ? String(
                               opportunity[field.field as keyof Opportunity]
                             )
