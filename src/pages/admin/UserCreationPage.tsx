@@ -97,7 +97,7 @@ const UserCreationPage = () => {
 
     const rhPermissions = form.PERM_RH
       ? {
-          PERM_APONT: true,
+          PERM_APONT_WEB: 1,
           PERM_STATUS_APONT: true,
           PERM_GESTAO_PESSOAS: true,
           PERM_CONTROLE_RECESSO: true,

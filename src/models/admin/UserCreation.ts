@@ -38,7 +38,7 @@ export const baseUserPermissionsPayload = {
   PERM_OS: false,
   PERM_TIPO: false,
   PERM_STATUS: false,
-  PERM_APONT: false,
+  PERM_APONT_WEB: 0,
   PERM_STATUS_APONT: false,
   PERM_GESTAO_PESSOAS: false,
   PERM_CONTROLE_RECESSO: false,
