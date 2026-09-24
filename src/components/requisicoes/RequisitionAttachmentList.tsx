@@ -21,6 +21,7 @@ import { useDispatch, useSelector } from "react-redux";
 import { RootState } from "../../redux/store";
 import FirebaseService from "../../services/FireBaseService";
 import { setFeedback } from "../../redux/slices/feedBackSlice";
+import { toggleRefreshReqComments } from "../../redux/slices/requisicoes/requisitionCommentSlice";
 import BaseDeleteDialog from "../shared/BaseDeleteDialog";
 import BaseViewFileDialog from "../shared/BaseVIewFileDialog";
 import BaseInputDialog from "../shared/BaseInputDialog";
@@ -147,6 +148,7 @@ const RequisitionAttachmentList = ({
         }
       }
       await fetchAttachments();
+      if (uploaded > 0) dispatch(toggleRefreshReqComments());
       dispatch(
         setFeedback({
           message: failedFiles.length
@@ -180,6 +182,7 @@ const RequisitionAttachmentList = ({
         await FirebaseService.delete(deletingFile.arquivo);
       }
       await RequisitionFileService.delete(id);
+      dispatch(toggleRefreshReqComments());
       setAttachments((prev) => prev.filter((a) => a.id !== id));
       dispatch(
         setFeedback({
@@ -232,6 +235,7 @@ const RequisitionAttachmentList = ({
     setLoading(true);
     try {
       const createdLink = await RequisitionFileService.create(newLink);
+      dispatch(toggleRefreshReqComments());
       setAttachments((prev) => [...prev, createdLink]);
       dispatch(
         setFeedback({

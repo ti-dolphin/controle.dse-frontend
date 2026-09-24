@@ -20,6 +20,7 @@ import { useDispatch, useSelector } from "react-redux";
 import { RootState } from "../../redux/store";
 import FirebaseService from "../../services/FireBaseService";
 import { setFeedback } from "../../redux/slices/feedBackSlice";
+import { toggleRefreshReqComments } from "../../redux/slices/requisicoes/requisitionCommentSlice";
 import BaseDeleteDialog from "../shared/BaseDeleteDialog";
 import { QuoteFile } from "../../models/requisicoes/QuoteFile";
 import { QuoteFileService } from "../../services/requisicoes/QuoteFileService";
@@ -124,6 +125,7 @@ const QuoteAttachmentList: React.FC<QuoteAttachmentListProps> = ({
         }
       }
       await fetchAttachments();
+      if (uploaded > 0) dispatch(toggleRefreshReqComments());
       dispatch(
         setFeedback({
           message: failedFiles.length
@@ -157,6 +159,7 @@ const QuoteAttachmentList: React.FC<QuoteAttachmentListProps> = ({
         await FirebaseService.delete(deletingFile.url);
       }
       await QuoteFileService.delete(id_anexo_cotacao);
+      dispatch(toggleRefreshReqComments());
       setAttachments((prev) =>
         prev.filter((a) => a.id_anexo_cotacao !== id_anexo_cotacao)
       );
@@ -200,6 +203,7 @@ const QuoteAttachmentList: React.FC<QuoteAttachmentListProps> = ({
       const createdFile = await QuoteFileService.create(newFile);
       setAttachments((prev) => [...prev, createdFile]);
       fetchAttachments();
+      dispatch(toggleRefreshReqComments());
       dispatch(
         setFeedback({
           message: "Link adicionado como anexo!",
