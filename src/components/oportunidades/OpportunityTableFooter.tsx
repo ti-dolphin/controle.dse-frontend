@@ -8,10 +8,11 @@ export const OpportunityTableFooter: React.FC = () => {
   const totals = useSelector((state: any) => state.opportunityTable.totals);
 
   return (
-  <GridFooterContainer>
+  <GridFooterContainer sx={{ flexShrink: 0, flexWrap: "wrap" }}>
     <Box
       sx={{
         display: "flex",
+        flexWrap: "wrap",
         justifyContent: "space-between",
         alignItems: "center",
         padding: "10px",

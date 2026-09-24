@@ -125,13 +125,18 @@ useEffect(()=> {
   return (
     <Box
       sx={{
-        height: "100vh",
+        flex: 1,
+        minHeight: 0,
         width: "100%",
+        display: "flex",
+        flexDirection: "column",
+        overflow: "hidden",
       }}
     >
       <Box
         sx={{
-          height: "calc(100% - 50px)",
+          flex: 1,
+          minHeight: 0,
           display: "flex",
           flexDirection: "column",
         }}
@@ -227,6 +232,7 @@ useEffect(()=> {
           </Box>
         ) : (
           <BaseDataTable
+            sx={{ flex: 1, minHeight: 0 }}
             rows={rows}
             columns={columns}
             columnVisibilityModel={columnVisibilityModel}

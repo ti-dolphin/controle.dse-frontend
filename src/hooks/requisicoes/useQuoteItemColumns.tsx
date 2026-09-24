@@ -176,9 +176,7 @@ export const useQuoteItemColumns = (
       renderCell: (params: any) => (
         <Box sx={{ display: "flex", alignItems: "center", height: "100%" }}>
           <Typography fontSize="small" fontWeight="bold" color="black">
-            {params.value != null
-              ? formatDecimalPtBr2To3(Number(params.value))
-              : ""}
+            {formatDecimalPtBr2To3(Number(params.value ?? 0))}
           </Typography>
         </Box>
       ),

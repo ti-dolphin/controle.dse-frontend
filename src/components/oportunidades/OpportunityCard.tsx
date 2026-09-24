@@ -93,8 +93,8 @@ const OpportunityCard: React.FC<OpportunityCardProps> = ({
                 {formatCardDate(row?.data_planejada)}
               </Typography>
               <Typography variant="caption" sx={{ lineHeight: 1.35 }}>
-                <Box component="span" sx={{ fontWeight: 700 }}>Data de solicitação:</Box>{" "}
-                {formatCardDate(row?.DATASOLICITACAO)}
+                <Box component="span" sx={{ fontWeight: 700 }}>Data de envio inicial:</Box>{" "}
+                {formatCardDate(row?.DATAINICIO)}
               </Typography>
             </Stack>
           ) : row?.data_planejada ? (

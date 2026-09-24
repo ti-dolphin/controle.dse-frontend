@@ -1,6 +1,6 @@
-import React, { useEffect, useState, ChangeEvent } from "react";
+import React, { useEffect, useRef, useState, ChangeEvent } from "react";
+import AttachmentDropZone from "../shared/AttachmentDropZone";
 import {
-  Box,
   Typography,
   IconButton,
   List,
@@ -40,6 +40,7 @@ const QuoteAttachmentList: React.FC<QuoteAttachmentListProps> = ({
   const user = useSelector((state: RootState) => state.user.user);
   const [attachments, setAttachments] = useState<QuoteFile[]>([]);
   const [loading, setLoading] = useState(false);
+  const uploading = useRef(false);
   const [error, setError] = useState<string | null>(null);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [deletingFile, setDeletingFile] = useState<QuoteFile | null>(null);
@@ -101,41 +102,46 @@ const QuoteAttachmentList: React.FC<QuoteAttachmentListProps> = ({
     // eslint-disable-next-line
   }, [id_cotacao]);
 
-  const handleFileChange = async (e: ChangeEvent<HTMLInputElement>) => {
-    if (!e.target.files || e.target.files.length === 0) return;
-
-    const file = e.target.files[0];
-    const newFile: Partial<QuoteFile> = {
-      id_cotacao,
-      nome_arquivo: file.name,
-      url: "",
-    };
+  const uploadFiles = async (files: File[]) => {
+    if (!files.length || !user || loading || uploading.current) return;
+    uploading.current = true;
     setLoading(true);
+    const failedFiles: string[] = [];
+    let uploaded = 0;
     try {
-      const fileUrl = await FirebaseService.upload(
-        file,
-        newFile.nome_arquivo || ""
-      );
-      newFile.url = fileUrl;
-      const createdFile = await QuoteFileService.create(newFile);
-      setAttachments((prev) => [...prev, createdFile]);
-      fetchAttachments();
+      for (const file of files) {
+        try {
+          const newFile: Partial<QuoteFile> = {
+            id_cotacao,
+            nome_arquivo: file.name,
+            url: await FirebaseService.upload(file, file.name),
+          };
+          const createdFile = await QuoteFileService.create(newFile);
+          setAttachments((prev) => [...prev, createdFile]);
+          uploaded += 1;
+        } catch {
+          failedFiles.push(file.name);
+        }
+      }
+      await fetchAttachments();
       dispatch(
         setFeedback({
-          message: "Anexo adicionado!",
-          type: "success",
-        })
-      );
-    } catch (err: any) {
-      dispatch(
-        setFeedback({
-          message: `Houve um erro ao adicionar o anexo: ${err.message}`,
-          type: "error",
+          message: failedFiles.length
+            ? `${uploaded} anexo(s) adicionado(s). Não foi possível enviar: ${failedFiles.join(", ")}.`
+            : uploaded === 1 ? "Anexo adicionado!" : `${uploaded} anexos adicionados!`,
+          type: failedFiles.length ? "error" : "success",
         })
       );
     } finally {
+      uploading.current = false;
       setLoading(false);
     }
+  };
+
+  const handleFileChange = (event: ChangeEvent<HTMLInputElement>) => {
+    const files = Array.from(event.target.files ?? []);
+    event.target.value = "";
+    void uploadFiles(files);
   };
 
   const handleDelete = async () => {
@@ -214,7 +220,7 @@ const QuoteAttachmentList: React.FC<QuoteAttachmentListProps> = ({
   };
 
   return (
-    <Box>
+    <AttachmentDropZone disabled={loading || !user} onFiles={uploadFiles}>
       {error && (
         <Typography color="error" mb={1}>
           {error}
@@ -304,7 +310,7 @@ const QuoteAttachmentList: React.FC<QuoteAttachmentListProps> = ({
           disabled={loading}
         >
           Adicionar Anexo
-          <input type="file" hidden onChange={handleFileChange} accept="*" />
+          <input type="file" hidden multiple disabled={loading || !user} onChange={handleFileChange} accept="*" />
         </Button>
         {allowAddLink && (
           <Button
@@ -340,7 +346,7 @@ const QuoteAttachmentList: React.FC<QuoteAttachmentListProps> = ({
           setLinkInput(e.target.value)
         }
       />
-    </Box>
+    </AttachmentDropZone>
   );
 };
 

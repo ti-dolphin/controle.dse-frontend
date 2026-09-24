@@ -1,6 +1,6 @@
-import React, { useEffect, useState, ChangeEvent } from "react";
+import React, { useEffect, useRef, useState, ChangeEvent } from "react";
+import AttachmentDropZone from "../shared/AttachmentDropZone";
 import {
-  Box,
   Typography,
   IconButton,
   List,
@@ -39,6 +39,7 @@ const RequisitionAttachmentList = ({
   const user = useSelector((state: RootState) => state.user.user);
   const [attachments, setAttachments] = useState<RequisitionFile[]>([]);
   const [loading, setLoading] = useState(false);
+  const uploading = useRef(false);
   const [error, setError] = useState<string | null>(null);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [deletingFile, setDeletingFile] = useState<RequisitionFile | null>(
@@ -121,42 +122,49 @@ const RequisitionAttachmentList = ({
     // eslint-disable-next-line
   }, [id_requisicao]);
 
-  const handleFileChange = async (e: ChangeEvent<HTMLInputElement>) => {
-    if (!e.target.files || e.target.files.length === 0) return;
-    if (!user) return;
-    const file = e.target.files[0];
-    const newFile: RequisitionFile = {
-      id: Math.random(),
-      id_requisicao,
-      arquivo: "",
-      nome_arquivo: file.name,
-      criado_por: user.CODPESSOA,
-      criado_em: "",
-    };
+  const uploadFiles = async (files: File[]) => {
+    if (!files.length || !user || loading || uploading.current) return;
+    uploading.current = true;
     setLoading(true);
+    const failedFiles: string[] = [];
+    let uploaded = 0;
     try {
-      const fileUrl = await FirebaseService.upload(file, newFile.nome_arquivo);
-      newFile.arquivo = fileUrl;
-      const createdFile = await RequisitionFileService.create(newFile);
-      setAttachments((prev) => [...prev, createdFile]);
-      newFile.arquivo = fileUrl;
-      fetchAttachments();
+      for (const file of files) {
+        try {
+          const newFile: RequisitionFile = {
+            id: Math.random(),
+            id_requisicao,
+            arquivo: await FirebaseService.upload(file, file.name),
+            nome_arquivo: file.name,
+            criado_por: user.CODPESSOA,
+            criado_em: "",
+          };
+          const createdFile = await RequisitionFileService.create(newFile);
+          setAttachments((prev) => [...prev, createdFile]);
+          uploaded += 1;
+        } catch {
+          failedFiles.push(file.name);
+        }
+      }
+      await fetchAttachments();
       dispatch(
         setFeedback({
-          message: "Anexo adicionado!",
-          type: "success",
-        })
-      );
-    } catch (err: any) {
-      dispatch(
-        setFeedback({
-          message: `Houve um erro ao adicionar o anexo: ${err.message}`,
-          type: "error",
+          message: failedFiles.length
+            ? `${uploaded} anexo(s) adicionado(s). Não foi possível enviar: ${failedFiles.join(", ")}.`
+            : uploaded === 1 ? "Anexo adicionado!" : `${uploaded} anexos adicionados!`,
+          type: failedFiles.length ? "error" : "success",
         })
       );
     } finally {
+      uploading.current = false;
       setLoading(false);
     }
+  };
+
+  const handleFileChange = (event: ChangeEvent<HTMLInputElement>) => {
+    const files = Array.from(event.target.files ?? []);
+    event.target.value = "";
+    void uploadFiles(files);
   };
 
   const handleDelete = async () => {
@@ -245,7 +253,7 @@ const RequisitionAttachmentList = ({
   };
 
   return (
-    <Box>
+    <AttachmentDropZone disabled={loading || !user} onFiles={uploadFiles}>
       {error && (
         <Typography color="error" mb={1}>
           {error}
@@ -329,7 +337,7 @@ const RequisitionAttachmentList = ({
           component="label"
         >
           Adicionar Anexo
-          <input type="file" hidden onChange={handleFileChange} accept="*" />
+          <input type="file" hidden multiple disabled={loading || !user} onChange={handleFileChange} accept="*" />
         </Button>
         <Button
           variant="contained"
@@ -363,7 +371,7 @@ const RequisitionAttachmentList = ({
           setLinkInput(e.target.value)
         }
       />
-    </Box>
+    </AttachmentDropZone>
   );
 };
 

@@ -23,21 +23,24 @@ const OpportunityListPage = () => {
   return (
     <Box
       sx={{
-        height: "100vh",
+        height: "100dvh",
         width: "100%",
+        display: "flex",
+        flexDirection: "column",
       }}
     >
       <UpperNavigation handleBack={() => navigate("/")}/>
 
       <Box
         sx={{
-          height: "calc(100% - 50px)",
+          flex: 1,
+          minHeight: 0,
           display: "flex",
           flexDirection: "column",
         }}
       >
 
-        <Box sx={{ borderBottom: 1, borderColor: "divider", backgroundColor: "white" }}>
+        <Box sx={{ flexShrink: 0, borderBottom: 1, borderColor: "divider", backgroundColor: "white" }}>
           <Tabs
             value={visibleTab}
             onChange={handleTabChange}
