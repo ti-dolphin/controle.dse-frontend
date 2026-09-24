@@ -30,7 +30,7 @@ export const mapUserToEditForm = (user: User): UserEditFormState => ({
 // permissões de gestão de pessoas (mesma lógica da tela de cadastro).
 export const buildEditPayload = (form: UserEditFormState): Partial<User> => {
   const rhPermissions = {
-    PERM_APONT: form.PERM_RH,
+    PERM_APONT_WEB: form.PERM_RH ? 1 : 0,
     PERM_STATUS_APONT: form.PERM_RH,
     PERM_GESTAO_PESSOAS: form.PERM_RH,
     PERM_CONTROLE_RECESSO: form.PERM_RH,

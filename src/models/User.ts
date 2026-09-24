@@ -12,7 +12,7 @@ export interface User {
   PERM_OS: boolean;
   PERM_TIPO: boolean;
   PERM_STATUS: boolean;
-  PERM_APONT: boolean;
+  PERM_APONT_WEB: number | null;
   PERM_STATUS_APONT: boolean;
   PERM_PESSOAS: boolean;
   PERM_COMENT_OS: boolean;
