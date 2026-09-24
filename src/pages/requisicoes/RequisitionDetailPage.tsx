@@ -49,6 +49,7 @@ import { useIsMobile } from "../../hooks/useIsMobile";
 import SelectedQuoteItemsDialog from "../../components/requisicoes/SelectedQuoteItemsDialog";
 import RequisitionHeaderTitle from "../../components/requisicoes/RequisitionHeaderTitle";
 import { Requisition } from "../../models/requisicoes/Requisition";
+import AttachRequisitionItemsButton from "../../components/requisicoes/AttachRequisitionItemsButton";
 
 const RequisitionDetailPage = () => {
 
@@ -570,6 +571,7 @@ const RequisitionDetailPage = () => {
               </IconButton>
               {/* Adicionar itens */}
               <Stack direction="row" spacing={1} alignItems="center">
+                <AttachRequisitionItemsButton />
                 {shouldShowAddItemsButton() && (
                   <Button
                     onClick={() => dispatch(setAddingProducts(true))}
@@ -853,6 +855,7 @@ const RequisitionDetailPage = () => {
               spacing={1}
               alignItems="center"
             >
+              <AttachRequisitionItemsButton />
               {shouldShowAddItemsButton() && (
                 <Button
                   onClick={() => dispatch(setAddingProducts(true))}

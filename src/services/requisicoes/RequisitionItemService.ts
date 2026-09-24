@@ -4,6 +4,11 @@ import { RequisitionItem } from '../../models/requisicoes/RequisitionItem';
 const API_ENDPOINT = '/item_requisicao';
 
 export class RequisitionItemService {
+  static async importRows(id_requisicao: number, rows: unknown[][], replaceExisting: boolean): Promise<{ count: number }> {
+    const response = await api.post(`${API_ENDPOINT}/import`, { id_requisicao, rows, replaceExisting });
+    return response.data;
+  }
+
   static async getMany(params?: any): Promise<RequisitionItem[]> {
     const response = await api.get<RequisitionItem[]>(API_ENDPOINT, { params });
     return response.data;
