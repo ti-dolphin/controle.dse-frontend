@@ -1,4 +1,4 @@
-import { Autocomplete, AutocompleteRenderInputParams, Box, Button, Checkbox, Grid, Stack, TextField, Typography } from '@mui/material'
+import { Autocomplete, AutocompleteRenderInputParams, Box, Button, Checkbox, FormControlLabel, Grid, Stack, TextField, Typography } from '@mui/material'
 import React, { useState, useEffect, useCallback, useRef } from 'react'
 import { useProjectOptions } from '../../hooks/projectOptionsHook';
 import RadioButtonUncheckedIcon from "@mui/icons-material/RadioButtonUnchecked";
@@ -28,6 +28,7 @@ const OpportunityForm = () => {
     const user = useSelector((state: RootState) => state.user.user);
   
     const [isAdicional, setIsAdicional] = useState(false);
+    const [withoutDsePrefix, setWithoutDsePrefix] = useState(false);
     const [similarOpportunities, setSimilarOpportunities] = useState<SimilarOpportunity[]>([]);
     const [showSimilarModal, setShowSimilarModal] = useState(false);
     const [codosOriginal, setCodosOriginal] = useState<number | null>(null);
@@ -36,7 +37,7 @@ const OpportunityForm = () => {
 
     const { projectOptions } = useProjectOptions();
     const {oppStatusOptions} = useOppStatusOptions();
-    const { clientOptions } = useClientOptions(true);
+    const { clientOptions } = useClientOptions();
     const {comercialResponsableOptions} = useComercialResponsableOptions();
     const { fields } = useOpportunityMandatoryFields(
       projectOptions,
@@ -243,10 +244,19 @@ const OpportunityForm = () => {
                 if (field.field === "ID_PROJETO" && !isAdicional) return null;
                 return (
                   <Grid item xs={12} sm={8} key={index}>
+                    <Stack direction={{ xs: "column", sm: "row" }} alignItems={{ xs: "stretch", sm: "flex-end" }} gap={1}>
+                    <Box sx={{ flex: 1, minWidth: 0 }}>
                     <OptionsField
                       required={field.required}
                       label={field.label}
                       options={field.options}
+                      filterOption={field.field === "FK_CODCLIENTE" ? (option, search) => {
+                        const name = String(option.name ?? "");
+                        const matchesClientFilter = withoutDsePrefix
+                          ? !/^\s*DSE\s*\d+/i.test(name)
+                          : name.toLowerCase().includes("dse");
+                        return matchesClientFilter && name.toLowerCase().includes(search.toLowerCase());
+                      } : undefined}
                       optionHeight={field.field === 'FK_CODCLIENTE' ? 60 : 30}
                       value={
                         field.field === "CODSTATUS"
@@ -261,6 +271,15 @@ const OpportunityForm = () => {
                         handleChangeAutocomplete(field.field, optionId)}
                       }
                     />
+                    </Box>
+                    {field.field === "FK_CODCLIENTE" && (
+                      <FormControlLabel
+                        control={<Checkbox size="small" checked={withoutDsePrefix} onChange={(event) => setWithoutDsePrefix(event.target.checked)} />}
+                        label="Sem prefixo DSExxx"
+                        sx={{ m: 0, flexShrink: 0, "& .MuiFormControlLabel-label": { fontSize: 12 } }}
+                      />
+                    )}
+                    </Stack>
                   </Grid>
                 );
               }
