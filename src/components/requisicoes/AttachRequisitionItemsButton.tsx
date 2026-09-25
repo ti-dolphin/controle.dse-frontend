@@ -79,7 +79,7 @@ const AttachRequisitionItemsButton = () => {
         setReplaceExisting(false);
         setOpen(true);
       }}>
-        Anexar itens
+        Importar itens
       </Button>
       <Dialog open={open} onClose={() => { if (!busy) setOpen(false); }} fullWidth maxWidth="sm">
         <DialogTitle>Anexar itens</DialogTitle>
