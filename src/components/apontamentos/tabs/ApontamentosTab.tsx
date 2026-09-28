@@ -467,7 +467,7 @@ const ApontamentosTab: React.FC<ApontamentosTabProps> = ({
           anchorEl={statusMenuAnchorEl}
           open={Boolean(statusMenuAnchorEl)}
           onClose={closeStatusMenu}
-          PaperProps={{ style: { maxHeight: 320, width: 280 } }}
+          // PaperProps={{ style: { maxHeight: 320, width: 280 } }}
         >
           {statusOptions.map((status) => {
             const checked = (filters.CODSTATUSAPONT_IN || []).includes(status.CODSTATUSAPONT);
@@ -535,6 +535,7 @@ const ApontamentosTab: React.FC<ApontamentosTabProps> = ({
         rowCount={totalRows}
         paginationModel={{ page, pageSize }}
         onPaginationModelChange={(model: { page: number; pageSize: number }) => {
+          console.log('HAHAHAHA')
           dispatch(setPage(model.page));
           dispatch(setPageSize(model.pageSize));
         }}

@@ -233,7 +233,7 @@ const ProblemasTab: React.FC = () => {
         rows={problemaRows}
         disableColumnMenu
         disableColumnFilter
-        rowHeight={40}
+        rowHeight={26}
         columns={columns}
         columnVisibilityModel={columnVisibilityModel}
         loading={problemaLoading}
