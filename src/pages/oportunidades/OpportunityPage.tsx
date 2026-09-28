@@ -10,11 +10,10 @@ import { RootState } from "../../redux/store";
 const OpportunityListPage = () => {
   const navigate = useNavigate();
   const user = useSelector((state: RootState) => state.user.user);
-  const canViewOrcamento =
-    Number(user?.PERM_CRM) === 1 || Number(user?.PERM_ADMINISTRADOR) === 1;
+  const canViewOrcamento = Number(user?.PERM_CRM) === 1 || Number(user?.PERM_ADMINISTRADOR) === 1;
+  const canViewComercial = Number(user?.PERM_COMERCIAL) === 1 || Number(user?.PERM_ADMINISTRADOR) === 1;
 
   const [activeTab, setActiveTab] = useState(0);
-  const visibleTab = activeTab === 2 && !canViewOrcamento ? 0 : activeTab;
 
   const handleTabChange = (_event: React.SyntheticEvent, newValue: number) => {
     setActiveTab(newValue);
@@ -42,7 +41,7 @@ const OpportunityListPage = () => {
 
         <Box sx={{ flexShrink: 0, borderBottom: 1, borderColor: "divider", backgroundColor: "white" }}>
           <Tabs
-            value={visibleTab}
+            value={activeTab}
             onChange={handleTabChange}
             sx={{
               minHeight: 36,
@@ -54,15 +53,15 @@ const OpportunityListPage = () => {
               },
             }}
           >
-            <Tab label="Tabela" />
-            <Tab label="Comercial" />
-            {canViewOrcamento && <Tab label="Orçamento" />}
+            <Tab label="Tabela" value={0} />
+            {canViewComercial && <Tab label="Comercial" value={1} />}
+            {canViewOrcamento && <Tab label="Orçamento" value={2} />}
           </Tabs>
         </Box>
 
-        {visibleTab === 0 && <OpportunityTableComponent />}
-        {visibleTab === 1 && <OpportunityKanbanComponent board="Comercial" />}
-        {visibleTab === 2 && canViewOrcamento && <OpportunityKanbanComponent board="Orçamento" />}
+        {activeTab === 0 && <OpportunityTableComponent />}
+        {activeTab === 1 && canViewComercial && <OpportunityKanbanComponent board="Comercial" />}
+        {activeTab === 2 && canViewOrcamento && <OpportunityKanbanComponent board="Orçamento" />}
       </Box>
     </Box>
 

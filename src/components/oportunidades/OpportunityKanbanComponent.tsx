@@ -1,4 +1,4 @@
-import { Box, Chip, CircularProgress, IconButton, InputAdornment, Stack, TextField, Tooltip, Typography, Button, Menu, MenuItem, Checkbox, ListItemText, Divider, } from "@mui/material"
+import { Box, Chip, CircularProgress, IconButton, InputAdornment, Stack, TextField, Tooltip, Typography, Button, Menu, MenuItem, Checkbox, ListItemText, Divider, FormControlLabel, } from "@mui/material"
 import SearchIcon from "@mui/icons-material/Search"
 import CheckIcon from "@mui/icons-material/Check"
 import CloseIcon from "@mui/icons-material/Close"
@@ -61,6 +61,11 @@ const buildBoardData = (
 const OpportunityKanbanComponent = ({ board }: OpportunityKanbanComponentProps) => {
   const dispatch = useDispatch()
   const user = useSelector((state: RootState) => state.user.user)
+  const [showAllOverride, setShowAllOverride] = useState<{ userId: number; checked: boolean } | null>(null)
+  const showAllCards = showAllOverride && showAllOverride.userId === user?.CODPESSOA
+    ? showAllOverride.checked
+    : Number(user?.PERM_ADMINISTRADOR) === 1
+  const requestIdRef = useRef(0)
   const columnField: ColumnField = board === "Comercial" ? "kanban_column_id" : "kanban_column_id_orcamento"
   const [columns, setColumns] = useState<OpportunityKanbanColumn[]>([])
   const [allCards, setAllCards] = useState<KanbanCardOpportunity[]>([])
@@ -121,25 +126,29 @@ const OpportunityKanbanComponent = ({ board }: OpportunityKanbanComponentProps) 
   }
 
   const fetchBoard = useCallback(async () => {
+    const requestId = ++requestIdRef.current
     if (!user) return
     setLoading(true)
     try {
       const [fetchedColumns, opps] = await Promise.all([
         OpportunityKanbanService.getColumns(board),
-        OpportunityKanbanService.getCards(board),
+        OpportunityKanbanService.getCards(board, board === "Orçamento" ? showAllCards : undefined),
       ])
+      if (requestId !== requestIdRef.current) return
       setColumns(fetchedColumns)
       setAllCards(opps)
       setKanbanBoardData(buildBoardData(fetchedColumns, opps, selectedFollowerIdsRef.current, columnField, searchTermRef.current))
     } catch (error) {
+      if (requestId !== requestIdRef.current) return
       dispatch(setFeedback({ message: "Erro ao carregar o kanban de oportunidades", type: "error" }))
     } finally {
-      setLoading(false)
+      if (requestId === requestIdRef.current) setLoading(false)
     }
-  }, [user, dispatch, board, columnField])
+  }, [user, dispatch, board, columnField, showAllCards])
 
   useEffect(() => {
     fetchBoard()
+    return () => { requestIdRef.current += 1 }
   }, [fetchBoard])
 
   const handleConfirmArchiveCard = async () => {
@@ -263,6 +272,19 @@ const OpportunityKanbanComponent = ({ board }: OpportunityKanbanComponentProps) 
             }}
             sx={{ width: { xs: 220, sm: 300 } }}
           />
+          {board === "Orçamento" && (
+            <FormControlLabel
+              control={
+                <Checkbox
+                  checked={showAllCards}
+                  onChange={(_, checked) => {
+                    if (user) setShowAllOverride({ userId: user.CODPESSOA, checked })
+                  }}
+                />
+              }
+              label="Mostrar todos os cartões"
+            />
+          )}
           <Button
             variant="outlined"
             startIcon={<FilterAltOutlinedIcon />}
