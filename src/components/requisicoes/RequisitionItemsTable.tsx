@@ -14,6 +14,8 @@ import { useRequisitionItemColumns } from "../../hooks/requisicoes/useRequisitio
 import { RequisitionItem } from "../../models/requisicoes/RequisitionItem";
 import { calculateUnitPriceWithTaxes, formatCurrency } from "../../utils";
 import CloseIcon from '@mui/icons-material/Close';
+import AddIcon from '@mui/icons-material/Add';
+import RemoveIcon from '@mui/icons-material/Remove';
 import {
   Box,
   Button,
@@ -533,6 +535,29 @@ const RequisitionItemsTable = ({
     quoteItemsSelected,
     selectionModel as number[],
     blockFields
+  );
+
+  const currentStep = normalizeText(requisition.status?.nome);
+  const [purchaseColumnsExpanded, setPurchaseColumnsExpanded] = useState(
+    () => currentStep !== "em cotacao"
+  );
+
+  useEffect(() => {
+    setPurchaseColumnsExpanded(currentStep !== "em cotacao");
+  }, [currentStep, requisition.ID_REQUISICAO]);
+
+  const collapsibleColumnFields = useMemo(() => {
+    const firstIndex = columns.findIndex((column) => column.field === "target_price");
+    const lastIndex = columns.findIndex((column) => column.field === "oc");
+    if (firstIndex < 0 || lastIndex < firstIndex) return [];
+    return columns.slice(firstIndex, lastIndex + 1).map((column) => column.field);
+  }, [columns]);
+
+  const columnVisibilityModel = useMemo(
+    () => Object.fromEntries(
+      collapsibleColumnFields.map((field) => [field, purchaseColumnsExpanded])
+    ),
+    [collapsibleColumnFields, purchaseColumnsExpanded]
   );
 
   const [supplierFilter, setSupplierFilter] = useState<string | null>(null);
@@ -1642,7 +1667,7 @@ const RequisitionItemsTable = ({
           },
         }}
       >
-        {dinamicColumns.length > 0 && (
+        {(dinamicColumns.length > 0 || (!isMobile && collapsibleColumnFields.length > 0)) && (
           <Box
             sx={{
               display: "flex",
@@ -1696,6 +1721,19 @@ const RequisitionItemsTable = ({
                 </Box>
               );
             })}
+            {!isMobile && collapsibleColumnFields.length > 0 && (
+              <IconButton
+                size="small"
+                color="primary"
+                sx={{ ml: dinamicColumns.length > 0 ? 3 : 0 }}
+                aria-expanded={purchaseColumnsExpanded}
+                aria-label={`${purchaseColumnsExpanded ? "Recolher" : "Expandir"} colunas de Valor alvo unitário até OC`}
+                title={`${purchaseColumnsExpanded ? "Recolher" : "Expandir"} colunas de Valor alvo unitário até OC`}
+                onClick={() => setPurchaseColumnsExpanded((expanded) => !expanded)}
+              >
+                {purchaseColumnsExpanded ? <RemoveIcon fontSize="small" /> : <AddIcon fontSize="small" />}
+              </IconButton>
+            )}
           </Box>
         )}
         <BaseDataTable
@@ -1712,6 +1750,7 @@ const RequisitionItemsTable = ({
           rowSelectionModel={selectionModel}
           disableRowSelectionOnClick
           columns={isMobile ? mobileColumns() : columns}
+          columnVisibilityModel={columnVisibilityModel}
           isCellEditable={isCellEditable}
           cellModesModel={cellModesModel}
           onCellModesModelChange={handleCellModesModelChange}
