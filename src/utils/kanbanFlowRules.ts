@@ -47,7 +47,7 @@ export function isManualMoveAllowed(
     }
   }
   if (board === "Comercial" && fromColumnId !== columnId && !administrative.includes(fromColumnId)) {
-    const allowed: Record<number, number[]> = { 1: [2], 2: [1], 3: [], 4: [6], 5: [6], 6: [4, 5, 7, 8, 9], 7: [6], 8: [6], 9: [6] };
+    const allowed: Record<number, number[]> = { 1: [2], 2: [1], 3: [], 4: [6], 5: [6, 7, 8, 9], 6: [4, 5, 7, 8, 9], 7: [6], 8: [6], 9: [6] };
     if (!allowed[fromColumnId]?.includes(columnId)) {
       return {
         allowed: false,

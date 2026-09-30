@@ -104,7 +104,7 @@ const QuoteAttachmentList: React.FC<QuoteAttachmentListProps> = ({
   }, [id_cotacao]);
 
   const uploadFiles = async (files: File[]) => {
-    if (!files.length || !user || loading || uploading.current) return;
+    if (!files.length || loading || uploading.current) return;
     uploading.current = true;
     setLoading(true);
     const failedFiles: string[] = [];
@@ -224,7 +224,7 @@ const QuoteAttachmentList: React.FC<QuoteAttachmentListProps> = ({
   };
 
   return (
-    <AttachmentDropZone disabled={loading || !user} onFiles={uploadFiles}>
+    <AttachmentDropZone disabled={loading} onFiles={uploadFiles}>
       {error && (
         <Typography color="error" mb={1}>
           {error}
@@ -314,7 +314,7 @@ const QuoteAttachmentList: React.FC<QuoteAttachmentListProps> = ({
           disabled={loading}
         >
           Adicionar Anexo
-          <input type="file" hidden multiple disabled={loading || !user} onChange={handleFileChange} accept="*" />
+          <input type="file" hidden multiple disabled={loading } onChange={handleFileChange} accept="*" />
         </Button>
         {allowAddLink && (
           <Button
