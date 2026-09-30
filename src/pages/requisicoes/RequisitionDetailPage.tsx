@@ -169,6 +169,13 @@ const RequisitionDetailPage = () => {
   };
 
   const concludeUpdateItemsQuantity = () => { 
+    if (nonRegisteredItemsWithoutUnit.length > 0) {
+      dispatch(setFeedback({
+        message: 'Material ou serviço não cadastrado precisam ter a unidade informada',
+        type: 'error'
+      }));
+      return
+    }
     setTimeout(() => {
       dispatch(setUpdatingRecentProductsQuantity(false));
       dispatch(clearNewItems());
@@ -748,7 +755,6 @@ const RequisitionDetailPage = () => {
             onClick={concludeUpdateItemsQuantity}
             variant="contained"
             color="primary"
-            disabled={nonRegisteredItemsWithoutUnit.length > 0}
             sx={{ textTransform: "none", minWidth: 120 }}
           >
             Concluir
