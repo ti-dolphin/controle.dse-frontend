@@ -69,17 +69,17 @@ const OpportunityKanbanCardDialog = ({ open, opportunity, onClose }: Opportunity
 
           <Divider />
 
-          <Box>
-            <OpportunityChecklistSection CODOS={opportunity.CODOS} />
-          </Box>
-
-          <Divider />
-
           <OpportunityAlinhamentoList CODOS={opportunity.CODOS} />
 
           <Divider />
 
           <OpportunityPendenciasList CODOS={opportunity.CODOS} />
+
+          <Divider />
+
+          <Box>
+            <OpportunityChecklistSection CODOS={opportunity.CODOS} />
+          </Box>
         </Stack>
       </DialogContent>
     </Dialog>

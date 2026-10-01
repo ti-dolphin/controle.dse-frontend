@@ -6,8 +6,13 @@ import {
   Badge,
   Box,
   Button,
+  Checkbox,
+  FormControl,
   IconButton,
   InputAdornment,
+  ListItemText,
+  MenuItem,
+  Select,
   TextField,
   Typography,
 } from "@mui/material";
@@ -18,6 +23,7 @@ import CheckCircleIcon from "@mui/icons-material/CheckCircle";
 import { GridColDef } from "@mui/x-data-grid";
 import { Client } from "../../models/oportunidades/Client";
 import React, { useMemo, useState } from "react";
+import { SelectChangeEvent } from "@mui/material/Select";
 import { useDispatch } from "react-redux";
 import {
   OpportunityFilters,
@@ -26,7 +32,11 @@ import {
 import { DateHeader } from "../../components/DateHeader";
 import { TextHeader } from "../../components/TextHeader";
 
-export const useOpportunityColumns = () => {
+export const useOpportunityColumns = (
+  statusOptions: OpportunityStatus[] = [],
+  selectedStatusIds: number[] = [],
+  onStatusChange: (statusIds: number[]) => void = () => {}
+) => {
   const dispatch = useDispatch();
   const { handleChangeFilters, filters, activeFilters } = useOpportunityFilters();
   const [openModal, setOpenModal] = useState<{ field: string; open: boolean }>({
@@ -95,16 +105,39 @@ export const useOpportunityColumns = () => {
       {
         field: "status",
         headerName: "Status",
-        flex: 1,
+        width: 190,
         valueGetter: (status: OpportunityStatus) => status.NOME || "",
-        renderHeader: () => (
-          <TextHeader
-            label="Status"
-            field="status"
-            filters={filters}
-            handleChangeFilters={handleChangeFilters}
-          />
-        ),
+        renderHeader: () => {
+          const handleStatusChange = (event: SelectChangeEvent<number[]>) => {
+            const value = event.target.value;
+            onStatusChange((typeof value === "string" ? value.split(",") : value).map(Number));
+          };
+
+          return (
+            <FormControl size="small" sx={{ minWidth: 145 }} onClick={(event) => event.stopPropagation()}>
+              <Select
+                multiple
+                displayEmpty
+                value={selectedStatusIds}
+                onChange={handleStatusChange}
+                renderValue={(selected) =>
+                  selected.length === statusOptions.length
+                    ? "Status: Todos"
+                    : `Status: ${selected.length} selecionados`
+                }
+                sx={{ fontSize: 12, height: 28, backgroundColor: "white" }}
+                MenuProps={{ PaperProps: { sx: { maxHeight: 360 } } }}
+              >
+                {statusOptions.map((status) => (
+                  <MenuItem key={status.CODSTATUS} value={status.CODSTATUS} dense>
+                    <Checkbox size="small" checked={selectedStatusIds.includes(status.CODSTATUS)} />
+                    <ListItemText primary={status.NOME} primaryTypographyProps={{ fontSize: 12 }} />
+                  </MenuItem>
+                ))}
+              </Select>
+            </FormControl>
+          );
+        },
         renderCell: (params: any) => { 
           const statusColorMap = { 
             Ganho: "success.main",
@@ -286,7 +319,7 @@ export const useOpportunityColumns = () => {
             : "",
       },
     ],
-    [filters, activeFilters, openModal, handleChangeFilters]
+    [filters, activeFilters, openModal, handleChangeFilters, statusOptions, selectedStatusIds, onStatusChange]
   );
 
   return { columns };

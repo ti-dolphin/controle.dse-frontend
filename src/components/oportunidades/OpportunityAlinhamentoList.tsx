@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from "react";
-import { useDispatch } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import {
   Box,
   Typography,
@@ -13,29 +13,87 @@ import {
   DialogTitle,
   DialogContent,
   DialogActions,
+  Collapse,
+  List,
+  ListItem,
+  ListItemText,
 } from "@mui/material";
 import AddIcon from "@mui/icons-material/Add";
+import CommentOutlinedIcon from "@mui/icons-material/CommentOutlined";
+import SendIcon from "@mui/icons-material/Send";
+import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
+import ExpandLessIcon from "@mui/icons-material/ExpandLess";
 import { DragDropContext, Droppable, Draggable, DropResult } from "@hello-pangea/dnd";
 import DeleteOutlineIcon from "@mui/icons-material/DeleteOutline";
 import DragIndicatorIcon from "@mui/icons-material/DragIndicator";
 import { setFeedback } from "../../redux/slices/feedBackSlice";
-import { OpportunityAlinhamentoService } from "../../services/oportunidades/OpportunityAlinhamentoService";
+import { RootState } from "../../redux/store";
+import {
+  OpportunityAlinhamentoComment,
+  OpportunityAlinhamentoService,
+} from "../../services/oportunidades/OpportunityAlinhamentoService";
 import { OpportunityAlinhamento } from "../../models/oportunidades/OpportunityAlinhamento";
 
 interface OpportunityAlinhamentoListProps {
   CODOS: number;
 }
 
+type CommentsByItem = Record<number, OpportunityAlinhamentoComment[]>;
+
 const OpportunityAlinhamentoList = ({ CODOS }: OpportunityAlinhamentoListProps) => {
   const dispatch = useDispatch();
+  const user = useSelector((state: RootState) => state.user.user);
   const [itens, setItens] = useState<OpportunityAlinhamento[]>([]);
   const [novoItem, setNovoItem] = useState("");
   const [addingItem, setAddingItem] = useState(false);
+  const [commentsByItem, setCommentsByItem] = useState<CommentsByItem>({});
+  const [expandedComments, setExpandedComments] = useState<number[]>([]);
+  const [draftComments, setDraftComments] = useState<Record<number, string>>({});
+
+  const handleAddComment = async (itemId: number) => {
+    const texto = (draftComments[itemId] || "").trim();
+    if (!texto) return;
+    try {
+      const comment = await OpportunityAlinhamentoService.createComment({
+        id_alinhamento: itemId,
+        comentario: texto,
+      });
+      setCommentsByItem((prev) => ({
+        ...prev,
+        [itemId]: [...(prev[itemId] || []), comment],
+      }));
+      setDraftComments((prev) => ({ ...prev, [itemId]: "" }));
+    } catch {
+      dispatch(setFeedback({ type: "error", message: "Erro ao adicionar comentário no alinhamento" }));
+    }
+  };
+
+  const handleDeleteComment = async (itemId: number, commentId: number) => {
+    try {
+      await OpportunityAlinhamentoService.deleteComment(commentId);
+      setCommentsByItem((prev) => ({
+        ...prev,
+        [itemId]: (prev[itemId] || []).filter((comment) => comment.id !== commentId),
+      }));
+    } catch {
+      dispatch(setFeedback({ type: "error", message: "Erro ao remover comentário do alinhamento" }));
+    }
+  };
 
   const fetchData = useCallback(async () => {
     try {
-      const data = await OpportunityAlinhamentoService.getMany(CODOS);
+      const [data, comments] = await Promise.all([
+        OpportunityAlinhamentoService.getMany(CODOS),
+        OpportunityAlinhamentoService.getManyComments(CODOS),
+      ]);
       setItens(data);
+      setCommentsByItem(comments.reduce<CommentsByItem>((grouped, comment) => {
+        grouped[comment.id_alinhamento] = grouped[comment.id_alinhamento] || [];
+        grouped[comment.id_alinhamento].push(comment);
+        return grouped;
+      }, {}));
+      setExpandedComments([]);
+      setDraftComments({});
     } catch {
       dispatch(setFeedback({ type: "error", message: "Erro ao carregar alinhamento" }));
     }
@@ -147,31 +205,141 @@ const OpportunityAlinhamentoList = ({ CODOS }: OpportunityAlinhamentoListProps) 
                 {itens.map((item, index) => (
                   <Draggable key={item.id_alinhamento} draggableId={String(item.id_alinhamento)} index={index}>
                     {(dragProvided) => (
-                      <Stack
-                        ref={dragProvided.innerRef}
-                        {...dragProvided.draggableProps}
-                        direction="row"
-                        alignItems="center"
-                        sx={{ backgroundColor: "white", borderRadius: 1, mb: 0.5, pr: 1 }}
-                      >
-                        <Box {...dragProvided.dragHandleProps} sx={{ display: "flex", color: "text.secondary" }}>
-                          <DragIndicatorIcon fontSize="small" />
-                        </Box>
-                        <Checkbox size="small" checked={item.concluido} onChange={() => handleToggle(item)} />
-                        <Typography
-                          variant="body2"
-                          sx={{
-                            flex: 1,
-                            textDecoration: item.concluido ? "line-through" : "none",
-                            color: item.concluido ? "text.secondary" : "text.primary",
-                          }}
+                      <Box>
+                        <Stack
+                          ref={dragProvided.innerRef}
+                          {...dragProvided.draggableProps}
+                          direction="row"
+                          alignItems="center"
+                          sx={{ backgroundColor: "white", borderRadius: 1, mb: 0.5, pr: 1 }}
                         >
-                          {item.descricao}
-                        </Typography>
-                        <IconButton size="small" onClick={() => handleDelete(item)}>
-                          <DeleteOutlineIcon fontSize="small" />
-                        </IconButton>
-                      </Stack>
+                          <Box {...dragProvided.dragHandleProps} sx={{ display: "flex", color: "text.secondary" }}>
+                            <DragIndicatorIcon fontSize="small" />
+                          </Box>
+                          <Checkbox size="small" checked={item.concluido} onChange={() => handleToggle(item)} />
+                          <Typography
+                            variant="body2"
+                            sx={{
+                              flex: 1,
+                              textDecoration: item.concluido ? "line-through" : "none",
+                              color: item.concluido ? "text.secondary" : "text.primary",
+                            }}
+                          >
+                            {item.descricao}
+                          </Typography>
+                          <IconButton size="small" onClick={() => handleDelete(item)}>
+                            <DeleteOutlineIcon fontSize="small" />
+                          </IconButton>
+                        </Stack>
+                        <Box sx={{ pl: 5, pr: 1, pb: 1 }}>
+                          <Button
+                            size="small"
+                            variant="outlined"
+                            color="primary"
+                            startIcon={<CommentOutlinedIcon fontSize="small" />}
+                            endIcon={expandedComments.includes(item.id_alinhamento) ? <ExpandLessIcon /> : <ExpandMoreIcon />}
+                            onClick={() => setExpandedComments((prev) => prev.includes(item.id_alinhamento)
+                              ? prev.filter((id) => id !== item.id_alinhamento)
+                              : [...prev, item.id_alinhamento])}
+                            sx={{
+                              textTransform: "none",
+                              minHeight: 28,
+                              px: 0.75,
+                              backgroundColor: "#fff",
+                              color: "primary.main",
+                              borderColor: "primary.main",
+                              "& .MuiButton-startIcon, & .MuiButton-endIcon": {
+                                color: "primary.main",
+                              },
+                              "& .MuiSvgIcon-root": {
+                                color: "primary.main",
+                              },
+                              "&:hover": {
+                                backgroundColor: "#fff",
+                                borderColor: "primary.dark",
+                                color: "primary.dark",
+                                "& .MuiButton-startIcon, & .MuiButton-endIcon, & .MuiSvgIcon-root": {
+                                  color: "primary.dark",
+                                },
+                              },
+                            }}
+                          >
+                            Comentários ({commentsByItem[item.id_alinhamento]?.length || 0})
+                          </Button>
+                          <Collapse in={expandedComments.includes(item.id_alinhamento)}>
+                            <List dense disablePadding sx={{ mb: 0.5 }}>
+                              {(commentsByItem[item.id_alinhamento] || []).map((comment) => (
+                                <ListItem
+                                  key={comment.id}
+                                  disableGutters
+                                  sx={{ py: 0.25, pr: 4 }}
+                                  secondaryAction={
+                                    Number(user?.CODPESSOA) === Number(comment.criado_por) || Boolean(Number(user?.PERM_ADMINISTRADOR)) ? (
+                                      <IconButton
+                                        size="small"
+                                        color="error"
+                                        aria-label="Remover comentário"
+                                        onClick={() => handleDeleteComment(item.id_alinhamento, comment.id)}
+                                      >
+                                        <DeleteOutlineIcon fontSize="small" />
+                                      </IconButton>
+                                    ) : null
+                                  }
+                                >
+                                  <ListItemText
+                                    primary={comment.comentario}
+                                    secondary={`${comment.criado_por_nome || `Usuário ${comment.criado_por}`} • ${new Date(comment.criado_em).toLocaleString()}`}
+                                    primaryTypographyProps={{ variant: "body2", sx: { whiteSpace: "pre-wrap", overflowWrap: "anywhere" } }}
+                                    secondaryTypographyProps={{ variant: "caption" }}
+                                  />
+                                </ListItem>
+                              ))}
+                            </List>
+                            <Stack direction="row" alignItems="flex-start" gap={0.5}>
+                              <TextField
+                                fullWidth
+                                size="small"
+                                multiline
+                                maxRows={3}
+                                placeholder="Adicionar comentário..."
+                                value={draftComments[item.id_alinhamento] || ""}
+                                onChange={(event) => setDraftComments((prev) => ({ ...prev, [item.id_alinhamento]: event.target.value }))}
+                                onKeyDown={(event) => {
+                                  if (event.key === "Enter" && !event.shiftKey) {
+                                    event.preventDefault();
+                                    handleAddComment(item.id_alinhamento);
+                                  }
+                                }}
+                                sx={{
+                                  "& .MuiInputBase-root": {
+                                    fontSize: 13,
+                                    py: 0.5,
+                                    backgroundColor: "#fff",
+                                  },
+                                  "& .MuiOutlinedInput-notchedOutline": {
+                                    borderColor: "primary.main",
+                                  },
+                                  "&:hover .MuiOutlinedInput-notchedOutline": {
+                                    borderColor: "primary.dark",
+                                  },
+                                  "& .Mui-focused .MuiOutlinedInput-notchedOutline": {
+                                    borderColor: "primary.main",
+                                  },
+                                }}
+                              />
+                              <IconButton
+                                size="small"
+                                color="primary"
+                                aria-label="Enviar comentário"
+                                disabled={!(draftComments[item.id_alinhamento] || "").trim()}
+                                onClick={() => handleAddComment(item.id_alinhamento)}
+                              >
+                                <SendIcon fontSize="small" />
+                              </IconButton>
+                            </Stack>
+                          </Collapse>
+                        </Box>
+                      </Box>
                     )}
                   </Draggable>
                 ))}

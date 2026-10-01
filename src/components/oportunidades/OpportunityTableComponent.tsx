@@ -24,15 +24,21 @@ import { BaseAddButton } from "../../components/shared/BaseAddButton";
 import OpenWithIcon from "@mui/icons-material/OpenWith";
 import { ColumnReorderDialog } from "../../components/shared/ColumnReorderDialog";
 import { usePersistedColumnOrder, ColumnPreference } from "../../hooks/table/usePersistedColumnOrder";
+import { OpportunityStatus } from "../../models/oportunidades/OpportunityStatus";
 const OPPORTUNITY_TABLE_KEY='opportunity-list'
 
 const OpportunityTableComponent = () => {
 const dispatch = useDispatch();
 const user = useSelector((state: RootState) => state.user.user);
-const canViewAll = Number(user?.PERM_CRM) === 1;
 const navigate = useNavigate();
 const {loading, rows, searchTerm } = useSelector((state: RootState) => state.opportunityTable);
-const { columns: rawColumns } = useOpportunityColumns();
+const [statusOptions, setStatusOptions] = useState<OpportunityStatus[]>([]);
+const [selectedStatusIds, setSelectedStatusIds] = useState<number[] | null>(null);
+const { columns: rawColumns } = useOpportunityColumns(
+  statusOptions,
+  selectedStatusIds || [],
+  setSelectedStatusIds
+);
 const theme=  useTheme();
 const toolbarRef = React.useRef<HTMLDivElement>(null);
 const [toolbarHeight, setToolbarHeight] = useState(0);
@@ -40,7 +46,6 @@ const [columnFiltersHeight, setColumnFiltersHeight] = useState(0);
 const columnFiltersRef = React.useRef<HTMLDivElement>(null);
 const { filters, handleChangeFilters, clearFilters , activeFilters} = useOpportunityFilters();
 const [finalizados, setFinalizados] = useState(false);
-const [todos, setTodos] = useState(false);
 const {isMobile } = useIsMobile();
 const gridContainerRef = React.useRef<HTMLDivElement>(null);
 const changeSearchTerm = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -75,10 +80,28 @@ const navigateToOppDetails = (id : number ) => {
 
 const handleCleanFilters = ( ) => { 
     clearFilters();
+    setSelectedStatusIds(statusOptions.map((status) => status.CODSTATUS));
 }
 
+useEffect(() => {
+  let active = true;
+  OpportunityService.getOppStatusOptions()
+    .then((statuses: OpportunityStatus[]) => {
+      if (!active) return;
+      setStatusOptions(statuses);
+      setSelectedStatusIds(statuses.map((status) => status.CODSTATUS));
+    })
+    .catch(() => {
+      if (!active) return;
+      dispatch(setFeedback({ message: "Erro ao carregar os status das oportunidades", type: "error" }));
+      setStatusOptions([]);
+      setSelectedStatusIds([]);
+    });
+  return () => { active = false; };
+}, [dispatch]);
+
 const fetchData = useCallback(async () => {
-  if (user) {
+  if (user && selectedStatusIds !== null) {
     dispatch(setLoading(true));
     try {
       const { opps, total, totalFatDolphin, totalFatDireto } =
@@ -86,8 +109,8 @@ const fetchData = useCallback(async () => {
           user: user,
           searchTerm,
           filters,
+          statusIds: selectedStatusIds.join(","),
           finalizados,
-          todos: canViewAll && todos,
         });
       dispatch(setRows(opps));
       dispatch(
@@ -106,7 +129,7 @@ const fetchData = useCallback(async () => {
       });
     }
   }
-}, [dispatch, user, searchTerm, filters, finalizados, todos, canViewAll]);
+}, [dispatch, user, searchTerm, filters, finalizados, selectedStatusIds]);
 
 useEffect(() => {
   fetchData();
@@ -167,25 +190,6 @@ useEffect(()=> {
           onClick={openFormModal}
           />
           <OpportunityFormModal />
-          {canViewAll && (
-          <Stack
-            direction={"row"}
-            alignItems={"center"}
-            sx={{ padding: 0, gap: 1 }}
-          >
-            <Checkbox
-              sx={{ padding: 0 }}
-              checkedIcon={<CheckCircleIcon />}
-              icon={<RadioButtonUncheckedIcon />}
-              checked={todos}
-              onChange={(e) => setTodos(e.target.checked)}
-              inputProps={{ "aria-label": "Todos (ver tudo)" }}
-            />
-            <Typography fontSize={"12px"} variant="body2" sx={{ padding: 0 }}>
-              Ver tudo
-            </Typography>
-          </Stack>
-          )}
           <Stack
             direction={"row"}
             alignItems={"center"}

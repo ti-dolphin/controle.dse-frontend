@@ -3,6 +3,15 @@ import { OpportunityPendencia } from "../../models/oportunidades/OpportunityPend
 
 const API_ENDPOINT = "/pendencias_oportunidade";
 
+export interface OpportunityPendenciaComment {
+  id: number;
+  id_pendencia: number;
+  comentario: string;
+  criado_por: number;
+  criado_em: string;
+  criado_por_nome: string | null;
+}
+
 export class OpportunityPendenciaService {
   static async getMany(CODOS: number): Promise<OpportunityPendencia[]> {
     const response = await api.get(API_ENDPOINT, { params: { CODOS } });
@@ -25,5 +34,19 @@ export class OpportunityPendenciaService {
 
   static async reordenar(itens: { id_pendencia: number; ordem: number }[]): Promise<void> {
     await api.put(`${API_ENDPOINT}/reordenar`, { itens });
+  }
+
+  static async getManyComments(CODOS: number): Promise<OpportunityPendenciaComment[]> {
+    const response = await api.get(`${API_ENDPOINT}/comentarios`, { params: { CODOS } });
+    return response.data;
+  }
+
+  static async createComment(data: { id_pendencia: number; comentario: string }): Promise<OpportunityPendenciaComment> {
+    const response = await api.post(`${API_ENDPOINT}/comentarios`, data);
+    return response.data;
+  }
+
+  static async deleteComment(id: number): Promise<void> {
+    await api.delete(`${API_ENDPOINT}/comentarios/${id}`);
   }
 }
