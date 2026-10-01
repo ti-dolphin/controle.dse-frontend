@@ -4,13 +4,13 @@ import { KanbanChecklist } from "../../models/oportunidades/KanbanChecklist";
 const API_ENDPOINT = "/checklist_oportunidade";
 
 export class KanbanChecklistService {
-  static async getMany(CODOS: number): Promise<KanbanChecklist[]> {
-    const response = await api.get(API_ENDPOINT, { params: { CODOS } });
+  static async getMany(CODOS: number, id_seguidor_projeto?: number): Promise<KanbanChecklist[]> {
+    const response = await api.get(API_ENDPOINT, { params: { CODOS, id_seguidor_projeto } });
     return response.data;
   }
 
-  static async aplicarModelo(CODOS: number): Promise<KanbanChecklist[]> {
-    const response = await api.post(`${API_ENDPOINT}/aplicar_modelo`, { CODOS });
+  static async aplicarModelo(CODOS: number, id_seguidor_projeto: number): Promise<KanbanChecklist[]> {
+    const response = await api.post(`${API_ENDPOINT}/aplicar_modelo`, { CODOS, id_seguidor_projeto });
     return response.data;
   }
 

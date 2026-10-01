@@ -17,6 +17,7 @@ const OpportunityKanbanCardDialog = ({ open, opportunity, onClose }: Opportunity
   const navigate = useNavigate();
   const dispatch = useDispatch();
   const [dataPlanejada, setDataPlanejada] = useState(getDateInputValue(opportunity?.data_planejada));
+  const [followerRevision, setFollowerRevision] = useState(0);
 
   useEffect(() => {
     setDataPlanejada(getDateInputValue(opportunity?.data_planejada));
@@ -65,7 +66,7 @@ const OpportunityKanbanCardDialog = ({ open, opportunity, onClose }: Opportunity
             sx={{ width: 200 }}
           />
 
-          <OpportunityFollowerList CODOS={opportunity.CODOS} />
+          <OpportunityFollowerList CODOS={opportunity.CODOS} onChange={() => setFollowerRevision((current) => current + 1)} />
 
           <Divider />
 
@@ -78,7 +79,7 @@ const OpportunityKanbanCardDialog = ({ open, opportunity, onClose }: Opportunity
           <Divider />
 
           <Box>
-            <OpportunityChecklistSection CODOS={opportunity.CODOS} />
+            <OpportunityChecklistSection key={followerRevision} CODOS={opportunity.CODOS} />
           </Box>
         </Stack>
       </DialogContent>
