@@ -53,7 +53,9 @@ const OpportunityChecklistSection = ({ CODOS }: OpportunityChecklistSectionProps
     try {
       const opportunity = await OpportunityService.getById(CODOS);
       const projectFollowers = await ProjectService.getFollowers(Number(opportunity.ID_PROJETO));
-      const activeFollowers = projectFollowers.filter((follower) => follower.ativo !== false);
+      const activeFollowers = projectFollowers.filter(
+        (follower) => follower.ativo !== false && Number(follower.pessoa.PERM_CRM) === 1
+      );
       const followerChecklists = await Promise.all(
         activeFollowers.map((follower) =>
           KanbanChecklistService.aplicarModelo(CODOS, follower.id_seguidor_projeto)
