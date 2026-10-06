@@ -12,8 +12,9 @@ import OpportunityFollowerList from "./OpportunityFollowerList";
 import OpportunityChecklistSection from "./OpportunityChecklistSection";
 import OpportunityAlinhamentoList from "./OpportunityAlinhamentoList";
 import OpportunityPendenciasList from "./OpportunityPendenciasList";
+import OpportunityKanbanMovementTimeline from "./OpportunityKanbanMovementTimeline";
 
-const OpportunityKanbanCardDialog = ({ open, opportunity, onClose }: OpportunityKanbanCardDialogProps) => {
+const OpportunityKanbanCardDialog = ({ open, board, opportunity, onClose }: OpportunityKanbanCardDialogProps) => {
   const navigate = useNavigate();
   const dispatch = useDispatch();
   const [dataPlanejada, setDataPlanejada] = useState(getDateInputValue(opportunity?.data_planejada));
@@ -75,6 +76,10 @@ const OpportunityKanbanCardDialog = ({ open, opportunity, onClose }: Opportunity
           <Divider />
 
           <OpportunityPendenciasList CODOS={opportunity.CODOS} />
+
+          <Divider />
+
+          <OpportunityKanbanMovementTimeline CODOS={opportunity.CODOS} board={board} open={open} />
 
           <Divider />
 

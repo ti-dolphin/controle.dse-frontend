@@ -29,6 +29,20 @@ type ColumnField = "kanban_column_id" | "kanban_column_id_orcamento"
 
 const normalizeSearch = (value: string) => value.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase().trim()
 
+const orderBoardColumns = (board: KanbanBoardName, columns: OpportunityKanbanColumn[]) => {
+  if (board !== "Comercial") return columns
+
+  const ordered = [...columns]
+  const releasedIndex = ordered.findIndex((column) => normalizeSearch(column.name) === "liberado")
+  const reviewIndex = ordered.findIndex((column) => normalizeSearch(column.name) === "revisao")
+  if (releasedIndex !== -1 && reviewIndex !== -1) {
+    const releasedColumn = ordered[releasedIndex]
+    ordered[releasedIndex] = ordered[reviewIndex]
+    ordered[reviewIndex] = releasedColumn
+  }
+  return ordered
+}
+
 const buildBoardData = (
   columns: OpportunityKanbanColumn[],
   cards: KanbanCardOpportunity[],
@@ -135,9 +149,10 @@ const OpportunityKanbanComponent = ({ board }: OpportunityKanbanComponentProps) 
         OpportunityKanbanService.getCards(board, board === "Orçamento" ? showAllCards : undefined),
       ])
       if (requestId !== requestIdRef.current) return
-      setColumns(fetchedColumns)
+      const orderedColumns = orderBoardColumns(board, fetchedColumns)
+      setColumns(orderedColumns)
       setAllCards(opps)
-      setKanbanBoardData(buildBoardData(fetchedColumns, opps, selectedFollowerIdsRef.current, columnField, searchTermRef.current))
+      setKanbanBoardData(buildBoardData(orderedColumns, opps, selectedFollowerIdsRef.current, columnField, searchTermRef.current))
     } catch (error) {
       if (requestId !== requestIdRef.current) return
       dispatch(setFeedback({ message: "Erro ao carregar o kanban de oportunidades", type: "error" }))
@@ -476,6 +491,7 @@ const OpportunityKanbanComponent = ({ board }: OpportunityKanbanComponentProps) 
       />
       <OpportunityKanbanCardDialog
         open={!!selectedOpportunity}
+        board={board}
         opportunity={selectedOpportunity}
         onClose={() => {
           setSelectedOpportunity(null)

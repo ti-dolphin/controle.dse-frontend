@@ -6,6 +6,7 @@ import OpportunityTableComponent from "../../components/oportunidades/Opportunit
 import OpportunityKanbanComponent from "../../components/oportunidades/OpportunityKanbanComponent";
 import { useSelector } from "react-redux";
 import { RootState } from "../../redux/store";
+import OpportunityKanbanNotificationBell from "../../components/oportunidades/OpportunityKanbanNotificationBell";
 
 const OpportunityListPage = () => {
   const navigate = useNavigate();
@@ -28,7 +29,11 @@ const OpportunityListPage = () => {
         flexDirection: "column",
       }}
     >
-      <UpperNavigation handleBack={() => navigate("/")}/>
+      <UpperNavigation handleBack={() => navigate("/")}>
+        {(Number(user?.PERM_CRM) === 1 || Number(user?.PERM_COMERCIAL) === 1) && (
+          <Box sx={{ ml: "auto", mr: 2 }}><OpportunityKanbanNotificationBell /></Box>
+        )}
+      </UpperNavigation>
 
       <Box
         sx={{

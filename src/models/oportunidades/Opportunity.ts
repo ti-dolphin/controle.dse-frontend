@@ -72,6 +72,7 @@ export interface OpportunityKanbanStatus {
 
 export interface OpportunityKanbanCardDialogProps {
   open: boolean;
+  board: KanbanBoardName;
   opportunity: KanbanCardOpportunity | null;
   onClose: () => void;
 }

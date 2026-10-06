@@ -5,11 +5,9 @@ export const BOARD_FIELD: Record<KanbanBoardName, "kanban_column_id" | "kanban_c
   "Orçamento": "kanban_column_id_orcamento",
 };
 
-// Valor do campo `board` em web_kanban_crm_columns pras colunas compartilhadas
-// (Bloqueado/Arquivado/Excluído) — aparecem nos dois quadros.
+// Valor do campo `board` em web_kanban_crm_columns pras colunas compartilhadas.
 export const SHARED_BOARD_VALUE = "Todos";
 
-export const BLOCKED_COLUMN_ID = 17;
 export const ARCHIVED_COLUMN_ID = 18;
 export const DELETED_COLUMN_ID = 19;
 
@@ -22,7 +20,7 @@ export function isManualMoveAllowed(
   fromColumnId: number,
   canCheckCrm = false
 ): { allowed: true } | { allowed: false; message: string } {
-  if (columnId === BLOCKED_COLUMN_ID || columnId === ARCHIVED_COLUMN_ID || columnId === DELETED_COLUMN_ID) {
+  if (columnId === ARCHIVED_COLUMN_ID || columnId === DELETED_COLUMN_ID) {
     return { allowed: true };
   }
 
@@ -30,7 +28,7 @@ export function isManualMoveAllowed(
     return { allowed: false, message: "Essa coluna só é preenchida automaticamente pelo fluxo." };
   }
 
-  const administrative = [BLOCKED_COLUMN_ID, ARCHIVED_COLUMN_ID, DELETED_COLUMN_ID];
+  const administrative = [ARCHIVED_COLUMN_ID, DELETED_COLUMN_ID];
   if (board === "Orçamento" && fromColumnId !== columnId) {
     if (columnId === 16) {
       return { allowed: false, message: 'Proposta enviada só pode ser definida pelo quadro Comercial.' };
@@ -41,13 +39,13 @@ export function isManualMoveAllowed(
     if (columnId === 15 && !canCheckCrm) {
       return { allowed: false, message: 'Você não tem permissão para liberar a checagem do CRM.' };
     }
-    const allowed: Record<number, number[]> = { 10: [12, 11], 12: [10, 13, 11], 13: [12, 14, 11], 14: [13, 15, 11], 15: [14, 11], 16: [11], 11: [12, 13, 14] };
+    const allowed: Record<number, number[]> = { 10: [13, 11], 13: [10, 14, 11], 14: [13, 15, 11], 15: [14, 11], 16: [11], 11: [10, 13, 14] };
     if (!administrative.includes(fromColumnId) && !allowed[fromColumnId]?.includes(columnId)) {
       return { allowed: false, message: 'Movimento não permitido pelo fluxo de Orçamento.' };
     }
   }
   if (board === "Comercial" && fromColumnId !== columnId && !administrative.includes(fromColumnId)) {
-    const allowed: Record<number, number[]> = { 1: [2], 2: [1], 3: [], 4: [6], 5: [6, 7, 8, 9], 6: [4, 5, 7, 8, 9], 7: [6], 8: [6], 9: [6] };
+    const allowed: Record<number, number[]> = { 1: [2], 2: [1], 3: [], 4: [5, 6, 7, 8, 9], 5: [6, 7, 8, 9], 6: [4], 7: [6], 8: [6], 9: [6] };
     if (!allowed[fromColumnId]?.includes(columnId)) {
       return {
         allowed: false,

@@ -56,6 +56,15 @@ const QuoteDetailPage = () => {
   const handleSubmitQuote  = async (e : React.FormEvent<HTMLFormElement>, data : Quote) =>  { 
     e.preventDefault();
     const isSupplier = accesType === "supplier";
+    if (!String(data?.fornecedor ?? "").trim()) {
+      dispatch(
+        setFeedback({
+          message: "Informe o nome do fornecedor antes de salvar a cotação.",
+          type: "error",
+        })
+      );
+      return;
+    }
     const missingCnpjFornecedor = !String(data?.cnpj_fornecedor || "").trim();
     const missingCondicaoPagamento = !Number(data?.id_condicao_pagamento || 0);
 
