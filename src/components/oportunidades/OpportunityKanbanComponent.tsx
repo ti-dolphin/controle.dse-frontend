@@ -196,6 +196,14 @@ const OpportunityKanbanComponent = ({ board }: OpportunityKanbanComponentProps) 
     if (!source || !destination || destination.toColumnId === undefined) return
     const targetColumnId = Number(destination.toColumnId)
     if (destination.toColumnId !== source.fromColumnId) {
+      if (
+        board === "Orçamento" &&
+        targetColumnId === 14 &&
+        !["yellow", "green"].includes(card.opportunity.checklist_status)
+      ) {
+        dispatch(setFeedback({ message: "O checklist precisa atingir pelo menos o nível amarelo para enviar o cartão para Checagem.", type: "error" }))
+        return
+      }
       const canRelease = Number(user?.PERM_CHECAGEM_CRM) === 1 || Number(user?.PERM_ADMINISTRADOR) === 1
       const moveCheck = isManualMoveAllowed(targetColumnId, board, Number(source.fromColumnId), canRelease)
       if (!moveCheck.allowed) {
@@ -434,6 +442,7 @@ const OpportunityKanbanComponent = ({ board }: OpportunityKanbanComponentProps) 
               row={card.opportunity}
               onClick={() => setSelectedOpportunity(card.opportunity)}
               showKanbanDates
+              showChecklistStatus={board === "Orçamento"}
               styles={{ width: KANBAN_COLUMN_WIDTH - 24, minHeight: 'auto', maxHeight: 'none', margin: '0 12px 12px 12px' }}
               actions={
                 <Stack direction="row" gap={0.5}>

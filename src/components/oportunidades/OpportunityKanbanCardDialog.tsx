@@ -79,13 +79,13 @@ const OpportunityKanbanCardDialog = ({ open, board, opportunity, onClose }: Oppo
 
           <Divider />
 
-          <OpportunityKanbanMovementTimeline CODOS={opportunity.CODOS} board={board} open={open} />
+          <Box>
+            <OpportunityChecklistSection key={followerRevision} CODOS={opportunity.CODOS} showStatusDots={board === "Orçamento"} />
+          </Box>
 
           <Divider />
 
-          <Box>
-            <OpportunityChecklistSection key={followerRevision} CODOS={opportunity.CODOS} />
-          </Box>
+          <OpportunityKanbanMovementTimeline CODOS={opportunity.CODOS} board={board} open={open} />
         </Stack>
       </DialogContent>
     </Dialog>

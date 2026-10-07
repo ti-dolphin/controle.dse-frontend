@@ -39,7 +39,7 @@ export function isManualMoveAllowed(
     if (columnId === 15 && !canCheckCrm) {
       return { allowed: false, message: 'Você não tem permissão para liberar a checagem do CRM.' };
     }
-    const allowed: Record<number, number[]> = { 10: [13, 11], 13: [10, 14, 11], 14: [13, 15, 11], 15: [14, 11], 16: [11], 11: [10, 13, 14] };
+    const allowed: Record<number, number[]> = { 10: [13, 12], 13: [14, 10], 14: [13, 15, 11], 15: [14, 11], 16: [11], 11: [10, 13, 14] };
     if (!administrative.includes(fromColumnId) && !allowed[fromColumnId]?.includes(columnId)) {
       return { allowed: false, message: 'Movimento não permitido pelo fluxo de Orçamento.' };
     }

@@ -9,6 +9,7 @@ interface OpportunityCardProps {
   onClick?: () => void;
   actions?: React.ReactNode;
   showKanbanDates?: boolean;
+  showChecklistStatus?: boolean;
 }
 
 const AVATAR_COLORS = ["#e57373", "#f06292", "#ba68c8", "#9575cd", "#7986cb", "#64b5f6", "#4db6ac", "#81c784", "#ffb74d"];
@@ -32,6 +33,7 @@ const formatCardDate = (data?: string | null) => {
 };
 
 const DSE_CODE_PATTERN = /-?\s*DSE\s*(\d+)\s*$/i;
+const CHECKLIST_STATUS_LABELS: Record<string, string> = { red: "vermelho", yellow: "amarelo", green: "verde" };
 
 export const formatCardTitle = (row: any) => {
   const numero = row?.adicional?.NUMERO ?? 0;
@@ -53,6 +55,7 @@ const OpportunityCard: React.FC<OpportunityCardProps> = ({
   onClick,
   actions,
   showKanbanDates = false,
+  showChecklistStatus = false,
 }) => {
   const seguidores: { NOME: string }[] = row?.seguidores ?? [];
 
@@ -81,9 +84,25 @@ const OpportunityCard: React.FC<OpportunityCardProps> = ({
           fontSize: "0.8rem",
         }}
       >
-        <Typography color="primary">
-          {formatCardTitle(row)}
-        </Typography>
+        <Stack direction="row" alignItems="center" spacing={0.75} sx={{ width: "100%", minWidth: 0 }}>
+          {showChecklistStatus && (
+            <Tooltip title={`Preenchimento dos checklists: ${CHECKLIST_STATUS_LABELS[row?.checklist_status] || "vermelho"}`}>
+              <Box
+                aria-label={`Preenchimento dos checklists ${CHECKLIST_STATUS_LABELS[row?.checklist_status] || "vermelho"}`}
+                sx={{
+                  width: 10,
+                  height: 10,
+                  flexShrink: 0,
+                  borderRadius: "50%",
+                  bgcolor: ({ red: "error.main", yellow: "warning.main", green: "success.main" } as Record<string, string>)[row?.checklist_status] || "error.main",
+                }}
+              />
+            </Tooltip>
+          )}
+          <Typography color="primary" noWrap>
+            {formatCardTitle(row)}
+          </Typography>
+        </Stack>
 
         <Stack direction="row" alignItems="center" justifyContent="space-between" gap={1} sx={{ width: "100%", mt: 1.5 }}>
           {showKanbanDates ? (

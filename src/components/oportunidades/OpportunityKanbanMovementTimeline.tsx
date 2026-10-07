@@ -1,8 +1,10 @@
 import { useEffect, useState } from "react";
-import { Accordion, AccordionDetails, AccordionSummary, Alert, Box, CircularProgress, Stack, Typography } from "@mui/material";
+import { useDispatch } from "react-redux";
+import { Accordion, AccordionDetails, AccordionSummary, Box, CircularProgress, Divider, Stack, Typography } from "@mui/material";
 import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
-import { KanbanBoardName } from "../../utils/kanbanFlowRules";
+import { setFeedback } from "../../redux/slices/feedBackSlice";
 import OpportunityKanbanService, { OpportunityKanbanMovement } from "../../services/oportunidades/OpportunityKanbanService";
+import { KanbanBoardName } from "../../utils/kanbanFlowRules";
 
 interface OpportunityKanbanMovementTimelineProps {
   CODOS: number;
@@ -10,54 +12,68 @@ interface OpportunityKanbanMovementTimelineProps {
   open: boolean;
 }
 
-const formatDate = (value: string) => new Intl.DateTimeFormat("pt-BR", {
-  dateStyle: "short",
-  timeStyle: "short",
-}).format(new Date(value));
+const formatMovementDate = (value: string) => {
+  const date = new Date(value);
+  return Number.isNaN(date.getTime()) ? "Horário indisponível" : date.toLocaleString("pt-BR");
+};
 
 const OpportunityKanbanMovementTimeline = ({ CODOS, board, open }: OpportunityKanbanMovementTimelineProps) => {
+  const dispatch = useDispatch();
   const [movements, setMovements] = useState<OpportunityKanbanMovement[]>([]);
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState(false);
+  const [hasError, setHasError] = useState(false);
+  const [expanded, setExpanded] = useState(false);
 
   useEffect(() => {
-    if (!open) return;
+    if (!open || !expanded || !CODOS) return;
+
     let active = true;
+    setMovements([]);
+    setHasError(false);
     setLoading(true);
-    setError(false);
     OpportunityKanbanService.getMovementHistory(CODOS, board)
-      .then((data) => { if (active) setMovements(data); })
-      .catch(() => { if (active) setError(true); })
-      .finally(() => { if (active) setLoading(false); });
+      .then((data) => {
+        if (active) setMovements(data);
+      })
+      .catch(() => {
+        if (active) {
+          setHasError(true);
+          dispatch(setFeedback({ message: "Erro ao carregar o histórico de movimentações", type: "error" }));
+        }
+      })
+      .finally(() => {
+        if (active) setLoading(false);
+      });
+
     return () => { active = false; };
-  }, [CODOS, board, open]);
+  }, [CODOS, board, dispatch, expanded, open]);
 
   return (
-    <Accordion disableGutters elevation={0} sx={{ border: "1px solid", borderColor: "divider", "&:before": { display: "none" } }}>
+    <Accordion expanded={expanded} onChange={(_, nextExpanded) => setExpanded(nextExpanded)} disableGutters>
       <AccordionSummary expandIcon={<ExpandMoreIcon />}>
-        <Typography fontWeight={600}>Histórico de movimentações</Typography>
+        <Typography variant="subtitle1" color="primary.main" fontWeight="bold">
+          Histórico de movimentações
+        </Typography>
       </AccordionSummary>
       <AccordionDetails>
-        {loading && <Box sx={{ display: "flex", justifyContent: "center", py: 2 }}><CircularProgress size={22} /></Box>}
-        {error && <Alert severity="error">Não foi possível carregar o histórico de movimentações.</Alert>}
-        {!loading && !error && movements.length === 0 && (
-          <Typography color="text.secondary" variant="body2">Ainda não há movimentações registradas.</Typography>
-        )}
-        {!loading && !error && movements.length > 0 && (
-          <Stack spacing={1.5}>
+        {loading ? (
+          <Box sx={{ display: "flex", justifyContent: "center", py: 2 }}><CircularProgress size={24} /></Box>
+        ) : hasError ? (
+          <Typography variant="body2" color="text.secondary">Não foi possível carregar o histórico.</Typography>
+        ) : movements.length === 0 ? (
+          <Typography variant="body2" color="text.secondary">Nenhuma movimentação registrada.</Typography>
+        ) : (
+          <Stack divider={<Divider flexItem />}>
             {movements.map((movement) => (
-              <Box key={movement.id} sx={{ borderLeft: "2px solid", borderColor: "primary.light", pl: 1.5, py: 0.25 }}>
-                <Typography variant="body2" fontWeight={600}>
-                  {movement.coluna_origem_nome || "Entrada no quadro"} → {movement.coluna_destino_nome}
+              <Box key={movement.id} sx={{ py: 1 }}>
+                <Typography variant="body2">
+                  <Box component="span" fontWeight="bold">{movement.coluna_origem_nome || "Início"}</Box>
+                  {" → "}
+                  <Box component="span" fontWeight="bold">{movement.coluna_destino_nome}</Box>
                 </Typography>
-                <Typography variant="caption" color="text.secondary" display="block">
-                  {movement.quadro} · {movement.usuario_nome || (movement.CODPESSOA ? `Usuário ${movement.CODPESSOA}` : "Sistema")} · {formatDate(movement.movimentado_em)}
+                <Typography variant="caption" color="text.secondary">
+                  {movement.usuario_nome || "Sistema"} · {formatMovementDate(movement.movimentado_em)} · {movement.quadro}
                 </Typography>
-                {movement.origem !== "manual" && (
-                  <Typography variant="caption" color="text.secondary" display="block">
-                    {movement.origem === "automatica" ? "Movimento automático" : "Restauração"}
-                  </Typography>
-                )}
               </Box>
             ))}
           </Stack>
