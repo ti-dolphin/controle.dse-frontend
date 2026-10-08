@@ -22,7 +22,7 @@ const NotesHomePage = () => {
 
   const user = useSelector((state: RootState) => state.user.user);
   const { refreshNotes, rows } = useSelector((state: RootState) => state.notesTable);
-  const canManageCandidates = Number(user?.PERM_ADMINISTRADOR) === 1;
+  const canManageCandidates = Number(user?.PERM_CANDIDATOS) === 1 || Number(user?.PERM_ADMINISTRADOR) === 1;
 
   // Buscar dados do apontamento selecionado se houver apenas 1
   const selectedNote = useMemo(() => {

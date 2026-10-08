@@ -47,6 +47,7 @@ export interface User {
   PERM_MOVIMENTAR: number | null;
   PERM_CRM: number | null;
   PERM_CHECAGEM_CRM?: number | null;
+  PERM_CANDIDATOS?: number | null;
 }
 
 export interface ReducedUser {
