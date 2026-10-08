@@ -237,15 +237,15 @@ const VagasPage = () => {
               component="nav"
               aria-label="Contato e redes sociais da Dolphin"
               sx={{
-                display: { xs: "flex", md: "grid" },
-                justifyContent: { xs: "center", md: "initial" },
+                display: { xs: "flex", sm: "grid" },
+                justifyContent: { xs: "center", sm: "initial" },
                 alignItems: "center",
-                gap: { xs: 3, md: 0 },
-                gridTemplateColumns: { xs: "repeat(2, minmax(0, 1fr))", md: "repeat(4, minmax(0, 1fr))" },
-                bgcolor: { xs: "transparent", md: "#f7942b" },
-                color: { xs: "#f7942b", md: "common.white" },
+                gap: { xs: 3, sm: 0 },
+                gridTemplateColumns: { sm: "repeat(2, minmax(0, 1fr))", md: "repeat(4, minmax(0, 1fr))" },
+                bgcolor: { xs: "transparent", sm: "#f7942b" },
+                color: { xs: "#f7942b", sm: "common.white" },
                 borderRadius: 2,
-                overflow: { xs: "visible", md: "hidden" },
+                overflow: { xs: "visible", sm: "hidden" },
               }}
             >
               {[
@@ -263,8 +263,8 @@ const VagasPage = () => {
                   rel={href.startsWith("https://") ? "noreferrer" : undefined}
                   sx={{
                     minWidth: 0,
-                    minHeight: { xs: 40, md: 104 },
-                    width: { xs: 40, md: "auto" },
+                    minHeight: { xs: 40, sm: 104 },
+                    width: { xs: 40, sm: "auto" },
                     px: { xs: 0, sm: 1.5 },
                     py: { xs: 0.75, sm: 1.25 },
                     display: "flex",
@@ -275,15 +275,19 @@ const VagasPage = () => {
                     color: "inherit",
                     textAlign: "center",
                     textDecoration: "none",
-                    borderRight: { xs: "none", md: index < 3 ? "1px solid rgba(255,255,255,0.7)" : "none" },
-                    borderBottom: "none",
-                    "&:hover": { bgcolor: { xs: "transparent", md: "rgba(0,0,0,0.08)" } },
-                    "&:focus-visible": { outline: { xs: "2px solid #f7942b", md: "2px solid white" }, outlineOffset: -4 },
+                    borderRight: {
+                      xs: "none",
+                      sm: index % 2 === 0 ? "1px solid rgba(255,255,255,0.7)" : "none",
+                      md: index < 3 ? "1px solid rgba(255,255,255,0.7)" : "none",
+                    },
+                    borderBottom: { xs: "none", sm: index < 2 ? "1px solid rgba(255,255,255,0.7)" : "none", md: "none" },
+                    "&:hover": { bgcolor: { xs: "transparent", sm: "rgba(0,0,0,0.08)" } },
+                    "&:focus-visible": { outline: { xs: "2px solid #f7942b", sm: "2px solid white" }, outlineOffset: -4 },
                   }}
                 >
                   <Icon aria-hidden="true" sx={{ fontSize: { xs: 25, sm: 30 } }} />
-                  <Typography component="span" sx={{ display: { xs: "none", sm: "block" }, fontSize: { sm: 14, md: 16 }, lineHeight: 1.2, whiteSpace: "nowrap" }}>
-                    {index === 2 ? <><Box component="span" sx={{ display: { xs: "none", sm: "inline" } }}>Rua Carlos Lacerda, 139 · Gravataí/RS</Box><Box component="span" sx={{ display: { xs: "inline", sm: "none" } }}>Gravataí/RS</Box></> : label}
+                  <Typography component="span" sx={{ display: { xs: "none", sm: "block" }, minWidth: 0, fontSize: { sm: 14, md: 16 }, lineHeight: 1.2, whiteSpace: { xs: "nowrap", sm: "normal" } }}>
+                    {index === 2 ? <><Box component="span" sx={{ display: { xs: "none", sm: "inline" } }}>Rua Carlos Lacerda, 139<br />Gravataí/RS</Box><Box component="span" sx={{ display: { xs: "inline", sm: "none" } }}>Gravataí/RS</Box></> : label}
                   </Typography>
                 </Box>
               ))}
