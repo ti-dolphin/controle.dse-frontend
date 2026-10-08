@@ -1,8 +1,14 @@
 import { ChangeEvent, FormEvent, useEffect, useRef, useState } from "react";
 import { Alert, Box, Button, Checkbox, Chip, Container, FormControl, InputLabel, ListItemText, MenuItem, OutlinedInput, Paper, Select, Stack, TextField, Typography } from "@mui/material";
 import CloudUploadOutlinedIcon from "@mui/icons-material/CloudUploadOutlined";
+import LanguageIcon from "@mui/icons-material/Language";
+import InstagramIcon from "@mui/icons-material/Instagram";
+import PlaceIcon from "@mui/icons-material/Place";
+import PhoneIcon from "@mui/icons-material/Phone";
 import FirebaseService from "../services/FireBaseService";
 import CandidateApplicationService from "../services/CandidateApplicationService";
+import headerDolphin from "../assets/images/header-dolphin.png";
+import footerDolphin from "../assets/images/footer.png";
 
 const STATES = ["AC", "AL", "AP", "AM", "BA", "CE", "DF", "ES", "GO", "MA", "MT", "MS", "MG", "PA", "PB", "PR", "PE", "PI", "RJ", "RN", "RS", "RO", "RR", "SC", "SP", "SE", "TO"];
 const MAX_FILE_SIZE = 10 * 1024 * 1024;
@@ -134,12 +140,18 @@ const VagasPage = () => {
   };
 
   return (
-    <Box sx={{ minHeight: "100vh", bgcolor: "background.default", py: { xs: 3, sm: 6 } }}>
-      <Container maxWidth="sm">
-        <Paper elevation={3} sx={{ p: { xs: 2.5, sm: 4 }, borderRadius: 2 }}>
-          <Stack spacing={2.5}>
+    <Box sx={{ minHeight: "100vh", bgcolor: "background.default", py: { xs: 0.75, sm: 2 } }}>
+      <Container maxWidth="md">
+        <Paper elevation={3} sx={{ p: { xs: 1.5, sm: 2.5 }, borderRadius: 2 }}>
+          <Stack spacing={1.5}>
             <Box>
-              <Typography variant="h4" component="h1" color="primary.main" fontWeight="bold" gutterBottom>
+              <Box
+                component="img"
+                src={headerDolphin}
+                alt="Dolphin Soluções em Engenharia"
+                sx={{ display: "block", width: "100%", height: { xs: 80, sm: 115 }, objectFit: "contain", mb: 1 }}
+              />
+              <Typography variant="h5" component="h1" color="primary.main" fontWeight="bold" gutterBottom>
                 Trabalhe conosco
               </Typography>
               <Typography color="text.secondary">
@@ -151,17 +163,15 @@ const VagasPage = () => {
             {error && <Alert severity="error">{error}</Alert>}
 
             <Box component="form" onSubmit={handleSubmit} noValidate>
-              <Stack spacing={2}>
-                <TextField label="Nome completo" value={form.nome_completo} onChange={handleFieldChange("nome_completo")} required fullWidth inputProps={{ maxLength: 45 }} />
+              <Box sx={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: { xs: 1, sm: 1.5 } }}>
+                <TextField sx={{ gridColumn: "1 / -1" }} label="Nome completo" value={form.nome_completo} onChange={handleFieldChange("nome_completo")} required fullWidth inputProps={{ maxLength: 45 }} />
                 <TextField label="CPF" value={form.cpf} onChange={handleFieldChange("cpf")} required fullWidth inputProps={{ inputMode: "numeric", maxLength: 14 }} />
                 <TextField label="Telefone" value={form.telefone} onChange={handleFieldChange("telefone")} required fullWidth inputProps={{ maxLength: 45 }} />
-                <Stack direction={{ xs: "column", sm: "row" }} spacing={2}>
-                  <TextField label="Cidade" value={form.cidade} onChange={handleFieldChange("cidade")} required fullWidth inputProps={{ maxLength: 45 }} />
-                  <TextField select label="Estado" value={form.estado} onChange={handleFieldChange("estado")} required fullWidth>
-                    {STATES.map((state) => <MenuItem key={state} value={state}>{state}</MenuItem>)}
-                  </TextField>
-                </Stack>
-                <FormControl required fullWidth>
+                <TextField label="Cidade" value={form.cidade} onChange={handleFieldChange("cidade")} required fullWidth inputProps={{ maxLength: 45 }} />
+                <TextField select label="Estado" value={form.estado} onChange={handleFieldChange("estado")} required fullWidth>
+                  {STATES.map((state) => <MenuItem key={state} value={state}>{state}</MenuItem>)}
+                </TextField>
+                <FormControl required fullWidth sx={{ gridColumn: "1 / -1" }}>
                   <InputLabel id="funcoes-label">Funções de interesse</InputLabel>
                   <Select
                     labelId="funcoes-label"
@@ -184,7 +194,7 @@ const VagasPage = () => {
                   </Select>
                 </FormControl>
 
-                <Box>
+                <Box sx={{ alignSelf: "center" }}>
                   <input
                     ref={fileInputRef}
                     hidden
@@ -206,11 +216,67 @@ const VagasPage = () => {
                   </Typography>
                 </Box>
 
-                <Button type="submit" variant="contained" disabled={submitting} sx={{ width: "100%", maxWidth: "none", py: 1.25 }}>
+                <Button type="submit" variant="contained" disabled={submitting} sx={{ width: "100%", maxWidth: "none", py: 1.25, alignSelf: "center" }}>
                   {submitting ? "Enviando currículo..." : "Enviar currículo"}
                 </Button>
-              </Stack>
+              </Box>
             </Box>
+            <Box
+              component="nav"
+              aria-label="Contato e redes sociais da Dolphin"
+              sx={{
+                display: "grid",
+                gridTemplateColumns: { xs: "repeat(2, minmax(0, 1fr))", md: "repeat(4, minmax(0, 1fr))" },
+                bgcolor: "#f7942b",
+                color: "common.white",
+                borderRadius: 2,
+                overflow: "hidden",
+              }}
+            >
+              {[
+                { href: "https://dse.com.br", label: "dse.com.br", Icon: LanguageIcon },
+                { href: "https://www.instagram.com/dolphin.engenharia/", label: "@dolphin.engenharia", Icon: InstagramIcon },
+                { href: "https://www.google.com/maps/search/?api=1&query=Rua+Carlos+Lacerda%2C+139%2C+Gravata%C3%AD%2FRS", label: <>Rua Carlos Lacerda, 139<br />Gravataí/RS</>, Icon: PlaceIcon },
+                { href: "tel:+555130435474", label: "51 3043-5474", Icon: PhoneIcon },
+              ].map(({ href, label, Icon }, index) => (
+                <Box
+                  key={href}
+                  component="a"
+                  href={href}
+                  target={href.startsWith("https://") ? "_blank" : undefined}
+                  rel={href.startsWith("https://") ? "noreferrer" : undefined}
+                  sx={{
+                    minWidth: 0,
+                    minHeight: { xs: 88, md: 104 },
+                    px: { xs: 1, sm: 1.5 },
+                    py: 1.25,
+                    display: "flex",
+                    flexDirection: "column",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    gap: 0.75,
+                    color: "inherit",
+                    textAlign: "center",
+                    textDecoration: "none",
+                    borderRight: { md: index < 3 ? "1px solid rgba(255,255,255,0.7)" : "none" },
+                    borderBottom: { xs: index < 2 ? "1px solid rgba(255,255,255,0.7)" : "none", md: "none" },
+                    "&:hover": { bgcolor: "rgba(0,0,0,0.08)" },
+                    "&:focus-visible": { outline: "2px solid white", outlineOffset: -4 },
+                  }}
+                >
+                  <Icon aria-hidden="true" sx={{ fontSize: { xs: 25, sm: 30 } }} />
+                  <Typography component="span" sx={{ fontSize: { xs: 12, sm: 14, md: 16 }, lineHeight: 1.2, overflowWrap: "anywhere" }}>
+                    {label}
+                  </Typography>
+                </Box>
+              ))}
+            </Box>
+            <Box
+              component="img"
+              src={footerDolphin}
+              alt="Melhorar a vida das pessoas através de Soluções em Engenharia"
+              sx={{ display: "block", width: "100%", height: "auto", mt: 0.5 }}
+            />
           </Stack>
         </Paper>
       </Container>
