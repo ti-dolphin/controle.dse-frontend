@@ -51,7 +51,8 @@ const RequisitionHeaderTitle = () => {
   const { requisition } = useSelector((state: RootState) => state.requisition);
 
   const isAdmin = Number(user?.PERM_ADMINISTRADOR) === 1;
-  const canEdit = isAdmin && Boolean(requisition.ID_REQUISICAO);
+  const isRequisitante = Number(requisition.ID_RESPONSAVEL) === Number(user?.CODPESSOA)
+  const canEdit = (isAdmin || isRequisitante) && Boolean(requisition.ID_REQUISICAO);
 
   const [editDialogOpen, setEditDialogOpen] = useState(false);
   const [initialFocus, setInitialFocus] = useState<"description" | "project">(
