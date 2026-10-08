@@ -139,6 +139,10 @@ const VagasPage = () => {
     setForm((current) => ({ ...current, [field]: value }));
   };
 
+  const isFormComplete = [form.nome_completo, form.telefone, form.cpf, form.cidade, form.estado].every((value) => value.trim())
+    && form.id_funcoes.length > 0
+    && resume !== null;
+
   return (
     <Box sx={{ minHeight: "100vh", bgcolor: "background.default", py: { xs: 0.75, sm: 2 } }}>
       <Container maxWidth="md">
@@ -208,15 +212,23 @@ const VagasPage = () => {
                     startIcon={<CloudUploadOutlinedIcon />}
                     disabled={submitting}
                     onClick={() => fileInputRef.current?.click()}
+                    sx={{
+                      whiteSpace: "nowrap",
+                      px: { xs: 1, sm: 2 },
+                      py: { xs: 0.5, sm: 1 },
+                      fontSize: { xs: "0.72rem", sm: "0.875rem" },
+                      "& .MuiButton-startIcon": { mr: { xs: 0.5, sm: 1 } },
+                      "& .MuiSvgIcon-root": { fontSize: { xs: 18, sm: 24 } },
+                    }}
                   >
                     Anexar currículo
                   </Button>
-                  <Typography variant="caption" display="block" color="text.secondary" sx={{ mt: 0.75 }}>
+                  <Typography variant="caption" color="text.secondary" sx={{ display: { xs: resume ? "block" : "none", sm: "block" }, mt: 0.75 }}>
                     {resume ? resume.name : "Obrigatório · PDF, DOC ou DOCX · até 10 MB"}
                   </Typography>
                 </Box>
 
-                <Button type="submit" variant="contained" disabled={submitting} sx={{ width: "100%", maxWidth: "none", py: 1.25, alignSelf: "center" }}>
+                <Button type="submit" variant="contained" disabled={submitting || !isFormComplete} sx={{ width: "100%", maxWidth: "none", py: { xs: 0.75, sm: 1.25 }, px: { xs: 1, sm: 2 }, fontSize: { xs: "0.75rem", sm: "0.875rem" }, alignSelf: "center", whiteSpace: "nowrap" }}>
                   {submitting ? "Enviando currículo..." : "Enviar currículo"}
                 </Button>
               </Box>
@@ -225,31 +237,36 @@ const VagasPage = () => {
               component="nav"
               aria-label="Contato e redes sociais da Dolphin"
               sx={{
-                display: "grid",
+                display: { xs: "flex", md: "grid" },
+                justifyContent: { xs: "center", md: "initial" },
+                alignItems: "center",
+                gap: { xs: 3, md: 0 },
                 gridTemplateColumns: { xs: "repeat(2, minmax(0, 1fr))", md: "repeat(4, minmax(0, 1fr))" },
-                bgcolor: "#f7942b",
-                color: "common.white",
+                bgcolor: { xs: "transparent", md: "#f7942b" },
+                color: { xs: "#f7942b", md: "common.white" },
                 borderRadius: 2,
-                overflow: "hidden",
+                overflow: { xs: "visible", md: "hidden" },
               }}
             >
               {[
-                { href: "https://dse.com.br", label: "dse.com.br", Icon: LanguageIcon },
-                { href: "https://www.instagram.com/dolphin.engenharia/", label: "@dolphin.engenharia", Icon: InstagramIcon },
-                { href: "https://www.google.com/maps/search/?api=1&query=Rua+Carlos+Lacerda%2C+139%2C+Gravata%C3%AD%2FRS", label: <>Rua Carlos Lacerda, 139<br />Gravataí/RS</>, Icon: PlaceIcon },
-                { href: "tel:+555130435474", label: "51 3043-5474", Icon: PhoneIcon },
-              ].map(({ href, label, Icon }, index) => (
+                { href: "https://dse.com.br", label: "dse.com.br", accessibleLabel: "Site dse.com.br", Icon: LanguageIcon },
+                { href: "https://www.instagram.com/dolphin.engenharia/", label: "@dolphin.engenharia", accessibleLabel: "Instagram Dolphin Engenharia", Icon: InstagramIcon },
+                { href: "https://www.google.com/maps/search/?api=1&query=Rua+Carlos+Lacerda%2C+139%2C+Gravata%C3%AD%2FRS", label: <>Rua Carlos Lacerda, 139<br />Gravataí/RS</>, accessibleLabel: "Endereço: Rua Carlos Lacerda, 139, Gravataí/RS", Icon: PlaceIcon },
+                { href: "tel:+555130435474", label: "51 3043-5474", accessibleLabel: "Telefone 51 3043-5474", Icon: PhoneIcon },
+              ].map(({ href, label, accessibleLabel, Icon }, index) => (
                 <Box
                   key={href}
                   component="a"
                   href={href}
+                  aria-label={accessibleLabel}
                   target={href.startsWith("https://") ? "_blank" : undefined}
                   rel={href.startsWith("https://") ? "noreferrer" : undefined}
                   sx={{
                     minWidth: 0,
-                    minHeight: { xs: 88, md: 104 },
-                    px: { xs: 1, sm: 1.5 },
-                    py: 1.25,
+                    minHeight: { xs: 40, md: 104 },
+                    width: { xs: 40, md: "auto" },
+                    px: { xs: 0, sm: 1.5 },
+                    py: { xs: 0.75, sm: 1.25 },
                     display: "flex",
                     flexDirection: "column",
                     alignItems: "center",
@@ -258,25 +275,37 @@ const VagasPage = () => {
                     color: "inherit",
                     textAlign: "center",
                     textDecoration: "none",
-                    borderRight: { md: index < 3 ? "1px solid rgba(255,255,255,0.7)" : "none" },
-                    borderBottom: { xs: index < 2 ? "1px solid rgba(255,255,255,0.7)" : "none", md: "none" },
-                    "&:hover": { bgcolor: "rgba(0,0,0,0.08)" },
-                    "&:focus-visible": { outline: "2px solid white", outlineOffset: -4 },
+                    borderRight: { xs: "none", md: index < 3 ? "1px solid rgba(255,255,255,0.7)" : "none" },
+                    borderBottom: "none",
+                    "&:hover": { bgcolor: { xs: "transparent", md: "rgba(0,0,0,0.08)" } },
+                    "&:focus-visible": { outline: { xs: "2px solid #f7942b", md: "2px solid white" }, outlineOffset: -4 },
                   }}
                 >
                   <Icon aria-hidden="true" sx={{ fontSize: { xs: 25, sm: 30 } }} />
-                  <Typography component="span" sx={{ fontSize: { xs: 12, sm: 14, md: 16 }, lineHeight: 1.2, overflowWrap: "anywhere" }}>
-                    {label}
+                  <Typography component="span" sx={{ display: { xs: "none", sm: "block" }, fontSize: { sm: 14, md: 16 }, lineHeight: 1.2, whiteSpace: "nowrap" }}>
+                    {index === 2 ? <><Box component="span" sx={{ display: { xs: "none", sm: "inline" } }}>Rua Carlos Lacerda, 139 · Gravataí/RS</Box><Box component="span" sx={{ display: { xs: "inline", sm: "none" } }}>Gravataí/RS</Box></> : label}
                   </Typography>
                 </Box>
               ))}
             </Box>
+            <Box sx={{ width: "100%", overflow: "hidden", mt: 0.5, display: { xs: "none", sm: "block" } }}>
+              <Box
+                component="img"
+                src={footerDolphin}
+                alt="Melhorar a vida das pessoas através de Soluções em Engenharia"
+                sx={{ display: "block", width: { xs: "130%", sm: "100%" }, maxWidth: "none", height: "auto", mx: { xs: "-15%", sm: 0 } }}
+              />
+            </Box>
             <Box
-              component="img"
-              src={footerDolphin}
-              alt="Melhorar a vida das pessoas através de Soluções em Engenharia"
-              sx={{ display: "block", width: "100%", height: "auto", mt: 0.5 }}
-            />
+              component="footer"
+              sx={{ display: { xs: "flex", sm: "none" }, alignItems: "center", justifyContent: "center", gap: 1, mt: 0.5, color: "primary.main" }}
+            >
+              <Box aria-hidden="true" sx={{ flex: 1, height: 2, bgcolor: "#f7942b", borderRadius: 1 }} />
+              <Typography component="p" sx={{ m: 0, minWidth: 0, maxWidth: "85%", fontSize: 10, lineHeight: 1.25, fontWeight: 700, textAlign: "center" }}>
+                Melhorar a vida das pessoas através de Soluções em Engenharia
+              </Typography>
+              <Box aria-hidden="true" sx={{ flex: 1, height: 2, bgcolor: "#f7942b", borderRadius: 1 }} />
+            </Box>
           </Stack>
         </Paper>
       </Container>
