@@ -16,6 +16,13 @@ const FILTER_LABELS: Record<string, string> = {
 };
 
 const normalize = (value: unknown) => String(value ?? "").normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLocaleLowerCase();
+const formatDateTime = (value: string | null) => {
+  if (!value) return "-";
+  const date = new Date(value);
+  return Number.isNaN(date.getTime())
+    ? "-"
+    : new Intl.DateTimeFormat("pt-BR", { dateStyle: "short", timeStyle: "short" }).format(date);
+};
 
 const CandidatesTab = () => {
   const theme = useTheme();
@@ -61,6 +68,13 @@ const CandidatesTab = () => {
         />
       ),
     })),
+    {
+      field: "atualizado_em",
+      headerName: "Enviado em",
+      minWidth: 160,
+      flex: 1,
+      renderCell: ({ row }) => formatDateTime(row.atualizado_em),
+    },
     {
       field: "curriculo",
       headerName: "Currículo",

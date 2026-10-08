@@ -18,6 +18,7 @@ export interface CandidateRow {
   cpf: string;
   cidade: string;
   estado: string;
+  atualizado_em: string | null;
   funcoes: string;
   curriculo: string;
   nome_arquivo: string;
