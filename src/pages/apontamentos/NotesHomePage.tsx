@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from "react";
+import React, { useState, useMemo, useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { RootState } from "../../redux/store";
 import { setRefreshNotes } from "../../redux/slices/apontamentos/notesTableSlice";
@@ -12,6 +12,7 @@ import ApontamentosTab from "../../components/apontamentos/tabs/ApontamentosTab"
 import PontoTab from "../../components/apontamentos/tabs/PontoTab";
 import ProblemasTab from "../../components/apontamentos/tabs/ProblemasTab";
 import CandidatesTab from "../../components/apontamentos/tabs/CandidatesTab";
+import CandidateApplicationService from "../../services/CandidateApplicationService";
 
 const NotesHomePage = () => {
   const navigate = useNavigate();
@@ -22,7 +23,23 @@ const NotesHomePage = () => {
 
   const user = useSelector((state: RootState) => state.user.user);
   const { refreshNotes, rows } = useSelector((state: RootState) => state.notesTable);
-  const canManageCandidates = Number(user?.PERM_CANDIDATOS) === 1 || Number(user?.PERM_ADMINISTRADOR) === 1;
+  const [canManageCandidates, setCanManageCandidates] = useState(
+    Number(user?.PERM_CANDIDATOS) === 1 || Number(user?.PERM_ADMINISTRADOR) === 1
+  );
+
+  useEffect(() => {
+    let active = true;
+    if (!user) {
+      setCanManageCandidates(false);
+      return () => { active = false; };
+    }
+
+    CandidateApplicationService.checkManagementAccess()
+      .then((allowed) => { if (active) setCanManageCandidates(allowed); })
+      .catch(() => { if (active) setCanManageCandidates(false); });
+
+    return () => { active = false; };
+  }, [user?.CODPESSOA]);
 
   // Buscar dados do apontamento selecionado se houver apenas 1
   const selectedNote = useMemo(() => {

@@ -32,6 +32,10 @@ const CandidateApplicationService = {
     const response = await api.get("/vagas/gestao/candidatos");
     return response.data;
   },
+  checkManagementAccess: async (): Promise<boolean> => {
+    const response = await api.get<{ allowed: boolean }>("/vagas/gestao/acesso");
+    return response.data.allowed;
+  },
   submit: async (payload: CandidateApplicationPayload): Promise<{ previous_resume_urls: string[] }> => {
     const response = await api.post("/vagas/candidatos", payload);
     return response.data;
