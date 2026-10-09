@@ -86,10 +86,10 @@ const AttachRequisitionItemsButton = () => {
         <DialogContent>
           <Stack spacing={2}>
             <DialogContentText>
-              A tabela não pode conter cabeçalho. observação do item na coluna A, QTD na coluna B e Unidade na coluna C. Ambas obrigatórias.
+              A tabela não pode conter cabeçalho. Informe código do produto na coluna A, observação na B e QTD na C. A unidade na coluna D pode ficar vazia quando estiver cadastrada no produto; o valor alvo unitário na coluna E é opcional.
             </DialogContentText>
             <Typography variant="body2" color="text.secondary">
-              Formatos: XLSX, XLS ou CSV. Será lida a primeira aba. A QTD deve ser inteira e maior que zero.
+              Formatos: XLSX, XLS ou CSV. Será lida a primeira aba. A QTD deve ser inteira e maior que zero. O código deve corresponder a um produto cadastrado.
             </Typography>
             <FormControlLabel control={<Checkbox checked={replaceExisting} disabled={busy} onChange={(event) => {
               setReplaceExisting(event.target.checked);
@@ -98,7 +98,7 @@ const AttachRequisitionItemsButton = () => {
             <Typography variant="body2" color="text.secondary">
               {replaceExisting
                 ? "Atualiza apenas Material ou serviço não cadastrado com campos incompletos, na ordem dos itens da requisição. Linhas com observação, QTD e unidade preenchidas serão preservadas. O número de linhas da tabela não pode superar o de itens disponíveis."
-                : "Cria um novo item Material ou serviço não cadastrado na requisição para cada linha da tabela."}
+                : "Cria um novo item na requisição para cada produto informado na tabela."}
             </Typography>
             <AttachmentDropZone disabled={busy} onFiles={readFile}>
               <Button component="label" disabled={busy}>

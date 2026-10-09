@@ -59,6 +59,13 @@ const RequisitionDetailPage = () => {
   const {addingProducts, updatingRecentProductsQuantity} = useSelector((state: RootState) => state.requisitionItem);
   const {id_requisicao} = useParams();
   const { recentProductsAdded, replacingItemProduct, itemBeingReplaced, productSelected, refresh, items } = useSelector((state: RootState) => state.requisitionItem);
+  const itemBeingReplacedRow = items.find(
+    (item) => item.id_item_requisicao === itemBeingReplaced
+  );
+  const itemBeingReplacedDescription =
+    itemBeingReplacedRow?.produto_codigo === "06.001.04.0002"
+      ? itemBeingReplacedRow.observacao
+      : itemBeingReplacedRow?.produto_descricao;
   const {requisition, refreshRequisition} = useSelector((state: RootState) => state.requisition);
   const [quoteListOpen, setQuoteListOpen] = useState<boolean>(false);
   const [buyerDialogOpen, setBuyerDialogOpen] = useState<boolean>(false);
@@ -698,8 +705,9 @@ const RequisitionDetailPage = () => {
         </IconButton>
         <DialogTitle id="add-products-dialog-title">
           <Typography variant="h6" fontWeight={600} color="primary.main">
-            {" "}
-            Adicionar Itens
+            {replacingItemProduct
+              ? `Substituir item - ${itemBeingReplacedDescription || ""}`
+              : "Adicionar Itens"}
           </Typography>
         </DialogTitle>
         <DialogContent>
