@@ -31,6 +31,13 @@ export interface OpportunityKanbanNotification {
   };
 }
 
+export interface OpportunityReview {
+  id: number;
+  numeroRevisao: number;
+  data_revisao: string | null;
+  data_envio_inicial: string | null;
+}
+
 const OpportunityKanbanService = {
   getCards: async (board: KanbanBoardName, todos?: boolean): Promise<KanbanCardOpportunity[]> => {
     const response = await api.get(`${API_ENDPOINT}/cards`, { params: { board, todos } });
@@ -77,6 +84,18 @@ const OpportunityKanbanService = {
   markAllMovementNotificationsSeen: async (): Promise<void> => {
     await api.patch(`${API_ENDPOINT}/notificacoes/visualizadas`)
   },
+  getReviewsByCodos: async (CODOS: number): Promise<OpportunityReview[]> => {
+    const response = await api.get<OpportunityReview[]>(`${API_ENDPOINT}/${CODOS}/reviews`)
+    return response.data
+  },
+  updateReviewDates: async (
+    CODOS: number,
+    reviewId: number,
+    dates: Partial<Pick<OpportunityReview, "data_revisao" | "data_envio_inicial">>,
+  ): Promise<OpportunityReview> => {
+    const response = await api.patch<OpportunityReview>(`${API_ENDPOINT}/${CODOS}/reviews/${reviewId}`, dates)
+    return response.data
+  }
 };
 
 export default OpportunityKanbanService;

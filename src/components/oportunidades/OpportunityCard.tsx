@@ -2,6 +2,7 @@ import React from "react";
 import { Box, Typography, Stack, Avatar, Tooltip, Chip, Card, CardContent, CardActions } from "@mui/material";
 import AccessTimeIcon from "@mui/icons-material/AccessTime";
 import { getDateFromISOstring } from "../../utils";
+import { formatCardTitle } from "../../utils/oportunidades/formatCardTitle";
 
 interface OpportunityCardProps {
   row: any;
@@ -32,22 +33,7 @@ const formatCardDate = (data?: string | null) => {
   return date ? date.toLocaleDateString("pt-BR") : "-";
 };
 
-const DSE_CODE_PATTERN = /-?\s*DSE\s*(\d+)\s*$/i;
 const CHECKLIST_STATUS_LABELS: Record<string, string> = { red: "vermelho", yellow: "amarelo", green: "verde" };
-
-export const formatCardTitle = (row: any) => {
-  const numero = row?.adicional?.NUMERO ?? 0;
-  const projetoId = numero ? `${row?.projeto?.ID ?? "-"}.${numero}` : row?.projeto?.ID ?? "-";
-  const nomeFantasia: string = row?.cliente?.NOMEFANTASIA ?? "-";
-
-  const dseMatch = nomeFantasia.match(DSE_CODE_PATTERN);
-  if (dseMatch) {
-    const dseCode = dseMatch[1];
-    return `DSE${dseCode}-${projetoId} - ${row?.NOME ?? "-"}`;
-  }
-
-  return `${projetoId} - ${nomeFantasia}`;
-};
 
 const OpportunityCard: React.FC<OpportunityCardProps> = ({
   row,
@@ -107,6 +93,22 @@ const OpportunityCard: React.FC<OpportunityCardProps> = ({
         <Stack direction="row" alignItems="center" justifyContent="space-between" gap={1} sx={{ width: "100%", mt: 1.5 }}>
           {showKanbanDates ? (
             <Stack spacing={0.25}>
+              {row?.revisao?.numeroRevisao && (
+                <>
+                  <Typography variant="caption" sx={{lineHeight: 1.35}}>
+                    <Box component='span' sx={{fontWeight: 700}}>Número da revisão:</Box>{" "}
+                    {row.revisao.numeroRevisao}
+                  </Typography>
+                  <Typography variant="caption" sx={{lineHeight: 1.35}}>
+                    <Box component='span' sx={{fontWeight: 700}}>Data da revisão atual:</Box>{" "}
+                    {row.revisao.data_revisao ? new Date(row.revisao.data_revisao).toLocaleDateString('pt-BR') : '-'}
+                  </Typography>
+                  <Typography variant="caption" sx={{lineHeight: 1.35}}>
+                    <Box component='span' sx={{fontWeight: 700}}>Data envio inicial revisão:</Box>{" "}
+                    {row.revisao.data_envio_inicial ? new Date(row.revisao.data_envio_inicial).toLocaleDateString('pt-BR') : '-'}
+                  </Typography>
+                </>
+              )}
               <Typography variant="caption" sx={{ lineHeight: 1.35 }}>
                 <Box component="span" sx={{ fontWeight: 700 }}>Data planejada:</Box>{" "}
                 {formatCardDate(row?.data_planejada)}

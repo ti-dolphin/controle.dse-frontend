@@ -13,13 +13,14 @@ import { RootState } from "../../redux/store"
 import { setFeedback } from "../../redux/slices/feedBackSlice"
 import OpportunityKanbanService from "../../services/oportunidades/OpportunityKanbanService"
 import { KanbanCardOpportunity, OpportunityKanbanCardData, OpportunityKanbanColumn } from "../../models/oportunidades/OpportunityKanbanColumn"
-import OpportunityCard, { formatCardTitle } from "./OpportunityCard"
+import OpportunityCard from "./OpportunityCard"
 import BaseDeleteDialog from "../shared/BaseDeleteDialog"
 import OpportunityKanbanCardDialog from "./OpportunityKanbanCardDialog"
 import OpportunityKanbanArchivedCardsDialog from "./OpportunityKanbanArchivedCardsDialog";
 import { kanbanGlobalStyles, KANBAN_COLUMN_WIDTH } from "../../styles/oportunidades/kanbanGlobalStyles"
 import { ARCHIVED_COLUMN_ID, DELETED_COLUMN_ID, KanbanBoardName, isManualMoveAllowed } from "../../utils/kanbanFlowRules"
 import { useKanbanEdgeAutoScroll } from "../../hooks/oportunidades/useKanbanEdgeAutoScroll"
+import { formatCardTitle } from "../../utils/oportunidades/formatCardTitle"
 
 interface OpportunityKanbanComponentProps {
   board: KanbanBoardName
