@@ -143,7 +143,7 @@ const RequisitionStatusStepper = ({
     () =>
       items.some((item) => {
         const patrimonyType = Number(item?.produto?.tipo_produto_patrimonio ?? 0);
-        return patrimonyType === 1 || patrimonyType === 2;
+        return (patrimonyType === 1 || patrimonyType === 2) && Number(item?.quantidade) > 0;
       }),
     [items]
   );
