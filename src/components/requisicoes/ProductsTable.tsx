@@ -17,7 +17,7 @@ import { debounce } from "lodash";
 import { setFeedback } from "../../redux/slices/feedBackSlice";
 import { useProductPermissions } from "../../hooks/productPermissionsHook";
 import { ProductService } from "../../services/ProductService";
-import { setProductSelected, setRecentAddedProducts, removeRecentProduct } from "../../redux/slices/requisicoes/requisitionItemSlice";
+import { setProductSelected, setRecentAddedProducts, setRecentProductsInfo, removeRecentProduct } from "../../redux/slices/requisicoes/requisitionItemSlice";
 import EditIcon from "@mui/icons-material/Edit";
 import { useIsMobile } from "../../hooks/useIsMobile";
 import { ProductPermissionField, useProductColumns } from "../../hooks/productColumnsHook";
@@ -304,6 +304,7 @@ const ProductsTable = ({ tipoFaturamento, fromReq }: ProductsTableProps) => {
     }
 
     dispatch(setRecentAddedProducts(newIds));
+    dispatch(setRecentProductsInfo(products.filter((product) => newIds.includes(product.ID))));
   };
   
   //Processa mudança de modo, edição ou visualização
@@ -450,24 +451,7 @@ const ProductsTable = ({ tipoFaturamento, fromReq }: ProductsTableProps) => {
       {addingProducts && selectedProductsInfo.length > 0 && (
         <Box sx={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 1, px: 1, py: 1 }}>
           {selectedProductsInfo.map((product) => (
-            <Chip
-              key={product.ID}
-              size="small"
-              color="primary"
-              variant="outlined"
-              label={product.descricao}
-              title={product.descricao}
-              onDelete={() => dispatch(removeRecentProduct(product.ID))}
-              sx={{
-                minWidth: 0,
-                maxWidth: "100%",
-                "& .MuiChip-label": {
-                  overflow: "hidden",
-                  textOverflow: "ellipsis",
-                  whiteSpace: "nowrap",
-                },
-              }}
-            />
+            <Chip key={product.ID} size="small" color="primary" variant="outlined" label={product.descricao} title={product.descricao} onDelete={() => dispatch(removeRecentProduct(product.ID))} sx={{ minWidth: 0, maxWidth: "100%", "& .MuiChip-label": { overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" } }} />
           ))}
         </Box>
       )}

@@ -1,12 +1,15 @@
 import { createSlice, PayloadAction } from "@reduxjs/toolkit";
 import { Quote } from "../../../models/requisicoes/Quote";
 import { RequisitionItem } from "../../../models/requisicoes/RequisitionItem";
+import { Product } from "../../../models/Product";
 
 interface RequisitionItemState {
   addingProducts: boolean;
   items: RequisitionItem[];
   updatingRecentProductsQuantity: boolean;
   recentProductsAdded: number[];
+  recentProductsInfo: Record<number, Product>;
+  pendingNewItems: RequisitionItem[];
   productsAdded: number[];
   replacingItemProduct: boolean;
   itemBeingReplaced: number | null;
@@ -27,6 +30,8 @@ const initialState: RequisitionItemState = {
   items: [],
   updatingRecentProductsQuantity: false,
   recentProductsAdded: [],
+  recentProductsInfo: {},
+  pendingNewItems: [],
   productsAdded: [],
   replacingItemProduct: false,
   itemBeingReplaced: null,
@@ -55,6 +60,9 @@ const requisitionItemSlice = createSlice({
     setNewItems(state, action: PayloadAction<number[]>) {
       state.newItems = action.payload;
     },
+    setPendingNewItems(state, action: PayloadAction<RequisitionItem[]>) {
+      state.pendingNewItems = action.payload;
+    },
 
     setRefresh(state, action: PayloadAction<boolean>) {
       state.refresh = action.payload;
@@ -72,6 +80,10 @@ const requisitionItemSlice = createSlice({
       if (index !== -1) {
         state.items[index] = action.payload.updatedItem;
       }
+      if (action.payload.id_item_requisicao < 0) {
+        const pendingIndex = state.pendingNewItems.findIndex(item => item.id_item_requisicao === action.payload.id_item_requisicao);
+        if (pendingIndex !== -1) state.pendingNewItems[pendingIndex] = action.payload.updatedItem;
+      }
     },
 
     setProductSelected(state, action: PayloadAction<number | null>) {
@@ -83,6 +95,9 @@ const requisitionItemSlice = createSlice({
     },
     setRecentAddedProducts(state, action: PayloadAction<number[]>) {
       state.recentProductsAdded = action.payload;
+    },
+    setRecentProductsInfo(state, action: PayloadAction<Product[]>) {
+      for (const product of action.payload) state.recentProductsInfo[product.ID] = product;
     },
     setProductsAdded(state, action: PayloadAction<number[]>) {
       state.productsAdded = action.payload;
@@ -99,6 +114,7 @@ const requisitionItemSlice = createSlice({
     },
     clearRecentProducts(state) {
       state.recentProductsAdded = [];
+      state.recentProductsInfo = {};
     },
     clearNewItems(state) {
       state.newItems = [];
@@ -131,9 +147,11 @@ export const {
   setAddingProducts,
   setUpdatingRecentProductsQuantity,
   setRecentAddedProducts,
+  setRecentProductsInfo,
   removeRecentProduct,
   clearRecentProducts,
   setNewItems,
+  setPendingNewItems,
   clearNewItems,
   setProductsAdded,
   setReplacingItemProduct,

@@ -125,6 +125,7 @@ const RequisitionItemsTable = ({
   const {
     items,
     newItems,
+    pendingNewItems,
     updatingRecentProductsQuantity,
     refresh,
     currentQuoteIdSelected,
@@ -599,11 +600,11 @@ const RequisitionItemsTable = ({
     (params: GridCellParams) => {
       if (blockFields) return false;
       if (params.field === "produto_unidade") {
-        return isNonRegisteredItem(params.row);
+        return isNonRegisteredItem(params.row) || (updatingRecentProductsQuantity && !String(params.row.produto?.unidade || "").trim());
       }
       return Boolean(params.colDef.editable);
     },
-    [isNonRegisteredItem, blockFields]
+    [isNonRegisteredItem, blockFields, updatingRecentProductsQuantity]
   );
 
   const mobileColumns = () => {
@@ -832,7 +833,7 @@ const RequisitionItemsTable = ({
         const observacaoChanged =
           String(normalizedRow.observacao ?? "") !== String(oldRow.observacao ?? "");
         const produtoUnidadeChanged =
-          productCode === "06.001.04.0002" &&
+          (productCode === "06.001.04.0002" || (updatingRecentProductsQuantity && !String(oldRow.produto?.unidade || "").trim())) &&
           normalizedRow.produto_unidade !== oldRow.produto_unidade;
 
         if (quantidadeChanged && normalizedRow.quantidade < 0) {
@@ -872,6 +873,12 @@ const RequisitionItemsTable = ({
         if (ocChanged) payload.oc = normalizedRow.oc;
         if (observacaoChanged) payload.observacao = normalizedRow.observacao;
         if (produtoUnidadeChanged) payload.produto_unidade = normalizedRow.produto_unidade;
+
+        if (Number(normalizedRow.id_item_requisicao) < 0) {
+          const updatedItem = { ...normalizedRow } as RequisitionItem;
+          dispatch(replaceItem({ id_item_requisicao: normalizedRow.id_item_requisicao, updatedItem }));
+          return updatedItem;
+        }
 
         if (quantidadeChanged) {
           // Sem estado otimista: a quantidade dispara recálculo de cotação e
@@ -1275,6 +1282,11 @@ const RequisitionItemsTable = ({
   );
   const fetchData = useCallback(async () => {
     setLoading(true);
+    if (updatingRecentProductsQuantity && pendingNewItems.length > 0) {
+      dispatch(setItems(pendingNewItems));
+      setLoading(false);
+      return;
+    }
     const seq = ++fetchSeqRef.current;
     try {
       const params = newItems.length > 0 ? {
@@ -1335,7 +1347,7 @@ const RequisitionItemsTable = ({
         })
       );
     }
-  }, [dispatch, requisition.ID_REQUISICAO, searchTerm, newItems]);
+  }, [dispatch, requisition.ID_REQUISICAO, searchTerm, newItems, pendingNewItems, updatingRecentProductsQuantity]);
 
   const defineSelectedQuoteItemsMap = (items: RequisitionItem[]) => {
     items.forEach((item) => {
