@@ -10,6 +10,8 @@ export type UserCreationFormState = {
   PERM_REQUISITAR: boolean;
   PERM_COMERCIAL: boolean;
   PERM_COMPRADOR: boolean;
+  PERM_PATRIMONIO: boolean;
+  PERM_ORCAMENTISTA: boolean;
   PERM_ADMINISTRADOR: boolean;
 };
 
@@ -25,6 +27,8 @@ export const initialUserCreationFormState: UserCreationFormState = {
   PERM_REQUISITAR: false,
   PERM_COMERCIAL: false,
   PERM_COMPRADOR: false,
+  PERM_PATRIMONIO: false,
+  PERM_ORCAMENTISTA: false,
   PERM_ADMINISTRADOR: false,
 };
 
@@ -66,4 +70,7 @@ export const baseUserPermissionsPayload = {
   PERM_COMPRADOR_OPERACIONAL: 0,
   PERM_MOVIMENTAR: 0,
   PERM_TI: 0,
+  PERM_CRM: 0,
+  PERM_PATRIMONIO_TI: 0,
+  PERM_PATRIMONIO_OPERACIONAL: 0,
 };
