@@ -13,6 +13,7 @@ import {
   DialogContent,
   DialogContentText,
   DialogActions,
+  IconButton,
 } from "@mui/material";
 import { Fragment, useEffect, useState } from "react";
 import { Opportunity } from "../../models/oportunidades/Opportunity";
@@ -32,6 +33,8 @@ import {
 import BaseDeleteDialog from "../shared/BaseDeleteDialog";
 import CurrencyInput from "../shared/ui/CurrencyInput";
 import EmailIcon from "@mui/icons-material/Email";
+import EditIcon from "@mui/icons-material/Edit";
+import { OpportunityCommentService } from "../../services/oportunidades/OpportunityCommentService";
 
 const OpportunityDetailedForm = () => {
   const dispatch = useDispatch();
@@ -46,6 +49,10 @@ const OpportunityDetailedForm = () => {
   );
   const [finalizeConfirmOpen, setFinalizeConfirmOpen] = useState(false);
   const [resendingEmail, setResendingEmail] = useState(false);
+  const [interactionCommentOpen, setInteractionCommentOpen] = useState(false);
+  const [interactionCommentText, setInteractionCommentText] = useState("");
+  const [pendingInteractionDate, setPendingInteractionDate] = useState("");
+  const [savingInteraction, setSavingInteraction] = useState(false);
 
   const getNumericValue = (value: unknown) => {
     const numericValue = Number(value);
@@ -153,6 +160,78 @@ const OpportunityDetailedForm = () => {
       );
     } finally {
       setResendingEmail(false);
+    }
+  };
+
+  const getInteractionMaxDate = () => {
+    const maxDate = new Date();
+    const monthLimit = opportunity.adicional?.NUMERO ? 2 : 6;
+    const dayOfMonth = maxDate.getDate();
+    maxDate.setDate(1);
+    maxDate.setMonth(maxDate.getMonth() + monthLimit);
+    const lastDayOfTargetMonth = new Date(
+      maxDate.getFullYear(),
+      maxDate.getMonth() + 1,
+      0
+    ).getDate();
+    maxDate.setDate(Math.min(dayOfMonth, lastDayOfTargetMonth));
+    return `${maxDate.getFullYear()}-${String(maxDate.getMonth() + 1).padStart(2, "0")}-${String(maxDate.getDate()).padStart(2, "0")}`;
+  };
+
+  const openInteractionEditor = () => {
+    setPendingInteractionDate(getDateInputValue(opportunity.DATAINTERACAO));
+    setInteractionCommentText("");
+    setInteractionCommentOpen(true);
+  };
+
+  const handleInteractionDateChange = (date: string) => {
+    if (date && date > getInteractionMaxDate()) {
+      dispatch(setFeedback({
+        message: `A data de interação pode ser no máximo ${opportunity.adicional?.NUMERO ? 2 : 6} meses à frente.`,
+        type: "error",
+      }));
+    }
+    setPendingInteractionDate(date);
+  };
+
+  const confirmInteractionDateChange = async () => {
+    const comment = interactionCommentText.trim();
+    const requiresComment = Boolean(opportunity.DATAINTERACAO);
+    if ((requiresComment && !comment) || !pendingInteractionDate || !CODOS) return;
+    if (pendingInteractionDate > getInteractionMaxDate()) {
+      handleInteractionDateChange(pendingInteractionDate);
+      return;
+    }
+
+    setSavingInteraction(true);
+    try {
+      const interactionDateIso = formatDateStringtoISOstring(pendingInteractionDate);
+      const updatedOpportunity = await OpportunityService.update(
+        Number(CODOS),
+        { DATAINTERACAO: interactionDateIso },
+        user ?? undefined
+      );
+      if (requiresComment) {
+        const formattedDate = new Date(`${pendingInteractionDate}T12:00:00`).toLocaleDateString("pt-BR");
+        await OpportunityCommentService.create({
+          CODOS: Number(CODOS),
+          DESCRICAO: `Troca de interação (${formattedDate}): ${comment}`,
+          RECCREATEDBY: user?.NOME || "",
+          RECCREATEDON: new Date().toISOString(),
+        });
+        window.dispatchEvent(new Event("opportunity-comment-created"));
+      }
+      setOpportunity({ ...opportunity, ...updatedOpportunity });
+      setFormData((previous: Record<string, unknown>) => ({
+        ...previous,
+        DATAINTERACAO: interactionDateIso,
+      }));
+      setInteractionCommentOpen(false);
+      dispatch(setFeedback({ message: "Data de interação atualizada", type: "success" }));
+    } catch {
+      dispatch(setFeedback({ message: "Erro ao atualizar a data de interação e registrar o comentário", type: "error" }));
+    } finally {
+      setSavingInteraction(false);
     }
   };
 
@@ -419,12 +498,27 @@ const OpportunityDetailedForm = () => {
                         Próxima data de interação com o cliente
                       </Typography>
                     )}
+                  {field.field === "DATAINTERACAO" ? (
+                    <Stack direction="row" alignItems="center" spacing={1}>
+                      <TextField
+                        fullWidth
+                        label={field.label}
+                        value={getDateInputValue(opportunity.DATAINTERACAO)
+                          ? new Date(`${getDateInputValue(opportunity.DATAINTERACAO)}T12:00:00`).toLocaleDateString("pt-BR")
+                          : ""}
+                        InputLabelProps={{ shrink: true }}
+                        InputProps={{ readOnly: true, sx: { borderRadius: 0 } }}
+                        size="small"
+                      />
+                      <IconButton aria-label="Editar data de interação" onClick={openInteractionEditor} color="primary">
+                        <EditIcon />
+                      </IconButton>
+                    </Stack>
+                  ) : (
                   <TextField
                     required={field.required}
                     fullWidth
-                    onChange={(e) =>
-                      handleTextFieldChange(field, e.target.value, "datas")
-                    }
+                    onChange={(e) => handleTextFieldChange(field, e.target.value, "datas")}
                     name={field.field}
                     InputLabelProps={{
                       shrink: true,
@@ -453,6 +547,7 @@ const OpportunityDetailedForm = () => {
                       sx: { borderRadius: 0 },
                     }}
                   />
+                  )}
                 </Grid>
               );
             })}
@@ -634,6 +729,47 @@ const OpportunityDetailedForm = () => {
         onConfirm={handleDelete}
         onCancel={() => setDeletingOpp(null)}
       ></BaseDeleteDialog>
+
+      <Dialog open={interactionCommentOpen} onClose={() => !savingInteraction && setInteractionCommentOpen(false)}>
+        <DialogTitle>Editar data de interação</DialogTitle>
+        <DialogContent>
+          <DialogContentText sx={{ mb: 2 }}>
+            Informe a nova data{opportunity.DATAINTERACAO ? " e o comentário sobre a alteração" : ""}.
+          </DialogContentText>
+          <TextField
+            autoFocus
+            type="date"
+            fullWidth
+            required
+            label="Data de interação"
+            value={pendingInteractionDate}
+            onChange={(event) => handleInteractionDateChange(event.target.value)}
+            inputProps={{ max: getInteractionMaxDate() }}
+            InputLabelProps={{ shrink: true }}
+            sx={{ mb: 2 }}
+          />
+          {opportunity.DATAINTERACAO && (
+            <TextField
+              required
+              fullWidth
+              multiline
+              minRows={3}
+              label="Comentário"
+              value={interactionCommentText}
+              onChange={(event) => setInteractionCommentText(event.target.value)}
+            />
+          )}
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setInteractionCommentOpen(false)} disabled={savingInteraction}>Cancelar</Button>
+          <Button
+            onClick={confirmInteractionDateChange}
+            disabled={savingInteraction || !pendingInteractionDate || (Boolean(opportunity.DATAINTERACAO) && !interactionCommentText.trim()) || pendingInteractionDate > getInteractionMaxDate()}
+          >
+            {savingInteraction ? "Enviando..." : "Enviar"}
+          </Button>
+        </DialogActions>
+      </Dialog>
 
       <Dialog open={finalizeConfirmOpen} onClose={() => setFinalizeConfirmOpen(false)}>
         <DialogTitle>Finalizar oportunidade</DialogTitle>

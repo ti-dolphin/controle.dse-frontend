@@ -361,7 +361,10 @@ const RequisitionListPage = () => {
           searchValue={searchTerm}
           searchInputStyles={{ width: 400 }}
         >
-          {!isMobile && selectedKanban?.id_kanban_requisicao === 5 && (
+          {!isMobile && (
+            selectedKanban?.id_kanban_requisicao === 5 ||
+            selectedKanban?.id_kanban_requisicao === 3
+          ) && (
             <>
               <Box sx={{ display: "inline-flex", alignItems: "center", ml: 2 }}>
                 <input

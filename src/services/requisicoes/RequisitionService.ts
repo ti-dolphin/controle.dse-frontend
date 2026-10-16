@@ -19,6 +19,15 @@ export default class RequisitionService {
     return response.data;
   }
 
+  static async setProjectFavorite(projectId: number, favorite: boolean) {
+    const url = `${API_ENDPOINT}/projetos-favoritos/${projectId}`;
+    if (favorite) {
+      const response = await api.post(url);
+      return response.data;
+    }
+    await api.delete(url);
+  }
+
   static async getLinkedRequisitions(id_requisicao: number) {
     const response = await api.get(`${API_ENDPOINT}/${id_requisicao}/vinculadas`);
     return response.data;
