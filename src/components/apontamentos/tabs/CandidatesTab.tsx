@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { Alert, Box, CircularProgress, Link, useTheme } from "@mui/material";
+import { Alert, Box, Checkbox, CircularProgress, Link, useTheme } from "@mui/material";
 import { GridColDef } from "@mui/x-data-grid";
 import BaseDataTable from "../../shared/BaseDataTable";
 import { TextHeader } from "../../TextHeader";
@@ -68,6 +68,29 @@ const CandidatesTab = () => {
         />
       ),
     })),
+    {
+      field: 'triado',
+      headerName: 'Triado',
+      width: 90,
+      sortable: true,
+      renderCell: ({row}) => (
+        <Checkbox
+          checked={!!row.triado}
+          size="small"
+          onChange={(e, checked) => {
+            CandidateApplicationService.updateRow(row.id_candidato, checked)
+            setRows((current) => {
+              return current.map((item) =>
+                item.id_candidato === row.id_candidato
+                  ? { ...item, triado: checked }
+                  : item
+              );
+            })
+          }}
+          sx={{padding: 0}}
+        />
+      )
+    },
     {
       field: "atualizado_em",
       headerName: "Enviado em",

@@ -19,6 +19,7 @@ export interface CandidateRow {
   cidade: string;
   estado: string;
   atualizado_em: string | null;
+  triado: boolean;
   funcoes: string;
   curriculo: string;
   nome_arquivo: string;
@@ -41,6 +42,11 @@ const CandidateApplicationService = {
     const response = await api.post("/vagas/candidatos", payload);
     return response.data;
   },
+  updateRow: async (id_candidato, checked): Promise<Boolean> => {
+    const body = { id_candidato, checked };
+    const response = await api.post('/vagas/updateTriagemCandidato', body)
+    return response.data
+  }
 };
 
 export default CandidateApplicationService;
