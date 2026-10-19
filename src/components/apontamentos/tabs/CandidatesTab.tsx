@@ -72,7 +72,6 @@ const CandidatesTab = () => {
       field: 'triado',
       headerName: 'Triado',
       width: 90,
-      sortable: true,
       renderCell: ({row}) => (
         <Checkbox
           checked={!!row.triado}
@@ -90,6 +89,14 @@ const CandidatesTab = () => {
           sx={{padding: 0}}
         />
       )
+    },
+    {
+      field: 'comentarios',
+      headerName: 'Comentários',
+      width: 100,
+      renderCell: ({row}) => {
+
+      }
     },
     {
       field: "atualizado_em",
