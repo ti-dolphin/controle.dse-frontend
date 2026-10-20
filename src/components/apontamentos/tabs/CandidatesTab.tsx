@@ -6,6 +6,8 @@ import { TextHeader } from "../../TextHeader";
 import CandidateApplicationService, { CandidateRow } from "../../../services/CandidateApplicationService";
 import CommentIcon from "@mui/icons-material/Comment";
 import CandidatesCommentDialog from "../CandidatesCommentDialog";
+import { useSelector } from "react-redux";
+import { RootState } from "../../../redux/store";
 
 const FILTER_FIELDS = ["nome_completo", "telefone", "cpf", "cidade", "estado", "funcoes"];
 const FILTER_LABELS: Record<string, string> = {
@@ -29,6 +31,9 @@ const formatDateTime = (value: string | null) => {
 
 const CandidatesTab = () => {
   const theme = useTheme();
+  const user = useSelector((state: RootState) => state.user.user);
+  const canSeeCandidateComments = Number(user?.PERM_COMENT_CANDIDATO) === 1
+    || Number(user?.PERM_ADMINISTRADOR) === 1;
   const [rows, setRows] = useState<CandidateRow[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
@@ -100,7 +105,7 @@ const CandidatesTab = () => {
         />
       )
     },
-    {
+    ...(canSeeCandidateComments ? [{
       field: 'comentarios',
       headerName: 'Comentários',
       width: 100,
@@ -123,7 +128,7 @@ const CandidatesTab = () => {
           </IconButton>
         </Tooltip>
       )
-    },
+    } as GridColDef] : []),
     {
       field: "atualizado_em",
       headerName: "Enviado em",
@@ -141,7 +146,7 @@ const CandidatesTab = () => {
         ? <Link href={row.curriculo} target="_blank" rel="noreferrer">{row.nome_arquivo || "Abrir currículo"}</Link>
         : "-",
     },
-  ], [filters]);
+  ], [filters, canSeeCandidateComments]);
 
   return (
     <>
@@ -165,12 +170,14 @@ const CandidatesTab = () => {
       )}
     </Box>
 
-    <CandidatesCommentDialog
+    {canSeeCandidateComments && <CandidatesCommentDialog
       open={openComentDialog}
-      onClose={() => console.log('oi')}
+      onClose={() => setOpenComentDialog(false)}
       id_candidato={idCandidatoForComent}
-      onCommentChange={() => console.log('oi 2')}
-    />
+      onCommentChange={(hasComments) => setRows((current) => current.map((row) =>
+        row.id_candidato === idCandidatoForComent ? { ...row, comentado: hasComments } : row
+      ))}
+    />}
     </>
 
   );
