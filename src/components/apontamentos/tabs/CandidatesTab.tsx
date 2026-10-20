@@ -1,9 +1,11 @@
 import { useEffect, useMemo, useState } from "react";
-import { Alert, Box, Checkbox, CircularProgress, Link, useTheme } from "@mui/material";
+import { Alert, Box, Checkbox, CircularProgress, Link, Tooltip, useTheme, IconButton } from "@mui/material";
 import { GridColDef } from "@mui/x-data-grid";
 import BaseDataTable from "../../shared/BaseDataTable";
 import { TextHeader } from "../../TextHeader";
 import CandidateApplicationService, { CandidateRow } from "../../../services/CandidateApplicationService";
+import CommentIcon from "@mui/icons-material/Comment";
+import CandidatesCommentDialog from "../CandidatesCommentDialog";
 
 const FILTER_FIELDS = ["nome_completo", "telefone", "cpf", "cidade", "estado", "funcoes"];
 const FILTER_LABELS: Record<string, string> = {
@@ -24,6 +26,7 @@ const formatDateTime = (value: string | null) => {
     : new Intl.DateTimeFormat("pt-BR", { dateStyle: "short", timeStyle: "short" }).format(date);
 };
 
+
 const CandidatesTab = () => {
   const theme = useTheme();
   const [rows, setRows] = useState<CandidateRow[]>([]);
@@ -31,7 +34,14 @@ const CandidatesTab = () => {
   const [error, setError] = useState("");
   const [filters, setFilters] = useState<Record<string, string>>({});
   const [appliedFilters, setAppliedFilters] = useState<Record<string, string>>({});
-
+  //comentários:
+  const [openComentDialog, setOpenComentDialog] = useState(false)
+  const [idCandidatoForComent, setIdCandidatoForComent] = useState(0)
+  
+  const openComentsDialog = (id_candidato) => {
+    setIdCandidatoForComent(id_candidato)
+    setOpenComentDialog(true)
+  }
   useEffect(() => {
     CandidateApplicationService.getCandidates()
       .then(setRows)
@@ -94,9 +104,25 @@ const CandidatesTab = () => {
       field: 'comentarios',
       headerName: 'Comentários',
       width: 100,
-      renderCell: ({row}) => {
-
-      }
+      align:'center',
+      headerAlign: 'center',
+      renderCell: ({row}) => (
+        <Tooltip title='Comentário'>
+          <IconButton
+            size='small'
+            onClick={(e) => {
+              e.stopPropagation()
+              openComentsDialog(row.id_candidato)
+              //função para meter o comentário
+            }}
+            sx={{ 
+              color: row.comentado ? "primary.main" : "text.secondary"
+            }}
+          >
+            <CommentIcon fontSize="small" />
+          </IconButton>
+        </Tooltip>
+      )
     },
     {
       field: "atualizado_em",
@@ -118,6 +144,7 @@ const CandidatesTab = () => {
   ], [filters]);
 
   return (
+    <>
     <Box sx={{ flex: 1, minHeight: 0, display: "flex", flexDirection: "column", p: 1 }}>
       {error && <Alert severity="error" sx={{ mb: 1 }}>{error}</Alert>}
       {loading && rows.length === 0 ? (
@@ -137,6 +164,15 @@ const CandidatesTab = () => {
         />
       )}
     </Box>
+
+    <CandidatesCommentDialog
+      open={openComentDialog}
+      onClose={() => console.log('oi')}
+      id_candidato={idCandidatoForComent}
+      onCommentChange={() => console.log('oi 2')}
+    />
+    </>
+
   );
 };
 
