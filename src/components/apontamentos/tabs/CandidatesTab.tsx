@@ -1,9 +1,13 @@
 import { useEffect, useMemo, useState } from "react";
-import { Alert, Box, CircularProgress, Link, useTheme } from "@mui/material";
+import { Alert, Box, Checkbox, CircularProgress, Link, Tooltip, useTheme, IconButton } from "@mui/material";
 import { GridColDef } from "@mui/x-data-grid";
 import BaseDataTable from "../../shared/BaseDataTable";
 import { TextHeader } from "../../TextHeader";
 import CandidateApplicationService, { CandidateRow } from "../../../services/CandidateApplicationService";
+import CommentIcon from "@mui/icons-material/Comment";
+import CandidatesCommentDialog from "../CandidatesCommentDialog";
+import { useSelector } from "react-redux";
+import { RootState } from "../../../redux/store";
 
 const FILTER_FIELDS = ["nome_completo", "telefone", "cpf", "cidade", "estado", "funcoes"];
 const FILTER_LABELS: Record<string, string> = {
@@ -24,14 +28,25 @@ const formatDateTime = (value: string | null) => {
     : new Intl.DateTimeFormat("pt-BR", { dateStyle: "short", timeStyle: "short" }).format(date);
 };
 
+
 const CandidatesTab = () => {
   const theme = useTheme();
+  const user = useSelector((state: RootState) => state.user.user);
+  const canSeeCandidateComments = Number(user?.PERM_COMENT_CANDIDATO) === 1
+    || Number(user?.PERM_ADMINISTRADOR) === 1;
   const [rows, setRows] = useState<CandidateRow[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [filters, setFilters] = useState<Record<string, string>>({});
   const [appliedFilters, setAppliedFilters] = useState<Record<string, string>>({});
-
+  //comentários:
+  const [openComentDialog, setOpenComentDialog] = useState(false)
+  const [idCandidatoForComent, setIdCandidatoForComent] = useState(0)
+  
+  const openComentsDialog = (id_candidato) => {
+    setIdCandidatoForComent(id_candidato)
+    setOpenComentDialog(true)
+  }
   useEffect(() => {
     CandidateApplicationService.getCandidates()
       .then(setRows)
@@ -69,6 +84,52 @@ const CandidatesTab = () => {
       ),
     })),
     {
+      field: 'triado',
+      headerName: 'Triado',
+      width: 90,
+      renderCell: ({row}) => (
+        <Checkbox
+          checked={!!row.triado}
+          size="small"
+          onChange={(e, checked) => {
+            CandidateApplicationService.updateRow(row.id_candidato, checked)
+            setRows((current) => {
+              return current.map((item) =>
+                item.id_candidato === row.id_candidato
+                  ? { ...item, triado: checked }
+                  : item
+              );
+            })
+          }}
+          sx={{padding: 0}}
+        />
+      )
+    },
+    ...(canSeeCandidateComments ? [{
+      field: 'comentarios',
+      headerName: 'Comentários',
+      width: 100,
+      align:'center',
+      headerAlign: 'center',
+      renderCell: ({row}) => (
+        <Tooltip title='Comentário'>
+          <IconButton
+            size='small'
+            onClick={(e) => {
+              e.stopPropagation()
+              openComentsDialog(row.id_candidato)
+              //função para meter o comentário
+            }}
+            sx={{ 
+              color: row.comentado ? "primary.main" : "text.secondary"
+            }}
+          >
+            <CommentIcon fontSize="small" />
+          </IconButton>
+        </Tooltip>
+      )
+    } as GridColDef] : []),
+    {
       field: "atualizado_em",
       headerName: "Enviado em",
       minWidth: 160,
@@ -85,9 +146,10 @@ const CandidatesTab = () => {
         ? <Link href={row.curriculo} target="_blank" rel="noreferrer">{row.nome_arquivo || "Abrir currículo"}</Link>
         : "-",
     },
-  ], [filters]);
+  ], [filters, canSeeCandidateComments]);
 
   return (
+    <>
     <Box sx={{ flex: 1, minHeight: 0, display: "flex", flexDirection: "column", p: 1 }}>
       {error && <Alert severity="error" sx={{ mb: 1 }}>{error}</Alert>}
       {loading && rows.length === 0 ? (
@@ -107,6 +169,17 @@ const CandidatesTab = () => {
         />
       )}
     </Box>
+
+    {canSeeCandidateComments && <CandidatesCommentDialog
+      open={openComentDialog}
+      onClose={() => setOpenComentDialog(false)}
+      id_candidato={idCandidatoForComent}
+      onCommentChange={(hasComments) => setRows((current) => current.map((row) =>
+        row.id_candidato === idCandidatoForComent ? { ...row, comentado: hasComments } : row
+      ))}
+    />}
+    </>
+
   );
 };
 

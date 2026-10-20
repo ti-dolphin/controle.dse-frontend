@@ -250,7 +250,7 @@ const VagasPage = () => {
             >
               {[
                 { href: "https://dse.com.br", label: "dse.com.br", accessibleLabel: "Site dse.com.br", Icon: LanguageIcon },
-                { href: "https://www.instagram.com/dolphin.engenharia/", label: "@dolphin.engenharia", accessibleLabel: "Instagram Dolphin Engenharia", Icon: InstagramIcon },
+                { href: "https://www.instagram.com/dolphin_engenharia/", label: "@dolphin_engenharia", accessibleLabel: "Instagram Dolphin Engenharia", Icon: InstagramIcon },
                 { href: "https://www.google.com/maps/search/?api=1&query=Rua+Carlos+Lacerda%2C+139%2C+Gravata%C3%AD%2FRS", label: <>Rua Carlos Lacerda, 139<br />Gravataí/RS</>, accessibleLabel: "Endereço: Rua Carlos Lacerda, 139, Gravataí/RS", Icon: PlaceIcon },
                 { href: "tel:+555130435474", label: "51 3043-5474", accessibleLabel: "Telefone 51 3043-5474", Icon: PhoneIcon },
               ].map(({ href, label, accessibleLabel, Icon }, index) => (
