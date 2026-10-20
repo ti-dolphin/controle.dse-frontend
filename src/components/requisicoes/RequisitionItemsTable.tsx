@@ -1762,6 +1762,10 @@ const RequisitionItemsTable = ({
           rowSelectionModel={selectionModel}
           disableRowSelectionOnClick
           columns={isMobile ? mobileColumns() : columns}
+          columnBufferPx={columns.reduce(
+            (total, column) => total + (column.width ?? column.minWidth ?? 150),
+            0
+          )}
           columnVisibilityModel={columnVisibilityModel}
           isCellEditable={isCellEditable}
           cellModesModel={cellModesModel}
