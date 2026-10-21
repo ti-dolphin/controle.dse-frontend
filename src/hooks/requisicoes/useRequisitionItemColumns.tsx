@@ -944,7 +944,7 @@ export const useRequisitionItemColumns = (
       },
       renderCell: (params: any) => {
         const { id_item_requisicao } = params.row;
-        const quoteItem = params.row.items_cotacao.find(
+        const quoteItem = params.row.items_cotacao?.find(
           (item: QuoteItem) =>
             Number(item.id_cotacao) === Number(params.field)
         );
