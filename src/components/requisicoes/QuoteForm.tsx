@@ -110,9 +110,9 @@ const QuoteForm = ({ onSubmit }: QuoteFormProps) => {
                   required={field.required}
                   SelectProps={{
                     displayEmpty: true,
-                    renderValue: (value) =>
+                    renderValue: (value: unknown) =>
                       value ? (
-                        field.options.find((option) => option.id === value)?.name ?? value
+                        field.options.find((option) => String(option.id) === String(value))?.name ?? String(value)
                       ) : (
                         <span style={{ color: "#9ca3af" }}>Selecione...</span>
                       ),
