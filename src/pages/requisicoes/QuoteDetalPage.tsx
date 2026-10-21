@@ -67,11 +67,12 @@ const QuoteDetailPage = () => {
     }
     const missingCnpjFornecedor = !String(data?.cnpj_fornecedor || "").trim();
     const missingCondicaoPagamento = !Number(data?.id_condicao_pagamento || 0);
+    const missingEntrega = !String(data?.entrega || "").trim();
 
-    if (isSupplier && (missingCnpjFornecedor || missingCondicaoPagamento)) {
+    if (isSupplier && (missingCnpjFornecedor || missingCondicaoPagamento || missingEntrega)) {
       dispatch(
         setFeedback({
-          message: "Para enviar a cotação, CNPJ Fornecedor e Condição Pagamento são obrigatórios.",
+          message: "Para enviar a cotação, CNPJ Fornecedor, Condição Pagamento e Entrega são obrigatórios.",
           type: "error",
         })
       );
@@ -90,6 +91,7 @@ const QuoteDetailPage = () => {
         valor_total : data.valor_total,
         cnpj_faturamento: data.cnpj_faturamento,
         cnpj_fornecedor : data.cnpj_fornecedor,
+        entrega: data.entrega,
       });
       dispatch(setQuote(updatedQuote));
       dispatch(setFeedback({ message: `Cotação atualizada com sucesso!`, type: 'success' }));
