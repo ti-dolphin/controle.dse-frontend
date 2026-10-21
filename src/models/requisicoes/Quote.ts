@@ -16,6 +16,7 @@ export interface Quote {
     id_tipo_frete: number;
     id_classificacao_fiscal: number;
     cnpj_fornecedor: string;
+    entrega: string | null;
     criado_por: number | null;
     id_condicao_pagamento: number;
     pessoa_criado_por? : ReducedUser;

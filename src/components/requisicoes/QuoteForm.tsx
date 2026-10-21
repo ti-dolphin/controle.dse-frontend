@@ -1,5 +1,5 @@
 import React, { ChangeEvent } from "react";
-import { TextField, Box, Button, Grid, Autocomplete } from "@mui/material";
+import { TextField, Box, Button, Grid, Autocomplete, MenuItem } from "@mui/material";
 import { useDispatch, useSelector } from "react-redux";
 import { RootState } from "../../redux/store";
 import { isNumeric } from "../../utils";
@@ -96,7 +96,40 @@ const QuoteForm = ({ onSubmit }: QuoteFormProps) => {
       <Grid container spacing={1}>
         {fields.map((field) => (
           <Grid item xs={12} sm={6} key={field.name}>
-            {field.autoComplete && field.options.length > 0 ? (
+            {field.select ? (
+              <Box sx={{ display: "flex", flexDirection: "column", width: "100%" }}>
+                <label className="mb-1 text-xs font-medium text-gray-700">
+                  {field.label}
+                  {field.required && <span className="ml-0.5 text-red-500">*</span>}
+                </label>
+                <TextField
+                  select
+                  fullWidth
+                  size="small"
+                  value={quote ? String(quote[field.name as keyof Quote] ?? "") : ""}
+                  required={field.required}
+                  SelectProps={{
+                    displayEmpty: true,
+                    renderValue: (value) =>
+                      value ? (
+                        field.options.find((option) => option.id === value)?.name ?? value
+                      ) : (
+                        <span style={{ color: "#9ca3af" }}>Selecione...</span>
+                      ),
+                  }}
+                  onChange={(e) => {
+                    if (quote) {
+                      dispatch(setQuote({ ...quote, [field.name]: e.target.value }));
+                    }
+                  }}
+                  sx={{ "& .MuiInputBase-root": { height: 36, fontSize: "0.75rem" } }}
+                >
+                  {field.options.map((option) => (
+                    <MenuItem key={option.id} value={option.id}>{option.name}</MenuItem>
+                  ))}
+                </TextField>
+              </Box>
+            ) : field.autoComplete && field.options.length > 0 ? (
               <OptionsField
                 label={field.label}
                 options={field.options}
