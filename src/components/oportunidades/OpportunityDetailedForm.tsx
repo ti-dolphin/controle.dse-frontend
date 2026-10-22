@@ -240,31 +240,17 @@ const OpportunityDetailedForm = () => {
     value: any,
     fieldMapKey: string
   ) => {
+    if (fieldMapKey === "datas") {
+      const formattedDate = value ? formatDateStringtoISOstring(String(value)) : "";
+      const payload = { ...formData, [field.field]: formattedDate };
+      setFormData(payload);
+      setOpportunity((previous) => ({ ...previous, [field.field]: value }));
+      return;
+    }
+
     const updatedOpp = { ...opportunity, [field.field]: value };
     const fields = fieldsMap.get(fieldMapKey)?.map((f) => f.field);
     let payload = { ...formData };
-    if (fieldMapKey === "datas") {
-      console.log("[handleTextFieldChange] fieldMapKey=datas");
-      console.log("field:", field);
-      console.log("value:", value);
-      console.log("updatedOpp:", updatedOpp);
-      console.log("fields:", fields);
-      fields?.forEach((f) => {
-        const formattedDate = formatDateStringtoISOstring(
-          String(updatedOpp[f as keyof Opportunity])
-        );
-        console.log(`Formatando campo ${f}:`, updatedOpp[f as keyof Opportunity], "->", formattedDate);
-        payload = {
-          ...payload,
-          [f]: formattedDate,
-        };
-      });
-      console.log("payload final:", payload);
-      setFormData(payload);
-      setOpportunity(updatedOpp);
-      // debouncedSave(payload);
-      return;
-    }
     fields?.forEach((f) => {
       payload = { ...payload, [f]: updatedOpp[f as keyof Opportunity] };
     });
@@ -536,9 +522,7 @@ const OpportunityDetailedForm = () => {
                     value={
                       field.type === "date"
                         ? getDateInputValue(
-                            opportunity[
-                              field.field as keyof Opportunity
-                            ] as string
+                            (formData[field.field] ?? opportunity[field.field as keyof Opportunity]) as string
                           )
                         : value
                     }
