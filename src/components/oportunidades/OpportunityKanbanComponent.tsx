@@ -33,7 +33,7 @@ const normalizeSearch = (value: string) => value.normalize("NFD").replace(/[\u03
 const orderBoardColumns = (board: KanbanBoardName, columns: OpportunityKanbanColumn[]) => {
   if (board !== "Comercial") return columns
 
-  const ordered = [...columns]
+  const ordered = columns.filter((column) => ![7, 8, 9].includes(Number(column.id)))
   const releasedIndex = ordered.findIndex((column) => normalizeSearch(column.name) === "liberado")
   const reviewIndex = ordered.findIndex((column) => normalizeSearch(column.name) === "revisao")
   if (releasedIndex !== -1 && reviewIndex !== -1) {
