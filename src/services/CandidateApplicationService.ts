@@ -20,6 +20,9 @@ export interface CandidateRow {
   estado: string;
   atualizado_em: string | null;
   triado: boolean;
+  triado_por: number | null;
+  triado_por_nome: string;
+  triado_em: string | null;
   funcoes: string;
   curriculo: string;
   nome_arquivo: string;
@@ -52,7 +55,7 @@ const CandidateApplicationService = {
     const response = await api.post("/vagas/candidatos", payload);
     return response.data;
   },
-  updateRow: async (id_candidato, checked): Promise<Boolean> => {
+  updateRow: async (id_candidato: number, checked: boolean): Promise<{ triado: boolean; triado_por: number | null; triado_em: string | null }> => {
     const body = { id_candidato, checked };
     const response = await api.post('/vagas/updateTriagemCandidato', body)
     return response.data

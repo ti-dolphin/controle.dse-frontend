@@ -68,6 +68,47 @@ const CandidatesTab = () => {
   })), [rows, appliedFilters]);
 
   const columns: GridColDef[] = useMemo(() => [
+    {
+      field: 'triado',
+      headerName: 'Triado',
+      width: 90,
+      renderCell: ({row}) => (
+        <Checkbox
+          checked={!!row.triado}
+          size="small"
+          onChange={async (e, checked) => {
+            try {
+              const result = await CandidateApplicationService.updateRow(row.id_candidato, checked);
+              const changedAt = result.triado_em;
+              const changedBy = result.triado_por;
+              const changedByName = result.triado ? user?.NOME || "" : "";
+            setRows((current) => {
+              return current.map((item) =>
+                item.id_candidato === row.id_candidato
+                  ? { ...item, triado: result.triado, triado_por: changedBy, triado_por_nome: changedByName, triado_em: changedAt }
+                  : item
+              );
+            })
+            } catch (requestError: any) {
+              setError(requestError?.response?.data?.error || "Não foi possível atualizar a triagem.");
+            }
+          }}
+          sx={{padding: 0}}
+        />
+      )
+    },
+    {
+      field: "triado_por_nome",
+      headerName: "Triado por",
+      width: 170,
+      renderCell: ({ row }) => row.triado_por_nome || "-",
+    },
+    {
+      field: "triado_em",
+      headerName: "Triado em",
+      width: 165,
+      renderCell: ({ row }) => formatDateTime(row.triado_em),
+    },
     ...FILTER_FIELDS.map((field) => ({
       field,
       headerName: FILTER_LABELS[field],
@@ -83,28 +124,6 @@ const CandidatesTab = () => {
         />
       ),
     })),
-    {
-      field: 'triado',
-      headerName: 'Triado',
-      width: 90,
-      renderCell: ({row}) => (
-        <Checkbox
-          checked={!!row.triado}
-          size="small"
-          onChange={(e, checked) => {
-            CandidateApplicationService.updateRow(row.id_candidato, checked)
-            setRows((current) => {
-              return current.map((item) =>
-                item.id_candidato === row.id_candidato
-                  ? { ...item, triado: checked }
-                  : item
-              );
-            })
-          }}
-          sx={{padding: 0}}
-        />
-      )
-    },
     ...(canSeeCandidateComments ? [{
       field: 'comentarios',
       headerName: 'Comentários',
