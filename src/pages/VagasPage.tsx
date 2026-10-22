@@ -15,6 +15,20 @@ const MAX_FILE_SIZE = 10 * 1024 * 1024;
 const ALLOWED_EXTENSIONS = [".pdf", ".doc", ".docx"];
 const CPF_PATTERN = /^(?:\d{11}|\d{3}\.\d{3}\.\d{3}-\d{2})$/;
 
+const isValidCpf = (cpf: string) => {
+  const digits = cpf.replace(/\D/g, "");
+  if (digits.length !== 11 || /^([0-9])\1{10}$/.test(digits)) return false;
+
+  const calculateDigit = (base: string, weight: number) => {
+    const sum = base.split("").reduce((total, digit, index) => total + Number(digit) * (weight - index), 0);
+    const remainder = (sum * 10) % 11;
+    return remainder === 10 ? 0 : remainder;
+  };
+
+  return calculateDigit(digits.slice(0, 9), 10) === Number(digits[9])
+    && calculateDigit(digits.slice(0, 10), 11) === Number(digits[10]);
+};
+
 interface CandidateForm {
   nome_completo: string;
   telefone: string;
@@ -99,6 +113,10 @@ const VagasPage = () => {
     }
     if (!CPF_PATTERN.test(form.cpf)) {
       setError("Informe o CPF no formato 000.000.000-00.");
+      return;
+    }
+    if (!isValidCpf(form.cpf)) {
+      setError("CPF inválido. Confira os números digitados.");
       return;
     }
 
