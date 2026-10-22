@@ -182,7 +182,10 @@ const CandidatesTab = () => {
           disableColumnMenu
           disableColumnFilter
           pageSizeOptions={[25, 50, 100]}
-          initialState={{ pagination: { paginationModel: { pageSize: 25, page: 0 } } }}
+          initialState={{
+            sorting: { sortModel: [{ field: "atualizado_em", sort: "desc" }] },
+            pagination: { paginationModel: { pageSize: 25, page: 0 } },
+          }}
           theme={theme}
           sx={{ flex: 1, minHeight: 0 }}
         />
