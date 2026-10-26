@@ -40,6 +40,7 @@ import FileIcon from '@mui/icons-material/FilePresent';
 import AddLinkOutlinedIcon from '@mui/icons-material/AddLinkOutlined';
 import ReceiptLongIcon from '@mui/icons-material/ReceiptLong';
 import ShoppingCartIcon from '@mui/icons-material/ShoppingCart';
+import DoneAllIcon from '@mui/icons-material/DoneAll';
 import { calculateColumnWidth } from "../../utils/calculateColumnWidth";
 import { getVisibleStockQuantity } from "../../utils/stock";
 
@@ -66,6 +67,7 @@ export const useRequisitionItemColumns = (
     id_item_cotacao: number,
     id_item_requisicao: number
   ) => void,
+  handleSelectAllSupplier: (id_cotacao: number) => Promise<void>,
   quoteItemsSelected: Map<number, number>,
   selectionModel: number[],
   blockFields: boolean
@@ -1007,7 +1009,24 @@ export const useRequisitionItemColumns = (
       sortable: true,
       renderHeader: (params: any) => {
         return (
-          <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+          <Box sx={{ display: "flex", alignItems: "center", gap: 0.5 }}>
+            <Tooltip title="Selecionar todos os itens deste fornecedor">
+              <span>
+                <IconButton
+                  size="small"
+                  aria-label={`Selecionar todos os itens de ${params.colDef.headerName}`}
+                  disabled={blockFields || !editItemFieldsPermitted}
+                  onMouseDown={(event) => event.stopPropagation()}
+                  onClick={(event) => {
+                    event.stopPropagation();
+                    void handleSelectAllSupplier(Number(params.field));
+                  }}
+                  sx={{ p: 0.25 }}
+                >
+                  <DoneAllIcon sx={{ fontSize: 16 }} />
+                </IconButton>
+              </span>
+            </Tooltip>
             <Typography
               fontSize="0.7rem"
               fontWeight="bold"
@@ -1022,6 +1041,7 @@ export const useRequisitionItemColumns = (
   }, [
     rawDinamicColumns,
     handleChangeQuoteItemsSelected,
+    handleSelectAllSupplier,
     quoteItemsSelected,
     blockFields,
     editItemFieldsPermitted,

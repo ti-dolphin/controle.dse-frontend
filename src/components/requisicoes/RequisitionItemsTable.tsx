@@ -452,6 +452,44 @@ const RequisitionItemsTable = ({
     [requisition, dispatch, debouncedRecalculateTotals]
   );
 
+  const handleSelectAllSupplier = useCallback(async (quoteId: number) => {
+    if (!Number.isInteger(quoteId) || quoteId <= 0 || !editItemFieldsPermitted) return;
+    setBlockFields(true);
+    try {
+      const { selectedItems } = await RequisitionItemService.selectQuoteItemsBySupplier(
+        Number(id_requisicao),
+        quoteId
+      );
+      const selectedByItemId = new Map(
+        selectedItems.map((item) => [Number(item.id_item_requisicao), Number(item.id_item_cotacao)])
+      );
+      setQuoteItemsSelected((previous) => {
+        const next = new Map(previous);
+        selectedByItemId.forEach((quoteItemId, itemId) => next.set(itemId, quoteItemId));
+        return next;
+      });
+      selectedItems.forEach((item) => {
+        const currentItem = itemsRef.current.find(
+          (candidate) => Number(candidate.id_item_requisicao) === Number(item.id_item_requisicao)
+        );
+        if (currentItem) {
+          dispatch(replaceItem({
+            id_item_requisicao: item.id_item_requisicao,
+            updatedItem: { ...currentItem, id_item_cotacao: item.id_item_cotacao },
+          }));
+        }
+      });
+      debouncedRecalculateTotals();
+    } catch (error: any) {
+      dispatch(setFeedback({
+        message: error.response?.data?.error || "Erro ao selecionar itens do fornecedor",
+        type: "error",
+      }));
+    } finally {
+      setBlockFields(false);
+    }
+  }, [id_requisicao, editItemFieldsPermitted, dispatch, debouncedRecalculateTotals]);
+
   const handleCopySelectedItems = useCallback(async () => {
     const selectedIds = new Set(selectionModel.map((id) => Number(id)));
     const selectedItems = itemsRef.current.filter((item) =>
@@ -533,6 +571,7 @@ const RequisitionItemsTable = ({
     handleFillOCS,
     handleFillShippingDate,
     handleChangeQuoteItemsSelected,
+    handleSelectAllSupplier,
     quoteItemsSelected,
     selectionModel as number[],
     blockFields
