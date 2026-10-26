@@ -116,6 +116,9 @@ export const useRequisitionItemColumns = (
     return statusName === "lançar nf" || statusName === "concluído";
   }, [requisition.status?.nome]);
 
+  const canSelectAllSupplier =
+    (requisition.status?.nome ?? "").toLowerCase().trim() === "em cotação";
+
   // Calcula a largura dinâmica da coluna de descrição
   const descriptionColumnWidth = useMemo(() =>
     calculateColumnWidth(items, 'produto_descricao', 'Descrição', undefined, undefined, 200, 600),
@@ -1010,23 +1013,25 @@ export const useRequisitionItemColumns = (
       renderHeader: (params: any) => {
         return (
           <Box sx={{ display: "flex", alignItems: "center", gap: 0.5 }}>
-            <Tooltip title="Selecionar todos os itens deste fornecedor">
-              <span>
-                <IconButton
-                  size="small"
-                  aria-label={`Selecionar todos os itens de ${params.colDef.headerName}`}
-                  disabled={blockFields || !editItemFieldsPermitted}
-                  onMouseDown={(event) => event.stopPropagation()}
-                  onClick={(event) => {
-                    event.stopPropagation();
-                    void handleSelectAllSupplier(Number(params.field));
-                  }}
-                  sx={{ p: 0.25 }}
-                >
-                  <DoneAllIcon sx={{ fontSize: 16 }} />
-                </IconButton>
-              </span>
-            </Tooltip>
+            {canSelectAllSupplier && (
+              <Tooltip title="Selecionar todos os itens deste fornecedor">
+                <span>
+                  <IconButton
+                    size="small"
+                    aria-label={`Selecionar todos os itens de ${params.colDef.headerName}`}
+                    disabled={blockFields || !editItemFieldsPermitted}
+                    onMouseDown={(event) => event.stopPropagation()}
+                    onClick={(event) => {
+                      event.stopPropagation();
+                      void handleSelectAllSupplier(Number(params.field));
+                    }}
+                    sx={{ p: 0.25 }}
+                  >
+                    <DoneAllIcon sx={{ fontSize: 16 }} />
+                  </IconButton>
+                </span>
+              </Tooltip>
+            )}
             <Typography
               fontSize="0.7rem"
               fontWeight="bold"
@@ -1045,6 +1050,7 @@ export const useRequisitionItemColumns = (
     quoteItemsSelected,
     blockFields,
     editItemFieldsPermitted,
+    canSelectAllSupplier,
   ]);
 
   const isDinamicField = useCallback(
