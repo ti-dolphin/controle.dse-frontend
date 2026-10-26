@@ -74,6 +74,17 @@ export class RequisitionItemService {
     return response.data;
   }
 
+  static async selectQuoteItemsBySupplier(
+    id_requisicao: number,
+    id_cotacao: number
+  ): Promise<{ selectedItems: { id_item_requisicao: number; id_item_cotacao: number }[] }> {
+    const response = await api.put(
+      `${API_ENDPOINT}/itens_cotacao_selecionados/fornecedor`,
+      { id_requisicao, id_cotacao }
+    );
+    return response.data;
+  }
+
   static async recalculateQuoteItemsTotals(
     id_requisicao: number
   ): Promise<{ custo_total_itens: number; custo_total_frete: number }> {
