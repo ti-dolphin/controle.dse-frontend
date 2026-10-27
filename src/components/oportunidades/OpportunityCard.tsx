@@ -93,29 +93,13 @@ const OpportunityCard: React.FC<OpportunityCardProps> = ({
         <Stack direction="row" alignItems="center" justifyContent="space-between" gap={1} sx={{ width: "100%", mt: 1.5 }}>
           {showKanbanDates ? (
             <Stack spacing={0.25}>
-              {row?.revisao?.numeroRevisao && (
-                <>
-                  <Typography variant="caption" sx={{lineHeight: 1.35}}>
-                    <Box component='span' sx={{fontWeight: 700}}>Número da revisão:</Box>{" "}
-                    {row.revisao.numeroRevisao}
-                  </Typography>
-                  <Typography variant="caption" sx={{lineHeight: 1.35}}>
-                    <Box component='span' sx={{fontWeight: 700}}>Data da revisão atual:</Box>{" "}
-                    {row.revisao.data_revisao ? new Date(row.revisao.data_revisao).toLocaleDateString('pt-BR') : '-'}
-                  </Typography>
-                  <Typography variant="caption" sx={{lineHeight: 1.35}}>
-                    <Box component='span' sx={{fontWeight: 700}}>Data envio inicial revisão:</Box>{" "}
-                    {row.revisao.data_envio_inicial ? new Date(row.revisao.data_envio_inicial).toLocaleDateString('pt-BR') : '-'}
-                  </Typography>
-                </>
-              )}
+              <Typography variant="caption" sx={{ lineHeight: 1.35 }}>
+                <Box component="span" sx={{ fontWeight: 700 }}>Data de solicitação:</Box>{" "}
+                {formatCardDate(row?.DATASOLICITACAO)}
+              </Typography>
               <Typography variant="caption" sx={{ lineHeight: 1.35 }}>
                 <Box component="span" sx={{ fontWeight: 700 }}>Data planejada:</Box>{" "}
                 {formatCardDate(row?.data_planejada)}
-              </Typography>
-              <Typography variant="caption" sx={{ lineHeight: 1.35 }}>
-                <Box component="span" sx={{ fontWeight: 700 }}>Data de envio inicial:</Box>{" "}
-                {formatCardDate(row?.DATAINICIO)}
               </Typography>
             </Stack>
           ) : row?.data_planejada ? (
