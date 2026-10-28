@@ -24,6 +24,7 @@ import { BaseAddButton } from "../../components/shared/BaseAddButton";
 import OpenWithIcon from "@mui/icons-material/OpenWith";
 import { ColumnReorderDialog } from "../../components/shared/ColumnReorderDialog";
 import { usePersistedColumnOrder, ColumnPreference } from "../../hooks/table/usePersistedColumnOrder";
+import { OpportunityStatus } from "../../models/oportunidades/OpportunityStatus";
 const OPPORTUNITY_TABLE_KEY='opportunity-list'
 
 const OpportunityTableComponent = () => {
@@ -31,7 +32,13 @@ const dispatch = useDispatch();
 const user = useSelector((state: RootState) => state.user.user);
 const navigate = useNavigate();
 const {loading, rows, searchTerm } = useSelector((state: RootState) => state.opportunityTable);
-const { columns: rawColumns } = useOpportunityColumns();
+const [statusOptions, setStatusOptions] = useState<OpportunityStatus[]>([]);
+const [selectedStatusIds, setSelectedStatusIds] = useState<number[] | null>(null);
+const { columns: rawColumns } = useOpportunityColumns(
+  statusOptions,
+  selectedStatusIds || [],
+  setSelectedStatusIds
+);
 const theme=  useTheme();
 const toolbarRef = React.useRef<HTMLDivElement>(null);
 const [toolbarHeight, setToolbarHeight] = useState(0);
@@ -73,10 +80,28 @@ const navigateToOppDetails = (id : number ) => {
 
 const handleCleanFilters = ( ) => { 
     clearFilters();
+    setSelectedStatusIds(statusOptions.map((status) => status.CODSTATUS));
 }
 
+useEffect(() => {
+  let active = true;
+  OpportunityService.getOppStatusOptions()
+    .then((statuses: OpportunityStatus[]) => {
+      if (!active) return;
+      setStatusOptions(statuses);
+      setSelectedStatusIds(statuses.map((status) => status.CODSTATUS));
+    })
+    .catch(() => {
+      if (!active) return;
+      dispatch(setFeedback({ message: "Erro ao carregar os status das oportunidades", type: "error" }));
+      setStatusOptions([]);
+      setSelectedStatusIds([]);
+    });
+  return () => { active = false; };
+}, [dispatch]);
+
 const fetchData = useCallback(async () => {
-  if (user) {
+  if (user && selectedStatusIds !== null) {
     dispatch(setLoading(true));
     try {
       const { opps, total, totalFatDolphin, totalFatDireto } =
@@ -84,6 +109,7 @@ const fetchData = useCallback(async () => {
           user: user,
           searchTerm,
           filters,
+          statusIds: selectedStatusIds.join(","),
           finalizados,
         });
       dispatch(setRows(opps));
@@ -103,7 +129,7 @@ const fetchData = useCallback(async () => {
       });
     }
   }
-}, [dispatch, searchTerm, filters, finalizados]);
+}, [dispatch, user, searchTerm, filters, finalizados, selectedStatusIds]);
 
 useEffect(() => {
   fetchData();
@@ -122,18 +148,24 @@ useEffect(()=> {
   return (
     <Box
       sx={{
-        height: "100vh",
+        flex: 1,
+        minHeight: 0,
         width: "100%",
+        display: "flex",
+        flexDirection: "column",
+        overflow: "hidden",
       }}
     >
       <Box
         sx={{
-          height: "calc(100% - 50px)",
+          flex: 1,
+          minHeight: 0,
           display: "flex",
           flexDirection: "column",
         }}
       >
         <BaseTableToolBar handleChangeSearchTerm={handleChangeSearchTerm}>
+          
           {!isMobile && (
             <Button
               variant="contained"
@@ -204,6 +236,7 @@ useEffect(()=> {
           </Box>
         ) : (
           <BaseDataTable
+            sx={{ flex: 1, minHeight: 0 }}
             rows={rows}
             columns={columns}
             columnVisibilityModel={columnVisibilityModel}

@@ -5,6 +5,6 @@ export interface ProjectFollower {
     id_projeto: number;
     codpessoa: number;
     ativo: boolean;
-    pessoa: ReducedUser;
+    pessoa: ReducedUser & { PERM_CRM?: number | null };
     pessoa_email? : string
 }

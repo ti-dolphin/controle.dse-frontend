@@ -56,7 +56,7 @@ export const useSelectedQuoteItemColumns = (): GridColDef[] => {
                 fontSize="11px"
                 fontStyle="italic"
                 color="text.secondary"
-                sx={{ whiteSpace: "normal", lineHeight: 1.3 }}
+                sx={{ whiteSpace: "pre-line", lineHeight: 1.3 }}
               >
                 {observacao}
               </Typography>

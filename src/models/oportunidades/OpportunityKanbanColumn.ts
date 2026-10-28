@@ -23,6 +23,8 @@ export interface KanbanCardOpportunity extends ArchivedOpportunity {
   kanban_column_id_orcamento: number | null;
   data_planejada: string | null;
   DATASOLICITACAO: string | null;
+  DATAINICIO: string | null;
+  checklist_status: "red" | "yellow" | "green";
   seguidores: KanbanCardFollower[];
 }
 

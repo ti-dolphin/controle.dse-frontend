@@ -18,6 +18,7 @@ import OpportunityService from "../../services/oportunidades/OpportunityService"
 import { useDispatch } from "react-redux";
 import { setFeedback } from "../../redux/slices/feedBackSlice";
 import { Opportunity } from "../../models/oportunidades/Opportunity";
+import { getDateTimeStringFromISOstring } from "../../utils";
 
 const OpportunityDetailPage = () => {
   const theme = useTheme();
@@ -27,6 +28,7 @@ const OpportunityDetailPage = () => {
 
   const [opportunity, setOpportunity] = useState<Opportunity | undefined>(undefined);
   const [observation, setObservation] = useState<string>("");
+  const creationDate = getDateTimeStringFromISOstring(opportunity?.criado_em);
 
   const handleBack = () => {
     navigate("/oportunidades");
@@ -144,12 +146,26 @@ const OpportunityDetailPage = () => {
           </Grid>
 
           <Grid item xs={12} md={4}>
-            <Paper elevation={3} sx={{ p: 2, borderRadius: 1, height: "100%" }}>
-              {/* Lista de seguidores */}
-              <Box sx={{ minHeight: 100 }}>
+            <Box sx={{ display: "grid", gridTemplateColumns: { xs: "1fr", sm: "minmax(0, 1fr) minmax(0, 1fr)" }, gap: 1, height: "100%" }}>
+              <Paper elevation={3} sx={{ p: 2, borderRadius: 1, minHeight: 100, minWidth: 0 }}>
                 <OpportunityFollowerList CODOS={Number(CODOS)} />
-              </Box>
-            </Paper>
+              </Paper>
+              <Paper elevation={3} sx={{ p: 2, borderRadius: 1, minHeight: 100, minWidth: 0 }}>
+                <Typography variant="subtitle1" color="primary.main" fontWeight="bold" sx={{ mb: 1 }}>
+                  Criação
+                </Typography>
+                <Stack spacing={1}>
+                  <Box>
+                    <Typography variant="caption" color="text.secondary">Criado por</Typography>
+                    <Typography variant="body2" sx={{ overflowWrap: "anywhere" }}>{opportunity?.criado_por_nome || "—"}</Typography>
+                  </Box>
+                  <Box>
+                    <Typography variant="caption" color="text.secondary">Data de criação</Typography>
+                    <Typography variant="body2">{creationDate || "—"}</Typography>
+                  </Box>
+                </Stack>
+              </Paper>
+            </Box>
           </Grid>
 
           {/* Seção de Anexos */}

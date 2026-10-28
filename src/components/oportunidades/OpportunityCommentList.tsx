@@ -47,7 +47,7 @@ const OpportunityCommentList = () => {
   const fetchData = useCallback(async () => {
     try {
       const data = await OpportunityCommentService.getMany(Number(CODOS));
-      setComments(data);
+      setComments([...data].reverse());
     } catch {
       dispatch(
         setFeedback({ type: "error", message: "Falha ao carregar comentários" })
@@ -57,6 +57,11 @@ const OpportunityCommentList = () => {
 
   useEffect(() => {
     fetchData();
+  }, [fetchData]);
+
+  useEffect(() => {
+    window.addEventListener("opportunity-comment-created", fetchData);
+    return () => window.removeEventListener("opportunity-comment-created", fetchData);
   }, [fetchData]);
 
   const addComment = (comment: OpportunityComment) =>

@@ -1,12 +1,18 @@
-import React, { useCallback, useEffect, useState } from "react";
+import React, { useState } from "react";
 import { Box, Tabs, Tab } from "@mui/material";
 import UpperNavigation from "../../components/shared/UpperNavigation";
 import { useNavigate } from "react-router-dom";
 import OpportunityTableComponent from "../../components/oportunidades/OpportunityTableComponent";
 import OpportunityKanbanComponent from "../../components/oportunidades/OpportunityKanbanComponent";
+import { useSelector } from "react-redux";
+import { RootState } from "../../redux/store";
+import OpportunityKanbanNotificationBell from "../../components/oportunidades/OpportunityKanbanNotificationBell";
 
 const OpportunityListPage = () => {
   const navigate = useNavigate();
+  const user = useSelector((state: RootState) => state.user.user);
+  const canViewOrcamento = Number(user?.PERM_CRM) === 1 || Number(user?.PERM_ADMINISTRADOR) === 1;
+  const canViewComercial = Number(user?.PERM_COMERCIAL) === 1 || Number(user?.PERM_ADMINISTRADOR) === 1;
 
   const [activeTab, setActiveTab] = useState(0);
 
@@ -17,21 +23,28 @@ const OpportunityListPage = () => {
   return (
     <Box
       sx={{
-        height: "100vh",
+        height: "100dvh",
         width: "100%",
+        display: "flex",
+        flexDirection: "column",
       }}
     >
-      <UpperNavigation handleBack={() => navigate("/")}/>
+      <UpperNavigation handleBack={() => navigate("/")}>
+        {(Number(user?.PERM_CRM) === 1 || Number(user?.PERM_COMERCIAL) === 1) && (
+          <Box sx={{ ml: "auto", mr: 2 }}><OpportunityKanbanNotificationBell /></Box>
+        )}
+      </UpperNavigation>
 
       <Box
         sx={{
-          height: "calc(100% - 50px)",
+          flex: 1,
+          minHeight: 0,
           display: "flex",
           flexDirection: "column",
         }}
       >
 
-        <Box sx={{ borderBottom: 1, borderColor: "divider", backgroundColor: "white" }}>
+        <Box sx={{ flexShrink: 0, borderBottom: 1, borderColor: "divider", backgroundColor: "white" }}>
           <Tabs
             value={activeTab}
             onChange={handleTabChange}
@@ -45,15 +58,15 @@ const OpportunityListPage = () => {
               },
             }}
           >
-            <Tab label="Tabela" />
-            <Tab label="Comercial" />
-            <Tab label="Orçamento" />
+            <Tab label="Tabela" value={0} />
+            {canViewComercial && <Tab label="Comercial" value={1} />}
+            {canViewOrcamento && <Tab label="Orçamento" value={2} />}
           </Tabs>
         </Box>
 
         {activeTab === 0 && <OpportunityTableComponent />}
-        {activeTab === 1 && <OpportunityKanbanComponent board="Comercial" />}
-        {activeTab === 2 && <OpportunityKanbanComponent board="Orçamento" />}
+        {activeTab === 1 && canViewComercial && <OpportunityKanbanComponent board="Comercial" />}
+        {activeTab === 2 && canViewOrcamento && <OpportunityKanbanComponent board="Orçamento" />}
       </Box>
     </Box>
 

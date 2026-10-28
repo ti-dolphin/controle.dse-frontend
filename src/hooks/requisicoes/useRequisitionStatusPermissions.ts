@@ -41,12 +41,13 @@ export const useRequisitionStatusPermissions = (user: User | null, requisition: 
       const stockUser = requisition.id_escopo_requisicao === 1 && user?.PERM_ESTOQUE === 1;
       const gerente = requisition.gerente?.CODPESSOA === user?.CODPESSOA;
       const director = user?.PERM_DIRETOR === 1;
+      const requisitante = requisition?.ID_RESPONSAVEL === user?.CODPESSOA
 
       if (adm && cancelled) { 
         setPermissionToActivate(true);
       }
 
-      if (adm && notCancelled) {
+      if ((adm || requisitante) && notCancelled) {
         setPermissionToCancel(true);
       }
       if (user && requisition.ID_REQUISICAO > 0) {

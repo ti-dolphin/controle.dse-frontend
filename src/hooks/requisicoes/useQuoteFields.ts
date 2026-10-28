@@ -9,7 +9,16 @@ isSupplierRoute :boolean,
 ) => {
 
 
-  const fields = [
+  const fields: Array<{
+    name: string;
+    label: string;
+    autoComplete?: boolean;
+    select?: boolean;
+    disabled?: boolean;
+    required?: boolean;
+    type?: string;
+    options: Option[];
+  }> = [
     {
       name: "fornecedor",
       label: "Fornecedor",
@@ -53,6 +62,21 @@ isSupplierRoute :boolean,
       autoComplete: false,
       required: isSupplierRoute,
       options: [],
+    },
+    {
+      name: "entrega",
+      label: "Entrega",
+      select: true,
+      required: isSupplierRoute,
+      options: [
+        { id: "Pronta entrega", name: "Pronta entrega" },
+        { id: "dois dias úteis", name: "2 dias úteis" },
+        { id: "cinco dias úteis", name: "5 dias úteis" },
+        { id: "7", name: "7 dias úteis" },
+        { id: "10", name: "10 dias úteis" },
+        { id: "15", name: "15 dias úteis" },
+        { id: "30", name: "30 dias úteis" },
+      ],
     },
     {
       name: "cnpj_faturamento",

@@ -296,6 +296,8 @@ const NotesService = {
         if (params?.searchTerm) {
             queryParams.searchTerm = params.searchTerm;
         }
+
+        queryParams.report = true
         
         // Buscar todos os registros sem paginação
         queryParams.all = true;

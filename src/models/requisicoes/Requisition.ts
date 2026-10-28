@@ -37,5 +37,6 @@ export interface Requisition {
   criado_por?: ReducedUser;
   alterado_por?: ReducedUser;
   comprador?: ReducedUser;
+  projeto_favoritado?: boolean;
 }
 

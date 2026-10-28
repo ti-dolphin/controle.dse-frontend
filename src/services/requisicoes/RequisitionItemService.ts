@@ -4,6 +4,11 @@ import { RequisitionItem } from '../../models/requisicoes/RequisitionItem';
 const API_ENDPOINT = '/item_requisicao';
 
 export class RequisitionItemService {
+  static async importRows(id_requisicao: number, rows: unknown[][], replaceExisting: boolean): Promise<{ count: number }> {
+    const response = await api.post(`${API_ENDPOINT}/import`, { id_requisicao, rows, replaceExisting });
+    return response.data;
+  }
+
   static async getMany(params?: any): Promise<RequisitionItem[]> {
     const response = await api.get<RequisitionItem[]>(API_ENDPOINT, { params });
     return response.data;
@@ -27,10 +32,10 @@ export class RequisitionItemService {
   }
 
   static async createMany(
-    productIds: number[],
+    items: { id_produto: number; quantidade?: number; unidade?: string }[],
     id_requisicao: number
   ): Promise<number[]> {
-    const response = await api.post(`${API_ENDPOINT}/many`, productIds, {
+    const response = await api.post(`${API_ENDPOINT}/many`, items, {
       params: { id_requisicao },
     });
     return response.data;
@@ -65,6 +70,17 @@ export class RequisitionItemService {
     const response = await api.put(
       `${API_ENDPOINT}/itens_cotacao_selecionados/update`,
       { id_item_requisicao, id_item_cotacao }
+    );
+    return response.data;
+  }
+
+  static async selectQuoteItemsBySupplier(
+    id_requisicao: number,
+    id_cotacao: number
+  ): Promise<{ selectedItems: { id_item_requisicao: number; id_item_cotacao: number }[] }> {
+    const response = await api.put(
+      `${API_ENDPOINT}/itens_cotacao_selecionados/fornecedor`,
+      { id_requisicao, id_cotacao }
     );
     return response.data;
   }

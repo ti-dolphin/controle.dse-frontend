@@ -1,8 +1,13 @@
 import { useState } from "react";
-import { Box, Tooltip, Typography } from "@mui/material";
-import { useSelector } from "react-redux";
+import { Box, IconButton, Tooltip, Typography } from "@mui/material";
+import { useDispatch, useSelector } from "react-redux";
 import { RootState } from "../../redux/store";
 import RequisitionHeaderEditDialog from "./RequisitionHeaderEditDialog";
+import StarIcon from "@mui/icons-material/Star";
+import StarBorderIcon from "@mui/icons-material/StarBorder";
+import RequisitionService from "../../services/requisicoes/RequisitionService";
+import { setRequisition } from "../../redux/slices/requisicoes/requisitionSlice";
+import { setFeedback } from "../../redux/slices/feedBackSlice";
 
 const headerTextSx = {
   fontSize: {
@@ -47,13 +52,16 @@ const EditableSpan = ({ value, canEdit, onStartEditing }: EditableSpanProps) => 
 };
 
 const RequisitionHeaderTitle = () => {
+  const dispatch = useDispatch();
   const user = useSelector((state: RootState) => state.user.user);
   const { requisition } = useSelector((state: RootState) => state.requisition);
 
   const isAdmin = Number(user?.PERM_ADMINISTRADOR) === 1;
-  const canEdit = isAdmin && Boolean(requisition.ID_REQUISICAO);
+  const isRequisitante = Number(requisition.ID_RESPONSAVEL) === Number(user?.CODPESSOA)
+  const canEdit = (isAdmin || isRequisitante) && Boolean(requisition.ID_REQUISICAO);
 
   const [editDialogOpen, setEditDialogOpen] = useState(false);
+  const [savingFavorite, setSavingFavorite] = useState(false);
   const [initialFocus, setInitialFocus] = useState<"description" | "project">(
     "description"
   );
@@ -61,6 +69,24 @@ const RequisitionHeaderTitle = () => {
   const openEditDialog = (focus: "description" | "project") => {
     setInitialFocus(focus);
     setEditDialogOpen(true);
+  };
+
+  const toggleFavorite = async () => {
+    const projectId = Number(requisition.ID_PROJETO);
+    if (!projectId || savingFavorite) return;
+    const nextFavorite = !requisition.projeto_favoritado;
+    setSavingFavorite(true);
+    try {
+      await RequisitionService.setProjectFavorite(projectId, nextFavorite);
+      dispatch(setRequisition({ ...requisition, projeto_favoritado: nextFavorite }));
+    } catch {
+      dispatch(setFeedback({
+        message: "Não foi possível atualizar o projeto favorito",
+        type: "error",
+      }));
+    } finally {
+      setSavingFavorite(false);
+    }
   };
 
   return (
@@ -94,6 +120,22 @@ const RequisitionHeaderTitle = () => {
         canEdit={canEdit}
         onStartEditing={() => openEditDialog("project")}
       />
+
+      <Tooltip title={requisition.projeto_favoritado ? "Remover projeto dos favoritos" : "Favoritar projeto"}>
+        <span>
+          <IconButton
+            size="small"
+            aria-label={requisition.projeto_favoritado ? "Remover projeto dos favoritos" : "Favoritar projeto"}
+            onClick={toggleFavorite}
+            disabled={savingFavorite || !requisition.ID_PROJETO}
+            sx={{ ml: 0.25 }}
+          >
+            {requisition.projeto_favoritado
+              ? <StarIcon sx={{ color: "#fbc02d" }} />
+              : <StarBorderIcon sx={{ color: "#fff", filter: "drop-shadow(0 0 1px #666)" }} />}
+          </IconButton>
+        </span>
+      </Tooltip>
 
       {editDialogOpen && (
         <RequisitionHeaderEditDialog

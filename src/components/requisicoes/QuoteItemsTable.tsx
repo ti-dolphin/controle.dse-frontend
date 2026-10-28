@@ -134,6 +134,7 @@ const QuoteItemsTable = ({
         field: 'produto_descricao',
         width: 160
       },
+      { ...columns.find((column) => column.field === "observacao")!, flex: undefined, width: 200 },
       { label: 'ICMS%', field: "ICMS", width: 100 },
       { label: 'IPI%', field: "IPI", width: 80 },
       { label: 'ST%', field: "ST", width: 80 },

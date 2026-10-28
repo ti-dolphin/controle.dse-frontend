@@ -331,7 +331,7 @@ const PontoTab: React.FC = () => {
         rows={pontoRows}
         disableColumnMenu
         disableColumnFilter
-        rowHeight={40}
+        rowHeight={26}
         columns={columns}
         columnVisibilityModel={columnVisibilityModel}
         loading={pontoLoading}

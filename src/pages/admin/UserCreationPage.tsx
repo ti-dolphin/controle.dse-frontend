@@ -97,7 +97,7 @@ const UserCreationPage = () => {
 
     const rhPermissions = form.PERM_RH
       ? {
-          PERM_APONT: true,
+          PERM_APONT_WEB: 1,
           PERM_STATUS_APONT: true,
           PERM_GESTAO_PESSOAS: true,
           PERM_CONTROLE_RECESSO: true,
@@ -106,6 +106,18 @@ const UserCreationPage = () => {
           PERM_APONTAMENTO_PONTO_JUSTIFICATIVA: true,
           PERM_BANCO_HORAS: true,
           PERM_FOLGA: true,
+          PERM_ADMINISTRADOR: 1,
+        }
+      : {};
+
+    const buyerPermissions = form.PERM_COMPRADOR
+      ? { PERM_COMPRADOR_OPERACIONAL: 1 }
+      : {};
+    const patrimonyPermissions = form.PERM_PATRIMONIO
+      ? {
+          PERM_CADASTRAR_PAT: 1,
+          PERM_PATRIMONIO_TI: 1,
+          PERM_PATRIMONIO_OPERACIONAL: 1,
         }
       : {};
 
@@ -114,6 +126,8 @@ const UserCreationPage = () => {
       await UserService.createByAdmin({
         ...baseUserPermissionsPayload,
         ...rhPermissions,
+        ...buyerPermissions,
+        ...patrimonyPermissions,
         NOME: form.NOME,
         LOGIN: form.LOGIN,
         EMAIL: form.EMAIL || undefined,
@@ -123,7 +137,8 @@ const UserCreationPage = () => {
         PERM_REQUISITAR: form.PERM_REQUISITAR ? 1 : 0,
         PERM_COMERCIAL: form.PERM_COMERCIAL ? 1 : 0,
         PERM_COMPRADOR: form.PERM_COMPRADOR ? 1 : 0,
-        PERM_ADMINISTRADOR: form.PERM_ADMINISTRADOR ? 1 : 0,
+        PERM_CRM: form.PERM_ORCAMENTISTA ? 1 : 0,
+        PERM_ADMINISTRADOR: form.PERM_RH || form.PERM_ADMINISTRADOR ? 1 : 0,
       });
 
       setSuccess("Usuário cadastrado com sucesso");
@@ -268,6 +283,28 @@ const UserCreationPage = () => {
                       />
                     }
                     label="Comprador"
+                  />
+                </Grid>
+                <Grid item xs={12} md={4}>
+                  <FormControlLabel
+                    control={
+                      <Checkbox
+                        checked={form.PERM_PATRIMONIO}
+                        onChange={handleChange("PERM_PATRIMONIO")}
+                      />
+                    }
+                    label="Patrimônio"
+                  />
+                </Grid>
+                <Grid item xs={12} md={4}>
+                  <FormControlLabel
+                    control={
+                      <Checkbox
+                        checked={form.PERM_ORCAMENTISTA}
+                        onChange={handleChange("PERM_ORCAMENTISTA")}
+                      />
+                    }
+                    label="Orçamentista"
                   />
                 </Grid>
                 <Grid item xs={12} md={4}>

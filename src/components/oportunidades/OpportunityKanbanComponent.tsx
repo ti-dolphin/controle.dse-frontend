@@ -1,4 +1,5 @@
-import { Box, Chip, CircularProgress, IconButton, Stack, TextField, Tooltip, Typography, Button, Menu, MenuItem, Checkbox, ListItemText, Divider, } from "@mui/material"
+import { Box, Chip, CircularProgress, IconButton, InputAdornment, Stack, TextField, Tooltip, Typography, Button, Menu, MenuItem, Checkbox, ListItemText, Divider, FormControlLabel, } from "@mui/material"
+import SearchIcon from "@mui/icons-material/Search"
 import CheckIcon from "@mui/icons-material/Check"
 import CloseIcon from "@mui/icons-material/Close"
 import DeleteOutlineIcon from "@mui/icons-material/DeleteOutline"
@@ -19,6 +20,7 @@ import OpportunityKanbanArchivedCardsDialog from "./OpportunityKanbanArchivedCar
 import { kanbanGlobalStyles, KANBAN_COLUMN_WIDTH } from "../../styles/oportunidades/kanbanGlobalStyles"
 import { ARCHIVED_COLUMN_ID, DELETED_COLUMN_ID, KanbanBoardName, isManualMoveAllowed } from "../../utils/kanbanFlowRules"
 import { useKanbanEdgeAutoScroll } from "../../hooks/oportunidades/useKanbanEdgeAutoScroll"
+import { formatCardTitle } from "../../utils/oportunidades/formatCardTitle"
 
 interface OpportunityKanbanComponentProps {
   board: KanbanBoardName
@@ -26,15 +28,36 @@ interface OpportunityKanbanComponentProps {
 
 type ColumnField = "kanban_column_id" | "kanban_column_id_orcamento"
 
+const normalizeSearch = (value: string) => value.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase().trim()
+
+const orderBoardColumns = (board: KanbanBoardName, columns: OpportunityKanbanColumn[]) => {
+  if (board !== "Comercial") return columns
+
+  const ordered = columns.filter((column) => ![7, 8, 9].includes(Number(column.id)))
+  const releasedIndex = ordered.findIndex((column) => normalizeSearch(column.name) === "liberado")
+  const reviewIndex = ordered.findIndex((column) => normalizeSearch(column.name) === "revisao")
+  if (releasedIndex !== -1 && reviewIndex !== -1) {
+    const releasedColumn = ordered[releasedIndex]
+    ordered[releasedIndex] = ordered[reviewIndex]
+    ordered[reviewIndex] = releasedColumn
+  }
+  return ordered
+}
+
 const buildBoardData = (
   columns: OpportunityKanbanColumn[],
   cards: KanbanCardOpportunity[],
   followerIds: number[],
-  columnField: ColumnField
+  columnField: ColumnField,
+  searchTerm: string
 ): KanbanBoard<OpportunityKanbanCardData> => {
-  const filteredCards = followerIds.length === 0
-    ? cards
-    : cards.filter((opportunity) => opportunity.seguidores.some((seguidor) => followerIds.includes(seguidor.CODPESSOA)))
+  const search = normalizeSearch(searchTerm)
+  const filteredCards = cards.filter((opportunity) =>
+    (normalizeSearch(opportunity.NOME || "").includes(search) ||
+      normalizeSearch(formatCardTitle(opportunity)).includes(search) ||
+      String(opportunity.projeto?.ID ?? "").includes(search)) &&
+    (followerIds.length === 0 || opportunity.seguidores.some((seguidor) => followerIds.includes(seguidor.CODPESSOA)))
+  )
 
   return {
     columns: columns.map((column) => ({
@@ -53,11 +76,18 @@ const buildBoardData = (
 const OpportunityKanbanComponent = ({ board }: OpportunityKanbanComponentProps) => {
   const dispatch = useDispatch()
   const user = useSelector((state: RootState) => state.user.user)
+  const [showAllOverride, setShowAllOverride] = useState<{ userId: number; checked: boolean } | null>(null)
+  const showAllCards = showAllOverride && showAllOverride.userId === user?.CODPESSOA
+    ? showAllOverride.checked
+    : Number(user?.PERM_ADMINISTRADOR) === 1
+  const requestIdRef = useRef(0)
   const columnField: ColumnField = board === "Comercial" ? "kanban_column_id" : "kanban_column_id_orcamento"
   const [columns, setColumns] = useState<OpportunityKanbanColumn[]>([])
   const [allCards, setAllCards] = useState<KanbanCardOpportunity[]>([])
   const [kanbanBoardData, setKanbanBoardData] = useState<KanbanBoard<OpportunityKanbanCardData>>({ columns: [] })
   const [selectedFollowerIds, setSelectedFollowerIds] = useState<number[]>([])
+  const [searchTerm, setSearchTerm] = useState("")
+  const searchTermRef = useRef("")
   const [followerFilterAnchorEl, setFollowerFilterAnchorEl] = useState<null | HTMLElement>(null)
   const [loading, setLoading] = useState(false)
   const [selectedOpportunity, setSelectedOpportunity] = useState<KanbanCardOpportunity | null>(null)
@@ -101,35 +131,40 @@ const OpportunityKanbanComponent = ({ board }: OpportunityKanbanComponentProps) 
       ? [...selectedFollowerIds, codpessoa]
       : selectedFollowerIds.filter((id) => id !== codpessoa)
     setSelectedFollowerIds(nextIds)
-    setKanbanBoardData(buildBoardData(columns, allCards, nextIds, columnField))
+    setKanbanBoardData(buildBoardData(columns, allCards, nextIds, columnField, searchTerm))
   }
 
   const handleClearFollowerFilter = () => {
     setSelectedFollowerIds([])
-    setKanbanBoardData(buildBoardData(columns, allCards, [], columnField))
+    setKanbanBoardData(buildBoardData(columns, allCards, [], columnField, searchTerm))
     setFollowerFilterAnchorEl(null)
   }
 
   const fetchBoard = useCallback(async () => {
+    const requestId = ++requestIdRef.current
     if (!user) return
     setLoading(true)
     try {
       const [fetchedColumns, opps] = await Promise.all([
         OpportunityKanbanService.getColumns(board),
-        OpportunityKanbanService.getCards(board),
+        OpportunityKanbanService.getCards(board, board === "Orçamento" ? showAllCards : undefined),
       ])
-      setColumns(fetchedColumns)
+      if (requestId !== requestIdRef.current) return
+      const orderedColumns = orderBoardColumns(board, fetchedColumns)
+      setColumns(orderedColumns)
       setAllCards(opps)
-      setKanbanBoardData(buildBoardData(fetchedColumns, opps, selectedFollowerIdsRef.current, columnField))
+      setKanbanBoardData(buildBoardData(orderedColumns, opps, selectedFollowerIdsRef.current, columnField, searchTermRef.current))
     } catch (error) {
+      if (requestId !== requestIdRef.current) return
       dispatch(setFeedback({ message: "Erro ao carregar o kanban de oportunidades", type: "error" }))
     } finally {
-      setLoading(false)
+      if (requestId === requestIdRef.current) setLoading(false)
     }
-  }, [user, dispatch, board, columnField])
+  }, [user, dispatch, board, columnField, showAllCards])
 
   useEffect(() => {
     fetchBoard()
+    return () => { requestIdRef.current += 1 }
   }, [fetchBoard])
 
   const handleConfirmArchiveCard = async () => {
@@ -162,7 +197,16 @@ const OpportunityKanbanComponent = ({ board }: OpportunityKanbanComponentProps) 
     if (!source || !destination || destination.toColumnId === undefined) return
     const targetColumnId = Number(destination.toColumnId)
     if (destination.toColumnId !== source.fromColumnId) {
-      const moveCheck = isManualMoveAllowed(targetColumnId)
+      if (
+        board === "Orçamento" &&
+        targetColumnId === 14 &&
+        !["yellow", "green"].includes(card.opportunity.checklist_status)
+      ) {
+        dispatch(setFeedback({ message: "O checklist precisa atingir pelo menos o nível amarelo para enviar o cartão para Checagem.", type: "error" }))
+        return
+      }
+      const canRelease = Number(user?.PERM_CHECAGEM_CRM) === 1 || Number(user?.PERM_ADMINISTRADOR) === 1
+      const moveCheck = isManualMoveAllowed(targetColumnId, board, Number(source.fromColumnId), canRelease)
       if (!moveCheck.allowed) {
         dispatch(setFeedback({ message: moveCheck.message, type: "error" }))
         return
@@ -235,7 +279,36 @@ const OpportunityKanbanComponent = ({ board }: OpportunityKanbanComponentProps) 
           borderBottom: '1px solid rgba(0,0,0,0.1)',
         }}
       >
-        <Box>
+        <Box sx={{ display: "flex", alignItems: "center", gap: 1, flexWrap: "wrap" }}>
+          <TextField
+            size="small"
+            placeholder="Buscar por nome, projeto ou DSE..."
+            value={searchTerm}
+            onChange={(event) => {
+              const value = event.target.value
+              setSearchTerm(value)
+              searchTermRef.current = value
+              setKanbanBoardData(buildBoardData(columns, allCards, selectedFollowerIds, columnField, value))
+            }}
+            inputProps={{ "aria-label": "Buscar por nome, número do projeto ou código DSE" }}
+            InputProps={{
+              startAdornment: <InputAdornment position="start"><SearchIcon fontSize="small" /></InputAdornment>,
+            }}
+            sx={{ width: { xs: 220, sm: 300 } }}
+          />
+          {board === "Orçamento" && (
+            <FormControlLabel
+              control={
+                <Checkbox
+                  checked={showAllCards}
+                  onChange={(_, checked) => {
+                    if (user) setShowAllOverride({ userId: user.CODPESSOA, checked })
+                  }}
+                />
+              }
+              label="Mostrar todos os cartões"
+            />
+          )}
           <Button
             variant="outlined"
             startIcon={<FilterAltOutlinedIcon />}
@@ -370,6 +443,7 @@ const OpportunityKanbanComponent = ({ board }: OpportunityKanbanComponentProps) 
               row={card.opportunity}
               onClick={() => setSelectedOpportunity(card.opportunity)}
               showKanbanDates
+              showChecklistStatus={board === "Orçamento"}
               styles={{ width: KANBAN_COLUMN_WIDTH - 24, minHeight: 'auto', maxHeight: 'none', margin: '0 12px 12px 12px' }}
               actions={
                 <Stack direction="row" gap={0.5}>
@@ -427,6 +501,7 @@ const OpportunityKanbanComponent = ({ board }: OpportunityKanbanComponentProps) 
       />
       <OpportunityKanbanCardDialog
         open={!!selectedOpportunity}
+        board={board}
         opportunity={selectedOpportunity}
         onClose={() => {
           setSelectedOpportunity(null)

@@ -18,11 +18,13 @@ import UserManagementPage from "./pages/admin/UserManagementPage";
 import AdminManagementHomePage from "./pages/admin/AdminManagementHomePage";
 import ProjectManagementPage from "./pages/admin/ProjectManagementPage";
 import MercadoLivreAccountsPage from "./pages/admin/MercadoLivreAccountsPage";
+import VagasPage from "./pages/VagasPage";
 // Exemplo de páginas
 const AppRoutes = () => { 
   return (
     <Routes>
       <Route path={ "/auth"} element={<AuthPage />} />
+      <Route path="/vagas" element={<VagasPage />} />
       <Route path="/" element={<HomePage />} />
       <Route path="/perfil" element={<ProfilePage />} />
 

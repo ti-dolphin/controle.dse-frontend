@@ -36,7 +36,7 @@ import RequisitionAttachmentList from "../../components/requisicoes/RequisitionA
 import { setFeedback } from "../../redux/slices/feedBackSlice";
 import RequisitionTimeline from "../../components/requisicoes/RequisitionTimeline";
 import RequisitionItemsTable from "../../components/requisicoes/RequisitionItemsTable";
-import { clearNewItems, clearRecentProducts, setAddingProducts, setItemBeingReplaced, setNewItems, setProductSelected, setRefresh, setReplacingItemProduct, setUpdatingRecentProductsQuantity } from "../../redux/slices/requisicoes/requisitionItemSlice";
+import { clearNewItems, clearRecentProducts, setAddingProducts, setItemBeingReplaced, setNewItems, setPendingNewItems, setItems, setProductSelected, setRefresh, setReplacingItemProduct, setUpdatingRecentProductsQuantity } from "../../redux/slices/requisicoes/requisitionItemSlice";
 import ProductsTable from "../../components/requisicoes/ProductsTable";
 import RequisitionItemService from "../../services/requisicoes/RequisitionItemService";
 import QuoteList from "../../components/requisicoes/QuoteList";
@@ -49,6 +49,7 @@ import { useIsMobile } from "../../hooks/useIsMobile";
 import SelectedQuoteItemsDialog from "../../components/requisicoes/SelectedQuoteItemsDialog";
 import RequisitionHeaderTitle from "../../components/requisicoes/RequisitionHeaderTitle";
 import { Requisition } from "../../models/requisicoes/Requisition";
+import AttachRequisitionItemsButton from "../../components/requisicoes/AttachRequisitionItemsButton";
 
 const RequisitionDetailPage = () => {
 
@@ -57,7 +58,14 @@ const RequisitionDetailPage = () => {
   const user = useSelector((state: RootState) => state.user.user);
   const {addingProducts, updatingRecentProductsQuantity} = useSelector((state: RootState) => state.requisitionItem);
   const {id_requisicao} = useParams();
-  const { recentProductsAdded, replacingItemProduct, itemBeingReplaced, productSelected, refresh, items } = useSelector((state: RootState) => state.requisitionItem);
+  const { recentProductsAdded, recentProductsInfo, pendingNewItems, replacingItemProduct, itemBeingReplaced, productSelected, refresh, items } = useSelector((state: RootState) => state.requisitionItem);
+  const itemBeingReplacedRow = items.find(
+    (item) => item.id_item_requisicao === itemBeingReplaced
+  );
+  const itemBeingReplacedDescription =
+    itemBeingReplacedRow?.produto_codigo === "06.001.04.0002"
+      ? itemBeingReplacedRow.observacao
+      : itemBeingReplacedRow?.produto_descricao;
   const {requisition, refreshRequisition} = useSelector((state: RootState) => state.requisition);
   const [quoteListOpen, setQuoteListOpen] = useState<boolean>(false);
   const [buyerDialogOpen, setBuyerDialogOpen] = useState<boolean>(false);
@@ -104,20 +112,6 @@ const RequisitionDetailPage = () => {
     [displayItemsTotal, displayShippingTotal]
   );
 
-  const nonRegisteredItemsWithoutUnit = useMemo(
-    () =>
-      items.filter((item) => {
-        const productCode = String(
-          item.produto_codigo || item.produto?.codigo || ""
-        ).trim();
-        return (
-          productCode === "06.001.04.0002" &&
-          !String(item.produto_unidade || "").trim()
-        );
-      }),
-    [items]
-  );
-  
   const fetchData = useCallback(async () => { 
     const requisition = await RequisitionService.getById(Number(id_requisicao));
     dispatch(setRequisition(requisition));
@@ -125,18 +119,26 @@ const RequisitionDetailPage = () => {
 
   const createItemsFromProducts = async () =>  {
     try{  
-      const newItemIds = await RequisitionItemService.createMany(recentProductsAdded, requisition.ID_REQUISICAO);
+      await RequisitionItemService.createMany(pendingNewItems.map((item) => ({
+        id_produto: item.id_produto,
+        quantidade: item.quantidade,
+        ...((item.produto_codigo === "06.001.04.0002" || !String(item.produto?.unidade || "").trim())
+          ? { unidade: item.produto_unidade || "" }
+          : {}),
+      })), requisition.ID_REQUISICAO);
       dispatch(setFeedback({ 
-        message: 'Produtos adicionados com sucesso! Insira as quantidades desejadas',
+        message: 'Produtos adicionados com sucesso!',
         type: 'success'
       }));
-      dispatch(setNewItems(newItemIds));
-      return;
+      dispatch(setPendingNewItems([]));
+      dispatch(clearRecentProducts());
+      return true;
     }catch(e : any){ 
       dispatch(setFeedback({ 
-        message: 'Erro ao criar itens da requisição',
+        message: e?.response?.data?.error || 'Erro ao criar itens da requisição',
         type: 'error'
       }));
+      return false;
     }
   }
 
@@ -161,17 +163,57 @@ const RequisitionDetailPage = () => {
   }
 
   const concludeAddProducts  = async () =>  {
-    await createItemsFromProducts();
+    const drafts = recentProductsAdded.map((id, index) => {
+      const product = recentProductsInfo[id];
+      if (!product) return null;
+      const id_item_requisicao = -(index + 1);
+      return {
+        id_item_requisicao,
+        id_requisicao: Number(requisition.ID_REQUISICAO),
+        id_produto: id,
+        quantidade: 0,
+        target_price: null,
+        observacao: "",
+        ativo: 1,
+        oc: null,
+        data_entrega: null,
+        quantidade_disponivel: Number(product.quantidade_disponivel || 0),
+        produto: product,
+        produto_descricao: product.descricao,
+        produto_codigo: product.codigo,
+        produto_unidade: String(product.codigo).trim() === "06.001.04.0002" ? "" : String(product.unidade || "").trim(),
+        produto_quantidade_estoque: Number(product.quantidade_estoque || 0),
+        produto_quantidade_disponivel: Number(product.quantidade_disponivel || 0),
+      };
+    }).filter(Boolean) as any[];
+    if (drafts.length !== recentProductsAdded.length) {
+      dispatch(setFeedback({ message: "Não foi possível carregar os dados de um ou mais produtos selecionados.", type: "error" }));
+      return;
+    }
+    dispatch(setPendingNewItems(drafts));
+    dispatch(setItems(drafts));
     dispatch(setUpdatingRecentProductsQuantity(true));
     dispatch(setAddingProducts(false));
     dispatch(clearRecentProducts());
   };
 
-  const concludeUpdateItemsQuantity = () => { 
-    setTimeout(() => {
-      dispatch(setUpdatingRecentProductsQuantity(false));
-      dispatch(clearNewItems());
-    }, 1000);
+  const concludeUpdateItemsQuantity = async () => { 
+    if (items.some((item) => !Number.isFinite(Number(item.quantidade)) || Number(item.quantidade) <= 0)) {
+      dispatch(setFeedback({ message: "Todos os itens precisam ter quantidade maior que zero.", type: "error" }));
+      return;
+    }
+    if (items.some((item) => !String(item.produto_unidade || "").trim() && (!String(item.produto?.unidade || "").trim() || item.produto_codigo === "06.001.04.0002"))) {
+      dispatch(setFeedback({
+        message: 'Informe a unidade para material/serviço não cadastrado e para produtos sem unidade cadastrada.',
+        type: 'error'
+      }));
+      return;
+    }
+    const saved = await createItemsFromProducts();
+    if (!saved) return;
+    dispatch(setUpdatingRecentProductsQuantity(false));
+    dispatch(clearNewItems());
+    dispatch(setRefresh(!refresh));
   };
 
   const handleClose = () => {
@@ -570,6 +612,7 @@ const RequisitionDetailPage = () => {
               </IconButton>
               {/* Adicionar itens */}
               <Stack direction="row" spacing={1} alignItems="center">
+                <AttachRequisitionItemsButton />
                 {shouldShowAddItemsButton() && (
                   <Button
                     onClick={() => dispatch(setAddingProducts(true))}
@@ -689,8 +732,9 @@ const RequisitionDetailPage = () => {
         </IconButton>
         <DialogTitle id="add-products-dialog-title">
           <Typography variant="h6" fontWeight={600} color="primary.main">
-            {" "}
-            Adicionar Itens
+            {replacingItemProduct
+              ? `Substituir item - ${itemBeingReplacedDescription || ""}`
+              : "Adicionar Itens"}
           </Typography>
         </DialogTitle>
         <DialogContent>
@@ -710,7 +754,7 @@ const RequisitionDetailPage = () => {
               color="primary"
               sx={{ textTransform: "none", minWidth: 120 }}
             >
-              Concluir
+              Avançar para quantidades
             </Button>
           )}
           {replacingItemProduct && productSelected && (
@@ -746,7 +790,6 @@ const RequisitionDetailPage = () => {
             onClick={concludeUpdateItemsQuantity}
             variant="contained"
             color="primary"
-            disabled={nonRegisteredItemsWithoutUnit.length > 0}
             sx={{ textTransform: "none", minWidth: 120 }}
           >
             Concluir
@@ -853,6 +896,7 @@ const RequisitionDetailPage = () => {
               spacing={1}
               alignItems="center"
             >
+              <AttachRequisitionItemsButton />
               {shouldShowAddItemsButton() && (
                 <Button
                   onClick={() => dispatch(setAddingProducts(true))}

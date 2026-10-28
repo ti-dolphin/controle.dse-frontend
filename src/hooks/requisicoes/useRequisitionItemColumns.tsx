@@ -40,6 +40,7 @@ import FileIcon from '@mui/icons-material/FilePresent';
 import AddLinkOutlinedIcon from '@mui/icons-material/AddLinkOutlined';
 import ReceiptLongIcon from '@mui/icons-material/ReceiptLong';
 import ShoppingCartIcon from '@mui/icons-material/ShoppingCart';
+import DoneAllIcon from '@mui/icons-material/DoneAll';
 import { calculateColumnWidth } from "../../utils/calculateColumnWidth";
 import { getVisibleStockQuantity } from "../../utils/stock";
 
@@ -66,6 +67,7 @@ export const useRequisitionItemColumns = (
     id_item_cotacao: number,
     id_item_requisicao: number
   ) => void,
+  handleSelectAllSupplier: (id_cotacao: number) => Promise<void>,
   quoteItemsSelected: Map<number, number>,
   selectionModel: number[],
   blockFields: boolean
@@ -113,6 +115,9 @@ export const useRequisitionItemColumns = (
     const statusName = (requisition.status?.nome ?? "").toLowerCase().trim();
     return statusName === "lançar nf" || statusName === "concluído";
   }, [requisition.status?.nome]);
+
+  const canSelectAllSupplier =
+    (requisition.status?.nome ?? "").toLowerCase().trim() === "em cotação";
 
   // Calcula a largura dinâmica da coluna de descrição
   const descriptionColumnWidth = useMemo(() =>
@@ -212,12 +217,6 @@ export const useRequisitionItemColumns = (
       renderCell: (params: any) => (
         params.api.getRowIndexRelativeToVisibleRows(params.id) + 1        
       )
-    },
-    {
-      field: "id_item_requisicao",
-      headerName: "ID",
-      type: "number",
-      width: 50,
     },
     {
       field: "produto_codigo",
@@ -950,7 +949,7 @@ export const useRequisitionItemColumns = (
       },
       renderCell: (params: any) => {
         const { id_item_requisicao } = params.row;
-        const quoteItem = params.row.items_cotacao.find(
+        const quoteItem = params.row.items_cotacao?.find(
           (item: QuoteItem) =>
             Number(item.id_cotacao) === Number(params.field)
         );
@@ -1013,7 +1012,26 @@ export const useRequisitionItemColumns = (
       sortable: true,
       renderHeader: (params: any) => {
         return (
-          <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+          <Box sx={{ display: "flex", alignItems: "center", gap: 0.5 }}>
+            {canSelectAllSupplier && (
+              <Tooltip title="Selecionar todos os itens deste fornecedor">
+                <span>
+                  <IconButton
+                    size="small"
+                    aria-label={`Selecionar todos os itens de ${params.colDef.headerName}`}
+                    disabled={blockFields || !editItemFieldsPermitted}
+                    onMouseDown={(event) => event.stopPropagation()}
+                    onClick={(event) => {
+                      event.stopPropagation();
+                      void handleSelectAllSupplier(Number(params.field));
+                    }}
+                    sx={{ p: 0.25 }}
+                  >
+                    <DoneAllIcon sx={{ fontSize: 16 }} />
+                  </IconButton>
+                </span>
+              </Tooltip>
+            )}
             <Typography
               fontSize="0.7rem"
               fontWeight="bold"
@@ -1028,9 +1046,11 @@ export const useRequisitionItemColumns = (
   }, [
     rawDinamicColumns,
     handleChangeQuoteItemsSelected,
+    handleSelectAllSupplier,
     quoteItemsSelected,
     blockFields,
     editItemFieldsPermitted,
+    canSelectAllSupplier,
   ]);
 
   const isDinamicField = useCallback(

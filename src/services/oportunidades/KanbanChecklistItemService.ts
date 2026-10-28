@@ -4,7 +4,7 @@ import { KanbanChecklistItem } from "../../models/oportunidades/KanbanChecklistI
 const API_ENDPOINT = "/item_checklist_oportunidade";
 
 export class KanbanChecklistItemService {
-  static async create(data: { id_checklist: number; descricao: string; ordem?: number }): Promise<KanbanChecklistItem> {
+  static async create(data: { id_checklist: number; descricao: string }): Promise<KanbanChecklistItem> {
     const response = await api.post(API_ENDPOINT, data);
     return response.data;
   }
@@ -14,11 +14,4 @@ export class KanbanChecklistItemService {
     return response.data;
   }
 
-  static async delete(id_item: number): Promise<void> {
-    await api.delete(`${API_ENDPOINT}/${id_item}`);
-  }
-
-  static async reordenar(itens: { id_item: number; ordem: number }[]): Promise<void> {
-    await api.put(`${API_ENDPOINT}/reordenar`, { itens });
-  }
 }

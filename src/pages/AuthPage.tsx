@@ -4,6 +4,7 @@ import {  clearUser } from "../redux/slices/userSlice";
 import { Box, Button, Typography, Paper, Avatar } from "@mui/material";
 import LockOutlinedIcon from "@mui/icons-material/LockOutlined";
 import AuthForm from "../components/AuthForm";
+import { Link as RouterLink } from "react-router-dom";
 
 const AuthPage = () => {
   const dispatch = useDispatch<AppDispatch>();

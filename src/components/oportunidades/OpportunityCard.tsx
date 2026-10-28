@@ -2,6 +2,7 @@ import React from "react";
 import { Box, Typography, Stack, Avatar, Tooltip, Chip, Card, CardContent, CardActions } from "@mui/material";
 import AccessTimeIcon from "@mui/icons-material/AccessTime";
 import { getDateFromISOstring } from "../../utils";
+import { formatCardTitle } from "../../utils/oportunidades/formatCardTitle";
 
 interface OpportunityCardProps {
   row: any;
@@ -9,6 +10,7 @@ interface OpportunityCardProps {
   onClick?: () => void;
   actions?: React.ReactNode;
   showKanbanDates?: boolean;
+  showChecklistStatus?: boolean;
 }
 
 const AVATAR_COLORS = ["#e57373", "#f06292", "#ba68c8", "#9575cd", "#7986cb", "#64b5f6", "#4db6ac", "#81c784", "#ffb74d"];
@@ -31,21 +33,7 @@ const formatCardDate = (data?: string | null) => {
   return date ? date.toLocaleDateString("pt-BR") : "-";
 };
 
-const DSE_CODE_PATTERN = /-?\s*DSE\s*(\d+)\s*$/i;
-
-const formatCardTitle = (row: any) => {
-  const numero = row?.adicional?.NUMERO ?? 0;
-  const projetoId = numero ? `${row?.projeto?.ID ?? "-"}.${numero}` : row?.projeto?.ID ?? "-";
-  const nomeFantasia: string = row?.cliente?.NOMEFANTASIA ?? "-";
-
-  const dseMatch = nomeFantasia.match(DSE_CODE_PATTERN);
-  if (dseMatch) {
-    const dseCode = dseMatch[1];
-    return `DSE${dseCode}-${projetoId} - ${row?.NOME ?? "-"}`;
-  }
-
-  return `${projetoId} - ${nomeFantasia}`;
-};
+const CHECKLIST_STATUS_LABELS: Record<string, string> = { red: "vermelho", yellow: "amarelo", green: "verde" };
 
 const OpportunityCard: React.FC<OpportunityCardProps> = ({
   row,
@@ -53,6 +41,7 @@ const OpportunityCard: React.FC<OpportunityCardProps> = ({
   onClick,
   actions,
   showKanbanDates = false,
+  showChecklistStatus = false,
 }) => {
   const seguidores: { NOME: string }[] = row?.seguidores ?? [];
 
@@ -81,20 +70,36 @@ const OpportunityCard: React.FC<OpportunityCardProps> = ({
           fontSize: "0.8rem",
         }}
       >
-        <Typography color="primary">
-          {formatCardTitle(row)}
-        </Typography>
+        <Stack direction="row" alignItems="center" spacing={0.75} sx={{ width: "100%", minWidth: 0 }}>
+          {showChecklistStatus && (
+            <Tooltip title={`Preenchimento dos checklists: ${CHECKLIST_STATUS_LABELS[row?.checklist_status] || "vermelho"}`}>
+              <Box
+                aria-label={`Preenchimento dos checklists ${CHECKLIST_STATUS_LABELS[row?.checklist_status] || "vermelho"}`}
+                sx={{
+                  width: 10,
+                  height: 10,
+                  flexShrink: 0,
+                  borderRadius: "50%",
+                  bgcolor: ({ red: "error.main", yellow: "warning.main", green: "success.main" } as Record<string, string>)[row?.checklist_status] || "error.main",
+                }}
+              />
+            </Tooltip>
+          )}
+          <Typography color="primary" noWrap>
+            {formatCardTitle(row)}
+          </Typography>
+        </Stack>
 
         <Stack direction="row" alignItems="center" justifyContent="space-between" gap={1} sx={{ width: "100%", mt: 1.5 }}>
           {showKanbanDates ? (
             <Stack spacing={0.25}>
               <Typography variant="caption" sx={{ lineHeight: 1.35 }}>
-                <Box component="span" sx={{ fontWeight: 700 }}>Data planejada:</Box>{" "}
-                {formatCardDate(row?.data_planejada)}
-              </Typography>
-              <Typography variant="caption" sx={{ lineHeight: 1.35 }}>
                 <Box component="span" sx={{ fontWeight: 700 }}>Data de solicitação:</Box>{" "}
                 {formatCardDate(row?.DATASOLICITACAO)}
+              </Typography>
+              <Typography variant="caption" sx={{ lineHeight: 1.35 }}>
+                <Box component="span" sx={{ fontWeight: 700 }}>Data planejada:</Box>{" "}
+                {formatCardDate(row?.data_planejada)}
               </Typography>
             </Stack>
           ) : row?.data_planejada ? (

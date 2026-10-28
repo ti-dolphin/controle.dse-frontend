@@ -9,6 +9,7 @@ import { useNavigate } from 'react-router-dom';
 import AccountCircleIcon from '@mui/icons-material/AccountCircle';
 import AdminPanelSettingsIcon from '@mui/icons-material/AdminPanelSettings';
 import { useSelector } from 'react-redux';
+import type { User } from '../models/User';
 
 type HomeModule = {
   name: string;
@@ -17,6 +18,7 @@ type HomeModule = {
   image?: string;
   icon?: React.ReactNode;
   adminOnly?: boolean;
+  permission?: keyof User;
 };
 
 const modules: HomeModule[] = [
@@ -47,13 +49,14 @@ const modules: HomeModule[] = [
     description:
       "Controle de contratos de experiência, férias, apontamentos e folgas.",
   },
-  // {
-  //   name: "Ordem de Compra",
-  //   image: ordemCompra,
-  //   path: "/ordens-compra",
-  //   description:
-  //     "Consulta e acompanhamento de ordens de compra com filtros e paginação.",
-  // },
+  {
+    name: "Ordem de Compra",
+    image: ordemCompra,
+    path: "/ordens-compra",
+    description:
+      "Consulta e acompanhamento de ordens de compra com filtros e paginação.",
+    permission: "PERM_ORDEM_COMPRA",
+  },
   {
     name: "Gestão Adm",
     path: "/gestao-adm",
@@ -191,7 +194,8 @@ const HomePage = () => {
         }}
       >
         {modules
-          .filter((module) => !module.adminOnly || isAdmin)
+          .filter((module) => (!module.adminOnly || isAdmin) &&
+            (!module.permission || Number(user?.[module.permission]) === 1 || isAdmin))
           .map((module) => (
           <Grid
             item

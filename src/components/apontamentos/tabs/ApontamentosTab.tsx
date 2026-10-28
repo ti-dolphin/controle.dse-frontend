@@ -176,7 +176,7 @@ const ApontamentosTab: React.FC<ApontamentosTabProps> = ({
     setCommentDialogOpen(true);
   }, []);
 
-  const canEditFolgaCampo = !!(user?.PERM_APONT || user?.PERM_ADMINISTRADOR);
+  const canEditFolgaCampo = !!(user?.PERM_APONT_WEB || user?.PERM_ADMINISTRADOR);
   const { columns: rawColumns } = useNotesColumns(handleChangeFilters, handleCommentClick, canEditFolgaCampo, handleColumnFilterEnter);
 
   const { orderedColumns: columns, columnVisibilityModel, saveColumnOrder, removeColumnOrder } = usePersistedColumnOrder(
@@ -467,7 +467,7 @@ const ApontamentosTab: React.FC<ApontamentosTabProps> = ({
           anchorEl={statusMenuAnchorEl}
           open={Boolean(statusMenuAnchorEl)}
           onClose={closeStatusMenu}
-          PaperProps={{ style: { maxHeight: 320, width: 280 } }}
+          // PaperProps={{ style: { maxHeight: 320, width: 280 } }}
         >
           {statusOptions.map((status) => {
             const checked = (filters.CODSTATUSAPONT_IN || []).includes(status.CODSTATUSAPONT);
@@ -507,9 +507,9 @@ const ApontamentosTab: React.FC<ApontamentosTabProps> = ({
           sx={{ height: 32, borderRadius: 0, fontSize: 12, marginLeft: "auto" }}
           variant="contained"
           color="primary"
-          disabled={selectedApontamentos.length === 0 || (!user?.PERM_APONT && !user?.PERM_ADMINISTRADOR)}
+          disabled={selectedApontamentos.length === 0 || (!user?.PERM_APONT_WEB && !user?.PERM_ADMINISTRADOR)}
           onClick={onApontarClick}
-          title={(!user?.PERM_APONT && !user?.PERM_ADMINISTRADOR) ? "Você não tem permissão para apontar" : ""}
+          title={(!user?.PERM_APONT_WEB && !user?.PERM_ADMINISTRADOR) ? "Você não tem permissão para apontar" : ""}
         >
           Apontar ({selectedApontamentos.length})
         </Button>
@@ -535,6 +535,7 @@ const ApontamentosTab: React.FC<ApontamentosTabProps> = ({
         rowCount={totalRows}
         paginationModel={{ page, pageSize }}
         onPaginationModelChange={(model: { page: number; pageSize: number }) => {
+          console.log('HAHAHAHA')
           dispatch(setPage(model.page));
           dispatch(setPageSize(model.pageSize));
         }}

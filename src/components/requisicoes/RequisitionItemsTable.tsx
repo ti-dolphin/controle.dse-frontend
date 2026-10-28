@@ -12,8 +12,10 @@ import RadioButtonUncheckedIcon from "@mui/icons-material/RadioButtonUnchecked";
 import CheckCircleIcon from "@mui/icons-material/CheckCircle";
 import { useRequisitionItemColumns } from "../../hooks/requisicoes/useRequisitionItemColumns";
 import { RequisitionItem } from "../../models/requisicoes/RequisitionItem";
-import { formatCurrency } from "../../utils";
+import { calculateUnitPriceWithTaxes, formatCurrency } from "../../utils";
 import CloseIcon from '@mui/icons-material/Close';
+import AddIcon from '@mui/icons-material/Add';
+import RemoveIcon from '@mui/icons-material/Remove';
 import {
   Box,
   Button,
@@ -123,6 +125,7 @@ const RequisitionItemsTable = ({
   const {
     items,
     newItems,
+    pendingNewItems,
     updatingRecentProductsQuantity,
     refresh,
     currentQuoteIdSelected,
@@ -151,6 +154,7 @@ const RequisitionItemsTable = ({
   const [quoteItemsSelected, setQuoteItemsSelected] = useState<Map<number, number>>(new Map());
   const [loading, setLoading] = useState(false);
   const [blockFields, setBlockFields] = useState(false);
+  const [selectingCheapest, setSelectingCheapest] = useState(false);
   const [quoteListOpen, setQuoteListOpen] = useState<boolean>(false);
   const [patrimonyDialogOpen, setPatrimonyDialogOpen] = useState(false);
   const [selectedPatrimonyItem, setSelectedPatrimonyItem] = useState<RequisitionItem | null>(null);
@@ -239,6 +243,13 @@ const RequisitionItemsTable = ({
 
   }, [permissionsFromHook, requisition?.status, user]);
   const { editItemFieldsPermitted, createQuotePermitted } = permissions;
+  const canSelectCheapest = [
+    "em cotacao",
+    "aprovacao gerente",
+    "aprovacao diretoria",
+    "comprar",
+  ].includes(normalizeText(requisition.status?.nome)) &&
+    !addingReqItems && !updatingRecentProductsQuantity && !attendingItems;
 
   useEffect(() => {
     itemsRef.current = items;
@@ -441,6 +452,44 @@ const RequisitionItemsTable = ({
     [requisition, dispatch, debouncedRecalculateTotals]
   );
 
+  const handleSelectAllSupplier = useCallback(async (quoteId: number) => {
+    if (!Number.isInteger(quoteId) || quoteId <= 0 || !editItemFieldsPermitted) return;
+    setBlockFields(true);
+    try {
+      const { selectedItems } = await RequisitionItemService.selectQuoteItemsBySupplier(
+        Number(id_requisicao),
+        quoteId
+      );
+      const selectedByItemId = new Map(
+        selectedItems.map((item) => [Number(item.id_item_requisicao), Number(item.id_item_cotacao)])
+      );
+      setQuoteItemsSelected((previous) => {
+        const next = new Map(previous);
+        selectedByItemId.forEach((quoteItemId, itemId) => next.set(itemId, quoteItemId));
+        return next;
+      });
+      selectedItems.forEach((item) => {
+        const currentItem = itemsRef.current.find(
+          (candidate) => Number(candidate.id_item_requisicao) === Number(item.id_item_requisicao)
+        );
+        if (currentItem) {
+          dispatch(replaceItem({
+            id_item_requisicao: item.id_item_requisicao,
+            updatedItem: { ...currentItem, id_item_cotacao: item.id_item_cotacao },
+          }));
+        }
+      });
+      debouncedRecalculateTotals();
+    } catch (error: any) {
+      dispatch(setFeedback({
+        message: error.response?.data?.error || "Erro ao selecionar itens do fornecedor",
+        type: "error",
+      }));
+    } finally {
+      setBlockFields(false);
+    }
+  }, [id_requisicao, editItemFieldsPermitted, dispatch, debouncedRecalculateTotals]);
+
   const handleCopySelectedItems = useCallback(async () => {
     const selectedIds = new Set(selectionModel.map((id) => Number(id)));
     const selectedItems = itemsRef.current.filter((item) =>
@@ -522,9 +571,33 @@ const RequisitionItemsTable = ({
     handleFillOCS,
     handleFillShippingDate,
     handleChangeQuoteItemsSelected,
+    handleSelectAllSupplier,
     quoteItemsSelected,
     selectionModel as number[],
     blockFields
+  );
+
+  const currentStep = normalizeText(requisition.status?.nome);
+  const [purchaseColumnsExpanded, setPurchaseColumnsExpanded] = useState(
+    () => currentStep !== "em cotacao"
+  );
+
+  useEffect(() => {
+    setPurchaseColumnsExpanded(currentStep !== "em cotacao");
+  }, [currentStep, requisition.ID_REQUISICAO]);
+
+  const collapsibleColumnFields = useMemo(() => {
+    const firstIndex = columns.findIndex((column) => column.field === "target_price");
+    const lastIndex = columns.findIndex((column) => column.field === "oc");
+    if (firstIndex < 0 || lastIndex < firstIndex) return [];
+    return columns.slice(firstIndex, lastIndex + 1).map((column) => column.field);
+  }, [columns]);
+
+  const columnVisibilityModel = useMemo(
+    () => Object.fromEntries(
+      collapsibleColumnFields.map((field) => [field, purchaseColumnsExpanded])
+    ),
+    [collapsibleColumnFields, purchaseColumnsExpanded]
   );
 
   const [supplierFilter, setSupplierFilter] = useState<string | null>(null);
@@ -566,11 +639,11 @@ const RequisitionItemsTable = ({
     (params: GridCellParams) => {
       if (blockFields) return false;
       if (params.field === "produto_unidade") {
-        return isNonRegisteredItem(params.row);
+        return isNonRegisteredItem(params.row) || (updatingRecentProductsQuantity && !String(params.row.produto?.unidade || "").trim());
       }
       return Boolean(params.colDef.editable);
     },
-    [isNonRegisteredItem, blockFields]
+    [isNonRegisteredItem, blockFields, updatingRecentProductsQuantity]
   );
 
   const mobileColumns = () => {
@@ -799,7 +872,7 @@ const RequisitionItemsTable = ({
         const observacaoChanged =
           String(normalizedRow.observacao ?? "") !== String(oldRow.observacao ?? "");
         const produtoUnidadeChanged =
-          productCode === "06.001.04.0002" &&
+          (productCode === "06.001.04.0002" || (updatingRecentProductsQuantity && !String(oldRow.produto?.unidade || "").trim())) &&
           normalizedRow.produto_unidade !== oldRow.produto_unidade;
 
         if (quantidadeChanged && normalizedRow.quantidade < 0) {
@@ -839,6 +912,12 @@ const RequisitionItemsTable = ({
         if (ocChanged) payload.oc = normalizedRow.oc;
         if (observacaoChanged) payload.observacao = normalizedRow.observacao;
         if (produtoUnidadeChanged) payload.produto_unidade = normalizedRow.produto_unidade;
+
+        if (Number(normalizedRow.id_item_requisicao) < 0) {
+          const updatedItem = { ...normalizedRow } as RequisitionItem;
+          dispatch(replaceItem({ id_item_requisicao: normalizedRow.id_item_requisicao, updatedItem }));
+          return updatedItem;
+        }
 
         if (quantidadeChanged) {
           // Sem estado otimista: a quantidade dispara recálculo de cotação e
@@ -899,7 +978,9 @@ const RequisitionItemsTable = ({
         return oldRow;
       }
 
-      if (newRow.produto_quantidade_disponivel < newRow.quantidade_atendida) {
+      // O atendimento usa o saldo do item, também usado para iniciar a
+      // quantidade atendida, e não o saldo geral do cadastro do produto.
+      if (Number(newRow.quantidade_disponivel) < Number(newRow.quantidade_atendida)) {
         dispatch(
           setFeedback({
             message: `Quantidade atendida não pode ser maior do que a disponível em estoque`,
@@ -1240,6 +1321,11 @@ const RequisitionItemsTable = ({
   );
   const fetchData = useCallback(async () => {
     setLoading(true);
+    if (updatingRecentProductsQuantity && pendingNewItems.length > 0) {
+      dispatch(setItems(pendingNewItems));
+      setLoading(false);
+      return;
+    }
     const seq = ++fetchSeqRef.current;
     try {
       const params = newItems.length > 0 ? {
@@ -1300,7 +1386,7 @@ const RequisitionItemsTable = ({
         })
       );
     }
-  }, [dispatch, requisition.ID_REQUISICAO, searchTerm, newItems]);
+  }, [dispatch, requisition.ID_REQUISICAO, searchTerm, newItems, pendingNewItems, updatingRecentProductsQuantity]);
 
   const defineSelectedQuoteItemsMap = (items: RequisitionItem[]) => {
     items.forEach((item) => {
@@ -1308,6 +1394,65 @@ const RequisitionItemsTable = ({
         quoteItemsSelected.set(item.id_item_requisicao, item.id_item_cotacao);
       }
     });
+  };
+
+  const handleSelectCheapest = async () => {
+    if (!canSelectCheapest || !editItemFieldsPermitted || loading || blockFields) return;
+
+    setSelectingCheapest(true);
+    setBlockFields(true);
+    let updatedCount = 0;
+    try {
+      // Compare all quotation options, including items hidden by table filters.
+      const allItems = await RequisitionItemService.getMany({
+        id_requisicao: requisition.ID_REQUISICAO,
+      });
+      for (const item of allItems) {
+        let cheapestId: number | undefined;
+        let cheapestPrice = Infinity;
+        for (const option of item.items_cotacao ?? []) {
+          if (!option || Number(option.indisponivel) > 0 ||
+              option.preco_unitario == null) continue;
+          const unitPrice = Number(option.preco_unitario);
+          const price = calculateUnitPriceWithTaxes(
+            unitPrice, Number(option.IPI || 0), Number(option.ST || 0)
+          );
+          if (!Number.isFinite(unitPrice) || unitPrice <= 0 ||
+              !Number.isFinite(price) || price <= 0) continue;
+          // Preserve the current supplier when the lowest prices are tied.
+          if (price < cheapestPrice || (price === cheapestPrice &&
+              Number(option.id_item_cotacao) === Number(item.id_item_cotacao))) {
+            cheapestPrice = price;
+            cheapestId = Number(option.id_item_cotacao);
+          }
+        }
+        if (!cheapestId || cheapestId === Number(item.id_item_cotacao)) continue;
+        const result = await RequisitionItemService.updateQuoteItemsSelected(
+          item.id_item_requisicao, cheapestId
+        );
+        if (!result.updated) throw new Error("Falha ao salvar seleção");
+        updatedCount += 1;
+      }
+      dispatch(setFeedback({
+        message: updatedCount > 0
+          ? `Cotação mais barata selecionada para ${updatedCount} item(ns).`
+          : "Nenhuma alteração necessária: os menores preços válidos já estão selecionados ou não há opções disponíveis.",
+        type: "success",
+      }));
+    } catch {
+      dispatch(setFeedback({
+        message: `Não foi possível concluir a seleção. ${updatedCount} item(ns) atualizado(s). Tente novamente.`,
+        type: "error",
+      }));
+    } finally {
+      if (updatedCount > 0) {
+        debouncedRecalculateTotals.cancel();
+        await recalculateQuoteItemsTotals();
+      }
+      await fetchData();
+      setBlockFields(false);
+      setSelectingCheapest(false);
+    }
   };
 
   const handleChangeQuoteSelected = useCallback(async () => {
@@ -1523,7 +1668,18 @@ const RequisitionItemsTable = ({
       <BaseTableToolBar
         ref={toolbarRef}
         handleChangeSearchTerm={debouncedHandleChangeSearchTerm}
-      />
+      >
+        {canSelectCheapest && (
+          <Button
+            variant="outlined"
+            size="small"
+            disabled={!editItemFieldsPermitted || loading || blockFields}
+            onClick={handleSelectCheapest}
+          >
+            {selectingCheapest ? "Selecionando..." : "Selecionar menores preços"}
+          </Button>
+        )}
+      </BaseTableToolBar>
       <Box
         ref={tableWrapperRef}
         sx={{
@@ -1562,7 +1718,7 @@ const RequisitionItemsTable = ({
           },
         }}
       >
-        {dinamicColumns.length > 0 && (
+        {(dinamicColumns.length > 0 || (!isMobile && collapsibleColumnFields.length > 0)) && (
           <Box
             sx={{
               display: "flex",
@@ -1616,6 +1772,19 @@ const RequisitionItemsTable = ({
                 </Box>
               );
             })}
+            {!isMobile && collapsibleColumnFields.length > 0 && (
+              <IconButton
+                size="small"
+                color="primary"
+                sx={{ ml: dinamicColumns.length > 0 ? 3 : 0 }}
+                aria-expanded={purchaseColumnsExpanded}
+                aria-label={`${purchaseColumnsExpanded ? "Recolher" : "Expandir"} colunas de Valor alvo unitário até OC`}
+                title={`${purchaseColumnsExpanded ? "Recolher" : "Expandir"} colunas de Valor alvo unitário até OC`}
+                onClick={() => setPurchaseColumnsExpanded((expanded) => !expanded)}
+              >
+                {purchaseColumnsExpanded ? <RemoveIcon fontSize="small" /> : <AddIcon fontSize="small" />}
+              </IconButton>
+            )}
           </Box>
         )}
         <BaseDataTable
@@ -1632,6 +1801,11 @@ const RequisitionItemsTable = ({
           rowSelectionModel={selectionModel}
           disableRowSelectionOnClick
           columns={isMobile ? mobileColumns() : columns}
+          columnBufferPx={columns.reduce(
+            (total, column) => total + (column.width ?? column.minWidth ?? 150),
+            0
+          )}
+          columnVisibilityModel={columnVisibilityModel}
           isCellEditable={isCellEditable}
           cellModesModel={cellModesModel}
           onCellModesModelChange={handleCellModesModelChange}
@@ -1643,6 +1817,22 @@ const RequisitionItemsTable = ({
           getRowClassName={getRowClassName}
           onRowClick={handleRowClick}
           showCellVerticalBorder
+          sx={{
+            "& .MuiDataGrid-columnHeader[data-field='produto_descricao']": {
+              position: "sticky",
+              left: 0,
+              zIndex: 5,
+              backgroundColor: "background.paper",
+              boxShadow: "2px 0 4px rgba(0, 0, 0, 0.12)",
+            },
+            "& .MuiDataGrid-cell[data-field='produto_descricao']": {
+              position: "sticky",
+              left: 0,
+              zIndex: 1,
+              backgroundColor: "background.paper",
+              boxShadow: "2px 0 4px rgba(0, 0, 0, 0.12)",
+            },
+          }}
         />
       </Box>
       <StickyHorizontalScrollbar wrapperRef={tableWrapperRef} />

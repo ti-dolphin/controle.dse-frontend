@@ -12,7 +12,7 @@ export interface User {
   PERM_OS: boolean;
   PERM_TIPO: boolean;
   PERM_STATUS: boolean;
-  PERM_APONT: boolean;
+  PERM_APONT_WEB: number | null;
   PERM_STATUS_APONT: boolean;
   PERM_PESSOAS: boolean;
   PERM_COMENT_OS: boolean;
@@ -44,8 +44,12 @@ export interface User {
   PERM_EDITAR_PRODUTOS: number | null;
   PERM_ESTOQUE: number | null;
   PERM_COMPRADOR_OPERACIONAL: number | null;
+  PERM_ORDEM_COMPRA?: number | null;
   PERM_MOVIMENTAR: number | null;
   PERM_CRM: number | null;
+  PERM_CHECAGEM_CRM?: number | null;
+  PERM_CANDIDATOS?: number | null;
+  PERM_COMENT_CANDIDATO?: number | null;
 }
 
 export interface ReducedUser {

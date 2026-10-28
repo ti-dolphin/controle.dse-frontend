@@ -4,9 +4,43 @@ import { KanbanBoardName } from "../../utils/kanbanFlowRules";
 
 const API_ENDPOINT = "/kanban_oportunidades";
 
+export interface OpportunityKanbanMovement {
+  id: string;
+  CODOS: number;
+  quadro: KanbanBoardName;
+  coluna_origem_id: number | null;
+  coluna_origem_nome: string | null;
+  coluna_destino_id: number;
+  coluna_destino_nome: string;
+  CODPESSOA: number | null;
+  usuario_nome: string | null;
+  origem: "manual" | "automatica" | "restauracao";
+  movimentado_em: string;
+}
+
+export interface OpportunityKanbanNotification {
+  id: string;
+  visto: boolean;
+  data_criacao: string;
+  movimento: Pick<OpportunityKanbanMovement, "CODOS" | "quadro" | "coluna_origem_nome" | "coluna_destino_nome" | "origem" | "CODPESSOA" | "usuario_nome">;
+  oportunidade: {
+    CODOS: number;
+    NOME: string;
+    projeto: { ID: number } | null;
+    adicional: { NUMERO: number } | null;
+  };
+}
+
+export interface OpportunityReview {
+  id: number;
+  numeroRevisao: number;
+  data_revisao: string | null;
+  data_envio_inicial: string | null;
+}
+
 const OpportunityKanbanService = {
-  getCards: async (board: KanbanBoardName): Promise<KanbanCardOpportunity[]> => {
-    const response = await api.get(`${API_ENDPOINT}/cards`, { params: { board } });
+  getCards: async (board: KanbanBoardName, todos?: boolean): Promise<KanbanCardOpportunity[]> => {
+    const response = await api.get(`${API_ENDPOINT}/cards`, { params: { board, todos } });
     return response.data;
   },
   getColumns: async (board: KanbanBoardName): Promise<OpportunityKanbanColumn[]> => {
@@ -32,8 +66,34 @@ const OpportunityKanbanService = {
     const response = await api.put(`${API_ENDPOINT}/colunas/${id}`, { name });
     return response.data;
   },
-  getArchivedCards: async (): Promise<ArchivedOpportunity[]> => {
-    const response = await api.get(`${API_ENDPOINT}/arquivados`)
+  getArchivedCards: async (board: KanbanBoardName): Promise<ArchivedOpportunity[]> => {
+    const response = await api.get(`${API_ENDPOINT}/arquivados`, { params: { board } })
+    return response.data
+  },
+  getMovementHistory: async (CODOS: number, board: KanbanBoardName): Promise<OpportunityKanbanMovement[]> => {
+    const response = await api.get(`${API_ENDPOINT}/${CODOS}/movimentos`, { params: { board } })
+    return response.data
+  },
+  getMovementNotifications: async (): Promise<OpportunityKanbanNotification[]> => {
+    const response = await api.get(`${API_ENDPOINT}/notificacoes`)
+    return response.data
+  },
+  markMovementNotificationSeen: async (id: string): Promise<void> => {
+    await api.patch(`${API_ENDPOINT}/notificacoes/${id}/visualizada`)
+  },
+  markAllMovementNotificationsSeen: async (): Promise<void> => {
+    await api.patch(`${API_ENDPOINT}/notificacoes/visualizadas`)
+  },
+  getReviewsByCodos: async (CODOS: number): Promise<OpportunityReview[]> => {
+    const response = await api.get<OpportunityReview[]>(`${API_ENDPOINT}/${CODOS}/reviews`)
+    return response.data
+  },
+  updateReviewDates: async (
+    CODOS: number,
+    reviewId: number,
+    dates: Partial<Pick<OpportunityReview, "data_revisao" | "data_envio_inicial">>,
+  ): Promise<OpportunityReview> => {
+    const response = await api.patch<OpportunityReview>(`${API_ENDPOINT}/${CODOS}/reviews/${reviewId}`, dates)
     return response.data
   }
 };
