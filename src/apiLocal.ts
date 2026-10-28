@@ -1,7 +1,7 @@
 import axios from "axios";
 
 const apiLocal = axios.create({
-  baseURL: import.meta.env.VITE_API_LOCAL_URL || "http://10.0.0.9:5980/api",
+  baseURL: import.meta.env.VITE_API_LOCAL_URL || "http://10.0.0.9:5981/api",
   headers: {
     "Content-Type": "application/json",
   },
