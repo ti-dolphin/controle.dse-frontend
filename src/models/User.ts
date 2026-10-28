@@ -44,6 +44,7 @@ export interface User {
   PERM_EDITAR_PRODUTOS: number | null;
   PERM_ESTOQUE: number | null;
   PERM_COMPRADOR_OPERACIONAL: number | null;
+  PERM_ORDEM_COMPRA?: number | null;
   PERM_MOVIMENTAR: number | null;
   PERM_CRM: number | null;
   PERM_CHECAGEM_CRM?: number | null;
