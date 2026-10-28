@@ -58,7 +58,7 @@ const OpportunityAlinhamentoList = ({ CODOS }: OpportunityAlinhamentoListProps) 
           CODOS,
           descricao: description,
           ordem: 1,
-        });2
+        });
         setItems([item]);
       }
       setText(description);
