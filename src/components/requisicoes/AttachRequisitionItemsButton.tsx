@@ -86,10 +86,10 @@ const AttachRequisitionItemsButton = () => {
         <DialogContent>
           <Stack spacing={2}>
             <DialogContentText>
-              A tabela não pode conter cabeçalho. Informe código do produto na coluna A, observação na B e QTD na C. A unidade na coluna D pode ficar vazia quando estiver cadastrada no produto; o valor alvo unitário na coluna E é opcional.
+              A tabela não pode conter cabeçalho. Informe a observação na coluna B e a QTD na C. Se o código do produto na coluna A ficar vazio, o sistema usará o cadastro genérico de material ou serviço não cadastrado. A unidade na coluna D pode ficar vazia quando estiver cadastrada no produto; o valor alvo unitário na coluna E é opcional.
             </DialogContentText>
             <Typography variant="body2" color="text.secondary">
-              Formatos: XLSX, XLS ou CSV. Será lida a primeira aba. A QTD deve ser inteira e maior que zero. O código deve corresponder a um produto cadastrado.
+              Formatos: XLSX, XLS ou CSV. Será lida a primeira aba. A QTD deve ser inteira e maior que zero. Um código informado deve corresponder a um produto cadastrado.
             </Typography>
             <FormControlLabel control={<Checkbox checked={replaceExisting} disabled={busy} onChange={(event) => {
               setReplaceExisting(event.target.checked);
