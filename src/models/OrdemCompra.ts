@@ -15,6 +15,7 @@ export interface OrdemCompra {
   DIRECTOR_APPROVER?: string | null;
   FORNECEDOR: string;
   FORNECEDOR_NOME_FANTASIA: string;
+  REQUISICOES_COUNT?: number | null;
 }
 
 export interface OrdemCompraRequisicao {

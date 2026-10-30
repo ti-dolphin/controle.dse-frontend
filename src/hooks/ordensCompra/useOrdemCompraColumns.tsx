@@ -8,6 +8,35 @@ import { calculateColumnWidth } from "../../utils/calculateColumnWidth";
 import { formatCurrency, getDateStringFromISOstring } from "../../utils";
 import { OrdemCompra } from "../../models/OrdemCompra";
 
+const getDateTimestamp = (value: unknown): number | null => {
+  const match = String(value ?? "").match(/^(\d{2})\/(\d{2})\/(\d{4})$/);
+  if (!match) return null;
+
+  const [, day, month, year] = match;
+  const timestamp = Date.UTC(Number(year), Number(month) - 1, Number(day));
+  const parsedDate = new Date(timestamp);
+
+  if (
+    parsedDate.getUTCFullYear() !== Number(year) ||
+    parsedDate.getUTCMonth() !== Number(month) - 1 ||
+    parsedDate.getUTCDate() !== Number(day)
+  ) {
+    return null;
+  }
+
+  return timestamp;
+};
+
+const compareBrazilianDates = (left: unknown, right: unknown): number => {
+  const leftTimestamp = getDateTimestamp(left);
+  const rightTimestamp = getDateTimestamp(right);
+
+  if (leftTimestamp === null && rightTimestamp === null) return 0;
+  if (leftTimestamp === null) return -1;
+  if (rightTimestamp === null) return 1;
+  return leftTimestamp - rightTimestamp;
+};
+
 export function useOrdemCompraColumns(
   handleChangeFilters: (event: React.ChangeEvent<HTMLInputElement>, field: string) => void,
   rows: any[] = [],
@@ -115,7 +144,7 @@ export function useOrdemCompraColumns(
       {
         field: "REQUISICAO",
         headerName: "Requisição",
-        width: 140,
+        width: 170,
         sortable: false,
         filterable: false,
         renderHeader: () => (
@@ -133,7 +162,11 @@ export function useOrdemCompraColumns(
             }}
             sx={{ fontSize: "11px", textTransform: "none" }}
           >
-            Ver requisições
+            {params.row.REQUISICOES_COUNT === undefined
+              ? "..."
+              : params.row.REQUISICOES_COUNT === null
+                ? "—"
+                : `${params.row.REQUISICOES_COUNT} requisição${params.row.REQUISICOES_COUNT === 1 ? "" : "ões"}`}
           </Button>
         ),
       },
@@ -142,6 +175,7 @@ export function useOrdemCompraColumns(
         headerName: "Data Emissao",
         width: columnWidths.DATA_EMISSAO,
         valueGetter: (value) => getDateStringFromISOstring(value),
+        sortComparator: compareBrazilianDates,
         renderHeader: () => (
           <TextHeader
             label="Data Emissao"
@@ -159,6 +193,7 @@ export function useOrdemCompraColumns(
         headerName: "Data Entrega",
         width: columnWidths.DATA_ENTREGA,
         valueGetter: (value) => getDateStringFromISOstring(value),
+        sortComparator: compareBrazilianDates,
         renderHeader: () => (
           <TextHeader
             label="Data Entrega"

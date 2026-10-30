@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useMemo, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   Box,
   Button,
@@ -60,6 +60,14 @@ const OrdemCompraListPage = () => {
   const { rows, loading, searchTerm, filters, page, pageSize, total } = useSelector(
     (state: RootState) => state.ordemCompraTable
   );
+  const [dateRangeInputs, setDateRangeInputs] = useState(() => ({
+    from: getDateInputValue(filters.DATA_EMISSAO_FROM),
+    to: getDateInputValue(filters.DATA_EMISSAO_TO),
+  }));
+  const [requisitionCounts, setRequisitionCounts] = useState<Record<string, number | null>>({});
+  const pendingRequisitionCountsRef = useRef(new Set<string>());
+  const dateRangeInputsRef = useRef(dateRangeInputs);
+  const filtersRef = useRef(filters);
 
   const [columnOrderDialogOpen, setColumnOrderDialogOpen] = useState(false);
   const [approvalDialogOpen, setApprovalDialogOpen] = useState(false);
@@ -70,6 +78,61 @@ const OrdemCompraListPage = () => {
   const [requisitionsNumeroMov, setRequisitionsNumeroMov] = useState<
     string | number | null
   >(null);
+
+  useEffect(() => {
+    filtersRef.current = filters;
+  }, [filters]);
+
+  useEffect(() => {
+    const movementNumbers = [
+      ...new Set(
+        rows
+          .map((row) => String(row.NUMERO_MOVIMENTO ?? "").trim())
+          .filter(Boolean)
+      ),
+    ];
+    const missingMovementNumbers = movementNumbers.filter(
+      (number) =>
+        !Object.prototype.hasOwnProperty.call(requisitionCounts, number) &&
+        !pendingRequisitionCountsRef.current.has(number)
+    );
+
+    if (missingMovementNumbers.length === 0) return;
+    missingMovementNumbers.forEach((number) =>
+      pendingRequisitionCountsRef.current.add(number)
+    );
+
+    Promise.all(
+      missingMovementNumbers.map(async (number) => {
+        try {
+          const linkedRequisitions = await OrdemCompraService.getRequisitionsByOc(number);
+          return {
+            number,
+            count: Array.isArray(linkedRequisitions) ? linkedRequisitions.length : 0,
+          };
+        } catch {
+          return { number, count: null };
+        }
+      })
+    ).then((results) => {
+      results.forEach(({ number }) =>
+        pendingRequisitionCountsRef.current.delete(number)
+      );
+      setRequisitionCounts((current) => ({
+        ...current,
+        ...Object.fromEntries(results.map(({ number, count }) => [number, count])),
+      }));
+    });
+  }, [rows, requisitionCounts]);
+
+  useEffect(() => {
+    const nextDateRangeInputs = {
+      from: getDateInputValue(filters.DATA_EMISSAO_FROM),
+      to: getDateInputValue(filters.DATA_EMISSAO_TO),
+    };
+    dateRangeInputsRef.current = nextDateRangeInputs;
+    setDateRangeInputs(nextDateRangeInputs);
+  }, [filters.DATA_EMISSAO_FROM, filters.DATA_EMISSAO_TO]);
 
   const handleChangeFilters = useCallback(
     (event: React.ChangeEvent<HTMLInputElement>, field: string) => {
@@ -115,7 +178,35 @@ const OrdemCompraListPage = () => {
     return debounce(handleChangeSearchTerm, 500);
   }, [handleChangeSearchTerm]);
 
+  const debouncedApplyDateRange = useMemo(
+    () =>
+      debounce(() => {
+        const { from, to } = dateRangeInputsRef.current;
+        dispatch(
+          setFilters({
+            ...filtersRef.current,
+            DATA_EMISSAO_FROM: from ? formatDateStringtoISOstring(from) : "",
+            DATA_EMISSAO_TO: to ? formatDateStringtoISOstring(to) : "",
+          })
+        );
+        dispatch(setPage(0));
+      }, 600),
+    [dispatch]
+  );
+
+  useEffect(
+    () => () => debouncedApplyDateRange.cancel(),
+    [debouncedApplyDateRange]
+  );
+
   const handleCleanFilters = () => {
+    debouncedApplyDateRange.cancel();
+    const currentDateRange = {
+      from: getDateInputValue(filters.DATA_EMISSAO_FROM),
+      to: getDateInputValue(filters.DATA_EMISSAO_TO),
+    };
+    dateRangeInputsRef.current = currentDateRange;
+    setDateRangeInputs(currentDateRange);
     dispatch(clearFilters());
   };
 
@@ -149,16 +240,16 @@ const OrdemCompraListPage = () => {
 
   const handleDateRangeChange = useCallback(
     (key: "DATA_EMISSAO_FROM" | "DATA_EMISSAO_TO", value: string) => {
-      const isoValue = value ? formatDateStringtoISOstring(value) : "";
-      dispatch(
-        setFilters({
-          ...filters,
-          [key]: isoValue,
-        })
-      );
-      dispatch(setPage(0));
+      const inputKey = key === "DATA_EMISSAO_FROM" ? "from" : "to";
+      const nextDateRangeInputs = {
+        ...dateRangeInputsRef.current,
+        [inputKey]: value,
+      };
+      dateRangeInputsRef.current = nextDateRangeInputs;
+      setDateRangeInputs(nextDateRangeInputs);
+      debouncedApplyDateRange();
     },
-    [dispatch, filters]
+    [debouncedApplyDateRange]
   );
 
   const fetchData = useCallback(async () => {
@@ -456,6 +547,15 @@ const OrdemCompraListPage = () => {
 
   const canManagerApprove = Boolean(user?.CODGERENTE);
   const hasSelection = selectedIds.length > 0;
+  const rowsWithRequisitionCounts = useMemo(
+    () =>
+      rows.map((order) => ({
+        ...order,
+        REQUISICOES_COUNT:
+          requisitionCounts[String(order.NUMERO_MOVIMENTO ?? "").trim()],
+      })),
+    [rows, requisitionCounts]
+  );
 
   return (
     <Box sx={{ height: "100vh", width: "100%" }}>
@@ -491,7 +591,7 @@ const OrdemCompraListPage = () => {
               label="Emissao de"
               type="date"
               size="small"
-              value={getDateInputValue(filters.DATA_EMISSAO_FROM) || ""}
+              value={dateRangeInputs.from}
               onChange={(event) =>
                 handleDateRangeChange("DATA_EMISSAO_FROM", event.target.value)
               }
@@ -501,7 +601,7 @@ const OrdemCompraListPage = () => {
               label="ate"
               type="date"
               size="small"
-              value={getDateInputValue(filters.DATA_EMISSAO_TO) || ""}
+              value={dateRangeInputs.to}
               onChange={(event) =>
                 handleDateRangeChange("DATA_EMISSAO_TO", event.target.value)
               }
@@ -579,7 +679,7 @@ const OrdemCompraListPage = () => {
           ) : null}
         </BaseTableToolBar>
         <BaseDataTable
-          rows={rows}
+          rows={rowsWithRequisitionCounts}
           columns={columns}
           columnVisibilityModel={columnVisibilityModel}
           loading={loading}
