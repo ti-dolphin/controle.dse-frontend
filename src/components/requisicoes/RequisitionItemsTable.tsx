@@ -19,6 +19,7 @@ import RemoveIcon from '@mui/icons-material/Remove';
 import {
   Box,
   Button,
+  Checkbox,
   Dialog,
   DialogActions,
   DialogContent,
@@ -28,7 +29,13 @@ import {
   useTheme,
   ListItem,
   ListItemButton,
-  Stack
+  Stack,
+  Table,
+  TableBody,
+  TableCell,
+  TableContainer,
+  TableHead,
+  TableRow,
 } from "@mui/material";
 import { useDispatch, useSelector } from "react-redux";
 import { RootState } from "../../redux/store";
@@ -174,6 +181,8 @@ const RequisitionItemsTable = ({
 
   const [trackingDialogOpen, setTrackingDialogOpen] = useState(false);
   const [dialogSelectQuoteForUpdate, setDialogSelectQuoteForUpdate] = useState(false)
+  const [selectedQuotesForUpdate, setSelectedQuotesForUpdate] = useState<number[]>([]);
+  const [updatingSelectedQuotes, setUpdatingSelectedQuotes] = useState(false);
 
   const codigosMl = useMemo(
     () => [
@@ -1239,15 +1248,36 @@ const RequisitionItemsTable = ({
     }
   };
 
-  const updateQuoteBySelectedItems = async (id_cotacao) => {
-    const data = {
-      id_requisicao: requisition.ID_REQUISICAO,
-      itemIds: selectionModel,
-      id_cotacao: id_cotacao
-    }
-    const updatedQuote = await QuoteItemService.updateQuoteItens(data)
-    if (updatedQuote) {
-      navigate(`cotacao/${updatedQuote.id_cotacao}`)
+  const updateQuoteBySelectedItems = async (quoteIds: number[]) => {
+    const selectedQuotes = quotes.filter((q) => quoteIds.includes(q.id_cotacao));
+    if (selectedQuotes.length === 0 || selectionModel.length === 0) return;
+
+    setUpdatingSelectedQuotes(true);
+    const updatedQuoteIds: number[] = [];
+
+    try {
+      for (const selectedQuote of selectedQuotes) {
+        const updatedQuote = await QuoteItemService.updateQuoteItens({
+          id_requisicao: requisition.ID_REQUISICAO,
+          itemIds: selectionModel,
+          id_cotacao: selectedQuote.id_cotacao,
+        });
+
+        if (!updatedQuote) throw new Error("A cotação não foi atualizada.");
+        updatedQuoteIds.push(selectedQuote.id_cotacao);
+      }
+
+      setDialogSelectQuoteForUpdate(false);
+      setSelectedQuotesForUpdate([]);
+    } catch {
+      dispatch(
+        setFeedback({
+          message: `Não foi possível atualizar todas as cotações. ${updatedQuoteIds.length} de ${selectedQuotes.length} já foram atualizadas; confirme novamente para tentar concluir.`,
+          type: "error",
+        })
+      );
+    } finally {
+      setUpdatingSelectedQuotes(false);
     }
   }
 
@@ -1563,14 +1593,25 @@ const RequisitionItemsTable = ({
   );
 
   const clearDialogSelectQuotes = () => {
+    if (updatingSelectedQuotes) return;
     dispatch(setItemLinkingQuote(null))
     setDialogSelectQuoteForUpdate(false)
+    setSelectedQuotesForUpdate([]);
   }
 
   const handleDialogSelectQuotes = (id_cotacao) => {
     if (itemLinkingQuote) handleLinkItemToQuote(id_cotacao)
-    if (dialogSelectQuoteForUpdate) updateQuoteBySelectedItems(id_cotacao)
   }
+
+  const toggleQuoteForUpdate = (quoteId: number, checked: boolean) => {
+    setSelectedQuotesForUpdate((current) =>
+      checked
+        ? current.includes(quoteId)
+          ? current
+          : [...current, quoteId]
+        : current.filter((id) => id !== quoteId)
+    );
+  };
 
   useEffect(() => {
     if (requisition) {
@@ -2062,68 +2103,119 @@ const RequisitionItemsTable = ({
             <IconButton
                 onClick={clearDialogSelectQuotes}
                 color="error"
+                disabled={updatingSelectedQuotes}
                 sx={{ position: "absolute", top: 0, right: 0 }}
               >
                 <CloseIcon />
             </IconButton>
-          <Box
-            sx={{mt: 1, display: 'flex', flexDirection: 'column', gap: 1}}
-          >
-            {quotes && (
-              quotes.map((q, i) => {
-                return (
-                  <ListItem
-                    key={i}
-                    sx={{
-                      backgroundColor: "white",
-                      borderRadius: 1,
-                      elevation: 1,
-                      padding: 1,
-                      maxWidth: 360
-                    }}
-                  >
-                    <ListItemButton
-                      onClick={() => handleDialogSelectQuotes(q.id_cotacao)}
-                    >
-                      <Box
-                        sx={{display: 'flex', flexDirection: 'column', gap: 1}}
-                      >
-                        <Stack direction="column" gap={1}>
-                          <Box>
-                            <Stack direction="row" gap={1}>
-                              <Typography fontFamily="Poppins" fontWeight="bold">
-                                nº da cotação:
-                              </Typography>
-                              <Typography sx={{ color: "text.secondary" }}>
-                                {q.id_cotacao}
-                              </Typography>
-                            </Stack>
-                            <Stack direction="row" gap={1}>
-                              <Typography fontFamily="Poppins" fontWeight="bold">
-                                Fornecedor:
-                              </Typography>
-                              <Typography sx={{ color: "text.secondary" }}>
-                                {q.fornecedor}
-                              </Typography>
-                            </Stack>
-                            <Stack direction="row" gap={1}>
-                              <Typography fontFamily="Poppins" fontWeight="bold">
-                                Valor da cotação:
-                              </Typography>
-                              <Typography color="green">
-                                {formatCurrency(Number(q.valor_total || 0))}
-                              </Typography>
-                            </Stack>
-                          </Box>
-                        </Stack>
-                      </Box>
-                    </ListItemButton>
-                  </ListItem>
-                )
-              })
-            )}
-          </Box>
+          {dialogSelectQuoteForUpdate ? (
+            <TableContainer
+              component={Box}
+              sx={{ mt: 1, maxHeight: 420, overflowX: "auto" }}
+            >
+              <Table size="small" aria-label="Cotações para atualizar">
+                <TableHead>
+                  <TableRow>
+                    <TableCell padding="checkbox" />
+                    <TableCell sx={{ fontWeight: 600 }}>Nº da cotação</TableCell>
+                    <TableCell sx={{ fontWeight: 600 }}>Fornecedor</TableCell>
+                    <TableCell align="right" sx={{ fontWeight: 600 }}>
+                      Valor da cotação
+                    </TableCell>
+                  </TableRow>
+                </TableHead>
+                <TableBody>
+                  {quotes.map((q) => (
+                    <TableRow key={q.id_cotacao} hover>
+                      <TableCell padding="checkbox">
+                        <Checkbox
+                          checked={selectedQuotesForUpdate.includes(q.id_cotacao)}
+                          onChange={(event) =>
+                            toggleQuoteForUpdate(q.id_cotacao, event.target.checked)
+                          }
+                          inputProps={{
+                            "aria-label": `Atualizar cotação ${q.id_cotacao}`,
+                          }}
+                        />
+                      </TableCell>
+                      <TableCell>{q.id_cotacao}</TableCell>
+                      <TableCell>{q.fornecedor || "—"}</TableCell>
+                      <TableCell align="right" sx={{ color: "success.main" }}>
+                        {formatCurrency(Number(q.valor_total || 0))}
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                  {quotes.length === 0 && (
+                    <TableRow>
+                      <TableCell colSpan={4} align="center">
+                        Nenhuma cotação encontrada.
+                      </TableCell>
+                    </TableRow>
+                  )}
+                </TableBody>
+              </Table>
+            </TableContainer>
+          ) : (
+            <Box sx={{ mt: 1, display: "flex", flexDirection: "column", gap: 1 }}>
+              {quotes.map((q) => (
+                <ListItem
+                  key={q.id_cotacao}
+                  sx={{
+                    backgroundColor: "white",
+                    borderRadius: 1,
+                    elevation: 1,
+                    padding: 1,
+                    maxWidth: 360,
+                  }}
+                >
+                  <ListItemButton onClick={() => handleDialogSelectQuotes(q.id_cotacao)}>
+                    <Box sx={{ display: "flex", flexDirection: "column", gap: 1 }}>
+                      <Stack direction="column" gap={1}>
+                        <Box>
+                          <Stack direction="row" gap={1}>
+                            <Typography fontFamily="Poppins" fontWeight="bold">
+                              nº da cotação:
+                            </Typography>
+                            <Typography sx={{ color: "text.secondary" }}>
+                              {q.id_cotacao}
+                            </Typography>
+                          </Stack>
+                          <Stack direction="row" gap={1}>
+                            <Typography fontFamily="Poppins" fontWeight="bold">
+                              Fornecedor:
+                            </Typography>
+                            <Typography sx={{ color: "text.secondary" }}>
+                              {q.fornecedor}
+                            </Typography>
+                          </Stack>
+                          <Stack direction="row" gap={1}>
+                            <Typography fontFamily="Poppins" fontWeight="bold">
+                              Valor da cotação:
+                            </Typography>
+                            <Typography color="green">
+                              {formatCurrency(Number(q.valor_total || 0))}
+                            </Typography>
+                          </Stack>
+                        </Box>
+                      </Stack>
+                    </Box>
+                  </ListItemButton>
+                </ListItem>
+              ))}
+            </Box>
+          )}
         </DialogContent>
+        {dialogSelectQuoteForUpdate && (
+          <DialogActions>
+            <Button
+              onClick={() => updateQuoteBySelectedItems(selectedQuotesForUpdate)}
+              variant="contained"
+              disabled={updatingSelectedQuotes || selectedQuotesForUpdate.length === 0}
+            >
+              {updatingSelectedQuotes ? "Atualizando..." : "Confirmar"}
+            </Button>
+          </DialogActions>
+        )}
       </Dialog>
     </Box>
   );
