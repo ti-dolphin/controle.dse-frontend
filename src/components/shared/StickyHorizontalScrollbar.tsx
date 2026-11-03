@@ -7,6 +7,7 @@ interface StickyHorizontalScrollbarProps {
    * scroller virtual da tabela e para alinhar a barra flutuante.
    */
   wrapperRef: React.RefObject<HTMLElement | null>;
+  onHorizontalScrollChange?: (isScrolled: boolean) => void;
 }
 
 const SCROLLER_SELECTOR = ".MuiDataGrid-virtualScroller";
@@ -25,6 +26,7 @@ const SCROLLER_SELECTOR = ".MuiDataGrid-virtualScroller";
  */
 const StickyHorizontalScrollbar = ({
   wrapperRef,
+  onHorizontalScrollChange,
 }: StickyHorizontalScrollbarProps) => {
   const barRef = useRef<HTMLDivElement>(null);
   const scrollerRef = useRef<HTMLElement | null>(null);
@@ -69,6 +71,9 @@ const StickyHorizontalScrollbar = ({
     const onScrollerScroll = () => {
       const bar = barRef.current;
       const scroller = scrollerRef.current;
+      if (scroller) {
+        onHorizontalScrollChange?.(scroller.scrollLeft > 0);
+      }
       if (bar && scroller && bar.scrollLeft !== scroller.scrollLeft) {
         bar.scrollLeft = scroller.scrollLeft;
       }
@@ -77,6 +82,7 @@ const StickyHorizontalScrollbar = ({
     const attachScroller = (scroller: HTMLElement) => {
       scrollerRef.current = scroller;
       scroller.addEventListener("scroll", onScrollerScroll, { passive: true });
+      onHorizontalScrollChange?.(scroller.scrollLeft > 0);
       resizeObserver.observe(scroller);
     };
 
@@ -115,7 +121,7 @@ const StickyHorizontalScrollbar = ({
       window.removeEventListener("scroll", recompute);
       window.removeEventListener("resize", recompute);
     };
-  }, [wrapperRef, recompute]);
+  }, [wrapperRef, recompute, onHorizontalScrollChange]);
 
   const handleBarScroll = () => {
     const bar = barRef.current;
