@@ -11,6 +11,7 @@ import {
   formatDecimalPtBr,
   formatQuantidade,
   getDateFromISOstring,
+  NON_REGISTERED_PRODUCT_CODE,
 } from "../../utils";
 import { useDispatch, useSelector } from "react-redux";
 import { RootState } from "../../redux/store";
@@ -56,6 +57,17 @@ const renderInstantEditCell = (params: GridRenderEditCellParams) => (
   <GridEditInputCell {...params} debounceMs={0} />
 );
 
+const getDisplayedDescription = (item: any, showObservation = true) => {
+  const productCode = String(
+    item?.produto_codigo || item?.produto?.codigo || ""
+  ).trim();
+  const observation = String(item?.observacao || "").trim();
+
+  return showObservation && productCode === NON_REGISTERED_PRODUCT_CODE && observation
+    ? observation
+    : item?.produto_descricao || item?.produto?.descricao || "";
+};
+
 export const useRequisitionItemColumns = (
   addingReqItems: boolean,
   editItemFieldsPermitted: boolean,
@@ -70,7 +82,8 @@ export const useRequisitionItemColumns = (
   handleSelectAllSupplier: (id_cotacao: number) => Promise<void>,
   quoteItemsSelected: Map<number, number>,
   selectionModel: number[],
-  blockFields: boolean
+  blockFields: boolean,
+  isHorizontallyScrolled: boolean
 ) => {
   const dispatch = useDispatch();
   const { id_requisicao } = useParams();
@@ -121,7 +134,15 @@ export const useRequisitionItemColumns = (
 
   // Calcula a largura dinâmica da coluna de descrição
   const descriptionColumnWidth = useMemo(() =>
-    calculateColumnWidth(items, 'produto_descricao', 'Descrição', undefined, undefined, 200, 600),
+    calculateColumnWidth(
+      items.map((item) => ({ produto_descricao: getDisplayedDescription(item) })),
+      'produto_descricao',
+      'Descrição',
+      undefined,
+      undefined,
+      200,
+      600
+    ),
     [items]
   );
 
@@ -231,21 +252,21 @@ export const useRequisitionItemColumns = (
       width: descriptionColumnWidth,
       flex: 0,
       renderCell: (params: any) => (
-        <Box 
-          sx={{ 
-            display: "flex", 
-            alignItems: "center", 
-            height: "100%" 
+        <Box
+          sx={{
+            display: "flex",
+            alignItems: "center",
+            height: "100%",
           }}
         >
-          <Typography 
-            fontSize="11px" 
+          <Typography
+            fontSize="11px"
             fontWeight="bold"
             sx={{
-              whiteSpace: 'normal'
+              whiteSpace: "normal",
             }}
           >
-            {params.value}
+            {getDisplayedDescription(params.row, isHorizontallyScrolled)}
           </Typography>
         </Box>
       ),
@@ -818,6 +839,7 @@ export const useRequisitionItemColumns = (
     },
   ], [
     descriptionColumnWidth,
+    isHorizontallyScrolled,
     observacaoColumnWidth,
     targetPriceTotal,
     attendingItems,

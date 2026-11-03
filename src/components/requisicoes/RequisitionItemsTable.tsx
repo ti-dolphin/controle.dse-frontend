@@ -572,6 +572,7 @@ const RequisitionItemsTable = ({
 
   const toolbarRef = React.useRef<HTMLDivElement>(null);
   const tableWrapperRef = React.useRef<HTMLDivElement>(null);
+  const [isHorizontallyScrolled, setIsHorizontallyScrolled] = useState(false);
 
   const { columns, isDinamicField, dinamicColumns } = useRequisitionItemColumns(
     addingReqItems,
@@ -583,7 +584,8 @@ const RequisitionItemsTable = ({
     handleSelectAllSupplier,
     quoteItemsSelected,
     selectionModel as number[],
-    blockFields
+    blockFields,
+    isHorizontallyScrolled
   );
 
   const currentStep = normalizeText(requisition.status?.nome);
@@ -1876,7 +1878,10 @@ const RequisitionItemsTable = ({
           }}
         />
       </Box>
-      <StickyHorizontalScrollbar wrapperRef={tableWrapperRef} />
+      <StickyHorizontalScrollbar
+        wrapperRef={tableWrapperRef}
+        onHorizontalScrollChange={setIsHorizontallyScrolled}
+      />
       {addingReqItems && (
         <Box sx={{ display: "flex", justifyContent: "flex-end", p: 2 }}>
           <Button variant="contained" onClick={handleAddItemsToRequisition}>
