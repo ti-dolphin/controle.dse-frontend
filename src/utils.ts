@@ -210,6 +210,10 @@ export const NON_REGISTERED_PRODUCT_CODE = "06.001.04.0002";
 /**
  * Observação a ser exibida junto da descrição do produto em telas de cotação.
  * Prioriza a observação da cotação e usa a da requisição quando estiver vazia.
+ *
+ * Para material/serviço não cadastrado (produto genérico NON_REGISTERED_PRODUCT_CODE),
+ * o backend já substitui a descrição do produto pela observação da requisição
+ * (QuoteItemRepository.format): repeti-la aqui duplicaria a informação na tela.
  */
 export function getQuoteItemObservation(item: {
   observacao?: string | null;
@@ -223,8 +227,14 @@ export function getQuoteItemObservation(item: {
     const text = String(value ?? "").trim();
     return /^n\s*\/\s*a$/i.test(text) ? "" : text;
   };
-  return normalizeObservation(item?.observacao) ||
-    normalizeObservation(item?.observacao_requisicao);
+
+  const ownObservation = normalizeObservation(item?.observacao);
+  if (ownObservation) return ownObservation;
+
+  const productCode = String(item?.produto_codigo ?? "").trim();
+  if (productCode === NON_REGISTERED_PRODUCT_CODE) return "";
+
+  return normalizeObservation(item?.observacao_requisicao);
 }
 
 /**
