@@ -6,6 +6,7 @@ import {
   GridCellParams,
   GridCellModes,
   GridRowModel,
+  GridColumnResizeParams,
 } from "@mui/x-data-grid";
 import { useState, useCallback, useEffect, ChangeEvent, useMemo } from "react";
 import { QuoteItem } from "../../models/requisicoes/QuoteItem";
@@ -48,6 +49,11 @@ const QuoteItemsTable = ({
   const [cellModesModel, setCellModesModel] = useState<GridCellModesModel>({});
   const [loading, setLoading] = useState(false);
   const [blockFields, setBlockFields] = useState(false);
+  // Larguras redimensionadas manualmente pelo usuário. As colunas são
+  // recriadas a cada render (useQuoteItemColumns não memoiza), o que faz o
+  // DataGrid reaplicar o `flex` padrão e descartar a largura arrastada; aqui
+  // essa largura é reaplicada por cima até o usuário sair da página.
+  const [resizedColumnWidths, setResizedColumnWidths] = useState<Record<string, number>>({});
   const isSupplierRoute = accessType === "supplier" ? true : false;
   const {isMobile} = useIsMobile();
 
@@ -125,6 +131,26 @@ const QuoteItemsTable = ({
     blockFields,
     handleViewAttachments,
     handleQuoteItemAttachmentsChange,
+  );
+
+  const handleColumnWidthChange = useCallback(
+    (params: GridColumnResizeParams) => {
+      setResizedColumnWidths((prev) => ({
+        ...prev,
+        [params.colDef.field]: params.width,
+      }));
+    },
+    []
+  );
+
+  const columnsWithResizedWidths = useMemo(
+    () =>
+      columns.map((column) =>
+        resizedColumnWidths[column.field] !== undefined
+          ? { ...column, flex: undefined, width: resizedColumnWidths[column.field] }
+          : column
+      ),
+    [columns, resizedColumnWidths]
   );
 
   const mobileColumns = ( ) =>  {
@@ -470,7 +496,8 @@ const QuoteItemsTable = ({
           loading={loading}
           theme={theme}
           rows={quoteItems}
-          columns={isMobile ? mobileColumns() : columns}
+          columns={isMobile ? mobileColumns() : columnsWithResizedWidths}
+          onColumnWidthChange={handleColumnWidthChange}
           cellModesModel={cellModesModel}
           onCellModesModelChange={handleCellModesModelChange}
           onCellClick={handleCellClick}
