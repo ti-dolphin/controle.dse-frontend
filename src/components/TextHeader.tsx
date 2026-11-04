@@ -75,9 +75,16 @@ export const TextHeader: React.FC<TextHeaderProps> = ({
           if (e.key === "Enter") {
             e.preventDefault();
             e.stopPropagation();
-            debouncedSync.cancel();
-            isTypingRef.current = false;
-            onEnter?.(field, localValue || "");
+            if (onEnter) {
+              debouncedSync.cancel();
+              isTypingRef.current = false;
+              onEnter(field, localValue || "");
+              return;
+            }
+
+            // Aplica imediatamente o filtro pendente. Cancelar aqui descartava
+            // a atualização e, sem callback onEnter, a lista nunca buscava.
+            debouncedSync.flush();
           }
         }}
         InputProps={{
