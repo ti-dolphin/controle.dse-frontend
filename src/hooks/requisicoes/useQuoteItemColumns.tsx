@@ -29,6 +29,7 @@ export const useQuoteItemColumns = (
     id_item_cotacao: number,
     attachments: QuoteItemAttachment[],
   ) => void,
+  isSupplierRoute?: boolean,
 )  => {
 
   const StyledBadge = styled(Badge)<BadgeProps>(() => ({
@@ -156,7 +157,7 @@ export const useQuoteItemColumns = (
       headerName: "Qtde. Solicitada",
       type: "number",
       flex: 0.7,
-      editable: false,
+      editable: !isSupplierRoute,
       renderCell: (params: any) => formatQuantidade(params.value),
     },
     {
