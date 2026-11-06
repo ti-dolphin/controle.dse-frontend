@@ -43,7 +43,7 @@ export class QuoteItemService {
 
   static updateFields = async (
     id_item_cotacao: number,
-    data: { observacao?: string | null; ICMS?: number },
+    data: { observacao?: string | null; ICMS?: number; quantidade_solicitada?: number },
     token?: string,
   ): Promise<void> => {
     const config = token ? { headers: { Authorization: token } } : {};

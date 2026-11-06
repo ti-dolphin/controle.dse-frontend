@@ -131,6 +131,7 @@ const QuoteItemsTable = ({
     blockFields,
     handleViewAttachments,
     handleQuoteItemAttachmentsChange,
+    isSupplierRoute,
   );
 
   const handleColumnWidthChange = useCallback(
@@ -326,25 +327,49 @@ const QuoteItemsTable = ({
       const ipiChanged = Number(newRow.IPI) !== Number(oldRow.IPI);
       const stChanged = Number(newRow.ST) !== Number(oldRow.ST);
       const observacaoChanged = (newRow.observacao || "") !== (oldRow.observacao || "");
+      const quantidadeSolicitadaChanged =
+        Number(newRow.quantidade_solicitada) !== Number(oldRow.quantidade_solicitada);
 
       const hasChanges =
-        precoChanged || quantidadeChanged || icmsChanged || ipiChanged || stChanged || observacaoChanged;
+        precoChanged || quantidadeChanged || icmsChanged || ipiChanged || stChanged ||
+        observacaoChanged || quantidadeSolicitadaChanged;
 
       if (!hasChanges) {
         return oldRow;
       }
 
-      // ICMS e observação não entram no cálculo de subtotal/total (a fórmula
-      // só usa preço, quantidade, IPI e ST): se só eles mudaram, não precisa
-      // do fluxo completo de recálculo no servidor.
+      // ICMS, observação e quantidade solicitada não entram no cálculo de
+      // subtotal/total (a fórmula só usa preço, quantidade cotada, IPI e ST):
+      // se só eles mudaram, não precisa do fluxo completo de recálculo no servidor.
       const onlyNonCalcFieldsChanged =
-        (observacaoChanged || icmsChanged) &&
+        (observacaoChanged || icmsChanged || quantidadeSolicitadaChanged) &&
         !precoChanged && !quantidadeChanged && !ipiChanged && !stChanged;
 
       if (onlyNonCalcFieldsChanged) {
-        const fields: { observacao?: string; ICMS?: number } = {};
+        if (quantidadeSolicitadaChanged) {
+          if (isSupplierRoute) {
+            dispatch(
+              setFeedback({
+                message: `Você não tem permissão para editar a quantidade solicitada.`,
+                type: "error",
+              })
+            );
+            return oldRow;
+          }
+          if (Number(newRow.quantidade_solicitada) < 0) {
+            dispatch(
+              setFeedback({
+                message: `Quantidade solicitada nao pode ser menor que zero`,
+                type: "error",
+              })
+            );
+            return oldRow;
+          }
+        }
+        const fields: { observacao?: string; ICMS?: number; quantidade_solicitada?: number } = {};
         if (observacaoChanged) fields.observacao = newRow.observacao;
         if (icmsChanged) fields.ICMS = Number(newRow.ICMS);
+        if (quantidadeSolicitadaChanged) fields.quantidade_solicitada = Number(newRow.quantidade_solicitada);
         try {
           setBlockFields(true);
           setLoading(true);
@@ -388,7 +413,7 @@ const QuoteItemsTable = ({
         return oldRow;
       }
 
-      if(newRow.quantidade_cotada > newRow.quantidade_solicitada){
+      if(quantidadeChanged && newRow.quantidade_cotada > newRow.quantidade_solicitada){
         dispatch(
           setFeedback({
             message: `Quantidade cotada nao pode ser maior que quantidade solicitada`,
@@ -431,7 +456,7 @@ const QuoteItemsTable = ({
         return oldRow;
       }
     },
-    [dispatch, token]
+    [dispatch, token, isSupplierRoute]
   );
 
   const changeSearchTerm = (e: React.ChangeEvent<HTMLInputElement>) => {
