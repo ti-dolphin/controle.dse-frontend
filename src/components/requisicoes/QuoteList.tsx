@@ -5,7 +5,7 @@ import QuoteService from '../../services/requisicoes/QuoteService';
 import { Quote } from '../../models/requisicoes/Quote';
 import { Box, IconButton, List, ListItem, ListItemButton, Stack, Typography, Select, MenuItem, FormControl, InputLabel } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
-import { formatCurrency } from '../../utils';
+import { formatCurrency, getDateStringFromISOstring } from '../../utils';
 import DeleteIcon from '@mui/icons-material/Delete';
 import { setFeedback } from '../../redux/slices/feedBackSlice';
 import BaseDeleteDialog from '../shared/BaseDeleteDialog';
@@ -122,6 +122,14 @@ const QuoteList = () => {
                           </Typography>
                           <Typography color="green">
                             {formatCurrency(Number(quote.valor_total || 0))}
+                          </Typography>
+                        </Stack>
+                        <Stack direction="row" gap={1}>
+                          <Typography fontFamily="Poppins" fontWeight="bold">
+                            Data da cotação:
+                          </Typography>
+                          <Typography sx={{ color: "text.secondary" }}>
+                            {getDateStringFromISOstring(quote.data_cotacao)}
                           </Typography>
                         </Stack>
                       </Box>
