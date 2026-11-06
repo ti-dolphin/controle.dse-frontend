@@ -2,7 +2,7 @@ import React, { ChangeEvent } from "react";
 import { TextField, Box, Button, Grid, Autocomplete, MenuItem } from "@mui/material";
 import { useDispatch, useSelector } from "react-redux";
 import { RootState } from "../../redux/store";
-import { isNumeric } from "../../utils";
+import { isNumeric, getDateStringFromISOstring } from "../../utils";
 import { useQuoteFieldOptions } from "../../hooks/requisicoes/QuoteFieldOptionsHook";
 import {
   setQuote,
@@ -70,9 +70,9 @@ const QuoteForm = ({ onSubmit }: QuoteFormProps) => {
     if (quote) {
       const codeFields = ["cnpj_fornecedor", "cnpj_faturamento", "descricao", "observacao", "fornecedor"];
       const normalizedValue = value.replace(",", ".");
-      
+
       const isIncompleteDecimal = normalizedValue.endsWith(".") || /\.\d*$/.test(normalizedValue);
-      
+
       dispatch(
         setQuote({
           ...quote,
@@ -95,67 +95,78 @@ const QuoteForm = ({ onSubmit }: QuoteFormProps) => {
     >
       <Grid container spacing={1}>
         {fields.map((field) => (
-          <Grid item xs={12} sm={6} key={field.name}>
-            {field.select ? (
-              <Box sx={{ display: "flex", flexDirection: "column", width: "100%" }}>
-                <label className="mb-1 text-xs font-medium text-gray-700">
-                  {field.label}
-                  {field.required && <span className="ml-0.5 text-red-500">*</span>}
-                </label>
-                <TextField
-                  select
-                  fullWidth
-                  size="small"
-                  value={quote ? String(quote[field.name as keyof Quote] ?? "") : ""}
+          <React.Fragment key={field.name}>
+            <Grid item xs={12} sm={field.name === "entrega" ? 3 : 6}>
+              {field.select ? (
+                <Box sx={{ display: "flex", flexDirection: "column", width: "100%" }}>
+                  <label className="mb-1 text-xs font-medium text-gray-700">
+                    {field.label}
+                    {field.required && <span className="ml-0.5 text-red-500">*</span>}
+                  </label>
+                  <TextField
+                    select
+                    fullWidth
+                    size="small"
+                    value={quote ? String(quote[field.name as keyof Quote] ?? "") : ""}
+                    required={field.required}
+                    SelectProps={{
+                      displayEmpty: true,
+                      renderValue: (value: unknown) =>
+                        value ? (
+                          field.options.find((option) => String(option.id) === String(value))?.name ?? String(value)
+                        ) : (
+                          <span style={{ color: "#9ca3af" }}>Selecione...</span>
+                        ),
+                    }}
+                    onChange={(e) => {
+                      if (quote) {
+                        dispatch(setQuote({ ...quote, [field.name]: e.target.value }));
+                      }
+                    }}
+                    sx={{ "& .MuiInputBase-root": { height: 36, fontSize: "0.75rem" } }}
+                  >
+                    {field.options.map((option) => (
+                      <MenuItem key={option.id} value={option.id}>{option.name}</MenuItem>
+                    ))}
+                  </TextField>
+                </Box>
+              ) : field.autoComplete && field.options.length > 0 ? (
+                <OptionsField
+                  label={field.label}
+                  options={field.options}
+                  value={quote ? String(quote[field.name as keyof Quote] ) : ""}
                   required={field.required}
-                  SelectProps={{
-                    displayEmpty: true,
-                    renderValue: (value: unknown) =>
-                      value ? (
-                        field.options.find((option) => String(option.id) === String(value))?.name ?? String(value)
-                      ) : (
-                        <span style={{ color: "#9ca3af" }}>Selecione...</span>
-                      ),
+                  onChange={(optionId) => {
+                    handleChangeOptionField(
+                      field.name as keyof Quote,
+                      Number(optionId)
+                    );
                   }}
-                  onChange={(e) => {
-                    if (quote) {
-                      dispatch(setQuote({ ...quote, [field.name]: e.target.value }));
-                    }
-                  }}
-                  sx={{ "& .MuiInputBase-root": { height: 36, fontSize: "0.75rem" } }}
-                >
-                  {field.options.map((option) => (
-                    <MenuItem key={option.id} value={option.id}>{option.name}</MenuItem>
-                  ))}
-                </TextField>
-              </Box>
-            ) : field.autoComplete && field.options.length > 0 ? (
-              <OptionsField
-                label={field.label}
-                options={field.options}
-                value={quote ? String(quote[field.name as keyof Quote] ) : ""}
-                required={field.required}
-                onChange={(optionId) => {
-                  handleChangeOptionField(
-                    field.name as keyof Quote,
-                    Number(optionId)
-                  );
-                }}
-                disabled={field.disabled}
-              />
-            ) : (
-              <ElegantInput
-                label={field.label}
-                value={quote ? String(quote[field.name as keyof Quote] ?quote[field.name as keyof Quote] : ""  ) : ""}
-                  required={field.required}
-                onChange={(e) =>
-                  handleChangeTextField(e, field.name as keyof Quote)
-                }
-                disabled={field.disabled}
-                onFocus={handleFocus}
-              />
+                  disabled={field.disabled}
+                />
+              ) : (
+                <ElegantInput
+                  label={field.label}
+                  value={quote ? String(quote[field.name as keyof Quote] ?quote[field.name as keyof Quote] : ""  ) : ""}
+                    required={field.required}
+                  onChange={(e) =>
+                    handleChangeTextField(e, field.name as keyof Quote)
+                  }
+                  disabled={field.disabled}
+                  onFocus={handleFocus}
+                />
+              )}
+            </Grid>
+            {field.name === "entrega" && (
+              <Grid item xs={12} sm={3}>
+                <ElegantInput
+                  label="Data da cotação"
+                  value={getDateStringFromISOstring(quote?.data_cotacao)}
+                  disabled
+                />
+              </Grid>
             )}
-          </Grid>
+          </React.Fragment>
         ))}
       </Grid>
       <Button type="submit" size="small" variant="contained" color="primary" fullWidth>
