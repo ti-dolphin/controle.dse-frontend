@@ -13,6 +13,7 @@ export interface Quote {
     cnpj_faturamento: string;
     valor_total: number;
     valor_frete: number;
+    desconto: number;
     id_tipo_frete: number;
     id_classificacao_fiscal: number;
     cnpj_fornecedor: string;

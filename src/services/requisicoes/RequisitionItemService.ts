@@ -87,7 +87,7 @@ export class RequisitionItemService {
 
   static async recalculateQuoteItemsTotals(
     id_requisicao: number
-  ): Promise<{ custo_total_itens: number; custo_total_frete: number }> {
+  ): Promise<{ custo_total_itens: number; custo_total_frete: number; custo_desconto: number }> {
     const response = await api.put(
       `${API_ENDPOINT}/itens_cotacao_selecionados/totais`,
       {},

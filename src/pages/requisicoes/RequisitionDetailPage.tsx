@@ -107,9 +107,14 @@ const RequisitionDetailPage = () => {
     [requisition.custo_total_frete]
   );
 
+  const displayDiscountTotal = useMemo(
+    () => Number(requisition.custo_desconto || 0),
+    [requisition.custo_desconto]
+  );
+
   const displayGrandTotal = useMemo(
-    () => displayItemsTotal + displayShippingTotal,
-    [displayItemsTotal, displayShippingTotal]
+    () => displayItemsTotal + displayShippingTotal - displayDiscountTotal,
+    [displayItemsTotal, displayShippingTotal, displayDiscountTotal]
   );
 
   const fetchData = useCallback(async () => { 
@@ -666,6 +671,10 @@ const RequisitionDetailPage = () => {
                 <Typography variant="subtitle2" color="primary.main">
                   Fretes:{" "}
                   {formatCurrency2To3(Number(displayShippingTotal || 0))}
+                </Typography>
+                <Typography variant="subtitle2" color="error.main">
+                  Desconto:{" "}
+                  {formatCurrency2To3(Number(displayDiscountTotal || 0))}
                 </Typography>
                 <Typography variant="subtitle2" color="success.main">
                   Custo total:{" "}
