@@ -88,6 +88,7 @@ const QuoteDetailPage = () => {
         id_tipo_frete : data.id_tipo_frete,
         fornecedor : data.fornecedor,
         valor_frete : data.valor_frete,
+        desconto : data.desconto,
         valor_total : data.valor_total,
         cnpj_faturamento: data.cnpj_faturamento,
         cnpj_fornecedor : data.cnpj_fornecedor,
@@ -363,12 +364,16 @@ const QuoteDetailPage = () => {
                 Fretes:{" "}
                 {formatCurrency(Number(quote?.valor_frete || 0))}
               </Typography>
+              <Typography variant="subtitle2" color="error.main">
+                Desconto:{" "}
+                {formatCurrency(Number(quote?.desconto || 0))}
+              </Typography>
               <Typography variant="subtitle2" color="success.main">
                 Custo total:{" "}
-                {formatCurrency(Number(quote?.valor_total || 0))}
+                {formatCurrency(Number(quote?.valor_total || 0) - Number(quote?.desconto || 0))}
               </Typography>
             </Box>
-            
+
             <QuoteItemsTable hideFooter={false} tableMaxHeight={400} />
           </Paper>
         </Grid>
@@ -408,9 +413,13 @@ const QuoteDetailPage = () => {
                 Fretes:{" "}
                 {formatCurrency(Number(quote?.valor_frete || 0))}
               </Typography>
+              <Typography variant="subtitle2" color="error.main">
+                Desconto:{" "}
+                {formatCurrency(Number(quote?.desconto || 0))}
+              </Typography>
               <Typography variant="subtitle2" color="success.main">
                 Custo total:{" "}
-                {formatCurrency(Number(quote?.valor_total || 0))}
+                {formatCurrency(Number(quote?.valor_total || 0) - Number(quote?.desconto || 0))}
               </Typography>
             </Box>
           </Stack>

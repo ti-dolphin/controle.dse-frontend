@@ -345,7 +345,7 @@ const RequisitionItemsTable = ({
 
   const recalculateQuoteItemsTotals = useCallback(async () => {
     try {
-      const { custo_total_itens, custo_total_frete } =
+      const { custo_total_itens, custo_total_frete, custo_desconto } =
         await RequisitionItemService.recalculateQuoteItemsTotals(
           Number(id_requisicao)
         );
@@ -354,6 +354,9 @@ const RequisitionItemsTable = ({
       );
       dispatch(
         updateRequisitionField({ field: "custo_total_frete", value: custo_total_frete })
+      );
+      dispatch(
+        updateRequisitionField({ field: "custo_desconto", value: custo_desconto })
       );
     } catch (error: any) {
       dispatch(

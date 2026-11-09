@@ -59,8 +59,10 @@ export const useQuoteItemColumns = (
       headerName: 'N°',
       width: 60,
       type: "number",
+      align: "left",
+      headerAlign: "left",
       renderCell: (params: any) => (
-        params.api.getRowIndexRelativeToVisibleRows(params.id) + 1        
+        params.api.getRowIndexRelativeToVisibleRows(params.id) + 1
       )
     },
     {
@@ -69,6 +71,8 @@ export const useQuoteItemColumns = (
       flex: 0.4,
       sortable: false,
       editable: false,
+      align: "left",
+      headerAlign: "left",
       renderCell: (params: any) => (
         <Box sx={{ display: "flex", alignItems: "center", height: "100%" }}>
           <IconButton
@@ -86,6 +90,8 @@ export const useQuoteItemColumns = (
       headerName: "Descrição do Produto",
       flex: 3.5,
       editable: false,
+      align: "left",
+      headerAlign: "left",
       renderCell: (params: any) => (
         <Box sx={{ display: "flex", alignItems: "center", height: "100%" }}>
           <Typography fontSize="12px" fontWeight="bold" color="black">
@@ -100,6 +106,8 @@ export const useQuoteItemColumns = (
       minWidth: 160,
       flex: 1,
       editable: true,
+      align: "left",
+      headerAlign: "left",
       valueGetter: (_value, row) => getQuoteItemObservation(row),
       renderCell: (params: any) => (
         <Box
@@ -129,6 +137,8 @@ export const useQuoteItemColumns = (
       headerName: "Unidade",
       flex: 0.5,
       editable: false,
+      align: "left",
+      headerAlign: "left",
       renderCell: (params: any) => (
         <Box sx={{ display: "flex", alignItems: "center", height: "100%" }}>
           <Typography fontSize="12px" fontWeight="bold" color="black">
@@ -142,6 +152,8 @@ export const useQuoteItemColumns = (
       headerName: "Preço Unitário",
       flex: 0.6,
       editable: true,
+      align: "left",
+      headerAlign: "left",
       renderCell: (params: any) => (
         <Box sx={{ display: "flex", alignItems: "center", height: "100%" }}>
           <Typography fontSize="small" fontWeight="bold" color="black">
@@ -157,6 +169,8 @@ export const useQuoteItemColumns = (
       headerName: "Qtde. Solicitada",
       type: "number",
       flex: 0.7,
+      align: "left",
+      headerAlign: "left",
       editable: !isSupplierRoute,
       renderCell: (params: any) => formatQuantidade(params.value),
     },
@@ -165,6 +179,8 @@ export const useQuoteItemColumns = (
       headerName: "Qtde. Cotada",
       type: "number",
       flex: 0.7,
+      align: "left",
+      headerAlign: "left",
       editable: true,
       renderCell: (params: any) => formatQuantidade(params.value),
     },
@@ -173,6 +189,8 @@ export const useQuoteItemColumns = (
       headerName: "ICMS (%)",
       type: "number",
       flex: 0.5,
+      align: "left",
+      headerAlign: "left",
       editable: true,
       renderCell: (params: any) => (
         <Box sx={{ display: "flex", alignItems: "center", height: "100%" }}>
@@ -187,6 +205,8 @@ export const useQuoteItemColumns = (
       headerName: "IPI (%)",
       type: "number",
       flex: 0.5,
+      align: "left",
+      headerAlign: "left",
       editable: true,
       renderCell: (params: any) => (
         <Box sx={{ display: "flex", alignItems: "center", height: "100%" }}>
@@ -203,6 +223,8 @@ export const useQuoteItemColumns = (
       headerName: "ST (%)",
       type: "number",
       flex: 0.5,
+      align: "left",
+      headerAlign: "left",
       editable: true,
       renderCell: (params: any) => (
         <Box sx={{ display: "flex", alignItems: "center", height: "100%" }}>
@@ -218,6 +240,8 @@ export const useQuoteItemColumns = (
       field: "subtotal",
       headerName: "Subtotal",
       flex: 0.5,
+      align: "left",
+      headerAlign: "left",
       editable: false,
       renderCell: (params: any) => {
         const precoUnitario = Number(params.row?.preco_unitario || 0);
@@ -251,6 +275,8 @@ export const useQuoteItemColumns = (
       headerName: 'Ações',
       type: 'actions',
       minWidth: 140,
+      align: "left",
+      headerAlign: "left",
       renderCell: (row) => {
         const { id } = row
         const anexos = row.row.anexos ?? []
@@ -262,7 +288,7 @@ export const useQuoteItemColumns = (
           <Box
             sx={{
               display: 'flex',
-              justifyContent: 'center',
+              justifyContent: 'flex-start',
               alignItems: 'center',
               gap: .4
             }}
@@ -293,6 +319,8 @@ export const useQuoteItemColumns = (
       field: "indisponivel",
       headerName: "Indisponivel",
       flex: 0.5,
+      align: "left",
+      headerAlign: "left",
       editable: false,
       renderCell: (params: any) => { 
         return (
