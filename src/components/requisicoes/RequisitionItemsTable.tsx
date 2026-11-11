@@ -3,6 +3,8 @@ import {
   GridCellModesModel,
   GridCellParams,
   GridCloseIcon,
+  GridColumnResizeParams,
+  GridRowHeightParams,
   GridRowModel,
   GridRowSelectionModel,
   useGridApiRef,
@@ -576,8 +578,24 @@ const RequisitionItemsTable = ({
   const toolbarRef = React.useRef<HTMLDivElement>(null);
   const tableWrapperRef = React.useRef<HTMLDivElement>(null);
   const [isHorizontallyScrolled, setIsHorizontallyScrolled] = useState(false);
+  // Largura que o usuário define manualmente ao arrastar a borda da coluna.
+  // Sem isso, qualquer novo render de `columns` (ex.: ao rolar a tabela na
+  // horizontal, o que alterna isHorizontallyScrolled) reaplicava a largura
+  // calculada a partir do conteúdo e desfazia o ajuste manual do usuário.
+  const [columnWidthOverrides, setColumnWidthOverrides] = useState<Record<string, number>>({});
 
-  const { columns, isDinamicField, dinamicColumns } = useRequisitionItemColumns(
+  useEffect(() => {
+    setColumnWidthOverrides({});
+  }, [id_requisicao]);
+
+  const handleColumnWidthChange = useCallback((params: GridColumnResizeParams) => {
+    setColumnWidthOverrides((previous) => ({
+      ...previous,
+      [params.colDef.field]: params.width,
+    }));
+  }, []);
+
+  const { columns, isDinamicField, dinamicColumns, getObservationRowHeight } = useRequisitionItemColumns(
     addingReqItems,
     editItemFieldsPermitted,
     handleDeleteItem,
@@ -588,7 +606,14 @@ const RequisitionItemsTable = ({
     quoteItemsSelected,
     selectionModel as number[],
     blockFields,
-    isHorizontallyScrolled
+    isHorizontallyScrolled,
+    columnWidthOverrides
+  );
+
+  const getRowHeight = useCallback(
+    (params: GridRowHeightParams) =>
+      isMobile ? null : getObservationRowHeight(params.model),
+    [isMobile, getObservationRowHeight]
   );
 
   const currentStep = normalizeText(requisition.status?.nome);
@@ -1841,6 +1866,7 @@ const RequisitionItemsTable = ({
           theme={theme}
           disableColumnMenu
           rowHeight={60}
+          getRowHeight={getRowHeight}
           rows={filteredItems}
           checkboxSelection
           onRowSelectionModelChange={handleChangeSelection}
@@ -1856,6 +1882,7 @@ const RequisitionItemsTable = ({
           cellModesModel={cellModesModel}
           onCellModesModelChange={handleCellModesModelChange}
           onCellClick={handleCellClick}
+          onColumnWidthChange={handleColumnWidthChange}
           processRowUpdate={processRowUpdate}
           hideFooter={hideFooter}
           autoHeight={shouldUseAutoHeight}

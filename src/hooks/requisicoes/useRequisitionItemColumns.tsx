@@ -43,6 +43,7 @@ import ReceiptLongIcon from '@mui/icons-material/ReceiptLong';
 import ShoppingCartIcon from '@mui/icons-material/ShoppingCart';
 import DoneAllIcon from '@mui/icons-material/DoneAll';
 import { calculateColumnWidth } from "../../utils/calculateColumnWidth";
+import { textMeasurer } from "../../utils/textMeansurer";
 import { getVisibleStockQuantity } from "../../utils/stock";
 
 const StyledBadge = styled(Badge)<BadgeProps>(() => ({
@@ -83,7 +84,8 @@ export const useRequisitionItemColumns = (
   quoteItemsSelected: Map<number, number>,
   selectionModel: number[],
   blockFields: boolean,
-  isHorizontallyScrolled: boolean
+  isHorizontallyScrolled: boolean,
+  columnWidthOverrides: Record<string, number> = {}
 ) => {
   const dispatch = useDispatch();
   const { id_requisicao } = useParams();
@@ -155,6 +157,50 @@ export const useRequisitionItemColumns = (
     calculateColumnWidth(items, 'observacao', 'Observação', undefined, 'bold 13px Roboto', 100, 600) +
     OBSERVACAO_ICON_ALLOWANCE,
     [items]
+  );
+
+  // Quando a observação não cabe em uma linha, a célula quebra o texto em
+  // várias linhas (até OBSERVACAO_MAX_LINHAS) e a linha da tabela cresce para
+  // acomodá-las, em vez de cortar o texto na altura fixa padrão.
+  const DEFAULT_ROW_HEIGHT = 60;
+  const OBSERVACAO_LINE_HEIGHT = 16;
+  const OBSERVACAO_MAX_LINHAS = 6;
+  const observacaoMeasurer = useMemo(() => textMeasurer('12px Roboto'), []);
+
+  const getObservationRowHeight = useCallback(
+    (row: any) => {
+      if (addingReqItems || attendingItems || updatingRecentProductsQuantity) {
+        return DEFAULT_ROW_HEIGHT;
+      }
+
+      const text = String(row?.observacao ?? "").trim();
+      const availableWidth =
+        (columnWidthOverrides.observacao ?? observacaoColumnWidth) -
+        OBSERVACAO_ICON_ALLOWANCE -
+        20;
+
+      if (!text || availableWidth <= 0) {
+        return DEFAULT_ROW_HEIGHT;
+      }
+
+      const estimatedLines = Math.ceil(
+        observacaoMeasurer(text) / availableWidth
+      );
+      const clampedLines = Math.min(Math.max(estimatedLines, 1), OBSERVACAO_MAX_LINHAS);
+
+      return Math.max(
+        DEFAULT_ROW_HEIGHT,
+        clampedLines * OBSERVACAO_LINE_HEIGHT + 16
+      );
+    },
+    [
+      addingReqItems,
+      attendingItems,
+      updatingRecentProductsQuantity,
+      columnWidthOverrides,
+      observacaoColumnWidth,
+      observacaoMeasurer,
+    ]
   );
 
   const handleSelectQuoteId = (quoteId: number, e: ChangeEvent<HTMLInputElement>) => {
@@ -249,7 +295,7 @@ export const useRequisitionItemColumns = (
       field: "produto_descricao",
       headerName: "Descrição",
       type: "string",
-      width: descriptionColumnWidth,
+      width: columnWidthOverrides.produto_descricao ?? descriptionColumnWidth,
       flex: 0,
       renderCell: (params: any) => (
         <Box
@@ -278,7 +324,7 @@ export const useRequisitionItemColumns = (
       editable: true,
       renderEditCell: renderInstantEditCell,
       valueGetter: (observacao: string) => observacao ?? "",
-      width: observacaoColumnWidth,
+      width: columnWidthOverrides.observacao ?? observacaoColumnWidth,
       flex: 0,
       minWidth: 100,
       renderCell: (params) => (
@@ -298,10 +344,17 @@ export const useRequisitionItemColumns = (
               <ContentCopyIcon sx={{ fontSize: 11 }} />
             </IconButton>
           </Tooltip>
-          <Typography 
+          <Typography
+            title={String(params?.value ?? '')}
             sx={{
               whiteSpace: 'normal',
-              fontSize: '12px'
+              wordBreak: 'break-word',
+              fontSize: '12px',
+              lineHeight: `${OBSERVACAO_LINE_HEIGHT}px`,
+              display: '-webkit-box',
+              WebkitLineClamp: OBSERVACAO_MAX_LINHAS,
+              WebkitBoxOrient: 'vertical',
+              overflow: 'hidden',
             }}
           >
             {String(params?.value ?? '')}
@@ -841,6 +894,7 @@ export const useRequisitionItemColumns = (
     descriptionColumnWidth,
     isHorizontallyScrolled,
     observacaoColumnWidth,
+    columnWidthOverrides,
     targetPriceTotal,
     attendingItems,
     hasStockToPurchaseSplit,
@@ -1137,6 +1191,7 @@ export const useRequisitionItemColumns = (
       shippingDate,
       dinamicColumns,
       isDinamicField,
+      getObservationRowHeight,
     };
   }, [
     dinamicColumns,
@@ -1146,5 +1201,6 @@ export const useRequisitionItemColumns = (
     fillingShippingDate,
     shippingDate,
     isDinamicField,
+    getObservationRowHeight,
   ]);
 };
