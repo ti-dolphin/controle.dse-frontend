@@ -1756,7 +1756,10 @@ const RequisitionItemsTable = ({
         sx={{
           height: effectiveMaxHeight ? effectiveMaxHeight : "auto",
           overflowX: "auto",
-          overflowY: shouldUseAutoHeight ? "visible" : "auto",
+          // O próprio DataGrid já rola verticalmente (com o header fixo); um
+          // segundo scroll vertical aqui, neste wrapper, só duplicava a
+          // rolagem sem manter os headers fixos.
+          overflowY: "hidden",
           "& .MuiDataGrid-scrollbar--horizontal": {
             position: "sticky",
             bottom: 0,
