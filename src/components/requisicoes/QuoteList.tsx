@@ -11,6 +11,7 @@ import { setFeedback } from '../../redux/slices/feedBackSlice';
 import BaseDeleteDialog from '../shared/BaseDeleteDialog';
 import { setRefresh } from '../../redux/slices/requisicoes/requisitionItemSlice';
 import { setRefreshRequisition } from '../../redux/slices/requisicoes/requisitionSlice';
+import { getQuoteCompletionStatus, QUOTE_STATUS_LABEL } from '../../utils/requisicoes/quoteStatus';
 
 const QuoteList = () => {
   const dispatch = useDispatch();
@@ -130,6 +131,14 @@ const QuoteList = () => {
                           </Typography>
                           <Typography sx={{ color: "text.secondary" }}>
                             {getDateStringFromISOstring(quote.data_cotacao)}
+                          </Typography>
+                        </Stack>
+                        <Stack direction="row" gap={1}>
+                          <Typography fontFamily="Poppins" fontWeight="bold">
+                            Status:
+                          </Typography>
+                          <Typography sx={{ color: "text.secondary" }}>
+                            {QUOTE_STATUS_LABEL[getQuoteCompletionStatus(quote.items)]}
                           </Typography>
                         </Stack>
                       </Box>

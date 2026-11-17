@@ -25,6 +25,7 @@ import { QuoteFileService } from "../../services/requisicoes/QuoteFileService";
 import { formatCurrency } from "../../utils";
 import { exportToExcel } from "../../utils/excelExport";
 import { buildQuoteItemsExcelRows, parseQuoteItemsExcelRows } from "../../utils/quoteItemsExcel";
+import { getQuoteCompletionStatus, QUOTE_STATUS_LABEL } from "../../utils/requisicoes/quoteStatus";
 
 const QuoteDetailPage = () => {
   const dispatch = useDispatch();
@@ -79,7 +80,7 @@ const QuoteDetailPage = () => {
       return;
     }
 
-    try {  
+    try {
       const updatedQuote = await QuoteService.update(data.id_cotacao, {
         descricao  : data.descricao,
         observacao : data.observacao,
@@ -372,6 +373,10 @@ const QuoteDetailPage = () => {
                 Custo total:{" "}
                 {formatCurrency(Number(quote?.valor_total || 0) - Number(quote?.desconto || 0))}
               </Typography>
+              <Typography variant="subtitle2" color="text.secondary">
+                Status:{" "}
+                {QUOTE_STATUS_LABEL[getQuoteCompletionStatus(quoteItems)]}
+              </Typography>
             </Box>
 
             <QuoteItemsTable hideFooter={false} tableMaxHeight={400} />
@@ -420,6 +425,10 @@ const QuoteDetailPage = () => {
               <Typography variant="subtitle2" color="success.main">
                 Custo total:{" "}
                 {formatCurrency(Number(quote?.valor_total || 0) - Number(quote?.desconto || 0))}
+              </Typography>
+              <Typography variant="subtitle2" color="text.secondary">
+                Status:{" "}
+                {QUOTE_STATUS_LABEL[getQuoteCompletionStatus(quoteItems)]}
               </Typography>
             </Box>
           </Stack>
