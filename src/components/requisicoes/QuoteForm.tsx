@@ -14,6 +14,7 @@ import { useQuoteFieldPermissions } from "../../hooks/requisicoes/useQuoteFieldP
 import { setFeedback } from "../../redux/slices/feedBackSlice";
 import OptionsField from "../shared/ui/OptionsField";
 import ElegantInput from "../shared/ui/Input";
+import { getQuoteCompletionStatus } from "../../utils/requisicoes/quoteStatus";
 interface QuoteFormProps {
   onSubmit: (e: React.FormEvent<HTMLFormElement>, data: any) => void;
 }
@@ -22,7 +23,9 @@ const QuoteForm = ({ onSubmit }: QuoteFormProps) => {
   const dispatch = useDispatch();
   const user = useSelector((state: RootState) => state.user.user);
   const { quote, accessType } = useSelector((state: RootState) => state.quote);
+  const { quoteItems } = useSelector((state: RootState) => state.quoteItem);
   const isSupplierRoute = accessType === "supplier";
+  const isQuoteComplete = getQuoteCompletionStatus(quoteItems) === "concluida";
 
   const {
     taxClassificationOptions,
@@ -169,8 +172,15 @@ const QuoteForm = ({ onSubmit }: QuoteFormProps) => {
           </React.Fragment>
         ))}
       </Grid>
-      <Button type="submit" size="small" variant="contained" color="primary" fullWidth>
-        Salvar
+      <Button
+        type="submit"
+        size="small"
+        variant="contained"
+        color="primary"
+        fullWidth
+        sx={{ textTransform: "none" }}
+      >
+        {isQuoteComplete ? "Salvar e enviar" : "Salvar"}
       </Button>
     </Box>
   );
