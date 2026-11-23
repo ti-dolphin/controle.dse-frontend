@@ -154,8 +154,8 @@ const QuoteItemsTable = ({
     [columns, resizedColumnWidths]
   );
 
-  const mobileColumns = ( ) =>  {
-    const arr = [
+  const baseMobileColumns = useMemo(
+    () => [
       {
         label: "Produto",
         field: 'produto_descricao',
@@ -167,9 +167,19 @@ const QuoteItemsTable = ({
       { label: 'ST%', field: "ST", width: 80 },
       { label: 'Preco Unitario', field: "preco_unitario", width: 200 },
       { label:'subtotal', field: "subtotal", width: 100 },
-    ];
-    return arr;
-  }
+    ],
+    [columns]
+  );
+
+  const mobileColumnsWithResizedWidths = useMemo(
+    () =>
+      baseMobileColumns.map((column) =>
+        resizedColumnWidths[column.field] !== undefined
+          ? { ...column, flex: undefined, width: resizedColumnWidths[column.field] }
+          : column
+      ),
+    [baseMobileColumns, resizedColumnWidths]
+  );
 
   const { permissionToEditItems, permissionToAddItems } =
     useQuoteItemPermissions(user, isSupplierRoute);
@@ -521,7 +531,7 @@ const QuoteItemsTable = ({
           loading={loading}
           theme={theme}
           rows={quoteItems}
-          columns={isMobile ? mobileColumns() : columnsWithResizedWidths}
+          columns={isMobile ? mobileColumnsWithResizedWidths : columnsWithResizedWidths}
           onColumnWidthChange={handleColumnWidthChange}
           cellModesModel={cellModesModel}
           onCellModesModelChange={handleCellModesModelChange}
