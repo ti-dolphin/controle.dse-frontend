@@ -79,7 +79,7 @@ const OpportunityKanbanComponent = ({ board }: OpportunityKanbanComponentProps) 
   const [showAllOverride, setShowAllOverride] = useState<{ userId: number; checked: boolean } | null>(null)
   const showAllCards = showAllOverride && showAllOverride.userId === user?.CODPESSOA
     ? showAllOverride.checked
-    : Number(user?.PERM_ADMINISTRADOR) === 1
+    : Number(user?.PERM_ADMINISTRADOR) === 1 || Number(user?.PERM_CRM) === 1
   const requestIdRef = useRef(0)
   const columnField: ColumnField = board === "Comercial" ? "kanban_column_id" : "kanban_column_id_orcamento"
   const [columns, setColumns] = useState<OpportunityKanbanColumn[]>([])
