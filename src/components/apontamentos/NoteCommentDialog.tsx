@@ -46,6 +46,7 @@ const NoteCommentDialog: React.FC<NoteCommentDialogProps> = ({
 }) => {
   const dispatch = useDispatch();
   const user = useSelector((state: RootState) => state.user.user);
+  const canComment = Boolean(user?.PERM_COMENT_APONT) || Boolean(user?.PERM_ADMINISTRADOR);
   const [comments, setComments] = useState<NoteComment[]>([]);
   const [loading, setLoading] = useState(false);
   const [newComment, setNewComment] = useState("");
@@ -249,75 +250,77 @@ const NoteCommentDialog: React.FC<NoteCommentDialogProps> = ({
 
       <DialogContent dividers>
         <Box sx={{ display: "flex", flexDirection: "column", gap: 2 }}>
-          {/* Campo de novo comentário */}
-          <Box>
-            <Typography variant="subtitle2" gutterBottom>
-              {editingCommentId ? "Editar comentário" : "Comentário"}
-            </Typography>
-            <TextField
-              multiline
-              rows={4}
-              fullWidth
-              value={newComment}
-              onChange={(e) => setNewComment(e.target.value)}
-              placeholder="Digite seu comentário aqui..."
-              variant="outlined"
-            />
-          </Box>
+          {canComment && (
+            <>
+              {/* Campo de novo comentário */}
+              <Box>
+                <Typography variant="subtitle2" gutterBottom>
+                  {editingCommentId ? "Editar comentário" : "Comentário"}
+                </Typography>
+                <TextField
+                  multiline
+                  rows={4}
+                  fullWidth
+                  value={newComment}
+                  onChange={(e) => setNewComment(e.target.value)}
+                  placeholder="Digite seu comentário aqui..."
+                  variant="outlined"
+                />
+              </Box>
 
-          {/* Botões de ação */}
-          <Box sx={{ display: "flex", gap: 1, flexWrap: "wrap" }}>
-            <Button
-              variant="outlined"
-              size="small"
-              onClick={() => setPresetDialogOpen(true)}
-              disabled={loading}
-              sx={{ fontSize: 11 }}
-            >
-              Comentários padrão
-            </Button>
-            <Button
-              variant="outlined"
-              size="small"
-              onClick={() => handlePresetFolga()}
-              disabled={loading}
-              sx={{ fontSize: 11 }}
-            >
-              Programar folga
-            </Button>
+              {/* Botões de ação */}
+              <Box sx={{ display: "flex", gap: 1, flexWrap: "wrap" }}>
+                <Button
+                  variant="outlined"
+                  size="small"
+                  onClick={() => setPresetDialogOpen(true)}
+                  disabled={loading}
+                  sx={{ fontSize: 11 }}
+                >
+                  Comentários padrão
+                </Button>
+                <Button
+                  variant="outlined"
+                  size="small"
+                  onClick={() => handlePresetFolga()}
+                  disabled={loading}
+                  sx={{ fontSize: 11 }}
+                >
+                  Programar folga
+                </Button>
 
-            <Button
-              variant="outlined"
-              size="small"
-              onClick={handleDeleteComments}
-              disabled={selectedComments.length === 0 || loading || (!user?.PERM_COMENT_APONT && !user?.PERM_ADMINISTRADOR)}
-              title={(!user?.PERM_COMENT_APONT && !user?.PERM_ADMINISTRADOR) ? "Você não tem permissão para excluir comentários" : ""}
-              sx={{ fontSize: 11 }}
-            >
-              Excluir
-            </Button>
-            {editingCommentId && (
-              <Button
-                variant="outlined"
-                size="small"
-                onClick={clearEditingState}
-                disabled={loading}
-                sx={{ fontSize: 11 }}
-              >
-                Cancelar edição
-              </Button>
-            )}
-            <Button
-              variant="contained"
-              size="small"
-              onClick={handleCreateComment}
-              disabled={!newComment.trim() || loading || (!user?.PERM_COMENT_APONT && !user?.PERM_ADMINISTRADOR)}
-              title={(!user?.PERM_COMENT_APONT && !user?.PERM_ADMINISTRADOR) ? "Você não tem permissão para criar comentários" : ""}
-              sx={{ fontSize: 11 }}
-            >
-              {editingCommentId ? "Salvar edição" : "Comentar"}
-            </Button>
-          </Box>
+                <Button
+                  variant="outlined"
+                  size="small"
+                  onClick={handleDeleteComments}
+                  disabled={selectedComments.length === 0 || loading}
+                  sx={{ fontSize: 11 }}
+                >
+                  Excluir
+                </Button>
+                {editingCommentId && (
+                  <Button
+                    variant="outlined"
+                    size="small"
+                    onClick={clearEditingState}
+                    disabled={loading}
+                    sx={{ fontSize: 11 }}
+                  >
+                    Cancelar edição
+                  </Button>
+                )}
+                <Button
+                  variant="contained"
+                  size="small"
+                  onClick={handleCreateComment}
+                  disabled={!newComment.trim() || loading}
+                  sx={{ fontSize: 11 }}
+                >
+                  {editingCommentId ? "Salvar edição" : "Comentar"}
+                </Button>
+              </Box>
+            </>
+          )}
 
           {/* Tabela de comentários */}
           <Box sx={{ height: 350, width: "100%" }}>
@@ -329,7 +332,7 @@ const NoteCommentDialog: React.FC<NoteCommentDialogProps> = ({
               disableRowSelectionOnClick
               rowSelectionModel={selectedComments}
               onRowSelectionModelChange={setSelectedComments}
-              onRowClick={(params) => handleStartEditComment(params.row as NoteComment)}
+              onRowClick={(params) => canComment && handleStartEditComment(params.row as NoteComment)}
               getRowId={(row) => row.CODCOMENTARIO}
               pageSizeOptions={[10, 25, 50, 1000]}
               initialState={{
