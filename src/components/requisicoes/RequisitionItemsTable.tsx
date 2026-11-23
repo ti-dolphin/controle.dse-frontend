@@ -1893,22 +1893,26 @@ const RequisitionItemsTable = ({
           getRowClassName={getRowClassName}
           onRowClick={handleRowClick}
           showCellVerticalBorder
-          sx={{
-            "& .MuiDataGrid-columnHeader[data-field='produto_descricao']": {
-              position: "sticky",
-              left: 0,
-              zIndex: 5,
-              backgroundColor: "background.paper",
-              boxShadow: "2px 0 4px rgba(0, 0, 0, 0.12)",
-            },
-            "& .MuiDataGrid-cell[data-field='produto_descricao']": {
-              position: "sticky",
-              left: 0,
-              zIndex: 1,
-              backgroundColor: "background.paper",
-              boxShadow: "2px 0 4px rgba(0, 0, 0, 0.12)",
-            },
-          }}
+          sx={
+            isMobile
+              ? {}
+              : {
+                  "& .MuiDataGrid-columnHeader[data-field='produto_descricao']": {
+                    position: "sticky",
+                    left: 0,
+                    zIndex: 5,
+                    backgroundColor: "background.paper",
+                    boxShadow: "2px 0 4px rgba(0, 0, 0, 0.12)",
+                  },
+                  "& .MuiDataGrid-cell[data-field='produto_descricao']": {
+                    position: "sticky",
+                    left: 0,
+                    zIndex: 1,
+                    backgroundColor: "background.paper",
+                    boxShadow: "2px 0 4px rgba(0, 0, 0, 0.12)",
+                  },
+                }
+          }
         />
       </Box>
       <StickyHorizontalScrollbar
