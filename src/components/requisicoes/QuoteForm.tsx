@@ -72,7 +72,13 @@ const QuoteForm = ({ onSubmit }: QuoteFormProps) => {
 
     if (quote) {
       const codeFields = ["cnpj_fornecedor", "cnpj_faturamento", "descricao", "observacao", "fornecedor"];
-      const normalizedValue = value.replace(",", ".");
+      const numericFields = ["valor_frete", "desconto"];
+      // Campo numérico com vírgula: trata pontos já digitados como separador de milhar
+      // e descarta, pra vírgula virar o único separador decimal (evita "5.555.55").
+      const normalizedValue =
+        numericFields.includes(field) && value.includes(",")
+          ? value.replace(/\./g, "").replace(",", ".")
+          : value.replace(",", ".");
 
       const isIncompleteDecimal = normalizedValue.endsWith(".") || /\.\d*$/.test(normalizedValue);
 
