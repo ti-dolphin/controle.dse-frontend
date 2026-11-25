@@ -13,6 +13,7 @@ import {
   removeRow,
   setDoneReqFilter,
   setCancelledReqFilter,
+  toggleStatusFilter,
 } from "../../../redux/slices/requisicoes/requisitionTableSlice";
 import { setFeedback } from "../../../redux/slices/feedBackSlice";
 import RequisitionService from "../../../services/requisicoes/RequisitionService";
@@ -48,6 +49,8 @@ import { getRequisitionUrgencyLevel } from "../../../utils";
 import { Requisition } from "../../../models/requisicoes/Requisition";
 
 const REQUISITION_TABLE_KEY = "requisition-list";
+// Kanbans "A Fazer" (1) e "Fazendo" (2): únicos com subfiltro por status da aba.
+const STATUS_SUBFILTER_KANBAN_IDS = [1, 2];
 
 const RequisitionListPage = () => {
   useRequisitionKanban();
@@ -70,6 +73,7 @@ const RequisitionListPage = () => {
     requisitionBeingDeletedId,
     doneReqFilter,
     cancelledReqFilter,
+    statusFilter,
   } = useSelector((state: RootState) => state.requisitionTable);
 
   const {isMobile } = useIsMobile();
@@ -196,7 +200,36 @@ const RequisitionListPage = () => {
     dispatch(setCancelledReqFilter(checked));
   };
 
-  const debouncedHandleChangeSearchTerm = useMemo(() => { 
+  const showStatusSubFilter = STATUS_SUBFILTER_KANBAN_IDS.includes(
+    selectedKanban?.id_kanban_requisicao as number
+  );
+
+  const statusSubFilterOptions = useMemo(() => {
+    if (!showStatusSubFilter) return [];
+
+    const countByStatus = new Map<string, number>();
+    rows.forEach((row: Requisition) => {
+      const nome = row.status?.nome ?? "Sem status";
+      countByStatus.set(nome, (countByStatus.get(nome) ?? 0) + 1);
+    });
+
+    return Array.from(countByStatus.entries())
+      .map(([nome, count]) => ({ nome, count }))
+      .sort((a, b) => a.nome.localeCompare(b.nome));
+  }, [rows, showStatusSubFilter]);
+
+  const displayedRows = useMemo(() => {
+    if (!showStatusSubFilter || statusFilter.length === 0) return rows;
+    return rows.filter((row: Requisition) =>
+      statusFilter.includes(row.status?.nome ?? "Sem status")
+    );
+  }, [rows, statusFilter, showStatusSubFilter]);
+
+  const handleToggleStatusFilter = (nome: string) => {
+    dispatch(toggleStatusFilter(nome));
+  };
+
+  const debouncedHandleChangeSearchTerm = useMemo(() => {
     return debounce(handleChangeSearchTerm, 500);
   }, [handleChangeSearchTerm]);
 
@@ -356,6 +389,40 @@ const RequisitionListPage = () => {
             )}
           </Box>
         </BaseToolBar>
+        {showStatusSubFilter && statusSubFilterOptions.length > 0 && (
+          <Box
+            sx={{
+              display: "flex",
+              gap: 1,
+              flexWrap: "wrap",
+              alignItems: "center",
+              px: 2,
+              py: 0.5,
+              backgroundColor: "primary.light",
+            }}
+          >
+            {statusSubFilterOptions.map((option) => (
+              <Button
+                key={option.nome}
+                onClick={() => handleToggleStatusFilter(option.nome)}
+                sx={{
+                  backgroundColor: statusFilter.includes(option.nome)
+                    ? "secondary.main"
+                    : "primary.main",
+                  color: "white",
+                  textTransform: "capitalize",
+                  borderRadius: 0,
+                  height: 22,
+                  fontSize: 12,
+                  minWidth: "auto",
+                  px: 1,
+                }}
+              >
+                {option.nome} ({option.count})
+              </Button>
+            ))}
+          </Box>
+        )}
         <BaseTableToolBar
           handleChangeSearchTerm={debouncedHandleChangeSearchTerm}
           searchValue={searchTerm}
@@ -420,13 +487,13 @@ const RequisitionListPage = () => {
               columnWidth={gridContainerRef.current?.offsetWidth || 300}
               rowHeight={260}
               columnCount={1}
-              rowCount={rows.length}
+              rowCount={displayedRows.length}
               width={gridContainerRef.current?.offsetWidth || 300}
               height={gridContainerRef.current?.offsetHeight || 400}
             >
               {({ columnIndex, rowIndex, style }) => {
                 const itemIndex = rowIndex
-                const requisition = rows[itemIndex]
+                const requisition = displayedRows[itemIndex]
                 if (!requisition) return null
                 return (
                   <RequisitionCard
@@ -443,7 +510,7 @@ const RequisitionListPage = () => {
         ) : (
           <BaseDataTable
             apiRef={gridRef}
-            rows={rows}
+            rows={displayedRows}
             disableColumnMenu
             disableColumnFilter
             rowHeight={40}
