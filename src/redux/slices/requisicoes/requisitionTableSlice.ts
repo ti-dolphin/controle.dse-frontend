@@ -44,6 +44,7 @@ interface RequisitionTableState {
   requisitionBeingDeletedId: number | null;
   doneReqFilter: boolean;
   cancelledReqFilter: boolean;
+  statusFilter: string[];
 }
 
 const initialState: RequisitionTableState = {
@@ -71,6 +72,7 @@ const initialState: RequisitionTableState = {
   requisitionBeingDeletedId: null,
   doneReqFilter: false,
   cancelledReqFilter: false,
+  statusFilter: [],
 };
 
 const requisitionTableSlice = createSlice({
@@ -97,6 +99,7 @@ const requisitionTableSlice = createSlice({
     },
     setSelectedKanban(state, action: PayloadAction<RequisitionKanban | null>) {
       state.selectedKanban = action.payload;
+      state.statusFilter = [];
     },
     setSearchTerm(state, action: PayloadAction<string>) {
       state.searchTerm = action.payload;
@@ -112,6 +115,12 @@ const requisitionTableSlice = createSlice({
     },
     setCancelledReqFilter(state, action: PayloadAction<boolean>) {
       state.cancelledReqFilter = action.payload;
+    },
+    toggleStatusFilter(state, action: PayloadAction<string>) {
+      const statusNome = action.payload;
+      state.statusFilter = state.statusFilter.includes(statusNome)
+        ? state.statusFilter.filter((nome) => nome !== statusNome)
+        : [...state.statusFilter, statusNome];
     },
     clearfilters(state) {
       state.filters = {
@@ -130,6 +139,7 @@ const requisitionTableSlice = createSlice({
       };
       state.doneReqFilter = false;
       state.cancelledReqFilter = false;
+      state.statusFilter = [];
     },
     clearRows(state) {
       state.rows = [];
@@ -154,5 +164,6 @@ export const {
   removeRow,
   setDoneReqFilter,
   setCancelledReqFilter,
+  toggleStatusFilter,
 } = requisitionTableSlice.actions;
 export default requisitionTableSlice.reducer;
