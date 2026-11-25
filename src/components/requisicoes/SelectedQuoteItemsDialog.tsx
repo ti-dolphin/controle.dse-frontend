@@ -31,12 +31,14 @@ import {
   formatCurrency2To3,
   getQuoteItemObservation,
 } from "../../utils";
+import { calculateEligibleQuoteDiscount } from "../../utils/requisicoes/quoteDiscount";
 import BaseDataTable from "../shared/BaseDataTable";
 import { useSelectedQuoteItemColumns } from "../../hooks/requisicoes/useSelectedQuoteItemColumns";
 
 export interface SelectedQuoteGroup {
   quote: Quote;
   selectedItems: QuoteItem[];
+  allItems: QuoteItem[];
 }
 
 interface SelectedQuoteItemsDialogProps {
@@ -53,10 +55,11 @@ const PDF_WRAP_TOLERANCE = 2;
 const PDF_PRIMARY: [number, number, number] = [25, 118, 210];
 const PDF_MUTED: [number, number, number] = [117, 117, 117];
 const PDF_SUCCESS: [number, number, number] = [46, 125, 50];
+const PDF_ERROR: [number, number, number] = [198, 40, 40];
 const PDF_TEXT: [number, number, number] = [33, 33, 33];
 const PDF_BORDER: [number, number, number] = [224, 224, 224];
 
-const QUOTE_HEADER_WEIGHTS = [0.55, 1.5, 1, 1.2, 0.7, 1.25];
+const QUOTE_HEADER_WEIGHTS = [0.55, 1.5, 1, 1.2, 0.7, 1.25, 0.8];
 const ITEM_COLUMN_WEIGHTS = [0.7, 2.6, 0.45, 0.7, 0.8, 0.45, 0.45, 0.45, 0.85, 0.85];
 
 type PdfColumnStyle = {
@@ -164,7 +167,7 @@ const SelectedQuoteItemsDialog: React.FC<SelectedQuoteItemsDialogProps> = ({
           (doc as unknown as { lastAutoTable?: { finalY?: number } }).lastAutoTable
             ?.finalY ?? PDF_MARGIN;
 
-        groupsToExport.forEach(({ quote, selectedItems }, groupIndex) => {
+        groupsToExport.forEach(({ quote, selectedItems, allItems }, groupIndex) => {
           if (groupIndex > 0) {
             doc.addPage();
           }
@@ -180,6 +183,12 @@ const SelectedQuoteItemsDialog: React.FC<SelectedQuoteItemsDialogProps> = ({
               ),
             0
           );
+          const discount = calculateEligibleQuoteDiscount(
+            Number(quote.desconto || 0),
+            allItems,
+            selectedItems
+          );
+          const totalWithDiscount = selectedTotal - discount;
 
           const continuationLines = splitSubtitle(
             `Cotação #${quote.id_cotacao} | ${quote.fornecedor || "-"} (continuação)`
@@ -200,6 +209,7 @@ const SelectedQuoteItemsDialog: React.FC<SelectedQuoteItemsDialogProps> = ({
                 "Condição de pagamento",
                 "Frete",
                 "Total dos itens selecionados",
+                "Desconto",
               ],
             ],
             body: [
@@ -209,7 +219,8 @@ const SelectedQuoteItemsDialog: React.FC<SelectedQuoteItemsDialogProps> = ({
                 quote.cnpj_fornecedor || "-",
                 quote.condicao_pagamento?.nome || "-",
                 formatCurrency2To3(Number(quote.valor_frete || 0)),
-                formatCurrency2To3(selectedTotal),
+                formatCurrency2To3(totalWithDiscount),
+                formatCurrency2To3(discount),
               ],
             ],
             theme: "plain",
@@ -230,8 +241,14 @@ const SelectedQuoteItemsDialog: React.FC<SelectedQuoteItemsDialogProps> = ({
             },
             columnStyles: buildColumnStyles(QUOTE_HEADER_WEIGHTS, contentWidth),
             didParseCell: (data) => {
-              if (data.section === "body" && data.column.index === 5) {
+              if (data.section !== "body") return;
+
+              if (data.column.index === 5) {
                 data.cell.styles.textColor = PDF_SUCCESS;
+              }
+
+              if (data.column.index === 6) {
+                data.cell.styles.textColor = PDF_ERROR;
               }
             },
             margin: {
@@ -401,7 +418,7 @@ const SelectedQuoteItemsDialog: React.FC<SelectedQuoteItemsDialogProps> = ({
           const selectedItems = allItems.filter((qi) =>
             selectedItemCotacaoIds.has(qi.id_item_cotacao)
           );
-          return { quote, selectedItems };
+          return { quote, selectedItems, allItems };
         })
       );
 
@@ -487,7 +504,26 @@ const SelectedQuoteItemsDialog: React.FC<SelectedQuoteItemsDialogProps> = ({
             </Typography>
           ) : (
             <Stack spacing={2} sx={{ pt: 1 }}>
-              {quoteGroups.map(({ quote, selectedItems }) => (
+              {quoteGroups.map(({ quote, selectedItems, allItems }) => {
+                const selectedTotal = selectedItems.reduce(
+                  (acc, item) =>
+                    acc +
+                    calculateQuoteSubtotal(
+                      Number(item.preco_unitario || 0),
+                      Number(item.quantidade_solicitada || 0),
+                      Number(item.IPI || 0),
+                      Number(item.ST || 0)
+                    ),
+                  0
+                );
+                const discount = calculateEligibleQuoteDiscount(
+                  Number(quote.desconto || 0),
+                  allItems,
+                  selectedItems
+                );
+                const totalWithDiscount = selectedTotal - discount;
+
+                return (
                 <Paper key={quote.id_cotacao} variant="outlined" sx={{ p: 2 }}>
                   {/* Quote header */}
                   <Stack
@@ -537,6 +573,7 @@ const SelectedQuoteItemsDialog: React.FC<SelectedQuoteItemsDialogProps> = ({
                       </Typography>
                     </Box>
 
+
                     <Divider orientation="vertical" flexItem sx={{ display: { xs: "none", sm: "block" } }} />
 
                     <Box>
@@ -544,21 +581,23 @@ const SelectedQuoteItemsDialog: React.FC<SelectedQuoteItemsDialogProps> = ({
                         Total dos itens selecionados
                       </Typography>
                       <Typography fontSize="0.9rem" fontWeight={600} color="success.main">
-                        {formatCurrency2To3(
-                          selectedItems.reduce(
-                            (acc, item) =>
-                              acc +
-                              calculateQuoteSubtotal(
-                                Number(item.preco_unitario || 0),
-                                Number(item.quantidade_solicitada || 0),
-                                Number(item.IPI || 0),
-                                Number(item.ST || 0)
-                              ),
-                            0
-                          )
-                        )}
+                        {formatCurrency2To3(totalWithDiscount)}
                       </Typography>
                     </Box>
+                    {discount > 0 && (
+                      <>
+                        <Divider orientation="vertical" flexItem sx={{ display: { xs: "none", sm: "block" } }} />
+
+                        <Box>
+                          <Typography variant="caption" color="text.secondary" display="block">
+                            Desconto
+                          </Typography>
+                          <Typography fontSize="0.85rem" color="error.main">
+                            {formatCurrency2To3(discount)}
+                          </Typography>
+                        </Box>
+                      </>
+                    )}
                   </Stack>
 
                   <Divider sx={{ mb: 1.5 }} />
@@ -603,7 +642,8 @@ const SelectedQuoteItemsDialog: React.FC<SelectedQuoteItemsDialogProps> = ({
                     />
                   </Box>
                 </Paper>
-              ))}
+                );
+              })}
             </Stack>
           )}
         </DialogContent>
