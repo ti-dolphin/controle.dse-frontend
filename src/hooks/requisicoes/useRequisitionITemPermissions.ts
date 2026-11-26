@@ -5,6 +5,7 @@ import { useSelector } from "react-redux";
 import { RootState } from "../../redux/store";
 
 const editionEnabledStatuses = ["requisitado", "em cotação", "separar estoque", "comprar", "recebimento", "validação", "aprovação diretoria", "aprovação gerente"];
+const quoteCreationEnabledStatuses = ["validação", "em cotação"];
 
 function isAdmin(user: User | null): boolean {
   return Number(user?.PERM_ADMINISTRADOR) === 1;
@@ -70,7 +71,7 @@ export const useRequisitionItemPermissions = (
 
     setEditItemFieldsPermitted(admin || responsable || buyer || stockUser || projectManager || director);
     setChangeProductItemPermitted(admin || responsable || buyer || projectManager);
-    setCreateQuotePermitted((admin || buyer) && status === "em cotação");
+    setCreateQuotePermitted((admin || buyer) && quoteCreationEnabledStatuses.includes(status));
   }, [user, requisition]);
 
   return {
