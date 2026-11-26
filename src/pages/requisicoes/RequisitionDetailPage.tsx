@@ -307,7 +307,7 @@ const RequisitionDetailPage = () => {
       return false;
     }
 
-    const statusList = ['em cotação', 'aprovação gerente', 'aprovação diretoria', 'comprar', 'oc gerada', 'concluído', 'recebimento', 'lançar nf'];
+    const statusList = ['validação', 'em cotação', 'aprovação gerente', 'aprovação diretoria', 'comprar', 'oc gerada', 'concluído', 'recebimento', 'lançar nf'];
     return statusList.includes((requisition.status.nome ?? "").toLowerCase());
   }
 
