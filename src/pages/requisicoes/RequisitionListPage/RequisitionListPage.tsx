@@ -208,6 +208,7 @@ const RequisitionListPage = () => {
     if (!showStatusSubFilter) return [];
 
     const countByStatus = new Map<string, number>();
+    if (!Array.isArray(rows)) return [];
     rows.forEach((row: Requisition) => {
       const nome = row.status?.nome ?? "Sem status";
       countByStatus.set(nome, (countByStatus.get(nome) ?? 0) + 1);
@@ -219,6 +220,7 @@ const RequisitionListPage = () => {
   }, [rows, showStatusSubFilter]);
 
   const displayedRows = useMemo(() => {
+    if (!Array.isArray(rows)) return [];
     if (!showStatusSubFilter || statusFilter.length === 0) return rows;
     return rows.filter((row: Requisition) =>
       statusFilter.includes(row.status?.nome ?? "Sem status")
